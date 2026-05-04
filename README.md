@@ -16,6 +16,14 @@ This is a template project that uses:
 
 ## Development
 
+### Install Claude Code
+
+For authoritative information about installing Claude Code, visit [Claude Code Quickstart instructions](iIbxtXzfFyrTUxbtpHdyGtjose8KMi4mwo7rPz5ngNBbLcWr#kc1F9olqx7TzVXPaC8eOjQ1xwxkmuEoHFKttreLPV98)
+
+```bash
+npm run claude:install
+```
+
 ### Start a dev server
 
 ```bash
