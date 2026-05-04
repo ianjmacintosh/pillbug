@@ -40,8 +40,30 @@ Resolution flow: Patient is asked "Did you take it?" (Yes / No). "Yes" logs a ta
 **Snooze**:
 A Patient action that defers a Reminder by 9 minutes (alarm clock convention), causing it to re-fire. Does not log a Dose.
 
+**Pill Organizer**:
+A physical multi-compartment container used by the Patient to pre-sort medications by day and time of day. The Patient configures their Pill Organizer's structure in the app (Compartments per day: 1, 2, or 4; span: 7-day or longer).
+_Avoid_: Pill box, Dosette box, Medicine organizer, Weekly planner
+
+**Compartment**:
+A single physical slot in a Pill Organizer, identified by day and time of day (e.g., "Monday AM").
+_Avoid_: Slot, Cell, Section
+
+**Compartment Mapping**:
+A saved Patient decision resolving how a Prescription's scheduled time maps to a specific Compartment when the mapping is ambiguous (e.g., 12:30am could be "late night" PM or "early morning" AM). Prompted inline during the first Fill Session that encounters the ambiguity, with an "Always do this" option to save for future sessions.
+_Avoid_: Time assignment, Preference
+
+**Fill Session**:
+A guided, step-by-step workflow in which the Patient fills their Pill Organizer for the full span of the organizer (e.g., 7 days). Follows a prescription-by-prescription approach (one Prescription at a time across all Compartments, then move to the next). The Patient can optionally configure a recurring Reminder to prompt Fill Sessions. Workflow steps are provisional pending pharmacist or OT validation.
+
+Steps: (1) Verification — for each active Prescription, the app calculates the required pill count and the Patient confirms Yes/No that they have enough. If No, the app flags a refill is needed but does not block the session. (2) Filling — prescription-by-prescription, the Patient places pills in the listed Compartments. The Patient can confirm each Compartment individually or mark all at once. Ambiguous Schedule-to-Compartment mappings are resolved inline when first encountered, with an option to save as a permanent Compartment Mapping.
+
+If a Fill Session is interrupted and resumed, an Audit step precedes the remaining filling steps: the Patient confirms each previously completed Prescription is still accurate, and verifies no additional pills have been placed in those Compartments.
+
+A completed Fill Session is recorded with a timestamp and which Prescriptions were flagged as needing a refill during verification.
+_Avoid_: Packing, Loading, Preparation
+
 **Adherence Record**:
-A read-only view of a Patient's Prescriptions (active and completed) and their Dose history, showing how consistently they have followed their prescribed schedule. Intended for sharing with a healthcare provider.
+A read-only view of a Patient's Prescriptions (active and completed), Dose history, and Fill Session history (including any refill flags raised), showing how consistently they have followed their prescribed schedule. Intended for sharing with a healthcare provider.
 _Avoid_: Care Summary, Doctor View, Provider Page, Report, Medication History
 
 **Share Link**:
@@ -57,6 +79,8 @@ _Avoid_: Public link, Share URL
 - A **Reminder** results in a **Dose** (taken), a **Snooze** (deferred), or a dismissal (no Dose logged)
 - A **Dose** can be logged retroactively from history, independent of a Reminder
 - A **Patient** can generate a **Share Link** to grant read-only access to their **Adherence Record**
+- A **Patient** optionally has one **Pill Organizer** with a configured structure (Compartments per day, span in days)
+- A **Fill Session** covers the full span of the **Pill Organizer** and is recorded on completion
 
 ## Flagged ambiguities
 
