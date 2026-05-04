@@ -1,3 +1,10 @@
 # Ignore artifacts:
 build
 coverage
+
+# Ignore LLM tooling:
+.claude/
+.agents/
+
+# Ignore auto-generated files:
+.devcontainer/devcontainer-lock.json
