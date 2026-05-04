@@ -16,13 +16,24 @@ This is a template project that uses:
 
 ## Development
 
-### Install Claude Code
+### Working with Agents
 
 For authoritative information about installing Claude Code, visit [Claude Code Quickstart instructions](iIbxtXzfFyrTUxbtpHdyGtjose8KMi4mwo7rPz5ngNBbLcWr#kc1F9olqx7TzVXPaC8eOjQ1xwxkmuEoHFKttreLPV98)
 
 ```bash
 npm run claude:install
 ```
+
+This repository includes Matt Pocock's skills files. Authoritative setup instructions can be found in [`mattpocock/skills`](https://github.com/mattpocock/skills/#quickstart-30-second-setup):
+
+```bash
+npx skills@latest add mattpocock/skills
+
+# Pick /setup-matt-pocock-skills
+
+# Run /setup-matt-pocock-skills in your agent
+```
+
 
 ### Start a dev server
 
