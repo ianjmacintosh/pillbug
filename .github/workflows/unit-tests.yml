@@ -7,7 +7,7 @@ on:
       - synchronize
 jobs:
   test:
-    name: Run Vitest tests
+    name: Test with Vitest
     runs-on: ubuntu-latest
     steps:
       - name: Check out repo
