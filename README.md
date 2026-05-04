@@ -1,18 +1,8 @@
-# Alpha Centauri
+# Pillbug
 
 ## Overview
 
-This is a template project that uses:
-
-- TypeScript
-- React
-- Vite (with Cloudflare plugin)
-- Vitest
-- Playwright
-- ESLint
-- Prettier
-- GitHub Actions
-- Wrangler
+Get reminders to take your prescriptions without needing to personally manage a bunch of recurring phone alarms or meetings
 
 ## Development
 
