@@ -12,17 +12,17 @@ All patient data (Prescriptions, Doses, Fill Sessions, Doctors, Schedules, Remin
 
 ## Email delivery — Resend
 
-Patient email addresses are shared with Resend (a third-party email delivery service) solely to send magic link login emails and end-of-course Prescription notifications. Resend receives the recipient address and delivery metadata only — no medical content.
+Patient email addresses are shared with Resend (a third-party email delivery service) solely to send magic link login emails. Resend receives the recipient address and delivery metadata only — no medical content.
 
-**Disclosure required:** Resend is a named sub-processor. State the limited purpose (login + notifications) and that no medical content is transmitted to Resend.
+**Disclosure required:** Resend is a named sub-processor. State the limited purpose (magic link login only) and that no medical content is transmitted to Resend.
 
 ## Push notifications — Web Push API (self-hosted, VAPID)
 
-Reminders (push notifications containing medication names and scheduled times) are delivered via the browser Web Push API using VAPID keys. Pillbug does not use any managed notification service (e.g. OneSignal). Browser push infrastructure (Google FCM for Chrome, Mozilla Autopush for Firefox, Apple APNs for Safari) is involved in delivery as a transport layer — this is inherent to the Web Push standard and outside Pillbug's control.
+Reminders (push notifications containing medication names and scheduled times) and end-of-course Prescription notifications are delivered via the browser Web Push API using VAPID keys. Pillbug does not use any managed notification service (e.g. OneSignal). Browser push infrastructure (Google FCM for Chrome, Mozilla Autopush for Firefox, Apple APNs for Safari) is involved in delivery as a transport layer — this is inherent to the Web Push standard and outside Pillbug's control.
 
-Subscribing to Reminders stores a push subscription token in Pillbug's database. This token is used solely to deliver Reminders and is deleted when the patient unsubscribes or deletes their account.
+Subscribing to Reminders stores a push subscription token in Pillbug's database. This token is used solely to deliver push notifications and is deleted when the patient unsubscribes or deletes their account.
 
-**Disclosure required:** How Reminders are delivered, that no third-party notification service holds patient data, and that a push subscription token is stored per patient.
+**Disclosure required:** How push notifications are delivered, that no third-party notification service holds patient data, and that a push subscription token is stored per patient.
 
 ## Account deletion
 
