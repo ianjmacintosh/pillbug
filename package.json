@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
+    "deploy:preview": "npm run build && npx wrangler versions upload",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview --host",

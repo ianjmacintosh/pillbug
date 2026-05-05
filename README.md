@@ -54,6 +54,12 @@ npx skills@latest add mattpocock/skills
 
 This project was intended to work with GitHub and Cloudflare to deploy each branch associated with a pull request to `main` to a new preview environment
 
+You can also manually build and deploy from your local environment to a publicly-accessible temporary preview environment:
+
+```bash
+npm run deploy:preview
+```
+
 ### Deploying to Production
 
 This project was intended to work with GitHub and Cloudflare to deploy all changes merged to `main` to production
