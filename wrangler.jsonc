@@ -1,24 +1,24 @@
 {
-	"$schema": "./node_modules/wrangler/config-schema.json",
-	"name": "pillbug",
-	"compatibility_date": "2026-02-05",
-	"main": "src/worker.ts",
-	"assets": {
-		"binding": "ASSETS",
-		"not_found_handling": "single-page-application",
-	},
-	"routes": [
-		{
-			"pattern": "pillbug.ianjmacintosh.com",
-			"custom_domain": true,
-		},
-	],
-	"d1_databases": [
-		{
-			"binding": "DB",
-			"database_name": "pillbug",
-			"database_id": "53f26238-40f7-4aac-a17e-d9717a39b74b",
-			"migrations_dir": "migrations",
-		},
-	],
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "pillbug",
+  "compatibility_date": "2026-02-05",
+  "main": "src/worker.ts",
+  "assets": {
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+  },
+  "routes": [
+    {
+      "pattern": "pillbug.ianjmacintosh.com",
+      "custom_domain": true,
+    },
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "pillbug",
+      "database_id": "53f26238-40f7-4aac-a17e-d9717a39b74b",
+      "migrations_dir": "migrations",
+    },
+  ],
 }
