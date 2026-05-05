@@ -8,6 +8,10 @@ This approach also aligns naturally with the PWA service worker that Pillbug req
 
 Patient push subscription tokens are stored in D1 and deleted on unsubscribe or account deletion.
 
+## Deferred — native app push notifications
+
+Web Push does not work in native iOS or Android apps. When native apps are built, the push infrastructure will need to expand to include direct APNs (Apple Push Notification service) and FCM (Firebase Cloud Messaging) integration from the Workers backend. Managed notification services (OneSignal, etc.) remain rejected on the same grounds as above — direct platform APIs keep Reminder content off any additional third-party servers. Apple and Google are unavoidable transports; no further vendor layer will be added.
+
 ## Considered Options
 
 - **Web Push API with VAPID (self-hosted)** — chosen: no third-party sees Reminder content, works natively with the PWA service worker, no additional vendor dependency.
