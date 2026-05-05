@@ -2,7 +2,17 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "pillbug",
   "compatibility_date": "2026-02-05",
+  "main": "src/worker.ts",
   "assets": {
+    "binding": "ASSETS",
     "not_found_handling": "single-page-application",
   },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "pillbug",
+      "database_id": "local",
+      "migrations_dir": "migrations",
+    },
+  ],
 }

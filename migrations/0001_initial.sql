@@ -1,0 +1,2 @@
+-- Initial schema placeholder
+-- Run with: npx wrangler d1 migrations apply pillbug --local

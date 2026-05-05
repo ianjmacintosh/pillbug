@@ -27,6 +27,9 @@ dist-ssr
 .wrangler
 .dev.vars*
 
+# vite-plugin-pwa dev service worker output
+dev-dist
+
 # Playwright
 /test-results/
 /playwright-report/
