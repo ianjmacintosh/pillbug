@@ -6,6 +6,28 @@ Get reminders to take your prescriptions without needing to personally manage a 
 
 ## Development
 
+### Start a dev server
+
+```bash
+npm run dev
+```
+
+### Build the app
+
+```bash
+npm run build
+```
+
+### Working with Environment Variables
+
+Environment variables are stored in `.env`
+
+Review `.env.EXAMPLE` to see a list of expected environment variables
+
+The `.env` file is ignored by git (see `.gitignore`) and has a Claude permissions block (`.claude/settings.json`) as per [John Lundquist's recommendation](https://egghead.io/protect-secrets-from-being-read-by-claude-code~vd9jk)
+
+> In the future, secrets should be managed using a secure system. After migrating to a secure secret manager, all data in `.env` should be considered leaked
+
 ### Working with Agents
 
 For authoritative information about installing Claude Code, visit [Claude Code Quickstart instructions](iIbxtXzfFyrTUxbtpHdyGtjose8KMi4mwo7rPz5ngNBbLcWr#kc1F9olqx7TzVXPaC8eOjQ1xwxkmuEoHFKttreLPV98)
@@ -24,18 +46,6 @@ npx skills@latest add mattpocock/skills
 # Run /setup-matt-pocock-skills in your agent
 
 # Restart Claude
-```
-
-### Start a dev server
-
-```bash
-npm run dev
-```
-
-### Build the app
-
-```bash
-npm run build
 ```
 
 ## Deployment
