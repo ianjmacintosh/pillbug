@@ -22,7 +22,7 @@ npm run build
 
 Environment variables are stored in `.env`
 
-Review `.env.development` to see a list of expected environment variables
+Review `.env.EXAMPLE` to see a list of expected environment variables
 
 The `.env` file is ignored by git (see `.gitignore`) and has a Claude permissions block (`.claude/settings.json`) as per [John Lundquist's recommendation](https://egghead.io/protect-secrets-from-being-read-by-claude-code~vd9jk)
 
