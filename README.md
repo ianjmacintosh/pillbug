@@ -22,6 +22,8 @@ npx skills@latest add mattpocock/skills
 # Pick /setup-matt-pocock-skills
 
 # Run /setup-matt-pocock-skills in your agent
+
+# Restart Claude
 ```
 
 ### Start a dev server
