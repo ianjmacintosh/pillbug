@@ -6,7 +6,7 @@ PWA setup, Cloudflare Workers + D1 wiring, CI, and project tooling. No patient-f
 
 The alpha-centauri extraction happens once auth and routing are stable — after that the two repos diverge.
 
-## Phase 1 — Quiet launch (v1)
+## Phase 1 — Quiet launch
 
 **Goal:** Fill Session workflow usable by one real user.
 
