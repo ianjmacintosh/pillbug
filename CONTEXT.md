@@ -8,6 +8,10 @@ A web app that helps patients track and follow their prescribed medication sched
 The person who takes medications and uses the app to manage their own schedule. Authenticates via magic link email.
 _Avoid_: User, account, client
 
+**Registration**:
+The one-time flow a new Patient completes to create their account. Consists of: entering their email address and explicitly accepting the Terms of Service and Privacy Policy. Submitting the form sends a magic link to the provided email. Registration is a distinct screen from Login — not a silent side-effect of first login.
+_Avoid_: Sign up, Onboarding (onboarding is a separate concept if it exists), Account creation
+
 **Prescription**:
 A medication a clinician has directed the Patient to take on a schedule.
 _Avoid_: Medication (too generic — doesn't imply a schedule or clinical directive), Task, Regimen Item
