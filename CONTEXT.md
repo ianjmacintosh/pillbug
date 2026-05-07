@@ -8,6 +8,10 @@ A web app that helps patients track and follow their prescribed medication sched
 The person who takes medications and uses the app to manage their own schedule. Authenticates via magic link email.
 _Avoid_: User, account, client
 
+**Registration**:
+The one-time flow a new Patient completes to create their account. Consists of: entering their email address and explicitly accepting the Terms of Service and Privacy Policy. Submitting the form sends a magic link to the provided email. Registration is a distinct screen from Login — not a silent side-effect of first login.
+_Avoid_: Sign up, Onboarding (onboarding is a separate concept if it exists), Account creation
+
 **Prescription**:
 A medication a clinician has directed the Patient to take on a schedule.
 _Avoid_: Medication (too generic — doesn't imply a schedule or clinical directive), Task, Regimen Item
@@ -88,3 +92,4 @@ _Avoid_: Public link, Share URL
 - Exercises / OT activities are explicitly out of scope for now, though the concept of a **Prescription** is intentionally broad enough to accommodate them later.
 - Refill reminders are explicitly out of scope for v1. Pill count tracking introduces ongoing maintenance burden (entering counts, updating after refills) better suited to a later iteration.
 - Complex schedules (birth control cycles, every-N-hours dosing) are out of scope for v1 — Schedule supports clock-time-based daily/weekly patterns only.
+- **Prescription visibility** — unresolved. A Patient showing the app to someone (a doctor, a family member, a friend) may not want all Prescriptions visible. The design principle is privacy by default: the burden should be on revealing, not on hiding — analogous to a spring-hinged door that closes itself rather than requiring the occupant to close it. How the app supports this without putting the burden on the Patient to actively conceal sensitive information is an open design problem. Needs consideration when building the Prescription list view.
