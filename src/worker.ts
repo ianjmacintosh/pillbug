@@ -7,6 +7,7 @@ import {
   deleteSession,
 } from "./auth";
 import { makeD1AuthRepo } from "./d1-auth-repo";
+import { checkHealth } from "./health";
 import { makeResendEmailSender } from "./resend-email-sender";
 
 interface Env {
@@ -50,7 +51,8 @@ export default {
     }
 
     if (url.pathname === "/api/health") {
-      return new Response(JSON.stringify({ status: "ok" }), {
+      const health = await checkHealth(env.DB, env.RESEND_API_KEY);
+      return new Response(JSON.stringify(health), {
         headers: { "Content-Type": "application/json", ...CORS_HEADERS },
       });
     }

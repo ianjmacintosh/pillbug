@@ -20,11 +20,14 @@ test("service worker is registered", async ({ page }) => {
   expect(registered).toBe(true);
 });
 
-test("GET /api/health returns 200", async ({ request }) => {
+test("GET /api/health reports db and email subsystem status", async ({
+  request,
+}) => {
   const response = await request.get("/api/health");
   expect(response.status()).toBe(200);
   const body = await response.json();
-  expect(body.status).toBe("ok");
+  expect(body).toHaveProperty("db");
+  expect(body).toHaveProperty("email");
 });
 
 test("/ redirects unauthenticated visitors to /register", async ({ page }) => {
