@@ -1,17 +1,18 @@
 name: Unit Tests
 on:
-  pull_request:
-    types:
-      - opened
-      - reopened
-      - synchronize
+  workflow_run:
+    workflows: ["Static Analysis"]
+    types: [completed]
 jobs:
   test:
     name: Test with Vitest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
       - name: Install deps
         run: npm ci
       - name: Run tests
