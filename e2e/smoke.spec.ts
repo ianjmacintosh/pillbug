@@ -27,9 +27,9 @@ test("GET /api/health returns 200", async ({ request }) => {
   expect(body.status).toBe("ok");
 });
 
-test("/ renders the Pillbug homepage", async ({ page }) => {
+test("/ redirects unauthenticated visitors to /register", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Pillbug" })).toBeVisible();
+  await expect(page).toHaveURL("/register");
 });
 
 test("unknown path renders a 404 page", async ({ page }) => {
