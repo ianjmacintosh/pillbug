@@ -85,10 +85,10 @@ export default {
       const token = url.searchParams.get("token") ?? "";
       const result = await verifyToken(token, repo);
       if ("error" in result) {
-        return Response.redirect(
-          `${env.APP_URL}/register?error=${result.error}`,
-          302,
-        );
+        return new Response(null, {
+          status: 302,
+          headers: { Location: `/register?error=${result.error}` },
+        });
       }
       const sessionId = await createSession(result.patientId, repo);
       return new Response(null, {
@@ -116,7 +116,10 @@ export default {
       const sessionId = getSessionId(request);
       const session = sessionId ? await getSession(sessionId, repo) : null;
       if (!session) {
-        return Response.redirect(new URL("/register", url).href, 302);
+        return new Response(null, {
+          status: 302,
+          headers: { Location: "/register" },
+        });
       }
     }
 
