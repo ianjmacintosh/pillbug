@@ -20,7 +20,8 @@
   "dependencies": {
     "@tanstack/react-router": "^1.169.2",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "resend": "^6.12.3"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.23.1",

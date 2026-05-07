@@ -1,6 +1,7 @@
-import { describe, expect, test, vi, afterEach } from "vitest";
+import { describe, expect, test } from "vitest";
 import { checkHealth } from "./health";
 import type { D1Database } from "@cloudflare/workers-types";
+import type { Resend } from "resend";
 
 function makeDb(succeeds: boolean): D1Database {
   return {
@@ -12,44 +13,51 @@ function makeDb(succeeds: boolean): D1Database {
   } as unknown as D1Database;
 }
 
-function mockFetch(status: number) {
-  vi.stubGlobal("fetch", () => Promise.resolve(new Response(null, { status })));
+function makeResend(succeeds: boolean): Pick<Resend, "domains"> {
+  return {
+    domains: {
+      list: succeeds
+        ? () => Promise.resolve({ data: { data: [] }, error: null })
+        : () =>
+            Promise.resolve({
+              data: null,
+              error: { message: "Unauthorized", name: "validation_error" },
+            }),
+    } as unknown as Resend["domains"],
+  };
 }
 
-function mockFetchThrows() {
-  vi.stubGlobal("fetch", () => Promise.reject(new Error("network error")));
+function makeResendThrowing(): Pick<Resend, "domains"> {
+  return {
+    domains: {
+      list: () => Promise.reject(new Error("network error")),
+    } as unknown as Resend["domains"],
+  };
 }
-
-afterEach(() => vi.unstubAllGlobals());
 
 describe("checkHealth", () => {
   test("returns ok for both when db and email are healthy", async () => {
-    mockFetch(200);
-    const result = await checkHealth(makeDb(true), "valid-key");
+    const result = await checkHealth(makeDb(true), makeResend(true));
     expect(result).toEqual({ db: "ok", email: "ok" });
   });
 
   test("returns error for db when SELECT 1 throws", async () => {
-    mockFetch(200);
-    const result = await checkHealth(makeDb(false), "valid-key");
+    const result = await checkHealth(makeDb(false), makeResend(true));
     expect(result).toEqual({ db: "error", email: "ok" });
   });
 
-  test("returns error for email when Resend returns non-2xx", async () => {
-    mockFetch(401);
-    const result = await checkHealth(makeDb(true), "bad-key");
+  test("returns error for email when Resend returns an error", async () => {
+    const result = await checkHealth(makeDb(true), makeResend(false));
     expect(result).toEqual({ db: "ok", email: "error" });
   });
 
   test("returns error for email when Resend request throws", async () => {
-    mockFetchThrows();
-    const result = await checkHealth(makeDb(true), "valid-key");
+    const result = await checkHealth(makeDb(true), makeResendThrowing());
     expect(result).toEqual({ db: "ok", email: "error" });
   });
 
   test("returns error for both when db and email both fail", async () => {
-    mockFetch(401);
-    const result = await checkHealth(makeDb(false), "bad-key");
+    const result = await checkHealth(makeDb(false), makeResend(false));
     expect(result).toEqual({ db: "error", email: "error" });
   });
 });

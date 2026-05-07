@@ -6,6 +6,7 @@ import {
   getSession,
   deleteSession,
 } from "./auth";
+import { Resend } from "resend";
 import { makeD1AuthRepo } from "./d1-auth-repo";
 import { checkHealth } from "./health";
 import { makeResendEmailSender } from "./resend-email-sender";
@@ -43,6 +44,7 @@ function clearSessionCookie(): string {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    const resend = new Resend(env.RESEND_API_KEY);
     const repo = makeD1AuthRepo(env.DB);
     const emailSender = makeResendEmailSender(env.RESEND_API_KEY, env.APP_URL);
 
@@ -51,7 +53,7 @@ export default {
     }
 
     if (url.pathname === "/api/health") {
-      const health = await checkHealth(env.DB, env.RESEND_API_KEY);
+      const health = await checkHealth(env.DB, resend);
       return new Response(JSON.stringify(health), {
         headers: { "Content-Type": "application/json", ...CORS_HEADERS },
       });
