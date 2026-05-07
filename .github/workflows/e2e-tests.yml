@@ -17,7 +17,7 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Create .dev.vars for Playwright dev server
         run: |
-          echo "RESEND_API_KEY=re_placeholder" >> .dev.vars
+          echo "RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}" >> .dev.vars
           echo "APP_URL=http://localhost:5173" >> .dev.vars
       - name: Run Playwright tests
         run: npm run test:e2e
