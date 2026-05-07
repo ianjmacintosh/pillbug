@@ -6,6 +6,11 @@ PWA setup, Cloudflare Workers + D1 wiring, CI, and project tooling. No patient-f
 
 The alpha-centauri extraction happens once auth and routing are stable — after that the two repos diverge.
 
+Issues:
+
+- #27 Router setup (TanStack Router)
+- #28 Standardize and cascade GitHub Actions workflows
+
 ## Phase 1 — Quiet launch
 
 **Goal:** Fill Session workflow usable by one real user.
@@ -14,6 +19,7 @@ Step-by-step guidance for filling a pill organizer is a standalone value proposi
 
 Issues in dependency order:
 
+- #24 Placeholder screens
 - #5 Magic link authentication (+ registration screen)
 - #7 Prescription management (Doctor picker deferred — Doctor is optional and not needed for Fill Sessions)
 - #15 Pill Organizer setup
