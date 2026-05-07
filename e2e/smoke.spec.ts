@@ -26,3 +26,13 @@ test("GET /api/health returns 200", async ({ request }) => {
   const body = await response.json();
   expect(body.status).toBe("ok");
 });
+
+test("/ renders the Pillbug homepage", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Pillbug" })).toBeVisible();
+});
+
+test("unknown path renders a 404 page", async ({ page }) => {
+  await page.goto("/does-not-exist");
+  await expect(page.getByRole("heading", { name: /not found/i })).toBeVisible();
+});
