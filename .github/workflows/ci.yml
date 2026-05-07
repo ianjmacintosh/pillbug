@@ -5,66 +5,14 @@ on:
   pull_request:
     branches: [main]
 jobs:
-  prettier:
-    name: Check file formatting
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repo
-        uses: actions/checkout@v4
-      - name: Install deps
-        run: npm ci
-      - name: Run Prettier
-        run: npm run format:check
-  lint:
-    name: Lint all files
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repo
-        uses: actions/checkout@v4
-      - name: Install deps
-        run: npm ci
-      - name: Run ESLint
-        run: npm run lint
-  typecheck:
-    name: Check TypeScript types
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repo
-        uses: actions/checkout@v4
-      - name: Install deps
-        run: npm ci
-      - name: Run TypeScript type checking
-        run: npm run typecheck
+  static-analysis:
+    name: Static Analysis
+    uses: ./.github/workflows/static-analysis.yml
   unit-tests:
-    name: Test with Vitest
-    needs: [prettier, lint, typecheck]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repo
-        uses: actions/checkout@v4
-      - name: Install deps
-        run: npm ci
-      - name: Run tests
-        run: npm run test:unit
+    name: Unit Tests
+    needs: [static-analysis]
+    uses: ./.github/workflows/unit-tests.yml
   e2e-tests:
-    name: Test with Playwright
+    name: End-to-End Tests
     needs: [unit-tests]
-    timeout-minutes: 60
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-      - name: Install dependencies
-        run: npm ci
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-      - name: Run Playwright tests
-        run: npm run test:e2e
-      - uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 30
+    uses: ./.github/workflows/e2e-tests.yml
