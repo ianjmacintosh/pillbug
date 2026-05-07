@@ -10,9 +10,7 @@ export interface AuthRepository {
     patientId: string,
     expiresAt: string,
   ): Promise<void>;
-  findToken(
-    token: string,
-  ): Promise<{
+  findToken(token: string): Promise<{
     patientId: string;
     expiresAt: string;
     usedAt: string | null;
