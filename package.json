@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite --host",
     "dev:remote": "wrangler dev --remote",
-    "deploy:preview": "npm run build && npx wrangler versions upload",
+    "deploy": "npx wrangler d1 migrations apply pillbug --remote && npx wrangler deploy",
+    "deploy:preview": "npx wrangler d1 migrations apply pillbug --remote && npm run build && npx wrangler versions upload",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview --host",
