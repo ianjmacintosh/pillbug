@@ -20,7 +20,7 @@ describe("registerPatient", () => {
     expect(email.sent[0].to).toBe("patient@example.com");
   });
 
-  test("returns email_taken for a duplicate email", async () => {
+  test("sends a magic link to an existing patient on duplicate registration", async () => {
     const repo = makeInMemoryRepo();
     const email = makeEmailSpy();
 
@@ -31,8 +31,9 @@ describe("registerPatient", () => {
       email.sender,
     );
 
-    expect(result).toEqual({ error: "email_taken" });
-    expect(email.sent).toHaveLength(1);
+    expect(result).toEqual({ ok: true });
+    expect(email.sent).toHaveLength(2);
+    expect(email.sent[1].to).toBe("patient@example.com");
   });
 });
 

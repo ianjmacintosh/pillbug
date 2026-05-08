@@ -1,5 +1,20 @@
 import { expect, test } from "@playwright/test";
 
+test.describe("POST /api/register", () => {
+  test("returns 200 for a new email", async ({ request }) => {
+    const email = `delivered+e2e-${Date.now()}@resend.dev`;
+    const res = await request.post("/api/register", { data: { email } });
+    expect(res.status()).toBe(200);
+  });
+
+  test("returns 200 for an already-registered email", async ({ request }) => {
+    const email = `delivered+e2e-dup-${Date.now()}@resend.dev`;
+    await request.post("/api/register", { data: { email } });
+    const res = await request.post("/api/register", { data: { email } });
+    expect(res.status()).toBe(200);
+  });
+});
+
 test("/register renders the registration page", async ({ page }) => {
   await page.goto("/register");
   await expect(page.getByRole("heading")).toBeVisible();

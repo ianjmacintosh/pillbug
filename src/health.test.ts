@@ -3,12 +3,17 @@ import { checkHealth } from "./health";
 import type { D1Database } from "@cloudflare/workers-types";
 import type { Resend } from "resend";
 
-function makeDb(succeeds: boolean): D1Database {
+function makeDb(connectivity: boolean, schemaOk: boolean = true): D1Database {
   return {
-    prepare: () => ({
-      first: succeeds
-        ? () => Promise.resolve({ 1: 1 })
-        : () => Promise.reject(new Error("D1 error")),
+    prepare: (sql: string) => ({
+      first: () => {
+        if (sql.includes("sqlite_master")) {
+          if (!connectivity) return Promise.reject(new Error("D1 error"));
+          return Promise.resolve({ count: schemaOk ? 3 : 0 });
+        }
+        if (!connectivity) return Promise.reject(new Error("D1 error"));
+        return Promise.resolve({ 1: 1 });
+      },
     }),
   } as unknown as D1Database;
 }
@@ -43,6 +48,11 @@ describe("checkHealth", () => {
 
   test("returns error for db when SELECT 1 throws", async () => {
     const result = await checkHealth(makeDb(false), makeResend(true));
+    expect(result).toEqual({ db: "error", email: "ok" });
+  });
+
+  test("returns error for db when required tables are missing", async () => {
+    const result = await checkHealth(makeDb(true, false), makeResend(true));
     expect(result).toEqual({ db: "error", email: "ok" });
   });
 

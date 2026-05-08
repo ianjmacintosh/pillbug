@@ -11,7 +11,14 @@ export async function checkHealth(
     db
       .prepare("SELECT 1")
       .first()
-      .then(() => "ok" as Status)
+      .then(() =>
+        db
+          .prepare(
+            "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name IN ('patients', 'magic_link_tokens', 'sessions')",
+          )
+          .first<{ count: number }>()
+          .then((row) => (row?.count === 3 ? "ok" : "error") as Status),
+      )
       .catch(() => "error" as Status),
     resend.domains
       .list()

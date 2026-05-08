@@ -73,13 +73,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
 
   if (url.pathname === "/api/register" && request.method === "POST") {
     const { email } = await request.json<{ email: string }>();
-    const result = await registerPatient(email, repo, emailSender);
-    if ("error" in result) {
-      return new Response(JSON.stringify({ error: result.error }), {
-        status: 409,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    await registerPatient(email, repo, emailSender);
     return new Response(JSON.stringify({ ok: true }), {
       headers: { "Content-Type": "application/json" },
     });

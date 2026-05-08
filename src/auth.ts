@@ -47,12 +47,13 @@ export async function registerPatient(
   email: string,
   repo: AuthRepository,
   emailSender: EmailSender,
-): Promise<{ ok: true } | { error: "email_taken" }> {
+): Promise<{ ok: true }> {
   const existing = await repo.findPatientByEmail(email);
-  if (existing) return { error: "email_taken" };
 
-  const patientId = generateId();
-  await repo.createPatient(patientId, email, new Date().toISOString());
+  const patientId = existing?.id ?? generateId();
+  if (!existing) {
+    await repo.createPatient(patientId, email, new Date().toISOString());
+  }
 
   const token = generateId();
   const expiresAt = new Date(Date.now() + TOKEN_TTL_MS).toISOString();
