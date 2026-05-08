@@ -15,9 +15,9 @@ jobs:
         run: npm ci
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
-      - name: Create .env for Playwright dev server
+      - name: Create .dev.vars for Playwright dev server
         run: |
-          echo "RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}" >> .env
+          echo "RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}" >> .dev.vars
       - name: Run Playwright tests
         run: npm run test:e2e
       - uses: actions/upload-artifact@v4
