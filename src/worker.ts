@@ -44,12 +44,6 @@ function clearSessionCookie(): string {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    console.log(
-      "[debug] RESEND_API_KEY present:",
-      !!env.RESEND_API_KEY,
-      "length:",
-      env.RESEND_API_KEY?.length ?? 0,
-    );
     const resend = new Resend(env.RESEND_API_KEY);
     const repo = makeD1AuthRepo(env.DB);
     const emailSender = makeResendEmailSender(env.RESEND_API_KEY, env.APP_URL);

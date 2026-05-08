@@ -19,17 +19,7 @@ jobs:
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
         run: |
-          echo "Env var length: ${#RESEND_API_KEY}"
           echo "RESEND_API_KEY=$RESEND_API_KEY" >> .dev.vars
-      - name: Verify .dev.vars
-        run: |
-          echo "File exists: $(test -f .dev.vars && echo yes || echo no)"
-          echo "RESEND_API_KEY present: $(grep -c RESEND_API_KEY .dev.vars)"
-          echo "RESEND_API_KEY value length: $(grep RESEND_API_KEY .dev.vars | cut -d= -f2 | wc -c)"
-          echo "Contents (masked):"
-          sed 's/=.*/=***/' .dev.vars
-          echo "Special characters:"
-          cat -A .dev.vars
       - name: Run Playwright tests
         run: npm run test:e2e
       - uses: actions/upload-artifact@v4
