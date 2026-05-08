@@ -19,6 +19,7 @@ jobs:
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
         run: |
+          echo "Env var length: ${#RESEND_API_KEY}"
           echo "RESEND_API_KEY=$RESEND_API_KEY" >> .dev.vars
       - name: Verify .dev.vars
         run: |
