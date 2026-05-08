@@ -1,22 +1,39 @@
-import { execSync } from "child_process";
+import { getPlatformProxy } from "wrangler";
+import type { D1Database } from "@cloudflare/workers-types";
 import { expect, test } from "@playwright/test";
 
 const INVITE_CODE = process.env.INVITE_CODE ?? "";
 
-function getLatestToken(email: string): string {
-  const output = execSync(
-    `npx wrangler d1 execute pillbug --local --command "SELECT t.token FROM magic_link_tokens t JOIN patients p ON t.patient_id = p.id WHERE p.email = '${email}' ORDER BY t.rowid DESC LIMIT 1"`,
-    { encoding: "utf-8", env: { ...process.env, NO_COLOR: "1" } },
-  );
-  const json = JSON.parse(output.slice(output.indexOf("[")));
-  return json[0].results[0].token;
+interface Env {
+  DB: D1Database;
 }
 
-function expireToken(token: string): void {
-  execSync(
-    `npx wrangler d1 execute pillbug --local --command "UPDATE magic_link_tokens SET expires_at = '2020-01-01T00:00:00.000Z' WHERE token = '${token}'"`,
-    { encoding: "utf-8", env: { ...process.env, NO_COLOR: "1" } },
-  );
+async function getLatestToken(email: string): Promise<string> {
+  const { env, dispose } = await getPlatformProxy<Env>();
+  try {
+    const row = await env.DB.prepare(
+      "SELECT t.token FROM magic_link_tokens t JOIN patients p ON t.patient_id = p.id WHERE p.email = ? ORDER BY t.rowid DESC LIMIT 1",
+    )
+      .bind(email)
+      .first<{ token: string }>();
+    if (!row) throw new Error(`No token found for ${email}`);
+    return row.token;
+  } finally {
+    await dispose();
+  }
+}
+
+async function expireToken(token: string): Promise<void> {
+  const { env, dispose } = await getPlatformProxy<Env>();
+  try {
+    await env.DB.prepare(
+      "UPDATE magic_link_tokens SET expires_at = '2020-01-01T00:00:00.000Z' WHERE token = ?",
+    )
+      .bind(token)
+      .run();
+  } finally {
+    await dispose();
+  }
 }
 
 test.describe("POST /api/register", () => {
@@ -49,7 +66,7 @@ test.describe("GET /api/auth/verify", () => {
     await request.post("/api/register", {
       data: { email, inviteCode: INVITE_CODE },
     });
-    const token = getLatestToken(email);
+    const token = await getLatestToken(email);
 
     await page.goto(`/api/auth/verify?token=${token}`);
 
@@ -70,7 +87,7 @@ test.describe("GET /api/auth/verify", () => {
     await request.post("/api/register", {
       data: { email, inviteCode: INVITE_CODE },
     });
-    const token = getLatestToken(email);
+    const token = await getLatestToken(email);
 
     await page.goto(`/api/auth/verify?token=${token}`);
     await page.goto(`/api/auth/verify?token=${token}`);
@@ -86,8 +103,8 @@ test.describe("GET /api/auth/verify", () => {
     await request.post("/api/register", {
       data: { email, inviteCode: INVITE_CODE },
     });
-    const token = getLatestToken(email);
-    expireToken(token);
+    const token = await getLatestToken(email);
+    await expireToken(token);
 
     await page.goto(`/api/auth/verify?token=${token}`);
 
