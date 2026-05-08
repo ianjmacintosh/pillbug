@@ -18,11 +18,15 @@ jobs:
       - name: Create .dev.vars for Playwright dev server
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          INVITE_CODE: ${{ secrets.INVITE_CODE }}
         run: |
           echo "RESEND_API_KEY=$RESEND_API_KEY" >> .dev.vars
+          echo "INVITE_CODE=$INVITE_CODE" >> .dev.vars
       - name: Apply D1 migrations (local)
         run: npx wrangler d1 migrations apply pillbug --local
       - name: Run Playwright tests
+        env:
+          INVITE_CODE: ${{ secrets.INVITE_CODE }}
         run: npm run test:e2e
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}

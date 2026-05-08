@@ -15,6 +15,11 @@ describe("Register", () => {
     expect(screen.getByRole("textbox", { name: /email/i })).toBeTruthy();
   });
 
+  test("has an invite code input", () => {
+    render(<Register />);
+    expect(screen.getByRole("textbox", { name: /invite code/i })).toBeTruthy();
+  });
+
   test("has a Terms of Service checkbox", () => {
     render(<Register />);
     expect(screen.getByRole("checkbox", { name: /terms/i })).toBeTruthy();

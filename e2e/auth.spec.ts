@@ -1,6 +1,8 @@
 import { execSync } from "child_process";
 import { expect, test } from "@playwright/test";
 
+const INVITE_CODE = process.env.INVITE_CODE ?? "";
+
 function getLatestToken(email: string): string {
   const output = execSync(
     `npx wrangler d1 execute pillbug --local --command "SELECT t.token FROM magic_link_tokens t JOIN patients p ON t.patient_id = p.id WHERE p.email = '${email}' ORDER BY t.rowid DESC LIMIT 1"`,
@@ -20,14 +22,20 @@ function expireToken(token: string): void {
 test.describe("POST /api/register", () => {
   test("returns 200 for a new email", async ({ request }) => {
     const email = `delivered+e2e-${Date.now()}@resend.dev`;
-    const res = await request.post("/api/register", { data: { email } });
+    const res = await request.post("/api/register", {
+      data: { email, inviteCode: INVITE_CODE },
+    });
     expect(res.status()).toBe(200);
   });
 
   test("returns 200 for an already-registered email", async ({ request }) => {
     const email = `delivered+e2e-dup-${Date.now()}@resend.dev`;
-    await request.post("/api/register", { data: { email } });
-    const res = await request.post("/api/register", { data: { email } });
+    await request.post("/api/register", {
+      data: { email, inviteCode: INVITE_CODE },
+    });
+    const res = await request.post("/api/register", {
+      data: { email, inviteCode: INVITE_CODE },
+    });
     expect(res.status()).toBe(200);
   });
 });
@@ -38,7 +46,9 @@ test.describe("GET /api/auth/verify", () => {
     request,
   }) => {
     const email = `delivered+verify-${Date.now()}@resend.dev`;
-    await request.post("/api/register", { data: { email } });
+    await request.post("/api/register", {
+      data: { email, inviteCode: INVITE_CODE },
+    });
     const token = getLatestToken(email);
 
     await page.goto(`/api/auth/verify?token=${token}`);
@@ -57,7 +67,9 @@ test.describe("GET /api/auth/verify", () => {
     request,
   }) => {
     const email = `delivered+verify-used-${Date.now()}@resend.dev`;
-    await request.post("/api/register", { data: { email } });
+    await request.post("/api/register", {
+      data: { email, inviteCode: INVITE_CODE },
+    });
     const token = getLatestToken(email);
 
     await page.goto(`/api/auth/verify?token=${token}`);
@@ -71,7 +83,9 @@ test.describe("GET /api/auth/verify", () => {
     request,
   }) => {
     const email = `delivered+verify-exp-${Date.now()}@resend.dev`;
-    await request.post("/api/register", { data: { email } });
+    await request.post("/api/register", {
+      data: { email, inviteCode: INVITE_CODE },
+    });
     const token = getLatestToken(email);
     expireToken(token);
 

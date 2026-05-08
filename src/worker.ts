@@ -16,6 +16,7 @@ interface Env {
   DB: D1Database;
   RESEND_API_KEY: string;
   APP_URL: string;
+  INVITE_CODE: string;
 }
 
 const CORS_HEADERS = {
@@ -72,7 +73,16 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   }
 
   if (url.pathname === "/api/register" && request.method === "POST") {
-    const { email } = await request.json<{ email: string }>();
+    const { email, inviteCode } = await request.json<{
+      email: string;
+      inviteCode: string;
+    }>();
+    if (inviteCode !== env.INVITE_CODE) {
+      return new Response(JSON.stringify({ error: "invalid_invite_code" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
     await registerPatient(email, repo, emailSender);
     return new Response(JSON.stringify({ ok: true }), {
       headers: { "Content-Type": "application/json" },

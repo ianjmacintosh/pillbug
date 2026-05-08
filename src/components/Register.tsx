@@ -4,6 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 function Register() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [terms, setTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -22,7 +23,7 @@ function Register() {
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, inviteCode }),
     });
 
     if (res.ok) {
@@ -30,8 +31,8 @@ function Register() {
     } else {
       const data = (await res.json()) as { error: string };
       setError(
-        data.error === "email_taken"
-          ? "An account with this email already exists. Try logging in instead."
+        data.error === "invalid_invite_code"
+          ? "Invalid invite code. Please check your invitation and try again."
           : "Something went wrong. Please try again.",
       );
       setSubmitting(false);
@@ -48,6 +49,15 @@ function Register() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </label>
+        <label>
+          Invite Code
+          <input
+            type="text"
+            value={inviteCode}
+            onChange={(e) => setInviteCode(e.target.value)}
             required
           />
         </label>
