@@ -6,7 +6,10 @@ import {
   RouterProvider,
 } from "@tanstack/react-router";
 import App from "./App";
+import CheckYourEmail from "./CheckYourEmail";
+import Login from "./Login";
 import NotFound from "./NotFound";
+import Register from "./Register";
 
 const rootRoute = createRootRoute({
   component: Outlet,
@@ -19,7 +22,30 @@ const indexRoute = createRoute({
   component: App,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute]);
+const registerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/register",
+  component: Register,
+});
+
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/login",
+  component: Login,
+});
+
+const checkYourEmailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/check-your-email",
+  component: CheckYourEmail,
+});
+
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  registerRoute,
+  loginRoute,
+  checkYourEmailRoute,
+]);
 
 const router = createRouter({ routeTree });
 
