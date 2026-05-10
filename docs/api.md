@@ -1,6 +1,6 @@
 # Pillbug API
 
-Document new routes here before implementing them. The contract is the source of truth — frontend and backend implement against it independently.
+Document new routes here before implementing them. This is a living contract — update it when implementation reveals gaps, not a spec that must be perfect before any code is written. The goal is that the doc always reflects current reality, not that it prevents iteration.
 
 ## Conventions
 
