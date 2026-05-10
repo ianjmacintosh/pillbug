@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
-    "dev:remote": "wrangler dev --remote",
+    "dev": "CLOUDFLARE_ENV=staging vite --host",
+    "dev:remote": "wrangler dev --env staging --remote",
     "deploy": "npm run deploy:production",
     "deploy:production": "npx wrangler d1 migrations apply pillbug --env production --remote && npx wrangler deploy --env production",
     "deploy:staging": "npx wrangler d1 migrations apply pillbug-staging --env staging --remote && npx wrangler deploy --env staging",
