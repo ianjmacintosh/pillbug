@@ -38,4 +38,5 @@ dev-dist
 /playwright/.auth/
 
 # Environment Secrets
-.env
+.env*
+!.env.EXAMPLE
