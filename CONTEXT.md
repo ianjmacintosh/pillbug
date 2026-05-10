@@ -2,6 +2,18 @@
 
 A web app that helps patients track and follow their prescribed medication schedules, with a shareable view for healthcare providers.
 
+## Design Principles
+
+**Privacy by Default**:
+The app discloses as little information as necessary, and the burden is always on revealing rather than concealing — like a spring-hinged door that closes itself. Patients should never have to take an explicit action to hide something sensitive; sensitive information should be hidden unless the Patient actively chooses to show it.
+
+This principle applies at every layer:
+
+- _Auth_: auth endpoints never confirm whether an email address is registered (email enumeration protection), because knowing someone uses a medication-tracking app is itself sensitive.
+- _Prescription visibility_: a Patient should be able to use the app with someone looking over their shoulder without sensitive Prescriptions being visible by default. See Prescription visibility in Flagged ambiguities.
+
+When designing a new feature, ask: what is the minimum information needed here, and what is the least-surprising default for a Patient who hasn't thought about privacy?
+
 ## Language
 
 **Patient**:
@@ -11,6 +23,7 @@ _Avoid_: User, account, client
 **Registration**:
 The one-time flow a new Patient completes to create their account. Consists of: entering their email address and explicitly accepting the Terms of Service and Privacy Policy. Submitting the form sends a magic link to the provided email. Registration is a distinct screen from Login — not a silent side-effect of first login.
 _Avoid_: Sign up, Onboarding (onboarding is a separate concept if it exists), Account creation
+_Privacy_: The registration endpoint returns `{ ok: true }` whether the email is new or already registered (silently sending a login link in the latter case). Per Privacy by Default: confirming whether an email is registered reveals that someone uses a medication-tracking app, which is sensitive in itself.
 
 **Prescription**:
 A medication a clinician has directed the Patient to take on a schedule.
@@ -92,4 +105,4 @@ _Avoid_: Public link, Share URL
 - Exercises / OT activities are explicitly out of scope for now, though the concept of a **Prescription** is intentionally broad enough to accommodate them later.
 - Refill reminders are explicitly out of scope for v1. Pill count tracking introduces ongoing maintenance burden (entering counts, updating after refills) better suited to a later iteration.
 - Complex schedules (birth control cycles, every-N-hours dosing) are out of scope for v1 — Schedule supports clock-time-based daily/weekly patterns only.
-- **Prescription visibility** — unresolved. A Patient showing the app to someone (a doctor, a family member, a friend) may not want all Prescriptions visible. The design principle is privacy by default: the burden should be on revealing, not on hiding — analogous to a spring-hinged door that closes itself rather than requiring the occupant to close it. How the app supports this without putting the burden on the Patient to actively conceal sensitive information is an open design problem. Needs consideration when building the Prescription list view.
+- **Prescription visibility** — unresolved. A Patient showing the app to someone (a doctor, a family member, a friend) may not want all Prescriptions visible (e.g. a prescription they find embarrassing). Per the Privacy by Default principle, sensitive Prescriptions should be hidden unless the Patient chooses to show them. Candidate approach: the Prescription list defaults to showing a filtered or redacted view, with a "Show all" affordance the Patient can tap when alone. The exact mechanism (per-Prescription toggle, session-level reveal, etc.) is an open design problem to be resolved when building the Prescription list view.
