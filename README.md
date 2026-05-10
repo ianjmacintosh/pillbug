@@ -50,16 +50,28 @@ npx skills@latest add mattpocock/skills
 
 ## Deployment
 
-### Deploying to Preview Environments
+Two named environments are configured in `wrangler.jsonc`. Always deploy with an explicit `--env` flag — bare `wrangler deploy` has no database binding and will crash at runtime.
 
-This project was intended to work with GitHub and Cloudflare to deploy each branch associated with a pull request to `main` to a new preview environment
+| Environment  | URL                                 | Command                     |
+| ------------ | ----------------------------------- | --------------------------- |
+| `production` | `pillbug.ianjmacintosh.com`         | `npm run deploy:production` |
+| `staging`    | `staging.pillbug.ianjmacintosh.com` | `npm run deploy:staging`    |
 
-You can also manually build and deploy from your local environment to a publicly-accessible temporary preview environment:
+Each deploy script applies pending D1 migrations before uploading the Worker.
+
+### Staging secrets
+
+Before the first staging deploy, set Worker secrets for the `staging` environment:
+
+```bash
+wrangler secret put RESEND_API_KEY --env staging
+wrangler secret put INVITE_CODE --env staging
+```
+
+### Preview environments
+
+Cloudflare build settings use `deploy:preview` for non-production branch deployments. It applies staging migrations and uploads a versioned Worker to the staging environment:
 
 ```bash
 npm run deploy:preview
 ```
-
-### Deploying to Production
-
-This project was intended to work with GitHub and Cloudflare to deploy all changes merged to `main` to production
