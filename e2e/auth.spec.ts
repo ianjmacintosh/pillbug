@@ -9,7 +9,9 @@ interface Env {
 }
 
 async function getLatestToken(email: string): Promise<string> {
-  const { env, dispose } = await getPlatformProxy<Env>();
+  const { env, dispose } = await getPlatformProxy<Env>({
+    environment: "staging",
+  });
   try {
     const row = await env.DB.prepare(
       "SELECT t.token FROM magic_link_tokens t JOIN patients p ON t.patient_id = p.id WHERE p.email = ? ORDER BY t.rowid DESC LIMIT 1",
@@ -24,7 +26,9 @@ async function getLatestToken(email: string): Promise<string> {
 }
 
 async function expireToken(token: string): Promise<void> {
-  const { env, dispose } = await getPlatformProxy<Env>();
+  const { env, dispose } = await getPlatformProxy<Env>({
+    environment: "staging",
+  });
   try {
     await env.DB.prepare(
       "UPDATE magic_link_tokens SET expires_at = '2020-01-01T00:00:00.000Z' WHERE token = ?",

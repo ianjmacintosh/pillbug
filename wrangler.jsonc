@@ -3,28 +3,54 @@
   "name": "pillbug",
   "compatibility_date": "2026-02-05",
   "main": "src/worker.ts",
-  "workers_dev": true,
+  // Root config has no bindings or routes. Bare `wrangler deploy` deploys a
+  // broken Worker (no DB binding). Always use --env production or --env staging.
   "assets": {
     "binding": "ASSETS",
     "directory": "./dist/client",
     "not_found_handling": "single-page-application",
     "run_worker_first": true,
   },
-  "routes": [
-    {
-      "pattern": "pillbug.ianjmacintosh.com",
-      "custom_domain": true,
+  "env": {
+    "production": {
+      "name": "pillbug",
+      "routes": [
+        {
+          "pattern": "pillbug.ianjmacintosh.com",
+          "custom_domain": true,
+        },
+      ],
+      "vars": {
+        "APP_URL": "https://pillbug.ianjmacintosh.com",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "pillbug",
+          "database_id": "53f26238-40f7-4aac-a17e-d9717a39b74b",
+          "migrations_dir": "migrations",
+        },
+      ],
     },
-  ],
-  "vars": {
-    "APP_URL": "https://pillbug.ianjmacintosh.com",
+    "staging": {
+      "workers_dev": true,
+      "routes": [
+        {
+          "pattern": "staging.pillbug.ianjmacintosh.com",
+          "custom_domain": true,
+        },
+      ],
+      "vars": {
+        "APP_URL": "https://staging.pillbug.ianjmacintosh.com",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "pillbug-staging",
+          "database_id": "e6b3aec5-7d5f-4f2d-9baa-da2675290408",
+          "migrations_dir": "migrations",
+        },
+      ],
+    },
   },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "pillbug",
-      "database_id": "53f26238-40f7-4aac-a17e-d9717a39b74b",
-      "migrations_dir": "migrations",
-    },
-  ],
 }
