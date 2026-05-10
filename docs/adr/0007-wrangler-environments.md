@@ -10,6 +10,10 @@ D1 bindings and `vars` are non-inheritable in Wrangler — each environment must
 
 Bare `wrangler deploy` also bypasses the environment name suffix that Cloudflare uses to separate Workers (`pillbug` vs `pillbug-staging`), making accidental production deploys harder to audit.
 
+## Why `env.production` sets `name: "pillbug"` explicitly
+
+By default, Wrangler names a Worker `<top-level-name>-<environment-name>`, so `env.production` would deploy to a new Worker called `pillbug-production` — separate from the existing `pillbug` Worker, with no secrets. Setting `name: "pillbug"` inside `env.production` overrides this and targets the existing Worker, preserving its secrets and custom domain binding. See [Wrangler environments — inheritable keys](https://developers.cloudflare.com/workers/wrangler/configuration/#environments).
+
 ## Why not keep `workers_dev: true` at root?
 
 Per Cloudflare docs, `workers_dev` is set per environment. Staging has `workers_dev: true` to support Cloudflare preview deployments. Production has no `workers_dev` setting — it is only reachable at its custom domain.

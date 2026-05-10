@@ -13,6 +13,7 @@
   },
   "env": {
     "production": {
+      "name": "pillbug",
       "routes": [
         {
           "pattern": "pillbug.ianjmacintosh.com",
