@@ -102,7 +102,7 @@ describe("session cookie", () => {
       new Request("https://pillbug.example.com/api/register", {
         method: "POST",
         body: JSON.stringify({
-          email: "patient@example.com",
+          email: "delivered@resend.dev",
           inviteCode: "test-code",
         }),
         headers: { "Content-Type": "application/json" },
@@ -128,7 +128,7 @@ describe("session cookie", () => {
       new Request("http://localhost/api/register", {
         method: "POST",
         body: JSON.stringify({
-          email: "patient@example.com",
+          email: "delivered@resend.dev",
           inviteCode: "test-code",
         }),
         headers: { "Content-Type": "application/json" },
@@ -192,6 +192,47 @@ describe("Resend lazy initialization", () => {
     );
 
     expect(makeResendEmailSender).not.toHaveBeenCalled();
+  });
+});
+
+describe("unhandled exception handling", () => {
+  test("returns status 500 when the handler throws", async () => {
+    vi.mocked(makeD1AuthRepo).mockImplementation(() => {
+      throw new Error("boom");
+    });
+
+    const response = await worker.fetch(
+      new Request("http://localhost/api/register", { method: "POST" }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(500);
+  });
+
+  test("returns JSON body with internal_error when the handler throws", async () => {
+    vi.mocked(makeD1AuthRepo).mockImplementation(() => {
+      throw new Error("boom");
+    });
+
+    const response = await worker.fetch(
+      new Request("http://localhost/api/register", { method: "POST" }),
+      makeEnv(),
+    );
+
+    expect(await response.json()).toEqual({ error: "internal_error" });
+  });
+
+  test("sets Content-Type to application/json when the handler throws", async () => {
+    vi.mocked(makeD1AuthRepo).mockImplementation(() => {
+      throw new Error("boom");
+    });
+
+    const response = await worker.fetch(
+      new Request("http://localhost/api/register", { method: "POST" }),
+      makeEnv(),
+    );
+
+    expect(response.headers.get("Content-Type")).toBe("application/json");
   });
 });
 
