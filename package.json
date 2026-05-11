@@ -15,7 +15,7 @@
     "preview": "vite preview --host",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc",
+    "typecheck": "tsc -b",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest",
     "test:e2e": "npx playwright test --reporter=list",

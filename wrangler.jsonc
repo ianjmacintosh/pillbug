@@ -2,7 +2,7 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "pillbug",
   "compatibility_date": "2026-02-05",
-  "main": "src/worker.ts",
+  "main": "worker/worker.ts",
   // Root config has no bindings or routes. Bare `wrangler deploy` deploys a
   // broken Worker (no DB binding). Always use --env production or --env staging.
   "assets": {
