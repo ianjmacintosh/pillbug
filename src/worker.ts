@@ -26,12 +26,16 @@ const CORS_HEADERS = {
 };
 
 const SECURITY_HEADERS = {
-  "Content-Security-Policy":
-    "default-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'",
-  "Strict-Transport-Security": "max-age=63072000",
   "X-Content-Type-Options": "nosniff",
   "Referrer-Policy": "strict-origin-when-cross-origin",
   "X-Frame-Options": "DENY",
+};
+
+const HTTPS_SECURITY_HEADERS = {
+  ...SECURITY_HEADERS,
+  "Content-Security-Policy":
+    "default-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'",
+  "Strict-Transport-Security": "max-age=63072000",
 };
 
 const SESSION_COOKIE = "session";
@@ -153,7 +157,9 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
 
   const assetResponse = await env.ASSETS.fetch(request);
   const headers = new Headers(assetResponse.headers);
-  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+  for (const [key, value] of Object.entries(
+    secure ? HTTPS_SECURITY_HEADERS : SECURITY_HEADERS,
+  )) {
     headers.set(key, value);
   }
   return new Response(assetResponse.body, {

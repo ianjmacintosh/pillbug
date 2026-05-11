@@ -27,23 +27,41 @@ beforeEach(() => {
 });
 
 describe("security headers", () => {
-  test("are added to asset responses", async () => {
+  test("always-on headers are added to asset responses", async () => {
     const response = await worker.fetch(
       new Request("http://localhost/app"),
+      makeEnv(),
+    );
+
+    expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
+    expect(response.headers.get("X-Frame-Options")).toBe("DENY");
+    expect(response.headers.get("Referrer-Policy")).toBe(
+      "strict-origin-when-cross-origin",
+    );
+  });
+
+  test("CSP and HSTS are added on HTTPS", async () => {
+    const response = await worker.fetch(
+      new Request("https://pillbug.example.com/app"),
       makeEnv(),
     );
 
     expect(response.headers.get("Content-Security-Policy")).toBe(
       "default-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'",
     );
-    expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
-    expect(response.headers.get("X-Frame-Options")).toBe("DENY");
-    expect(response.headers.get("Referrer-Policy")).toBe(
-      "strict-origin-when-cross-origin",
-    );
     expect(response.headers.get("Strict-Transport-Security")).toBe(
       "max-age=63072000",
     );
+  });
+
+  test("CSP and HSTS are omitted on HTTP", async () => {
+    const response = await worker.fetch(
+      new Request("http://localhost/app"),
+      makeEnv(),
+    );
+
+    expect(response.headers.get("Content-Security-Policy")).toBeNull();
+    expect(response.headers.get("Strict-Transport-Security")).toBeNull();
   });
 
   test("preserve existing headers from the asset response", async () => {
