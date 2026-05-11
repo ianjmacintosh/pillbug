@@ -4,11 +4,13 @@ import { Resend } from "resend";
 import { makeD1AuthRepo } from "./d1-auth-repo";
 import { makeResendEmailSender } from "./resend-email-sender";
 import { makeEmailSpy, makeInMemoryRepo } from "./test/auth-helpers";
+import { verifyTurnstileToken } from "./turnstile";
 
 vi.mock("resend", () => ({ Resend: vi.fn() }));
 vi.mock("./d1-auth-repo", () => ({ makeD1AuthRepo: vi.fn() }));
 vi.mock("./resend-email-sender", () => ({ makeResendEmailSender: vi.fn() }));
 vi.mock("./health", () => ({ checkHealth: vi.fn() }));
+vi.mock("./turnstile", () => ({ verifyTurnstileToken: vi.fn() }));
 
 function makeEnv(
   assetResponse = new Response("ok"),
@@ -18,13 +20,25 @@ function makeEnv(
     DB: {},
     RESEND_API_KEY: "test-key",
     APP_URL: "http://localhost",
-    INVITE_CODE: "test-code",
+    TURNSTILE_SECRET_KEY: "test-turnstile-secret",
   } as unknown as Parameters<typeof worker.fetch>[1];
+}
+
+function makeRegisterRequest(url: string) {
+  return new Request(url, {
+    method: "POST",
+    body: JSON.stringify({
+      email: "delivered@resend.dev",
+      turnstileToken: "valid-token",
+    }),
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 beforeEach(() => {
   vi.mocked(makeD1AuthRepo).mockReturnValue(makeInMemoryRepo());
   vi.mocked(makeResendEmailSender).mockReturnValue(makeEmailSpy().sender);
+  vi.mocked(verifyTurnstileToken).mockResolvedValue(true);
 });
 
 describe("security headers", () => {
@@ -43,7 +57,7 @@ describe("security headers", () => {
 
   test("CSP and HSTS are added on HTTPS", async () => {
     const response = await worker.fetch(
-      new Request("https://pillbug.example.com/app"),
+      new Request("https://pillbug.ianjmacintosh.com/app"),
       makeEnv(),
     );
 
@@ -99,20 +113,15 @@ describe("session cookie", () => {
   test("includes Secure, HttpOnly, and SameSite=Lax on HTTPS", async () => {
     const env = makeEnv();
     await worker.fetch(
-      new Request("https://pillbug.example.com/api/register", {
-        method: "POST",
-        body: JSON.stringify({
-          email: "delivered@resend.dev",
-          inviteCode: "test-code",
-        }),
-        headers: { "Content-Type": "application/json" },
-      }),
+      makeRegisterRequest("https://pillbug.ianjmacintosh.com/api/register"),
       env,
     );
     const token = email.sent[0].token;
 
     const response = await worker.fetch(
-      new Request(`https://pillbug.example.com/api/auth/verify?token=${token}`),
+      new Request(
+        `https://pillbug.ianjmacintosh.com/api/auth/verify?token=${token}`,
+      ),
       env,
     );
 
@@ -125,14 +134,7 @@ describe("session cookie", () => {
   test("omits Secure on HTTP", async () => {
     const env = makeEnv();
     await worker.fetch(
-      new Request("http://localhost/api/register", {
-        method: "POST",
-        body: JSON.stringify({
-          email: "delivered@resend.dev",
-          inviteCode: "test-code",
-        }),
-        headers: { "Content-Type": "application/json" },
-      }),
+      makeRegisterRequest("http://localhost/api/register"),
       env,
     );
     const token = email.sent[0].token;
@@ -236,10 +238,38 @@ describe("unhandled exception handling", () => {
   });
 });
 
+describe("POST /api/register Turnstile validation", () => {
+  test("returns 200 when Turnstile token is valid", async () => {
+    vi.mocked(verifyTurnstileToken).mockResolvedValue(true);
+
+    const response = await worker.fetch(
+      makeRegisterRequest("http://localhost/api/register"),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true });
+  });
+
+  test("returns 403 when Turnstile token is invalid", async () => {
+    vi.mocked(verifyTurnstileToken).mockResolvedValue(false);
+
+    const response = await worker.fetch(
+      makeRegisterRequest("http://localhost/api/register"),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ error: "invalid_turnstile_token" });
+  });
+});
+
 describe("clear session cookie", () => {
   test("includes Secure, HttpOnly, and SameSite=Lax on HTTPS", async () => {
     const response = await worker.fetch(
-      new Request("https://pillbug.example.com/api/logout", { method: "POST" }),
+      new Request("https://pillbug.ianjmacintosh.com/api/logout", {
+        method: "POST",
+      }),
       makeEnv(),
     );
 

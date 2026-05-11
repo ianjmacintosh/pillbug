@@ -10,13 +10,14 @@ import { Resend } from "resend";
 import { makeD1AuthRepo } from "./d1-auth-repo";
 import { checkHealth } from "./health";
 import { makeResendEmailSender } from "./resend-email-sender";
+import { verifyTurnstileToken } from "./turnstile";
 
 interface Env {
   ASSETS: Fetcher;
   DB: D1Database;
   RESEND_API_KEY: string;
   APP_URL: string;
-  INVITE_CODE: string;
+  TURNSTILE_SECRET_KEY: string;
 }
 
 const CORS_HEADERS = {
@@ -88,15 +89,19 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   }
 
   if (url.pathname === "/api/register" && request.method === "POST") {
-    const { email, inviteCode } = await request.json<{
+    const { email, turnstileToken } = await request.json<{
       email: string;
-      inviteCode: string;
+      turnstileToken: string;
     }>();
-    if (inviteCode !== env.INVITE_CODE) {
-      return new Response(JSON.stringify({ error: "invalid_invite_code" }), {
-        status: 403,
-        headers: { "Content-Type": "application/json" },
-      });
+    const tokenValid = await verifyTurnstileToken(
+      turnstileToken,
+      env.TURNSTILE_SECRET_KEY,
+    );
+    if (!tokenValid) {
+      return new Response(
+        JSON.stringify({ error: "invalid_turnstile_token" }),
+        { status: 403, headers: { "Content-Type": "application/json" } },
+      );
     }
     const emailSender = makeResendEmailSender(env.RESEND_API_KEY, env.APP_URL);
     await registerPatient(email, repo, emailSender);

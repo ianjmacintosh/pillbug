@@ -18,15 +18,12 @@ jobs:
       - name: Create .env for local dev server
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          INVITE_CODE: ${{ secrets.INVITE_CODE }}
         run: |
           echo "RESEND_API_KEY=$RESEND_API_KEY" >> .env
-          echo "INVITE_CODE=$INVITE_CODE" >> .env
+          echo "TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA" >> .env
       - name: Apply D1 migrations (local)
         run: npx wrangler d1 migrations apply pillbug-staging --env staging --local
       - name: Run Playwright tests
-        env:
-          INVITE_CODE: ${{ secrets.INVITE_CODE }}
         run: npm run test:e2e
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}

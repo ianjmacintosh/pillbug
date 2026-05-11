@@ -2,7 +2,9 @@ import { getPlatformProxy } from "wrangler";
 import type { D1Database } from "@cloudflare/workers-types";
 import { expect, test } from "@playwright/test";
 
-const INVITE_CODE = process.env.INVITE_CODE ?? "";
+// Cloudflare Turnstile dummy token produced by the always-passes test sitekey.
+// Only validates against the test secret key (1x0000000000000000000000000000000AA).
+const TURNSTILE_DUMMY_TOKEN = "XXXX.DUMMY.TOKEN.XXXX";
 
 interface Env {
   DB: D1Database;
@@ -44,7 +46,7 @@ test.describe("POST /api/register", () => {
   test("returns 200 for a new email", async ({ request }) => {
     const email = `delivered+e2e-${Date.now()}@resend.dev`;
     const res = await request.post("/api/register", {
-      data: { email, inviteCode: INVITE_CODE },
+      data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
     });
     expect(res.status()).toBe(200);
   });
@@ -52,10 +54,10 @@ test.describe("POST /api/register", () => {
   test("returns 200 for an already-registered email", async ({ request }) => {
     const email = `delivered+e2e-dup-${Date.now()}@resend.dev`;
     await request.post("/api/register", {
-      data: { email, inviteCode: INVITE_CODE },
+      data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
     });
     const res = await request.post("/api/register", {
-      data: { email, inviteCode: INVITE_CODE },
+      data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
     });
     expect(res.status()).toBe(200);
   });
@@ -68,7 +70,7 @@ test.describe("GET /api/auth/verify", () => {
   }) => {
     const email = `delivered+verify-${Date.now()}@resend.dev`;
     await request.post("/api/register", {
-      data: { email, inviteCode: INVITE_CODE },
+      data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
     });
     const token = await getLatestToken(email);
 
@@ -89,7 +91,7 @@ test.describe("GET /api/auth/verify", () => {
   }) => {
     const email = `delivered+verify-used-${Date.now()}@resend.dev`;
     await request.post("/api/register", {
-      data: { email, inviteCode: INVITE_CODE },
+      data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
     });
     const token = await getLatestToken(email);
 
@@ -105,7 +107,7 @@ test.describe("GET /api/auth/verify", () => {
   }) => {
     const email = `delivered+verify-exp-${Date.now()}@resend.dev`;
     await request.post("/api/register", {
-      data: { email, inviteCode: INVITE_CODE },
+      data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
     });
     const token = await getLatestToken(email);
     await expireToken(token);
