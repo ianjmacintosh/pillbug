@@ -6,7 +6,7 @@ import {
   getSession,
   deleteSession,
 } from "./auth";
-import { makeInMemoryRepo, makeEmailSpy } from "./auth.test-helpers";
+import { makeInMemoryRepo, makeEmailSpy } from "./test/auth-helpers";
 
 describe("registerPatient", () => {
   test("creates a patient and sends a magic link", async () => {
