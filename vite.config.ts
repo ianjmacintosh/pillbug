@@ -11,17 +11,7 @@ export default defineConfig({
       registerType: "autoUpdate",
       devOptions: { enabled: true },
       workbox: {
-        navigateFallback: null,
-        runtimeCaching: [
-          {
-            urlPattern: ({ request }) => request.mode === "navigate",
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "navigations",
-              networkTimeoutSeconds: 3,
-            },
-          },
-        ],
+        navigateFallbackDenylist: [/^\/api\//],
       },
       manifest: {
         name: "Pillbug",

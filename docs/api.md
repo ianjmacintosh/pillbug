@@ -98,6 +98,24 @@ Redirects to `/register`. Clears the `session` cookie.
 
 ---
 
+### `GET /api/session`
+
+Returns the current session state. Used by the client to check auth on page load (the service worker may serve cached HTML to unauthenticated users, so a network check is required).
+
+**Response — 200** (authenticated)
+
+```json
+{ "ok": true, "patientId": "<uuid>" }
+```
+
+**Response — 401** (no session or expired session)
+
+```json
+{ "error": "not_authenticated" }
+```
+
+---
+
 ## Unauthenticated redirect
 
 `GET /` without a valid session cookie → 302 to `/register`.

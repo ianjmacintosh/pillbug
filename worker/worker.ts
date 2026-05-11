@@ -138,6 +138,21 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     });
   }
 
+  if (url.pathname === "/api/session" && request.method === "GET") {
+    const sessionId = getSessionId(request);
+    const session = sessionId ? await getSession(sessionId, repo) : null;
+    if (!session) {
+      return new Response(JSON.stringify({ error: "not_authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response(
+      JSON.stringify({ ok: true, patientId: session.patientId }),
+      { headers: { "Content-Type": "application/json" } },
+    );
+  }
+
   if (url.pathname === "/api/logout" && request.method === "POST") {
     const sessionId = getSessionId(request);
     if (sessionId) await deleteSession(sessionId, repo);

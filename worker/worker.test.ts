@@ -264,6 +264,59 @@ describe("POST /api/register Turnstile validation", () => {
   });
 });
 
+describe("GET /api/session", () => {
+  let repo: ReturnType<typeof makeInMemoryRepo>;
+
+  beforeEach(() => {
+    repo = makeInMemoryRepo();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(repo);
+  });
+
+  test("returns 401 when no session cookie is present", async () => {
+    const response = await worker.fetch(
+      new Request("http://localhost/api/session"),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "not_authenticated" });
+  });
+
+  test("returns 401 when session cookie does not match a session", async () => {
+    const response = await worker.fetch(
+      new Request("http://localhost/api/session", {
+        headers: { Cookie: "session=unknown-session-id" },
+      }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "not_authenticated" });
+  });
+
+  test("returns 200 with patientId when session is valid", async () => {
+    await repo.createPatient(
+      "patient-1",
+      "delivered@resend.dev",
+      new Date().toISOString(),
+    );
+    const expiresAt = new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+    await repo.createSession("session-id-1", "patient-1", expiresAt);
+
+    const response = await worker.fetch(
+      new Request("http://localhost/api/session", {
+        headers: { Cookie: "session=session-id-1" },
+      }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true, patientId: "patient-1" });
+  });
+});
+
 describe("clear session cookie", () => {
   test("includes Secure, HttpOnly, and SameSite=Lax on HTTPS", async () => {
     const response = await worker.fetch(
