@@ -1,4 +1,4 @@
-import type { AuthRepository, EmailSender, SentEmail } from "./auth";
+import type { AuthRepository, EmailSender, SentEmail } from "../auth";
 
 export function makeInMemoryRepo(): AuthRepository {
   const patients = new Map<
