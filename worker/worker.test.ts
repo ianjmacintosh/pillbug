@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import worker from "./worker";
+import { Resend } from "resend";
 import { makeD1AuthRepo } from "./d1-auth-repo";
 import { makeResendEmailSender } from "./resend-email-sender";
 import { makeEmailSpy, makeInMemoryRepo } from "./test/auth-helpers";
@@ -145,6 +146,52 @@ describe("session cookie", () => {
     expect(cookie).not.toContain("Secure");
     expect(cookie).toContain("; HttpOnly");
     expect(cookie).toContain("SameSite=Lax");
+  });
+});
+
+describe("Resend lazy initialization", () => {
+  test("Resend is not constructed on POST /api/logout", async () => {
+    vi.mocked(Resend).mockClear();
+
+    await worker.fetch(
+      new Request("http://localhost/api/logout", { method: "POST" }),
+      makeEnv(),
+    );
+
+    expect(Resend).not.toHaveBeenCalled();
+  });
+
+  test("makeResendEmailSender is not called on POST /api/logout", async () => {
+    vi.mocked(makeResendEmailSender).mockClear();
+
+    await worker.fetch(
+      new Request("http://localhost/api/logout", { method: "POST" }),
+      makeEnv(),
+    );
+
+    expect(makeResendEmailSender).not.toHaveBeenCalled();
+  });
+
+  test("Resend is not constructed on GET /api/auth/verify", async () => {
+    vi.mocked(Resend).mockClear();
+
+    await worker.fetch(
+      new Request("http://localhost/api/auth/verify?token=bad"),
+      makeEnv(),
+    );
+
+    expect(Resend).not.toHaveBeenCalled();
+  });
+
+  test("makeResendEmailSender is not called on GET /api/auth/verify", async () => {
+    vi.mocked(makeResendEmailSender).mockClear();
+
+    await worker.fetch(
+      new Request("http://localhost/api/auth/verify?token=bad"),
+      makeEnv(),
+    );
+
+    expect(makeResendEmailSender).not.toHaveBeenCalled();
   });
 });
 
