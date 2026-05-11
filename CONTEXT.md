@@ -79,6 +79,21 @@ If a Fill Session is interrupted and resumed, an Audit step precedes the remaini
 A completed Fill Session is recorded with a timestamp and which Prescriptions were flagged as needing a refill during verification.
 _Avoid_: Packing, Loading, Preparation
 
+**Prescription Suggestion**:
+A URL encoding a proposed Prescription that a Doctor sends to a Patient (e.g. via email). Carries: drug name, dosage, instructions, and optionally an end date. Encoded as readable query params (e.g. `?drug=Metformin&dosage=500mg&instructions=Take+with+food`); a motivated Doctor or assistant can construct one by hand without the generator.
+
+Visiting the link:
+
+- **Logged-in Patient**: sees a pre-filled confirmation form. The Prescription is not created until the Patient confirms and fills in the remaining fields (Schedule, start date).
+- **Not logged in** (Doctor previewing, or Patient not yet authenticated): sees a read-only preview of the Prescription data and a login link that preserves the current URL. After completing login, the Patient is returned to the same Prescription Suggestion URL and can confirm.
+
+The link is reusable and not bound to a specific Patient. Requires no Pillbug account for the Doctor. Pillbug provides a public **Prescription Suggestion Generator** for constructing the URL.
+_Avoid_: Prescription Link (too close to Share Link), Prescription Invite, Rx Template
+
+**Prescription Suggestion Generator**:
+A public form on Pillbug for constructing a Prescription Suggestion URL. Accessible without a Pillbug account. Accepts drug name, dosage, instructions, and optional end date, and produces a shareable URL the Doctor can send to a Patient.
+_Avoid_: Rx tool, Link builder, Prescription creator
+
 **Adherence Record**:
 A read-only view of a Patient's Prescriptions (active and completed), Dose history, and Fill Session history (including any refill flags raised), showing how consistently they have followed their prescribed schedule. Intended for sharing with a healthcare provider.
 _Avoid_: Care Summary, Doctor View, Provider Page, Report, Medication History
@@ -96,6 +111,7 @@ _Avoid_: Public link, Share URL
 - A **Reminder** results in a **Dose** (taken), a **Snooze** (deferred), or a dismissal (no Dose logged)
 - A **Dose** can be logged retroactively from history, independent of a Reminder
 - A **Patient** can generate a **Share Link** to grant read-only access to their **Adherence Record**
+- A **Doctor** can generate a **Prescription Suggestion** link that a **Patient** confirms to create a **Prescription**
 - A **Patient** optionally has one **Pill Organizer** with a configured structure (Compartments per day, span in days)
 - A **Fill Session** covers the full span of the **Pill Organizer** and is recorded on completion
 
