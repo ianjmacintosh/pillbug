@@ -25,6 +25,15 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
+const SECURITY_HEADERS = {
+  "Content-Security-Policy":
+    "default-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'",
+  "Strict-Transport-Security": "max-age=63072000",
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "X-Frame-Options": "DENY",
+};
+
 const SESSION_COOKIE = "session";
 const SESSION_MAX_AGE = 30 * 24 * 60 * 60; // 30 days in seconds
 
@@ -34,12 +43,14 @@ function getSessionId(request: Request): string | null {
   return match?.[1] ?? null;
 }
 
-function sessionCookie(value: string): string {
-  return `${SESSION_COOKIE}=${value}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${SESSION_MAX_AGE}`;
+function sessionCookie(value: string, secure: boolean): string {
+  const secureFlag = secure ? "; Secure" : "";
+  return `${SESSION_COOKIE}=${value}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${SESSION_MAX_AGE}${secureFlag}`;
 }
 
-function clearSessionCookie(): string {
-  return `${SESSION_COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`;
+function clearSessionCookie(secure: boolean): string {
+  const secureFlag = secure ? "; Secure" : "";
+  return `${SESSION_COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${secureFlag}`;
 }
 
 export default {
@@ -57,6 +68,7 @@ export default {
 
 async function handleRequest(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
+  const secure = url.protocol === "https:";
   const resend = new Resend(env.RESEND_API_KEY);
   const repo = makeD1AuthRepo(env.DB);
   const emailSender = makeResendEmailSender(env.RESEND_API_KEY, env.APP_URL);
@@ -111,7 +123,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       status: 302,
       headers: {
         Location: "/",
-        "Set-Cookie": sessionCookie(sessionId),
+        "Set-Cookie": sessionCookie(sessionId, secure),
       },
     });
   }
@@ -123,7 +135,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       status: 302,
       headers: {
         Location: "/register",
-        "Set-Cookie": clearSessionCookie(),
+        "Set-Cookie": clearSessionCookie(secure),
       },
     });
   }
@@ -139,5 +151,14 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     }
   }
 
-  return env.ASSETS.fetch(request);
+  const assetResponse = await env.ASSETS.fetch(request);
+  const headers = new Headers(assetResponse.headers);
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    headers.set(key, value);
+  }
+  return new Response(assetResponse.body, {
+    status: assetResponse.status,
+    statusText: assetResponse.statusText,
+    headers,
+  });
 }
