@@ -4,8 +4,16 @@ import Register from "./Register";
 
 vi.mock("@tanstack/react-router", () => ({ useNavigate: () => vi.fn() }));
 vi.mock("@marsidev/react-turnstile", () => ({
-  Turnstile: ({ onSuccess }: { onSuccess: (token: string) => void }) => (
-    <button onClick={() => onSuccess("dummy-token")}>Turnstile</button>
+  Turnstile: ({
+    siteKey,
+    onSuccess,
+  }: {
+    siteKey: string;
+    onSuccess: (token: string) => void;
+  }) => (
+    <button data-sitekey={siteKey} onClick={() => onSuccess("dummy-token")}>
+      Turnstile
+    </button>
   ),
 }));
 
@@ -53,6 +61,29 @@ describe("Register form submission", () => {
 
     const alert = await screen.findByRole("alert");
     expect(alert.textContent).toBe("Something went wrong. Please try again.");
+  });
+});
+
+describe("?challenge query param", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  test("uses interactive site key when ?challenge is present", () => {
+    vi.stubGlobal("location", { search: "?challenge" });
+    render(<Register />);
+    const widget = screen.getByRole("button", { name: /turnstile/i });
+    expect((widget as HTMLButtonElement).dataset.sitekey).toBe(
+      "3x00000000000000000000FF",
+    );
+  });
+
+  test("uses configured site key when ?challenge is absent", () => {
+    render(<Register />);
+    const widget = screen.getByRole("button", { name: /turnstile/i });
+    expect((widget as HTMLButtonElement).dataset.sitekey).not.toBe(
+      "3x00000000000000000000FF",
+    );
   });
 });
 

@@ -3,9 +3,16 @@ import { useNavigate } from "@tanstack/react-router";
 import { Turnstile } from "@marsidev/react-turnstile";
 
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string;
+const TURNSTILE_INTERACTIVE_SITE_KEY = "3x00000000000000000000FF";
 
 function Register() {
   const navigate = useNavigate();
+  const forceChallenge = new URLSearchParams(window.location.search).has(
+    "challenge",
+  );
+  const siteKey = forceChallenge
+    ? TURNSTILE_INTERACTIVE_SITE_KEY
+    : TURNSTILE_SITE_KEY;
   const [email, setEmail] = useState("");
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [terms, setTerms] = useState(false);
@@ -50,7 +57,7 @@ function Register() {
             required
           />
         </label>
-        <Turnstile siteKey={TURNSTILE_SITE_KEY} onSuccess={setTurnstileToken} />
+        <Turnstile siteKey={siteKey} onSuccess={setTurnstileToken} />
         <label>
           <input
             type="checkbox"
