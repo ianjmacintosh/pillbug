@@ -35,7 +35,7 @@ const SECURITY_HEADERS = {
 const HTTPS_SECURITY_HEADERS = {
   ...SECURITY_HEADERS,
   "Content-Security-Policy":
-    "default-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'",
+    "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; frame-src 'self' https://challenges.cloudflare.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self'",
   "Strict-Transport-Security": "max-age=63072000",
 };
 
