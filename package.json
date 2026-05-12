@@ -22,6 +22,7 @@
     "claude:install": "curl -fsSL https://claude.ai/install.sh | bash"
   },
   "dependencies": {
+    "@marsidev/react-turnstile": "^1.5.2",
     "@tanstack/react-router": "^1.169.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

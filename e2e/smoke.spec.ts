@@ -33,6 +33,20 @@ test("/ redirects unauthenticated visitors to /register", async ({ page }) => {
   await expect(page).toHaveURL("/register");
 });
 
+test("/ redirects unauthenticated visitors to /register after the service worker is active", async ({
+  page,
+}) => {
+  // Load a page first so the service worker installs and becomes active.
+  // This is the scenario that previously returned 200 — the SW served cached
+  // HTML and bypassed the Worker's session check entirely.
+  await page.goto("/register");
+  await page.evaluate(() => navigator.serviceWorker.ready);
+
+  await page.goto("/");
+
+  await expect(page).toHaveURL("/register");
+});
+
 test("unknown path renders a 404 page", async ({ page }) => {
   await page.goto("/does-not-exist");
   await expect(page.getByRole("heading", { name: /not found/i })).toBeVisible();

@@ -1,15 +1,25 @@
-import { useState } from "react";
+import { useState, type SyntheticEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { Turnstile } from "@marsidev/react-turnstile";
+
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string;
+const TURNSTILE_INTERACTIVE_SITE_KEY = "3x00000000000000000000FF";
 
 function Register() {
   const navigate = useNavigate();
+  const forceChallenge = new URLSearchParams(window.location.search).has(
+    "challenge",
+  );
+  const siteKey = forceChallenge
+    ? TURNSTILE_INTERACTIVE_SITE_KEY
+    : TURNSTILE_SITE_KEY;
   const [email, setEmail] = useState("");
-  const [inviteCode, setInviteCode] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [terms, setTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
 
     if (!terms) {
@@ -23,18 +33,13 @@ function Register() {
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, inviteCode }),
+      body: JSON.stringify({ email, turnstileToken }),
     });
 
     if (res.ok) {
       await navigate({ to: "/check-your-email" });
     } else {
-      const data = (await res.json()) as { error: string };
-      setError(
-        data.error === "invalid_invite_code"
-          ? "Invalid invite code. Please check your invitation and try again."
-          : "Something went wrong. Please try again.",
-      );
+      setError("Something went wrong. Please try again.");
       setSubmitting(false);
     }
   }
@@ -52,15 +57,7 @@ function Register() {
             required
           />
         </label>
-        <label>
-          Invite Code
-          <input
-            type="text"
-            value={inviteCode}
-            onChange={(e) => setInviteCode(e.target.value)}
-            required
-          />
-        </label>
+        <Turnstile siteKey={siteKey} onSuccess={setTurnstileToken} />
         <label>
           <input
             type="checkbox"

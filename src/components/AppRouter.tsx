@@ -3,6 +3,7 @@ import {
   createRoute,
   createRouter,
   Outlet,
+  redirect,
   RouterProvider,
 } from "@tanstack/react-router";
 import App from "./App";
@@ -19,6 +20,17 @@ const rootRoute = createRootRoute({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
+  beforeLoad: async () => {
+    let res: Response;
+    try {
+      res = await fetch("/api/session");
+    } catch {
+      return; // offline — let the app load
+    }
+    if (!res.ok) {
+      throw redirect({ to: "/register" });
+    }
+  },
   component: App,
 });
 

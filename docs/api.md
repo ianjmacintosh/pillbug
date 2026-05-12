@@ -36,7 +36,7 @@ Creates a new Patient account and sends a magic link. If the email is already re
 **Request**
 
 ```json
-{ "email": "patient@example.com", "inviteCode": "..." }
+{ "email": "patient@example.com", "turnstileToken": "..." }
 ```
 
 **Response — 200**
@@ -45,11 +45,13 @@ Creates a new Patient account and sends a magic link. If the email is already re
 { "ok": true }
 ```
 
-**Response — 403** (invalid invite code)
+**Response — 403** (Turnstile verification failed)
 
 ```json
-{ "error": "invalid_invite_code" }
+{ "error": "invalid_turnstile_token" }
 ```
+
+The Turnstile token is obtained from the widget rendered on the `/register` page. If Cloudflare's verification API rejects the token (bot detected, token expired, or token already used), the server returns 403. The client should prompt the user to try again — the widget will issue a fresh token automatically.
 
 ---
 
@@ -95,6 +97,24 @@ Destroys the current session. Safe to call without a valid session (no-op).
 
 **Response — 302**
 Redirects to `/register`. Clears the `session` cookie.
+
+---
+
+### `GET /api/session`
+
+Returns the current session state. Used by the client to check auth on page load (the service worker may serve cached HTML to unauthenticated users, so a network check is required).
+
+**Response — 200** (authenticated)
+
+```json
+{ "ok": true, "patientId": "<uuid>" }
+```
+
+**Response — 401** (no session or expired session)
+
+```json
+{ "error": "not_authenticated" }
+```
 
 ---
 
