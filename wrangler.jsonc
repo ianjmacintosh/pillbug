@@ -3,8 +3,8 @@
   "name": "pillbug",
   "compatibility_date": "2026-02-05",
   "main": "worker/worker.ts",
-  // Root config has no bindings or routes. Bare `wrangler deploy` deploys a
-  // broken Worker (no DB binding). Always use --env production or --env staging.
+  // Root config has no bindings or routes. Deployments are handled by CI only.
+  // Developers use `wrangler dev` locally; the dev token has no deploy permissions.
   "assets": {
     "binding": "ASSETS",
     "directory": "./dist/client",
@@ -13,7 +13,7 @@
   },
   "env": {
     "production": {
-      "name": "pillbug",
+      "name": "pillbug-production",
       "routes": [
         {
           "pattern": "pillbug.ianjmacintosh.com",
@@ -33,6 +33,7 @@
       ],
     },
     "staging": {
+      "name": "pillbug-staging",
       "workers_dev": true,
       "routes": [
         {
