@@ -65,8 +65,10 @@ Before the first staging deploy, set Worker secrets for the `staging` environmen
 
 ```bash
 wrangler secret put RESEND_API_KEY --env staging
-wrangler secret put INVITE_CODE --env staging
+wrangler secret put TURNSTILE_SECRET_KEY --env staging
 ```
+
+Use Cloudflare's always-passes test secret key (`1x0000000000000000000000000000000AA`) for staging. The matching always-passes site key (`1x00000000000000000000AA`) must be set as a build environment variable (`VITE_TURNSTILE_SITE_KEY`) in Cloudflare's build settings for the staging environment.
 
 ### Preview environments
 

@@ -36,7 +36,7 @@ Creates a new Patient account and sends a magic link. If the email is already re
 **Request**
 
 ```json
-{ "email": "patient@example.com", "inviteCode": "..." }
+{ "email": "patient@example.com", "turnstileToken": "..." }
 ```
 
 **Response — 200**
@@ -45,11 +45,13 @@ Creates a new Patient account and sends a magic link. If the email is already re
 { "ok": true }
 ```
 
-**Response — 403** (invalid invite code)
+**Response — 403** (Turnstile verification failed)
 
 ```json
-{ "error": "invalid_invite_code" }
+{ "error": "invalid_turnstile_token" }
 ```
+
+The Turnstile token is obtained from the widget rendered on the `/register` page. If Cloudflare's verification API rejects the token (bot detected, token expired, or token already used), the server returns 403. The client should prompt the user to try again — the widget will issue a fresh token automatically.
 
 ---
 
