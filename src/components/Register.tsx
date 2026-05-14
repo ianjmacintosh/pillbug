@@ -64,7 +64,8 @@ function Register() {
             checked={terms}
             onChange={(e) => setTerms(e.target.checked)}
           />
-          I agree to the Terms of Service
+          I agree to the <a href="/terms">Terms of Service</a> and{" "}
+          <a href="/privacy">Privacy Policy</a>
         </label>
         {error && <p role="alert">{error}</p>}
         <button type="submit" disabled={submitting}>

@@ -124,4 +124,16 @@ describe("Register", () => {
     render(<Register />);
     expect(screen.getByRole("link", { name: /log in/i })).toBeTruthy();
   });
+
+  test("links to the terms page from the terms checkbox label", () => {
+    render(<Register />);
+    expect(
+      screen.getByRole("link", { name: /terms of service/i }),
+    ).toBeTruthy();
+  });
+
+  test("links to the privacy page from the terms checkbox label", () => {
+    render(<Register />);
+    expect(screen.getByRole("link", { name: /privacy policy/i })).toBeTruthy();
+  });
 });

@@ -43,23 +43,36 @@ function generateId(): string {
   return crypto.randomUUID();
 }
 
+async function createPatientToken(
+  patientId: string,
+  repo: AuthRepository,
+): Promise<string> {
+  const token = generateId();
+  const expiresAt = new Date(Date.now() + TOKEN_TTL_MS).toISOString();
+  await repo.createToken(token, patientId, expiresAt);
+  return token;
+}
+
+export async function generateLoginToken(
+  email: string,
+  repo: AuthRepository,
+): Promise<{ token: string }> {
+  const existing = await repo.findPatientByEmail(email);
+  const patientId = existing?.id ?? generateId();
+  if (!existing) {
+    await repo.createPatient(patientId, email, new Date().toISOString());
+  }
+  const token = await createPatientToken(patientId, repo);
+  return { token };
+}
+
 export async function registerPatient(
   email: string,
   repo: AuthRepository,
   emailSender: EmailSender,
 ): Promise<{ ok: true }> {
-  const existing = await repo.findPatientByEmail(email);
-
-  const patientId = existing?.id ?? generateId();
-  if (!existing) {
-    await repo.createPatient(patientId, email, new Date().toISOString());
-  }
-
-  const token = generateId();
-  const expiresAt = new Date(Date.now() + TOKEN_TTL_MS).toISOString();
-  await repo.createToken(token, patientId, expiresAt);
+  const { token } = await generateLoginToken(email, repo);
   await emailSender.sendMagicLink(email, token);
-
   return { ok: true };
 }
 
@@ -70,9 +83,7 @@ export async function sendLoginLink(
 ): Promise<{ ok: true }> {
   const patient = await repo.findPatientByEmail(email);
   if (patient) {
-    const token = generateId();
-    const expiresAt = new Date(Date.now() + TOKEN_TTL_MS).toISOString();
-    await repo.createToken(token, patient.id, expiresAt);
+    const token = await createPatientToken(patient.id, repo);
     await emailSender.sendMagicLink(email, token);
   }
   return { ok: true };

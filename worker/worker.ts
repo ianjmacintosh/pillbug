@@ -1,4 +1,5 @@
 import {
+  generateLoginToken,
   registerPatient,
   sendLoginLink,
   verifyToken,
@@ -35,7 +36,7 @@ const SECURITY_HEADERS = {
 const HTTPS_SECURITY_HEADERS = {
   ...SECURITY_HEADERS,
   "Content-Security-Policy":
-    "default-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'",
+    "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; frame-src 'self' https://challenges.cloudflare.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self'",
   "Strict-Transport-Security": "max-age=63072000",
 };
 
@@ -105,6 +106,14 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     }
     const emailSender = makeResendEmailSender(env.RESEND_API_KEY, env.APP_URL);
     await registerPatient(email, repo, emailSender);
+    return new Response(JSON.stringify({ ok: true }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (url.pathname === "/api/login/silent" && request.method === "POST") {
+    const { email } = await request.json<{ email: string }>();
+    await generateLoginToken(email, repo);
     return new Response(JSON.stringify({ ok: true }), {
       headers: { "Content-Type": "application/json" },
     });
