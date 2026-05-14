@@ -12,6 +12,14 @@ Get reminders to take your prescriptions without needing to personally manage a 
 npm run dev
 ```
 
+### Start a Wrangler dev server
+
+```bash
+npm run dev:wrangler
+```
+
+> NOTE: Runs the Worker via Wrangler alone, without `@cloudflare/vite-plugin`. Useful for isolating whether a bug is in the Worker or the Vite plugin layer.
+
 ### Authenticating locally (bypassing magic link email)
 
 Use the silent endpoints to register or log in without sending an email. The token is stored in the database only — retrieve it with a second step.
