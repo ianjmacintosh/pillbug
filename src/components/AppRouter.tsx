@@ -12,6 +12,7 @@ import FillSession from "./FillSession";
 import Layout from "./Layout";
 import Login from "./Login";
 import NotFound from "./NotFound";
+import Prescriptions from "./Prescriptions";
 import Privacy from "./Privacy";
 import Register from "./Register";
 import Settings from "./Settings";
@@ -91,6 +92,13 @@ const fillSessionRoute = createRoute({
   component: FillSession,
 });
 
+const prescriptionsRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: "/prescriptions",
+  beforeLoad: requireAuth,
+  component: Prescriptions,
+});
+
 const routeTree = rootRoute.addChildren([
   layoutRoute.addChildren([
     indexRoute,
@@ -101,6 +109,7 @@ const routeTree = rootRoute.addChildren([
     privacyRoute,
     settingsRoute,
     fillSessionRoute,
+    prescriptionsRoute,
   ]),
 ]);
 
