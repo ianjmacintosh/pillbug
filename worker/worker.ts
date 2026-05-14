@@ -111,14 +111,6 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     });
   }
 
-  if (url.pathname === "/api/register/silent" && request.method === "POST") {
-    const { email } = await request.json<{ email: string }>();
-    await generateLoginToken(email, repo);
-    return new Response(JSON.stringify({ ok: true }), {
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
   if (url.pathname === "/api/login/silent" && request.method === "POST") {
     const { email } = await request.json<{ email: string }>();
     await generateLoginToken(email, repo);

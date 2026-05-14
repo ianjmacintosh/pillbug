@@ -118,6 +118,24 @@ Returns the current session state. Used by the client to check auth on page load
 
 ---
 
+### `POST /api/login/silent`
+
+Creates a Patient account if the email is not registered, then generates a magic link token without sending an email. The token is written to the database and can be retrieved via `wrangler d1 execute` for use at `GET /api/auth/verify`. Intended for local and staging developer workflows — see `npm run dev:login`.
+
+**Request**
+
+```json
+{ "email": "patient@example.com" }
+```
+
+**Response — 200**
+
+```json
+{ "ok": true }
+```
+
+---
+
 ## Unauthenticated redirect
 
 `GET /` without a valid session cookie → 302 to `/register`.
