@@ -19,7 +19,7 @@ Use the silent endpoints to register or log in without sending an email. The tok
 **Register a new account:**
 
 ```bash
-curl -s -X POST http://localhost:8787/api/register/silent \
+curl -s -X POST http://localhost:5173/api/register/silent \
   -H "Content-Type: application/json" \
   -d '{"email":"you@example.com"}'
 # {"ok":true}
@@ -28,7 +28,7 @@ curl -s -X POST http://localhost:8787/api/register/silent \
 **Log in to an existing account:**
 
 ```bash
-curl -s -X POST http://localhost:8787/api/login/silent \
+curl -s -X POST http://localhost:5173/api/login/silent \
   -H "Content-Type: application/json" \
   -d '{"email":"you@example.com"}'
 # {"ok":true}
@@ -41,7 +41,7 @@ npx wrangler d1 execute pillbug-staging --env staging --local \
   --command "SELECT token FROM magic_link_tokens ORDER BY rowid DESC LIMIT 1"
 ```
 
-Then visit `http://localhost:8787/api/auth/verify?token=<token>` to complete the login and set a session cookie.
+Then visit `http://localhost:5173/api/auth/verify?token=<token>` to complete the login and set a session cookie.
 
 ### Build the app
 

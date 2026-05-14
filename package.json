@@ -8,7 +8,7 @@
     "dev:local": "wrangler dev --config wrangler.jsonc --env staging --ip 0.0.0.0",
     "dev:login": "node scripts/dev-login.js",
     "db:migrate:local": "wrangler d1 migrations apply pillbug-staging --env staging --local",
-    "db:reset:local": "ss -tlnp 2>/dev/null | grep -q :8787 && echo 'Stop dev:local before resetting the database.' && exit 1; rm -rf .wrangler/state/v3/d1 && npm run db:migrate:local",
+    "db:reset:local": "ss -tlnp 2>/dev/null | grep -q :5173 && echo 'Stop dev:local before resetting the database.' && exit 1; rm -rf .wrangler/state/v3/d1 && npm run db:migrate:local",
     "dev:remote": "wrangler dev --env staging --remote",
     "deploy": "npm run deploy:production",
     "deploy:production": "npx wrangler d1 migrations apply pillbug --env production --remote && npx wrangler deploy --env production",
