@@ -3,6 +3,7 @@
 -- Existing patient records cannot be migrated (EMAIL_SECRET is not available in SQL
 -- migrations). Sessions and tokens are cleared as well since they reference patients.
 -- Users must re-register after deployment.
+PRAGMA foreign_keys = ON;
 
 DROP TABLE sessions;
 DROP TABLE magic_link_tokens;
