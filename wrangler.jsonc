@@ -49,7 +49,7 @@
           "database_id": "e6b3aec5-7d5f-4f2d-9baa-da2675290408",
           "migrations_dir": "migrations",
         },
-      ],
+      ],"name": "pillbug-staging",
     },
   },
 }
