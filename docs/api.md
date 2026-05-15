@@ -136,6 +136,198 @@ Creates a Patient account if the email is not registered, then generates a magic
 
 ---
 
+## Prescription endpoints
+
+All Prescription endpoints require a valid session cookie. Unauthenticated requests return 401.
+
+A Prescription object has the following shape:
+
+```json
+{
+  "id": "<uuid>",
+  "drugName": "Metformin",
+  "dosage": "500mg",
+  "schedule": {
+    "days": "daily" | ["monday", "tuesday", ...],
+    "times": ["08:00", "20:00"],
+    "timezoneMode": "local" | "fixed_utc"
+  },
+  "startDate": "2024-01-01",
+  "endDate": "2024-06-01",
+  "prescribingDoctor": "Dr. Smith",
+  "instructions": "Take with food",
+  "status": "active" | "completed" | "paused" | "discontinued"
+}
+```
+
+`endDate`, `prescribingDoctor`, and `instructions` are optional and may be `null`. `startDate` and `endDate` are ISO 8601 date strings (`YYYY-MM-DD`). `timezoneMode` defaults to `"local"` if omitted on create.
+
+---
+
+### `GET /api/v1/prescriptions`
+
+Returns the authenticated Patient's Prescriptions.
+
+**Query parameters**
+
+| Parameter | Type                   | Default  | Description                                                                                                       |
+| --------- | ---------------------- | -------- | ----------------------------------------------------------------------------------------------------------------- |
+| `status`  | comma-separated string | `active` | Filter by status. Valid values: `active`, `completed`, `paused`, `discontinued`. Example: `?status=active,paused` |
+| `doctor`  | string                 | —        | Filter by exact match on `prescribingDoctor` field. Optional.                                                     |
+
+**Response — 200**
+
+```json
+[{ ...Prescription }, ...]
+```
+
+Empty array if no Prescriptions match the filters.
+
+**Response — 401**
+
+```json
+{ "error": "not_authenticated" }
+```
+
+---
+
+### `POST /api/v1/prescriptions`
+
+Creates a new Prescription for the authenticated Patient. Status defaults to `active`.
+
+**Request**
+
+```json
+{
+  "drugName": "Metformin",
+  "dosage": "500mg",
+  "schedule": {
+    "days": "daily" | ["monday", "tuesday", ...],
+    "times": ["08:00", "20:00"],
+    "timezoneMode": "local" | "fixed_utc"
+  },
+  "startDate": "2024-01-01",
+  "endDate": "2024-06-01",
+  "prescribingDoctor": "Dr. Smith",
+  "instructions": "Take with food"
+}
+```
+
+Required: `drugName`, `dosage`, `schedule`, `startDate`. All other fields are optional.
+
+**Response — 201**
+
+The created Prescription object.
+
+**Response — 400** (missing required field)
+
+```json
+{ "error": "missing_required_field" }
+```
+
+**Response — 422** (semantically invalid)
+
+| Code                         | Meaning                                                                        |
+| ---------------------------- | ------------------------------------------------------------------------------ |
+| `end_date_before_start_date` | `endDate` is earlier than `startDate`                                          |
+| `invalid_status`             | `status` value is not a recognised enum value                                  |
+| `invalid_time_format`        | A time in `schedule.times` is not `HH:MM`                                      |
+| `invalid_days`               | `schedule.days` is not `"daily"` or a non-empty array of valid weekday strings |
+
+---
+
+### `GET /api/v1/prescriptions/:prescriptionId`
+
+Returns a single Prescription. Returns 404 whether the Prescription does not exist or belongs to a different Patient — the response is identical either way (existence is not confirmed).
+
+**Response — 200**
+
+The Prescription object.
+
+**Response — 404**
+
+```json
+{ "error": "not_found" }
+```
+
+---
+
+### `PATCH /api/v1/prescriptions/:prescriptionId`
+
+Updates a Prescription. Only fields included in the request body are changed; omitted fields are left as-is.
+
+**Request**
+
+Any subset of Prescription fields:
+
+```json
+{
+  "drugName": "Metformin HCL",
+  "dosage": "1000mg",
+  "status": "discontinued"
+}
+```
+
+**Response — 200**
+
+The updated Prescription object.
+
+**Response — 404**
+
+```json
+{ "error": "not_found" }
+```
+
+**Response — 422**
+
+Same error codes as `POST /api/v1/prescriptions`.
+
+---
+
+### `DELETE /api/v1/prescriptions/:prescriptionId`
+
+Permanently deletes a Prescription and all associated Dose history. This operation is irreversible.
+
+**Response — 200**
+
+```json
+{ "ok": true }
+```
+
+**Response — 404**
+
+```json
+{ "error": "not_found" }
+```
+
+---
+
+### `GET /api/v1/doctors`
+
+Returns the distinct doctor names associated with the authenticated Patient's Prescriptions. Accepts the same `status` filter as `GET /api/v1/prescriptions` so the caller can keep the doctor picker in sync with the visible Prescription list.
+
+**Query parameters**
+
+| Parameter | Type                   | Default  | Description                                 |
+| --------- | ---------------------- | -------- | ------------------------------------------- |
+| `status`  | comma-separated string | `active` | Same values as `GET /api/v1/prescriptions`. |
+
+**Response — 200**
+
+```json
+[{ "name": "Dr. Smith" }, { "name": "Dr. Jones" }]
+```
+
+Empty array if no matching Prescriptions have a `prescribingDoctor` set.
+
+**Response — 401**
+
+```json
+{ "error": "not_authenticated" }
+```
+
+---
+
 ## Unauthenticated redirect
 
 `GET /` without a valid session cookie → 302 to `/register`.
