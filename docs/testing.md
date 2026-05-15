@@ -28,6 +28,27 @@ The always-passes widget produces a dummy token: `XXXX.DUMMY.TOKEN.XXXX`. This t
 
 The test secret key is hardcoded in `e2e-tests.yml` (it is a publicly documented Cloudflare value, not a real credential). The production and staging secret keys are set as Cloudflare Worker secrets via `wrangler secret put TURNSTILE_SECRET_KEY --env <environment>` and must also be stored in GitHub repo secrets if a deploy workflow reads them.
 
+## Database migrations and local-vs-remote D1 differences
+
+CI applies migrations with `--local` (a local SQLite file) to keep the remote staging database clean during test runs. Local SQLite and remote D1 have behavioral differences that can cause a migration to pass CI and then fail in production:
+
+| Behavior                      | Local SQLite (`--local`) | D1 remote                |
+| ----------------------------- | ------------------------ | ------------------------ |
+| Foreign key enforcement       | Off by default           | On by default            |
+| Query timeout                 | None                     | 30 seconds               |
+| Bound parameters per query    | Unlimited                | 100                      |
+| Queries per Worker invocation | Unlimited                | 1,000 (paid) / 50 (free) |
+
+The foreign key gap is the most dangerous for migrations. When FK enforcement is off, `DROP TABLE` succeeds even if other tables reference it — the child rows become orphaned silently. When FK enforcement is on, the same `DROP TABLE` fails immediately with a constraint error. The fix is to drop child tables first, removing FK references before dropping the parent.
+
+**Before merging any PR that includes a migration**, test it against the remote staging database:
+
+```
+npx wrangler d1 migrations apply pillbug-staging --env staging --remote
+```
+
+This is the only way to catch FK constraint failures and timeout issues before they reach production.
+
 ## Email mock (E2E tests)
 
 `npm run test:e2e` sets `EMAIL_MOCK=true` and `CLOUDFLARE_INCLUDE_PROCESS_ENV=true` in the script definition. `CLOUDFLARE_INCLUDE_PROCESS_ENV=true` tells the Cloudflare Vite plugin to expose all process environment variables as Worker bindings, so `EMAIL_MOCK=true` reaches the Worker's `env` object.
