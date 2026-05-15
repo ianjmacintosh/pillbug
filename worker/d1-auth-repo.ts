@@ -1,21 +1,34 @@
 import type { D1Database } from "@cloudflare/workers-types";
 import type { AuthRepository } from "./auth";
+import { hashEmail, encryptEmail } from "./email-crypto";
 
-export function makeD1AuthRepo(db: D1Database): AuthRepository {
+export function makeD1AuthRepo(
+  db: D1Database,
+  emailSecret: string,
+): AuthRepository {
   return {
     async createPatient(id, email, termsAcceptedAt) {
+      const emailLookup = await hashEmail(email, emailSecret);
+      const emailEncrypted = await encryptEmail(email, emailSecret);
       await db
         .prepare(
-          "INSERT INTO patients (id, email, terms_accepted_at, created_at) VALUES (?, ?, ?, ?)",
+          "INSERT INTO patients (id, email_lookup, email_encrypted, terms_accepted_at, created_at) VALUES (?, ?, ?, ?, ?)",
         )
-        .bind(id, email, termsAcceptedAt, new Date().toISOString())
+        .bind(
+          id,
+          emailLookup,
+          emailEncrypted,
+          termsAcceptedAt,
+          new Date().toISOString(),
+        )
         .run();
     },
 
     async findPatientByEmail(email) {
+      const emailLookup = await hashEmail(email, emailSecret);
       return db
-        .prepare("SELECT id FROM patients WHERE email = ?")
-        .bind(email)
+        .prepare("SELECT id FROM patients WHERE email_lookup = ?")
+        .bind(emailLookup)
         .first<{ id: string }>();
     },
 

@@ -19,6 +19,7 @@ interface Env {
   RESEND_API_KEY: string;
   APP_URL: string;
   TURNSTILE_SECRET_KEY: string;
+  EMAIL_SECRET: string;
   EMAIL_MOCK?: string;
 }
 
@@ -76,7 +77,7 @@ export default {
 async function handleRequest(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const secure = url.protocol === "https:";
-  const repo = makeD1AuthRepo(env.DB);
+  const repo = makeD1AuthRepo(env.DB, env.EMAIL_SECRET);
 
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS_HEADERS });

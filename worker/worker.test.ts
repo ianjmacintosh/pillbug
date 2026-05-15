@@ -21,6 +21,7 @@ function makeEnv(
     RESEND_API_KEY: "test-key",
     APP_URL: "http://localhost",
     TURNSTILE_SECRET_KEY: "test-turnstile-secret",
+    EMAIL_SECRET: "test-email-secret",
   } as unknown as Parameters<typeof worker.fetch>[1];
 }
 
