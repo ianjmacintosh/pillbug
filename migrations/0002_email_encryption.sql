@@ -1,9 +1,15 @@
--- Recreate patients table with encrypted email columns replacing plaintext email.
--- Standard SQLite table-rename pattern; foreign_keys must be off during the swap.
+-- Email encryption migration: replace plaintext email with HMAC lookup + AES-GCM ciphertext.
+--
+-- Existing patient records cannot be migrated (EMAIL_SECRET is not available in SQL
+-- migrations). Sessions and tokens are cleared as well since they reference patients.
+-- Users must re-register after deployment.
+PRAGMA foreign_keys = ON;
 
-PRAGMA foreign_keys=off;
+DROP TABLE sessions;
+DROP TABLE magic_link_tokens;
+DROP TABLE patients;
 
-CREATE TABLE patients_new (
+CREATE TABLE patients (
   id TEXT PRIMARY KEY,
   email_lookup TEXT UNIQUE NOT NULL,
   email_encrypted TEXT NOT NULL,
@@ -11,7 +17,16 @@ CREATE TABLE patients_new (
   created_at TEXT NOT NULL
 );
 
-DROP TABLE patients;
-ALTER TABLE patients_new RENAME TO patients;
+CREATE TABLE magic_link_tokens (
+  token TEXT PRIMARY KEY,
+  patient_id TEXT NOT NULL REFERENCES patients(id),
+  expires_at TEXT NOT NULL,
+  used_at TEXT
+);
 
-PRAGMA foreign_keys=on;
+CREATE TABLE sessions (
+  id TEXT PRIMARY KEY,
+  patient_id TEXT NOT NULL REFERENCES patients(id),
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL
+);

@@ -30,6 +30,20 @@ When adding or removing an env var or secret, update all of these together:
 
 Staging and production must have the same secret names. CI runs against staging — a secret missing from staging breaks CI (good catch). A secret missing from production but present in staging lets CI pass while production breaks (the dangerous direction).
 
+## Database migrations
+
+CI applies migrations with `--local`, which runs against a local SQLite file. Local SQLite has foreign key enforcement **off** by default; D1 remote has it **on**. A migration that passes CI can still fail in production if it relies on FK enforcement being off (e.g. dropping a table that other tables reference).
+
+Every migration file must begin with `PRAGMA foreign_keys = ON;` so that local SQLite enforces FK constraints the same way D1 remote does.
+
+**Any PR that includes a migration must be tested against the remote staging D1 database before merging.** Run the migration manually against staging before opening the PR:
+
+```
+npx wrangler d1 migrations apply pillbug-staging --env staging --remote
+```
+
+Do not rely on CI alone to validate migrations. See `docs/testing.md` for full context on local-vs-remote D1 behavioral differences.
+
 ## Debugging CI failures
 
 If the same CI job has failed twice for the same root cause, stop and read the official docs for the relevant subsystem before committing another change. Iterating without authoritative grounding is slow and expensive.

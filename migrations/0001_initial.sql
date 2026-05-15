@@ -1,4 +1,5 @@
 -- Run with: npx wrangler d1 migrations apply pillbug --local
+PRAGMA foreign_keys = ON;
 
 CREATE TABLE patients (
   id TEXT PRIMARY KEY,
