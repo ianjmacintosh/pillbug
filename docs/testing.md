@@ -27,3 +27,11 @@ Use Cloudflare's dummy keys for local development and CI — never the real site
 The always-passes widget produces a dummy token: `XXXX.DUMMY.TOKEN.XXXX`. This token is only accepted by the test secret key — production secret keys reject it.
 
 The test secret key is hardcoded in `e2e-tests.yml` (it is a publicly documented Cloudflare value, not a real credential). The production and staging secret keys are set as Cloudflare Worker secrets via `wrangler secret put TURNSTILE_SECRET_KEY --env <environment>` and must also be stored in GitHub repo secrets if a deploy workflow reads them.
+
+## Email mock (E2E tests)
+
+`npm run test:e2e` sets `EMAIL_MOCK=true` and `CLOUDFLARE_INCLUDE_PROCESS_ENV=true` in the script definition. `CLOUDFLARE_INCLUDE_PROCESS_ENV=true` tells the Cloudflare Vite plugin to expose all process environment variables as Worker bindings, so `EMAIL_MOCK=true` reaches the Worker's `env` object.
+
+When `env.EMAIL_MOCK === "true"`, the worker uses a no-op email sender for `/api/register` and `/api/login` — no HTTP requests are made to `api.resend.com`. The health check endpoint calls `resend.domains.list()` as normal (that call is quota-free and is intentionally not mocked).
+
+Do not set `EMAIL_MOCK` in `.env`, staging, or production.
