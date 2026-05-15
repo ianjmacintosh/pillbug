@@ -8,11 +8,11 @@ As a result, `wrangler deploy` without `--env` deploys a Worker that boots but c
 
 D1 bindings and `vars` are non-inheritable in Wrangler — each environment must declare its own. If bindings must be re-declared per environment anyway, keeping a duplicate set at root adds no convenience and creates two places to maintain the production database ID.
 
-Bare `wrangler deploy` also bypasses the environment name suffix that Cloudflare uses to separate Workers (`pillbug` vs `pillbug-staging`), making accidental production deploys harder to audit.
+Bare `wrangler deploy` also bypasses the environment name suffix that Cloudflare uses to separate Workers (`pillbug-production` vs `pillbug-staging`), making accidental production deploys harder to audit.
 
-## Why `env.production` sets `name: "pillbug"` explicitly
+## Why `env.production` sets `name: "pillbug-production"` explicitly
 
-By default, Wrangler names a Worker `<top-level-name>-<environment-name>`, so `env.production` would deploy to a new Worker called `pillbug-production` — separate from the existing `pillbug` Worker, with no secrets. Setting `name: "pillbug"` inside `env.production` overrides this and targets the existing Worker, preserving its secrets and custom domain binding. See [Wrangler environments — inheritable keys](https://developers.cloudflare.com/workers/wrangler/configuration/#environments).
+By default, Wrangler names a Worker `<top-level-name>-<environment-name>`, which for `env.production` produces `pillbug-production`. `wrangler.jsonc` sets this explicitly so the intent is clear rather than relying on the default. See [Wrangler environments — inheritable keys](https://developers.cloudflare.com/workers/wrangler/configuration/#environments).
 
 ## Why not keep `workers_dev: true` at root?
 
@@ -20,10 +20,10 @@ Per Cloudflare docs, `workers_dev` is set per environment. Staging has `workers_
 
 ## Environments
 
-| Environment  | Worker name       | URL                                 | D1 database       |
-| ------------ | ----------------- | ----------------------------------- | ----------------- |
-| `production` | `pillbug`         | `pillbug.ianjmacintosh.com`         | `pillbug`         |
-| `staging`    | `pillbug-staging` | `staging.pillbug.ianjmacintosh.com` | `pillbug-staging` |
+| Environment  | Worker name          | URL                                 | D1 database       |
+| ------------ | -------------------- | ----------------------------------- | ----------------- |
+| `production` | `pillbug-production` | `pillbug.ianjmacintosh.com`         | `pillbug`         |
+| `staging`    | `pillbug-staging`    | `staging.pillbug.ianjmacintosh.com` | `pillbug-staging` |
 
 ## Considered Options
 
