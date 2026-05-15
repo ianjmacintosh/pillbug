@@ -19,6 +19,7 @@ interface Env {
   RESEND_API_KEY: string;
   APP_URL: string;
   TURNSTILE_SECRET_KEY: string;
+  EMAIL_MOCK?: string;
 }
 
 const CORS_HEADERS = {
@@ -104,7 +105,10 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
         { status: 403, headers: { "Content-Type": "application/json" } },
       );
     }
-    const emailSender = makeResendEmailSender(env.RESEND_API_KEY, env.APP_URL);
+    const emailSender =
+      env.EMAIL_MOCK === "true"
+        ? { sendMagicLink: async () => {} }
+        : makeResendEmailSender(env.RESEND_API_KEY, env.APP_URL);
     await registerPatient(email, repo, emailSender);
     return new Response(JSON.stringify({ ok: true }), {
       headers: { "Content-Type": "application/json" },
@@ -121,7 +125,10 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
 
   if (url.pathname === "/api/login" && request.method === "POST") {
     const { email } = await request.json<{ email: string }>();
-    const emailSender = makeResendEmailSender(env.RESEND_API_KEY, env.APP_URL);
+    const emailSender =
+      env.EMAIL_MOCK === "true"
+        ? { sendMagicLink: async () => {} }
+        : makeResendEmailSender(env.RESEND_API_KEY, env.APP_URL);
     await sendLoginLink(email, repo, emailSender);
     return new Response(JSON.stringify({ ok: true }), {
       headers: { "Content-Type": "application/json" },

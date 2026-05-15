@@ -22,7 +22,7 @@
     "typecheck": "tsc -b",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest",
-    "test:e2e": "npx playwright test --reporter=list",
+    "test:e2e": "EMAIL_MOCK=true CLOUDFLARE_INCLUDE_PROCESS_ENV=true npx playwright test --reporter=list",
     "claude:install": "curl -fsSL https://claude.ai/install.sh | bash"
   },
   "dependencies": {
