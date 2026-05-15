@@ -31,7 +31,9 @@ _Avoid_: Medication (too generic — doesn't imply a schedule or clinical direct
 
 Fields: drug name (free text with autocomplete), dosage (free text, e.g. "10mg"), schedule (see **Schedule**), start date (required), end date (optional), prescribing Doctor (optional), instructions (optional free text), status (Active, Completed, Paused, or Discontinued).
 
-Status values: **Active** (generating Reminders), **Completed** (reached end date), **Paused** (temporarily suspended, expected to resume), **Discontinued** (stopped early, will not resume). Paused and Discontinued preserve Dose history — a Prescription is never deleted.
+Status values: **Active** (generating Reminders), **Completed** (reached end date), **Paused** (temporarily suspended, expected to resume), **Discontinued** (stopped early, will not resume).
+
+A Prescription can be hard-deleted. Deletion is permanent and cascades to all associated Dose history.
 
 **Schedule**:
 The set of clock-based times at which a Patient should take a Prescription, on specified days of the week or every day.
