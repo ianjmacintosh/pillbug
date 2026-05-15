@@ -34,6 +34,8 @@ Staging and production must have the same secret names. CI runs against staging 
 
 CI applies migrations with `--local`, which runs against a local SQLite file. Local SQLite has foreign key enforcement **off** by default; D1 remote has it **on**. A migration that passes CI can still fail in production if it relies on FK enforcement being off (e.g. dropping a table that other tables reference).
 
+Every migration file must begin with `PRAGMA foreign_keys = ON;` so that local SQLite enforces FK constraints the same way D1 remote does.
+
 **Any PR that includes a migration must be tested against the remote staging D1 database before merging.** Run the migration manually against staging before opening the PR:
 
 ```
