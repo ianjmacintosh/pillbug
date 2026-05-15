@@ -264,6 +264,44 @@ describe("POST /api/register Turnstile validation", () => {
   });
 });
 
+describe("POST /api/register EMAIL_MOCK", () => {
+  test("does not call makeResendEmailSender when EMAIL_MOCK is true", async () => {
+    vi.mocked(makeResendEmailSender).mockClear();
+
+    const env = {
+      ...makeEnv(),
+      EMAIL_MOCK: "true",
+    } as unknown as Parameters<typeof worker.fetch>[1];
+    await worker.fetch(
+      makeRegisterRequest("http://localhost/api/register"),
+      env,
+    );
+
+    expect(makeResendEmailSender).not.toHaveBeenCalled();
+  });
+});
+
+describe("POST /api/login EMAIL_MOCK", () => {
+  test("does not call makeResendEmailSender when EMAIL_MOCK is true", async () => {
+    vi.mocked(makeResendEmailSender).mockClear();
+
+    const env = {
+      ...makeEnv(),
+      EMAIL_MOCK: "true",
+    } as unknown as Parameters<typeof worker.fetch>[1];
+    await worker.fetch(
+      new Request("http://localhost/api/login", {
+        method: "POST",
+        body: JSON.stringify({ email: "delivered@resend.dev" }),
+        headers: { "Content-Type": "application/json" },
+      }),
+      env,
+    );
+
+    expect(makeResendEmailSender).not.toHaveBeenCalled();
+  });
+});
+
 describe("GET /api/session", () => {
   let repo: ReturnType<typeof makeInMemoryRepo>;
 
