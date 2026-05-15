@@ -1,5 +1,16 @@
 # Claude Code guidance for Pillbug
 
+## Issue workflow
+
+Before starting work on a GitHub issue:
+
+1. Create (or check out) a feature branch named `{issue-number}-{kebab-case-issue-title}` — e.g. `57-mock-resend-requests-for-e2e-tests`.
+2. Mark the issue as **In progress** (move it to the "In progress" column, or apply the label, depending on how the project board is configured).
+
+Never do issue work directly on `main`.
+
+For tiny or hotfix work that doesn't warrant a formal issue, use a short descriptive branch name without an issue number — e.g. `fix-old-port-refs` or `add-docs-for-deep-link-feature`.
+
 ## API design
 
 Document new Worker routes in `docs/api.md` before implementing them. The contract is the source of truth — frontend and backend can be built independently against it.
