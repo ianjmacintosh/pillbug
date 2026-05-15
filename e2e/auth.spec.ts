@@ -120,6 +120,24 @@ test.describe("GET /api/auth/verify", () => {
   });
 });
 
+test("registration form submits via UI and navigates to /check-your-email", async ({
+  page,
+}) => {
+  const email = `delivered+ui-register-${Date.now()}@resend.dev`;
+
+  await page.goto("/register");
+  await page.getByRole("textbox", { name: /email/i }).fill(email);
+  await page.getByRole("checkbox", { name: /terms/i }).check();
+
+  // The always-passes test sitekey (1x00000000000000000000AA) auto-resolves
+  // Turnstile and sets the hidden response input to XXXX.DUMMY.TOKEN.XXXX.
+  const responseInput = page.locator('input[name="cf-turnstile-response"]');
+  await expect(responseInput).toHaveValue(TURNSTILE_DUMMY_TOKEN);
+
+  await page.getByRole("button", { name: /send magic link/i }).click();
+  await expect(page).toHaveURL("/check-your-email");
+});
+
 test("/register?challenge loads the registration form with the Turnstile interactive challenge", async ({
   page,
 }) => {

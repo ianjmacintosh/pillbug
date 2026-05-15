@@ -65,7 +65,8 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     try {
       return await handleRequest(request, env);
-    } catch {
+    } catch (e) {
+      console.error("Unhandled error:", e);
       return new Response(JSON.stringify({ error: "internal_error" }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
