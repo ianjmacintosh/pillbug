@@ -1,6 +1,7 @@
 import { getPlatformProxy } from "wrangler";
 import type { D1Database } from "@cloudflare/workers-types";
 import { expect, test } from "@playwright/test";
+import { hashEmail } from "../worker/email-crypto";
 
 // Cloudflare Turnstile dummy token produced by the always-passes test sitekey.
 // Only validates against the test secret key (1x0000000000000000000000000000000AA).
@@ -15,10 +16,11 @@ async function getLatestToken(email: string): Promise<string> {
     environment: "staging",
   });
   try {
+    const emailLookup = await hashEmail(email, process.env.EMAIL_SECRET!);
     const row = await env.DB.prepare(
-      "SELECT t.token FROM magic_link_tokens t JOIN patients p ON t.patient_id = p.id WHERE p.email = ? ORDER BY t.rowid DESC LIMIT 1",
+      "SELECT t.token FROM magic_link_tokens t JOIN patients p ON t.patient_id = p.id WHERE p.email_lookup = ? ORDER BY t.rowid DESC LIMIT 1",
     )
-      .bind(email)
+      .bind(emailLookup)
       .first<{ token: string }>();
     if (!row) throw new Error(`No token found for ${email}`);
     return row.token;
