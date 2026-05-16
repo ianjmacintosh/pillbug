@@ -21,7 +21,7 @@ The person who takes medications and uses the app to manage their own schedule. 
 _Avoid_: User, account, client
 
 **Registration**:
-The form a new Patient submits to create their account: entering their email address and explicitly accepting the Terms of Service and Privacy Policy. Submitting the form creates an Unverified Patient record and sends a magic link. Registration is complete at form submission — Verification is a separate subsequent event. Registration is a distinct screen from Login — not a silent side-effect of first login.
+The form a new Patient submits to create their account: entering their email address and explicitly accepting the Terms of Service and Privacy Policy. Submitting the form creates an Unverified Patient record and sends a magic link. Registration is complete at form submission — Verification is a separate subsequent event. Registration is a distinct screen from Login — not a silent side-effect of first login. Unverified Patient records that are not Verified within 7 days are hard-deleted by a daily cron job; Patients are informed of this window at registration time.
 _Avoid_: Sign up, Onboarding (onboarding is a separate concept if it exists), Account creation
 _Privacy_: The registration endpoint returns `{ ok: true }` whether the email is new or already registered (silently sending a login link in the latter case). Per Privacy by Default: confirming whether an email is registered reveals that someone uses a medication-tracking app, which is sensitive in itself.
 

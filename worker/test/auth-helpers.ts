@@ -56,14 +56,31 @@ export function makeInMemoryRepo(): AuthRepository {
     async deleteSession(id) {
       sessions.delete(id);
     },
+    async findUnverifiedPatientsBefore(cutoff) {
+      return [...patients.values()]
+        .filter((p) => p.lastLoginAt === null && p.createdAt <= cutoff)
+        .map((p) => ({ id: p.id }));
+    },
+    async deletePatient(patientId) {
+      patients.delete(patientId);
+      for (const [token, t] of tokens) {
+        if (t.patientId === patientId) tokens.delete(token);
+      }
+      for (const [id, s] of sessions) {
+        if (s.patientId === patientId) sessions.delete(id);
+      }
+    },
   };
 }
 
 export function makeEmailSpy(): { sender: EmailSender; sent: SentEmail[] } {
   const sent: SentEmail[] = [];
   const sender: EmailSender = {
-    async sendMagicLink(to, token) {
-      sent.push({ to, token });
+    async sendVerificationEmail(to, token) {
+      sent.push({ to, token, type: "verification" });
+    },
+    async sendLoginEmail(to, token) {
+      sent.push({ to, token, type: "login" });
     },
   };
   return { sender, sent };

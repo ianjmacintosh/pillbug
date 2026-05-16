@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import {
   registerPatient,
+  sendLoginLink,
   verifyToken,
   createSession,
   getSession,
@@ -13,27 +14,45 @@ describe("registerPatient", () => {
     const repo = makeInMemoryRepo();
     const email = makeEmailSpy();
 
-    await registerPatient("patient@example.com", repo, email.sender);
+    await registerPatient("delivered+auth-test@resend.dev", repo, email.sender);
 
-    expect(await repo.findPatientByEmail("patient@example.com")).not.toBeNull();
+    expect(
+      await repo.findPatientByEmail("delivered+auth-test@resend.dev"),
+    ).not.toBeNull();
     expect(email.sent).toHaveLength(1);
-    expect(email.sent[0].to).toBe("patient@example.com");
+    expect(email.sent[0].to).toBe("delivered+auth-test@resend.dev");
+    expect(email.sent[0].type).toBe("verification");
   });
 
   test("sends a magic link to an existing patient on duplicate registration", async () => {
     const repo = makeInMemoryRepo();
     const email = makeEmailSpy();
 
-    await registerPatient("patient@example.com", repo, email.sender);
+    await registerPatient("delivered+auth-test@resend.dev", repo, email.sender);
     const result = await registerPatient(
-      "patient@example.com",
+      "delivered+auth-test@resend.dev",
       repo,
       email.sender,
     );
 
     expect(result).toEqual({ ok: true });
     expect(email.sent).toHaveLength(2);
-    expect(email.sent[1].to).toBe("patient@example.com");
+    expect(email.sent[1].to).toBe("delivered+auth-test@resend.dev");
+  });
+});
+
+describe("sendLoginLink", () => {
+  test("sends a login email to an existing patient", async () => {
+    const repo = makeInMemoryRepo();
+    const email = makeEmailSpy();
+    await registerPatient("delivered+auth-test@resend.dev", repo, email.sender);
+    email.sent.length = 0; // clear the registration email
+
+    await sendLoginLink("delivered+auth-test@resend.dev", repo, email.sender);
+
+    expect(email.sent).toHaveLength(1);
+    expect(email.sent[0].to).toBe("delivered+auth-test@resend.dev");
+    expect(email.sent[0].type).toBe("login");
   });
 });
 
@@ -41,7 +60,7 @@ describe("verifyToken", () => {
   test("accepts a valid unused token", async () => {
     const repo = makeInMemoryRepo();
     const email = makeEmailSpy();
-    await registerPatient("patient@example.com", repo, email.sender);
+    await registerPatient("delivered+auth-test@resend.dev", repo, email.sender);
     const token = email.sent[0].token;
 
     const result = await verifyToken(token, repo);
@@ -58,7 +77,7 @@ describe("verifyToken", () => {
   test("rejects an already-used token", async () => {
     const repo = makeInMemoryRepo();
     const email = makeEmailSpy();
-    await registerPatient("patient@example.com", repo, email.sender);
+    await registerPatient("delivered+auth-test@resend.dev", repo, email.sender);
     const token = email.sent[0].token;
 
     await verifyToken(token, repo);
@@ -70,7 +89,7 @@ describe("verifyToken", () => {
   test("marks the token as used so it cannot be redeemed again", async () => {
     const repo = makeInMemoryRepo();
     const email = makeEmailSpy();
-    await registerPatient("patient@example.com", repo, email.sender);
+    await registerPatient("delivered+auth-test@resend.dev", repo, email.sender);
     const token = email.sent[0].token;
 
     const first = await verifyToken(token, repo);
@@ -83,36 +102,40 @@ describe("verifyToken", () => {
   test("sets last_login_at on first redemption", async () => {
     const repo = makeInMemoryRepo();
     const email = makeEmailSpy();
-    await registerPatient("patient@example.com", repo, email.sender);
+    await registerPatient("delivered+auth-test@resend.dev", repo, email.sender);
     const token = email.sent[0].token;
 
     expect(
-      (await repo.findPatientByEmail("patient@example.com"))?.lastLoginAt,
+      (await repo.findPatientByEmail("delivered+auth-test@resend.dev"))
+        ?.lastLoginAt,
     ).toBeNull();
 
     await verifyToken(token, repo);
 
     expect(
-      (await repo.findPatientByEmail("patient@example.com"))?.lastLoginAt,
+      (await repo.findPatientByEmail("delivered+auth-test@resend.dev"))
+        ?.lastLoginAt,
     ).not.toBeNull();
   });
 
   test("updates last_login_at on subsequent logins", async () => {
     const repo = makeInMemoryRepo();
     const email = makeEmailSpy();
-    await registerPatient("patient@example.com", repo, email.sender);
+    await registerPatient("delivered+auth-test@resend.dev", repo, email.sender);
 
     await verifyToken(email.sent[0].token, repo);
-    const firstLoginAt = (await repo.findPatientByEmail("patient@example.com"))
-      ?.lastLoginAt;
+    const firstLoginAt = (
+      await repo.findPatientByEmail("delivered+auth-test@resend.dev")
+    )?.lastLoginAt;
 
     vi.setSystemTime(new Date(Date.now() + 60 * 1000));
-    await registerPatient("patient@example.com", repo, email.sender);
+    await registerPatient("delivered+auth-test@resend.dev", repo, email.sender);
     await verifyToken(email.sent[1].token, repo);
     vi.useRealTimers();
 
-    const secondLoginAt = (await repo.findPatientByEmail("patient@example.com"))
-      ?.lastLoginAt;
+    const secondLoginAt = (
+      await repo.findPatientByEmail("delivered+auth-test@resend.dev")
+    )?.lastLoginAt;
 
     expect(secondLoginAt).not.toBeNull();
     expect(secondLoginAt).not.toBe(firstLoginAt);
@@ -121,7 +144,7 @@ describe("verifyToken", () => {
   test("rejects an expired token", async () => {
     const repo = makeInMemoryRepo();
     const email = makeEmailSpy();
-    await registerPatient("patient@example.com", repo, email.sender);
+    await registerPatient("delivered+auth-test@resend.dev", repo, email.sender);
     const token = email.sent[0].token;
 
     vi.setSystemTime(new Date(Date.now() + 21 * 60 * 1000));
