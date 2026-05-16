@@ -29,8 +29,8 @@ describe("Header", () => {
     expect(screen.getByRole("link", { name: /fill session/i })).toBeTruthy();
   });
 
-  test("shows logout button when authenticated", () => {
+  test("shows logout link when authenticated", () => {
     render(<Header isAuthenticated />);
-    expect(screen.getByRole("button", { name: /log out/i })).toBeTruthy();
+    expect(screen.getByRole("link", { name: /log out/i })).toBeTruthy();
   });
 });

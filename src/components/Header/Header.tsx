@@ -1,10 +1,5 @@
 import "./Header.css";
 
-async function handleLogout() {
-  await fetch("/api/v1/logout", { method: "POST" });
-  window.location.href = "/register";
-}
-
 function Header({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
   return (
     <header className="header">
@@ -16,13 +11,9 @@ function Header({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
           <a href="/prescriptions">Prescriptions</a>
           <a href="/fill-session">Fill Session</a>
           <a href="/settings">Settings</a>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="header-logout"
-          >
+          <a href="/logout" className="header-logout">
             Log out
-          </button>
+          </a>
         </nav>
       )}
     </header>

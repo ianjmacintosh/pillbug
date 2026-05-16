@@ -11,6 +11,7 @@ import CheckYourEmail from "../CheckYourEmail";
 import FillSession from "../FillSession";
 import Layout from "../Layout";
 import Login from "../Login";
+import Logout from "../Logout";
 import NotFound from "../NotFound";
 import Prescriptions from "../Prescriptions";
 import Privacy from "../Privacy";
@@ -37,26 +38,52 @@ async function requireAuth() {
     return; // offline — let the app load
   }
   if (!res.ok) {
+    throw redirect({ to: "/login" });
+  }
+}
+
+async function requireAuthHome() {
+  let res: Response;
+  try {
+    res = await fetch("/api/v1/session");
+  } catch {
+    return;
+  }
+  if (!res.ok) {
     throw redirect({ to: "/register" });
+  }
+}
+
+async function redirectIfAuthenticated() {
+  let res: Response;
+  try {
+    res = await fetch("/api/v1/session");
+  } catch {
+    return;
+  }
+  if (res.ok) {
+    throw redirect({ to: "/" });
   }
 }
 
 const indexRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/",
-  beforeLoad: requireAuth,
+  beforeLoad: requireAuthHome,
   component: App,
 });
 
 const registerRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/register",
+  beforeLoad: redirectIfAuthenticated,
   component: Register,
 });
 
 const loginRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/login",
+  beforeLoad: redirectIfAuthenticated,
   component: Login,
 });
 
@@ -99,6 +126,13 @@ const prescriptionsRoute = createRoute({
   component: Prescriptions,
 });
 
+const logoutRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: "/logout",
+  beforeLoad: requireAuth,
+  component: Logout,
+});
+
 const routeTree = rootRoute.addChildren([
   layoutRoute.addChildren([
     indexRoute,
@@ -110,6 +144,7 @@ const routeTree = rootRoute.addChildren([
     settingsRoute,
     fillSessionRoute,
     prescriptionsRoute,
+    logoutRoute,
   ]),
 ]);
 
