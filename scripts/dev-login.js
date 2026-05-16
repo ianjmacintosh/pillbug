@@ -13,11 +13,17 @@ const d1Flags = isStaging
   ? ["--env", "staging", "--remote"]
   : ["--env", "staging", "--local"];
 
-await fetch(`${baseUrl}/api/login/silent`, {
+const response = await fetch(`${baseUrl}/api/v1/login/silent`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ email: EMAIL }),
 });
+if (!response.ok) {
+  const body = await response.text();
+  throw new Error(
+    `POST /api/v1/login/silent failed: ${response.status} ${body}`,
+  );
+}
 
 const output = execFileSync(
   "wrangler",
@@ -34,4 +40,4 @@ const output = execFileSync(
 );
 
 const token = JSON.parse(output)[0].results[0].token;
-console.log(`${baseUrl}/api/auth/verify?token=${token}`);
+console.log(`${baseUrl}/api/v1/auth/verify?token=${token}`);
