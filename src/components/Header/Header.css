@@ -3,8 +3,8 @@
   align-items: center;
   gap: 1.5rem;
   padding: 0.75rem 1.5rem;
-  background-color: var(--yellow-80);
-  border-bottom: 2px solid var(--yellow-60);
+  background-color: var(--yellow-90);
+  border-bottom: 2px solid var(--yellow-87);
 }
 
 .header-brand {

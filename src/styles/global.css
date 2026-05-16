@@ -28,7 +28,7 @@ main {
 }
 
 .button-primary {
-  background-color: var(--yellow-60);
+  background-color: var(--gray-90);
   color: var(--gray-10);
   border: none;
   padding: 0.625rem 1.5rem;
@@ -39,8 +39,8 @@ main {
 }
 
 .button-primary:hover {
-  background-color: var(--yellow-40);
-  color: var(--gray-90);
+  background-color: var(--gray-70);
+  color: var(--gray-10);
 }
 
 .button-primary:disabled {
