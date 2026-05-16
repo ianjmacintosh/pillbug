@@ -1,0 +1,48 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--yellow-80);
+  border-bottom: 2px solid var(--yellow-60);
+}
+
+.header-brand {
+  font-family: system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--gray-10);
+  text-decoration: none;
+}
+
+.header-nav {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-left: auto;
+}
+
+.header-nav a {
+  color: var(--gray-10);
+  font-family: system-ui, sans-serif;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.header-nav a:hover {
+  text-decoration: underline;
+}
+
+.header-logout {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--gray-10);
+  font-family: system-ui, sans-serif;
+  font-size: 0.9rem;
+  padding: 0;
+}
+
+.header-logout:hover {
+  text-decoration: underline;
+}

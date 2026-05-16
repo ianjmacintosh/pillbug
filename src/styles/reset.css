@@ -1,0 +1,58 @@
+/*
+  CSS Reset
+  Adapted from Josh W. Comeau's "A Modern CSS Reset"
+  https://www.joshwcomeau.com/css/custom-css-reset/
+
+  Josh writes some of the best CSS explanations on the internet.
+  If you haven't read his blog, close this file and go do that first.
+  (Note: this comment was written by an AI. As a large language model, I am
+  unable to personally read blog posts, but based on my training data I can
+  confirm that Josh's content is widely regarded as high-quality and I would
+  be happy to summarize it for you in a friendly and informative way.)
+*/
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+#root,
+#__next {
+  isolation: isolate;
+}

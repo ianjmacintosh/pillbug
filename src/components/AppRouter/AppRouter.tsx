@@ -6,17 +6,17 @@ import {
   redirect,
   RouterProvider,
 } from "@tanstack/react-router";
-import App from "./App";
-import CheckYourEmail from "./CheckYourEmail";
-import FillSession from "./FillSession";
-import Layout from "./Layout";
-import Login from "./Login";
-import NotFound from "./NotFound";
-import Prescriptions from "./Prescriptions";
-import Privacy from "./Privacy";
-import Register from "./Register";
-import Settings from "./Settings";
-import Terms from "./Terms";
+import App from "../App";
+import CheckYourEmail from "../CheckYourEmail";
+import FillSession from "../FillSession";
+import Layout from "../Layout";
+import Login from "../Login";
+import NotFound from "../NotFound";
+import Prescriptions from "../Prescriptions";
+import Privacy from "../Privacy";
+import Register from "../Register";
+import Settings from "../Settings";
+import Terms from "../Terms";
 
 const rootRoute = createRootRoute({
   component: Outlet,

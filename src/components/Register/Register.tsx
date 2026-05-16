@@ -1,6 +1,7 @@
 import { useState, type SyntheticEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Turnstile } from "@marsidev/react-turnstile";
+import "./Register.css";
 
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string;
 const TURNSTILE_INTERACTIVE_SITE_KEY = "3x00000000000000000000FF";
@@ -46,10 +47,10 @@ function Register() {
   }
 
   return (
-    <main>
+    <main className="register">
       <h1>Create your account</h1>
       <form onSubmit={handleSubmit}>
-        <label>
+        <label className="email-field">
           Email
           <input
             type="email"
@@ -72,7 +73,7 @@ function Register() {
             Security check failed. Please reload the page and try again.
           </p>
         )}
-        <label>
+        <label className="terms-field">
           <input
             type="checkbox"
             checked={terms}
@@ -82,7 +83,7 @@ function Register() {
           <a href="/privacy">Privacy Policy</a>
         </label>
         {error && <p role="alert">{error}</p>}
-        <button type="submit" disabled={submitting}>
+        <button type="submit" disabled={submitting} className="button-primary">
           {submitting ? "Sending…" : "Send magic link"}
         </button>
       </form>

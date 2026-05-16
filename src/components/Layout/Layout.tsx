@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Outlet } from "@tanstack/react-router";
-import Footer from "./Footer";
-import Header from "./Header";
+import Footer from "../Footer";
+import Header from "../Header";
+import "./Layout.css";
 
 function Layout() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -13,11 +14,11 @@ function Layout() {
   }, []);
 
   return (
-    <>
+    <div className="layout">
       <Header isAuthenticated={isAuthenticated} />
       <Outlet />
       <Footer />
-    </>
+    </div>
   );
 }
 
