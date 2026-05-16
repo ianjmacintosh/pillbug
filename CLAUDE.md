@@ -4,8 +4,9 @@
 
 Before starting work on a GitHub issue:
 
-1. Create (or check out) a feature branch named `{issue-number}-{kebab-case-issue-title}` — e.g. `57-mock-resend-requests-for-e2e-tests`.
-2. Mark the issue as **In progress** (move it to the "In progress" column, or apply the label, depending on how the project board is configured).
+1. Check the current branch (`git branch --show-current`). If it doesn't match the issue being worked on, stop and create or check out the correct branch first.
+2. Create (or check out) a feature branch named `{issue-number}-{kebab-case-issue-title}` — e.g. `57-mock-resend-requests-for-e2e-tests`.
+3. Mark the issue as **In progress** (move it to the "In progress" column, or apply the label, depending on how the project board is configured).
 
 Never do issue work directly on `main`.
 
