@@ -3,7 +3,13 @@ import type { AuthRepository, EmailSender, SentEmail } from "../auth";
 export function makeInMemoryRepo(): AuthRepository {
   const patients = new Map<
     string,
-    { id: string; email: string; termsAcceptedAt: string; createdAt: string }
+    {
+      id: string;
+      email: string;
+      termsAcceptedAt: string;
+      createdAt: string;
+      lastLoginAt: string | null;
+    }
   >();
   const tokens = new Map<
     string,
@@ -21,10 +27,15 @@ export function makeInMemoryRepo(): AuthRepository {
         email,
         termsAcceptedAt,
         createdAt: new Date().toISOString(),
+        lastLoginAt: null,
       });
     },
     async findPatientByEmail(email) {
       return [...patients.values()].find((p) => p.email === email) ?? null;
+    },
+    async updateLastLoginAt(patientId, lastLoginAt) {
+      const p = patients.get(patientId);
+      if (p) patients.set(patientId, { ...p, lastLoginAt });
     },
     async createToken(token, patientId, expiresAt) {
       tokens.set(token, { patientId, expiresAt, usedAt: null });
