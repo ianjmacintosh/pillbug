@@ -91,5 +91,22 @@ export function makeD1AuthRepo(
     async deleteSession(id) {
       await db.prepare("DELETE FROM sessions WHERE id = ?").bind(id).run();
     },
+
+    async findUnverifiedPatientsBefore(cutoff) {
+      const result = await db
+        .prepare(
+          "SELECT id FROM patients WHERE last_login_at IS NULL AND created_at <= ?",
+        )
+        .bind(cutoff)
+        .all<{ id: string }>();
+      return result.results;
+    },
+
+    async deletePatient(patientId) {
+      await db
+        .prepare("DELETE FROM patients WHERE id = ?")
+        .bind(patientId)
+        .run();
+    },
   };
 }

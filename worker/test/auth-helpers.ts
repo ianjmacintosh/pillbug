@@ -56,6 +56,20 @@ export function makeInMemoryRepo(): AuthRepository {
     async deleteSession(id) {
       sessions.delete(id);
     },
+    async findUnverifiedPatientsBefore(cutoff) {
+      return [...patients.values()]
+        .filter((p) => p.lastLoginAt === null && p.createdAt <= cutoff)
+        .map((p) => ({ id: p.id }));
+    },
+    async deletePatient(patientId) {
+      patients.delete(patientId);
+      for (const [token, t] of tokens) {
+        if (t.patientId === patientId) tokens.delete(token);
+      }
+      for (const [id, s] of sessions) {
+        if (s.patientId === patientId) sessions.delete(id);
+      }
+    },
   };
 }
 

@@ -5,6 +5,9 @@
   "main": "worker/worker.ts",
   // Root config has no bindings or routes. Deployments are handled by CI only.
   // Developers use `wrangler dev` locally; the dev token has no deploy permissions.
+  "triggers": {
+    "crons": ["0 3 * * *"],
+  },
   "assets": {
     "binding": "ASSETS",
     "directory": "./dist/client",

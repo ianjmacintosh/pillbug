@@ -7,6 +7,7 @@ import {
   getSession,
   deleteSession,
 } from "./auth";
+import { deleteStaleUnverifiedPatients } from "./cron";
 import { Resend } from "resend";
 import { makeD1AuthRepo } from "./d1-auth-repo";
 import { checkHealth } from "./health";
@@ -72,6 +73,14 @@ export default {
         headers: { "Content-Type": "application/json" },
       });
     }
+  },
+
+  async scheduled(controller: ScheduledController, env: Env): Promise<void> {
+    const cutoffDate = new Date(
+      controller.scheduledTime - 7 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+    const repo = makeD1AuthRepo(env.DB, env.EMAIL_SECRET);
+    await deleteStaleUnverifiedPatients(repo, cutoffDate);
   },
 };
 

@@ -28,6 +28,8 @@ export interface AuthRepository {
     id: string,
   ): Promise<{ patientId: string; expiresAt: string } | null>;
   deleteSession(id: string): Promise<void>;
+  findUnverifiedPatientsBefore(cutoff: string): Promise<{ id: string }[]>;
+  deletePatient(patientId: string): Promise<void>;
 }
 
 export interface EmailSender {

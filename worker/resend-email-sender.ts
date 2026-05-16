@@ -13,7 +13,7 @@ export function makeResendEmailSender(
         from: "Pillbug <noreply@mail.pillbug.ianjmacintosh.com>",
         to,
         subject: "Your Pillbug sign-in link",
-        html: `<p>Click the link below to sign in to Pillbug. It expires in 20 minutes.</p><p><a href="${magicLink}">${magicLink}</a></p>`,
+        html: `<p>Click the link below to sign in to Pillbug. It expires in 20 minutes.</p><p><a href="${magicLink}">${magicLink}</a></p><p>If you haven't verified your account yet, it will be permanently deleted 7 days after registration.</p>`,
       });
       if (error) {
         throw new Error(error.message);
