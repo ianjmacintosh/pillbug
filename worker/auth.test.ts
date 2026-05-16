@@ -80,6 +80,44 @@ describe("verifyToken", () => {
     expect(second).toEqual({ error: "used" });
   });
 
+  test("sets last_login_at on first redemption", async () => {
+    const repo = makeInMemoryRepo();
+    const email = makeEmailSpy();
+    await registerPatient("patient@example.com", repo, email.sender);
+    const token = email.sent[0].token;
+
+    expect(
+      (await repo.findPatientByEmail("patient@example.com"))?.lastLoginAt,
+    ).toBeNull();
+
+    await verifyToken(token, repo);
+
+    expect(
+      (await repo.findPatientByEmail("patient@example.com"))?.lastLoginAt,
+    ).not.toBeNull();
+  });
+
+  test("updates last_login_at on subsequent logins", async () => {
+    const repo = makeInMemoryRepo();
+    const email = makeEmailSpy();
+    await registerPatient("patient@example.com", repo, email.sender);
+
+    await verifyToken(email.sent[0].token, repo);
+    const firstLoginAt = (await repo.findPatientByEmail("patient@example.com"))
+      ?.lastLoginAt;
+
+    vi.setSystemTime(new Date(Date.now() + 60 * 1000));
+    await registerPatient("patient@example.com", repo, email.sender);
+    await verifyToken(email.sent[1].token, repo);
+    vi.useRealTimers();
+
+    const secondLoginAt = (await repo.findPatientByEmail("patient@example.com"))
+      ?.lastLoginAt;
+
+    expect(secondLoginAt).not.toBeNull();
+    expect(secondLoginAt).not.toBe(firstLoginAt);
+  });
+
   test("rejects an expired token", async () => {
     const repo = makeInMemoryRepo();
     const email = makeEmailSpy();

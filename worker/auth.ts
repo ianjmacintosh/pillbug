@@ -4,7 +4,10 @@ export interface AuthRepository {
     email: string,
     termsAcceptedAt: string,
   ): Promise<void>;
-  findPatientByEmail(email: string): Promise<{ id: string } | null>;
+  findPatientByEmail(
+    email: string,
+  ): Promise<{ id: string; lastLoginAt: string | null } | null>;
+  updateLastLoginAt(patientId: string, lastLoginAt: string): Promise<void>;
   createToken(
     token: string,
     patientId: string,
@@ -100,7 +103,9 @@ export async function verifyToken(
   if (record.usedAt) return { error: "used" };
   if (new Date(record.expiresAt) < new Date()) return { error: "expired" };
 
-  await repo.markTokenUsed(token, new Date().toISOString());
+  const now = new Date().toISOString();
+  await repo.markTokenUsed(token, now);
+  await repo.updateLastLoginAt(record.patientId, now);
   return { ok: true, patientId: record.patientId };
 }
 

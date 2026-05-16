@@ -27,9 +27,18 @@ export function makeD1AuthRepo(
     async findPatientByEmail(email) {
       const emailLookup = await hashEmail(email, emailSecret);
       return db
-        .prepare("SELECT id FROM patients WHERE email_lookup = ?")
+        .prepare(
+          "SELECT id, last_login_at as lastLoginAt FROM patients WHERE email_lookup = ?",
+        )
         .bind(emailLookup)
-        .first<{ id: string }>();
+        .first<{ id: string; lastLoginAt: string | null }>();
+    },
+
+    async updateLastLoginAt(patientId, lastLoginAt) {
+      await db
+        .prepare("UPDATE patients SET last_login_at = ? WHERE id = ?")
+        .bind(lastLoginAt, patientId)
+        .run();
     },
 
     async createToken(token, patientId, expiresAt) {
