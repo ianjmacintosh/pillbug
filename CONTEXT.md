@@ -21,9 +21,13 @@ The person who takes medications and uses the app to manage their own schedule. 
 _Avoid_: User, account, client
 
 **Registration**:
-The one-time flow a new Patient completes to create their account. Consists of: entering their email address and explicitly accepting the Terms of Service and Privacy Policy. Submitting the form sends a magic link to the provided email. Registration is a distinct screen from Login — not a silent side-effect of first login.
+The form a new Patient submits to create their account: entering their email address and explicitly accepting the Terms of Service and Privacy Policy. Submitting the form creates an Unverified Patient record and sends a magic link. Registration is complete at form submission — Verification is a separate subsequent event. Registration is a distinct screen from Login — not a silent side-effect of first login.
 _Avoid_: Sign up, Onboarding (onboarding is a separate concept if it exists), Account creation
 _Privacy_: The registration endpoint returns `{ ok: true }` whether the email is new or already registered (silently sending a login link in the latter case). Per Privacy by Default: confirming whether an email is registered reveals that someone uses a medication-tracking app, which is sensitive in itself.
+
+**Verification**:
+The event that activates a Patient's account — their first magic link redemption, confirming they own the registered email address. Mechanically: `patients.last_login_at` transitions from `NULL` to a timestamp. A Patient who has registered but not yet verified is an **Unverified Patient**; they cannot use the app until Verification is complete. Subsequent magic link redemptions (Logins) update `last_login_at` but are not Verification events.
+_Avoid_: Email confirmation, Account activation, Email validation
 
 **Prescription**:
 A medication a clinician has directed the Patient to take on a schedule.
@@ -129,6 +133,7 @@ erDiagram
         TEXT email_encrypted "NOT NULL"
         TEXT terms_accepted_at "NOT NULL"
         TEXT created_at "NOT NULL"
+        TEXT last_login_at "nullable"
     }
 
     magic_link_tokens {
@@ -149,7 +154,7 @@ erDiagram
     patients ||--o{ sessions : "is active in"
 ```
 
-`email` is stored as two columns: `email_lookup` (HMAC for indexed lookups) and `email_encrypted` (AES-GCM ciphertext for display). `magic_link_tokens.used_at` is nullable — null means the token has not yet been consumed.
+`email` is stored as two columns: `email_lookup` (HMAC for indexed lookups) and `email_encrypted` (AES-GCM ciphertext for display). `magic_link_tokens.used_at` is nullable — null means the token has not yet been consumed. `patients.last_login_at` is nullable — null means the Patient is Unverified (has registered but never redeemed a magic link).
 
 ## Flagged ambiguities
 

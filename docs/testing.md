@@ -41,31 +41,25 @@ CI applies migrations with `--local` (a local SQLite file) to keep the remote st
 
 The foreign key gap is the most dangerous for migrations. When FK enforcement is off, `DROP TABLE` succeeds even if other tables reference it — the child rows become orphaned silently. When FK enforcement is on, the same `DROP TABLE` fails immediately with a constraint error. The fix is to drop child tables first, removing FK references before dropping the parent.
 
-**Before merging any PR that includes a migration**, test it against the remote staging database:
-
-```
-npx wrangler d1 migrations apply pillbug-staging --env staging --remote
-```
-
-This is the only way to catch FK constraint failures and timeout issues before they reach production.
+**Before merging any PR that includes a migration**, verify it against a remote D1 database. Opening the PR triggers the Cloudflare GitHub integration, which deploys a preview environment connected to D1 and applies migrations there. Confirm the preview environment is healthy — this is where FK constraint failures and timeout issues will surface.
 
 ## CI coverage gaps
 
 The E2E suite runs against a local Wrangler dev server with local SQLite. It does not run against the deployed staging or production Workers. This is intentional for speed and isolation, but it creates blind spots:
 
-| Scenario                                                                                               | Caught by CI? | How to catch it                                                           |
-| ------------------------------------------------------------------------------------------------------ | ------------- | ------------------------------------------------------------------------- |
-| Missing `CLOUDFLARE_ENV` at build time → no D1 binding                                                 | No            | Manual registration smoke test on staging after deploy                    |
-| Missing `VITE_TURNSTILE_SITE_KEY` at build time → broken Turnstile widget                              | No            | Manual registration smoke test on staging after deploy                    |
-| Turnstile site key not authorized for deployed hostname (error 110200)                                 | No            | Manual registration smoke test on staging after deploy                    |
-| Wrong `RESEND_API_KEY` / `EMAIL_SECRET` / `TURNSTILE_SECRET_KEY` / `CLOUDFLARE_ENV` on deployed Worker | No            | Manual registration smoke test on staging after deploy                    |
-| Migration passes local SQLite but fails on remote D1 (FK enforcement)                                  | No            | `npx wrangler d1 migrations apply pillbug-staging --env staging --remote` |
+| Scenario                                                                                               | Caught by CI? | How to catch it                                                |
+| ------------------------------------------------------------------------------------------------------ | ------------- | -------------------------------------------------------------- |
+| Missing `CLOUDFLARE_ENV` at build time → no D1 binding                                                 | No            | Manual registration smoke test on staging after deploy         |
+| Missing `VITE_TURNSTILE_SITE_KEY` at build time → broken Turnstile widget                              | No            | Manual registration smoke test on staging after deploy         |
+| Turnstile site key not authorized for deployed hostname (error 110200)                                 | No            | Manual registration smoke test on staging after deploy         |
+| Wrong `RESEND_API_KEY` / `EMAIL_SECRET` / `TURNSTILE_SECRET_KEY` / `CLOUDFLARE_ENV` on deployed Worker | No            | Manual registration smoke test on staging after deploy         |
+| Migration passes local SQLite but fails on remote D1 (FK enforcement)                                  | No            | Check Cloudflare preview environment health after PR is opened |
 
 **Recommended pre-production checklist:**
 
 1. After deploying to staging, attempt a full registration flow on the staging URL
 2. Confirm the magic link email arrives and the verify link creates a session
-3. For PRs containing migrations, apply them to remote staging before merging (see migration section above)
+3. For PRs containing migrations, confirm the Cloudflare preview environment deployed successfully and is healthy (see migration section above)
 
 A future improvement would be a separate Playwright job that runs against the deployed staging Worker URL (not localhost) after each staging deploy, using Resend test addresses and the staging Turnstile keys.
 

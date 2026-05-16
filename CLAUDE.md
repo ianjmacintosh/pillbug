@@ -36,11 +36,7 @@ CI applies migrations with `--local`, which runs against a local SQLite file. Lo
 
 Every migration file must begin with `PRAGMA foreign_keys = ON;` so that local SQLite enforces FK constraints the same way D1 remote does.
 
-**Any PR that includes a migration must be tested against the remote staging D1 database before merging.** Run the migration manually against staging before opening the PR:
-
-```
-npx wrangler d1 migrations apply pillbug-staging --env staging --remote
-```
+**Any PR that includes a migration must be verified against a remote D1 database before merging.** Opening the PR triggers the Cloudflare GitHub integration, which deploys a preview environment connected to D1 and applies migrations there. Confirm the preview environment is healthy before merging.
 
 Do not rely on CI alone to validate migrations. See `docs/testing.md` for full context on local-vs-remote D1 behavioral differences.
 
