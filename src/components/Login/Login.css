@@ -1,0 +1,28 @@
+.login form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.login label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-family: system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.login input[type="email"] {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--gray-50);
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.login p {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}

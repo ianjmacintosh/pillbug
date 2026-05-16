@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import "./Login.css";
 
 function Login() {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ function Login() {
   }
 
   return (
-    <main>
+    <main className="login">
       <h1>Log in</h1>
       <form onSubmit={handleSubmit}>
         <label>
@@ -32,7 +33,7 @@ function Login() {
             required
           />
         </label>
-        <button type="submit" disabled={submitting}>
+        <button type="submit" disabled={submitting} className="button-primary">
           {submitting ? "Sending…" : "Send magic link"}
         </button>
       </form>

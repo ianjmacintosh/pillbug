@@ -1,0 +1,17 @@
+.footer {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--gray-70);
+}
+
+.footer a {
+  color: var(--gray-30);
+  font-family: system-ui, sans-serif;
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
