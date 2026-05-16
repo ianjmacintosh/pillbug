@@ -117,6 +117,40 @@ _Avoid_: Public link, Share URL
 - A **Patient** optionally has one **Pill Organizer** with a configured structure (Compartments per day, span in days)
 - A **Fill Session** covers the full span of the **Pill Organizer** and is recorded on completion
 
+## Data Model
+
+Current database tables (reflects applied migrations):
+
+```mermaid
+erDiagram
+    patients {
+        TEXT id PK
+        TEXT email_lookup "UNIQUE NOT NULL"
+        TEXT email_encrypted "NOT NULL"
+        TEXT terms_accepted_at "NOT NULL"
+        TEXT created_at "NOT NULL"
+    }
+
+    magic_link_tokens {
+        TEXT token PK
+        TEXT patient_id FK
+        TEXT expires_at "NOT NULL"
+        TEXT used_at "nullable"
+    }
+
+    sessions {
+        TEXT id PK
+        TEXT patient_id FK
+        TEXT created_at "NOT NULL"
+        TEXT expires_at "NOT NULL"
+    }
+
+    patients ||--o{ magic_link_tokens : "authenticates via"
+    patients ||--o{ sessions : "is active in"
+```
+
+`email` is stored as two columns: `email_lookup` (HMAC for indexed lookups) and `email_encrypted` (AES-GCM ciphertext for display). `magic_link_tokens.used_at` is nullable — null means the token has not yet been consumed.
+
 ## Flagged ambiguities
 
 - "Medication" vs "Prescription" — resolved: use **Prescription** to capture that the item is clinically directed and schedule-bearing, not just a drug name.
