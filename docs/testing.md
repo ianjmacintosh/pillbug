@@ -49,6 +49,26 @@ npx wrangler d1 migrations apply pillbug-staging --env staging --remote
 
 This is the only way to catch FK constraint failures and timeout issues before they reach production.
 
+## CI coverage gaps
+
+The E2E suite runs against a local Wrangler dev server with local SQLite. It does not run against the deployed staging or production Workers. This is intentional for speed and isolation, but it creates blind spots:
+
+| Scenario                                                                                               | Caught by CI? | How to catch it                                                           |
+| ------------------------------------------------------------------------------------------------------ | ------------- | ------------------------------------------------------------------------- |
+| Missing `CLOUDFLARE_ENV` at build time → no D1 binding                                                 | No            | Manual registration smoke test on staging after deploy                    |
+| Missing `VITE_TURNSTILE_SITE_KEY` at build time → broken Turnstile widget                              | No            | Manual registration smoke test on staging after deploy                    |
+| Turnstile site key not authorized for deployed hostname (error 110200)                                 | No            | Manual registration smoke test on staging after deploy                    |
+| Wrong `RESEND_API_KEY` / `EMAIL_SECRET` / `TURNSTILE_SECRET_KEY` / `CLOUDFLARE_ENV` on deployed Worker | No            | Manual registration smoke test on staging after deploy                    |
+| Migration passes local SQLite but fails on remote D1 (FK enforcement)                                  | No            | `npx wrangler d1 migrations apply pillbug-staging --env staging --remote` |
+
+**Recommended pre-production checklist:**
+
+1. After deploying to staging, attempt a full registration flow on the staging URL
+2. Confirm the magic link email arrives and the verify link creates a session
+3. For PRs containing migrations, apply them to remote staging before merging (see migration section above)
+
+A future improvement would be a separate Playwright job that runs against the deployed staging Worker URL (not localhost) after each staging deploy, using Resend test addresses and the staging Turnstile keys.
+
 ## Email mock (E2E tests)
 
 `npm run test:e2e` sets `EMAIL_MOCK=true` and `CLOUDFLARE_INCLUDE_PROCESS_ENV=true` in the script definition. `CLOUDFLARE_INCLUDE_PROCESS_ENV=true` tells the Cloudflare Vite plugin to expose all process environment variables as Worker bindings, so `EMAIL_MOCK=true` reaches the Worker's `env` object.

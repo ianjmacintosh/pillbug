@@ -15,6 +15,7 @@ function Register() {
     : TURNSTILE_SITE_KEY;
   const [email, setEmail] = useState("");
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileError, setTurnstileError] = useState(false);
   const [terms, setTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -57,7 +58,20 @@ function Register() {
             required
           />
         </label>
-        <Turnstile siteKey={siteKey} onSuccess={setTurnstileToken} />
+        <Turnstile
+          siteKey={siteKey}
+          onSuccess={(token) => {
+            setTurnstileToken(token);
+            setTurnstileError(false);
+          }}
+          onError={() => setTurnstileError(true)}
+          onExpire={() => setTurnstileToken(null)}
+        />
+        {turnstileError && (
+          <p role="alert">
+            Security check failed. Please reload the page and try again.
+          </p>
+        )}
         <label>
           <input
             type="checkbox"

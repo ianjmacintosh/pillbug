@@ -7,13 +7,21 @@ vi.mock("@marsidev/react-turnstile", () => ({
   Turnstile: ({
     siteKey,
     onSuccess,
+    onError,
+    onExpire,
   }: {
     siteKey: string;
     onSuccess: (token: string) => void;
+    onError?: () => void;
+    onExpire?: () => void;
   }) => (
-    <button data-sitekey={siteKey} onClick={() => onSuccess("dummy-token")}>
-      Turnstile
-    </button>
+    <>
+      <button data-sitekey={siteKey} onClick={() => onSuccess("dummy-token")}>
+        Turnstile
+      </button>
+      {onError && <button onClick={onError}>Fail security check</button>}
+      {onExpire && <button onClick={onExpire}>Expire security check</button>}
+    </>
   ),
 }));
 
@@ -61,6 +69,29 @@ describe("Register form submission", () => {
 
     const alert = await screen.findByRole("alert");
     expect(alert.textContent).toBe("Something went wrong. Please try again.");
+  });
+});
+
+describe("Turnstile widget callbacks", () => {
+  test("shows error message when Turnstile reports an error", async () => {
+    render(<Register />);
+    fireEvent.click(
+      screen.getByRole("button", { name: /fail security check/i }),
+    );
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toBe(
+      "Security check failed. Please reload the page and try again.",
+    );
+  });
+
+  test("clears the error message when Turnstile subsequently succeeds", async () => {
+    render(<Register />);
+    fireEvent.click(
+      screen.getByRole("button", { name: /fail security check/i }),
+    );
+    await screen.findByRole("alert");
+    fireEvent.click(screen.getByRole("button", { name: /^turnstile$/i }));
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 });
 

@@ -11,6 +11,21 @@
     "not_found_handling": "single-page-application",
     "run_worker_first": true,
   },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "invocation_logs": true,
+    },
+    "traces": {
+      "enabled": false,
+      "persist": true,
+      "head_sampling_rate": 1,
+    },
+  },
   "env": {
     "production": {
       "routes": [
@@ -35,12 +50,12 @@
       "workers_dev": true,
       "routes": [
         {
-          "pattern": "staging.pillbug.ianjmacintosh.com",
+          "pattern": "pillbug-staging.ianjmacintosh.com",
           "custom_domain": true,
         },
       ],
       "vars": {
-        "APP_URL": "https://staging.pillbug.ianjmacintosh.com",
+        "APP_URL": "https://pillbug-staging.ianjmacintosh.com",
       },
       "d1_databases": [
         {
