@@ -10,7 +10,7 @@ function Login() {
     e.preventDefault();
     setSubmitting(true);
 
-    await fetch("/api/login", {
+    await fetch("/api/v1/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),

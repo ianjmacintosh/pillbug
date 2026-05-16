@@ -32,7 +32,7 @@ const layoutRoute = createRoute({
 async function requireAuth() {
   let res: Response;
   try {
-    res = await fetch("/api/session");
+    res = await fetch("/api/v1/session");
   } catch {
     return; // offline — let the app load
   }

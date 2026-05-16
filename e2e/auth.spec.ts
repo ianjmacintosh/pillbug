@@ -44,10 +44,10 @@ async function expireToken(token: string): Promise<void> {
   }
 }
 
-test.describe("POST /api/register", () => {
+test.describe("POST /api/v1/register", () => {
   test("returns 200 for a new email", async ({ request }) => {
     const email = `delivered+e2e-${Date.now()}@resend.dev`;
-    const res = await request.post("/api/register", {
+    const res = await request.post("/api/v1/register", {
       data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
     });
     expect(res.status()).toBe(200);
@@ -55,34 +55,34 @@ test.describe("POST /api/register", () => {
 
   test("returns 200 for an already-registered email", async ({ request }) => {
     const email = `delivered+e2e-dup-${Date.now()}@resend.dev`;
-    await request.post("/api/register", {
+    await request.post("/api/v1/register", {
       data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
     });
-    const res = await request.post("/api/register", {
+    const res = await request.post("/api/v1/register", {
       data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
     });
     expect(res.status()).toBe(200);
   });
 });
 
-test.describe("GET /api/auth/verify", () => {
+test.describe("GET /api/v1/auth/verify", () => {
   test("valid token creates a session and redirects to /", async ({
     page,
     request,
   }) => {
     const email = `delivered+verify-${Date.now()}@resend.dev`;
-    await request.post("/api/register", {
+    await request.post("/api/v1/register", {
       data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
     });
     const token = await getLatestToken(email);
 
-    await page.goto(`/api/auth/verify?token=${token}`);
+    await page.goto(`/api/v1/auth/verify?token=${token}`);
 
     await expect(page).toHaveURL("/");
   });
 
   test("invalid token redirects to /register with error", async ({ page }) => {
-    await page.goto("/api/auth/verify?token=not-a-real-token");
+    await page.goto("/api/v1/auth/verify?token=not-a-real-token");
 
     await expect(page).toHaveURL("/register?error=invalid");
   });
@@ -92,13 +92,13 @@ test.describe("GET /api/auth/verify", () => {
     request,
   }) => {
     const email = `delivered+verify-used-${Date.now()}@resend.dev`;
-    await request.post("/api/register", {
+    await request.post("/api/v1/register", {
       data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
     });
     const token = await getLatestToken(email);
 
-    await page.goto(`/api/auth/verify?token=${token}`);
-    await page.goto(`/api/auth/verify?token=${token}`);
+    await page.goto(`/api/v1/auth/verify?token=${token}`);
+    await page.goto(`/api/v1/auth/verify?token=${token}`);
 
     await expect(page).toHaveURL("/register?error=used");
   });
@@ -108,13 +108,13 @@ test.describe("GET /api/auth/verify", () => {
     request,
   }) => {
     const email = `delivered+verify-exp-${Date.now()}@resend.dev`;
-    await request.post("/api/register", {
+    await request.post("/api/v1/register", {
       data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
     });
     const token = await getLatestToken(email);
     await expireToken(token);
 
-    await page.goto(`/api/auth/verify?token=${token}`);
+    await page.goto(`/api/v1/auth/verify?token=${token}`);
 
     await expect(page).toHaveURL("/register?error=expired");
   });

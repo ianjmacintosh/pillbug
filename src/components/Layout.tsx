@@ -7,7 +7,7 @@ function Layout() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    fetch("/api/session")
+    fetch("/api/v1/session")
       .then((res) => setIsAuthenticated(res.ok))
       .catch(() => {});
   }, []);

@@ -1,5 +1,5 @@
 async function handleLogout() {
-  await fetch("/api/logout", { method: "POST" });
+  await fetch("/api/v1/logout", { method: "POST" });
   window.location.href = "/register";
 }
 

@@ -14,7 +14,7 @@ Document new routes here before implementing them. This is a living contract —
 
 ## Routes
 
-### `GET /api/health`
+### `GET /api/v1/health`
 
 Reports subsystem reachability. Always returns 200.
 
@@ -29,7 +29,7 @@ Reports subsystem reachability. Always returns 200.
 
 ---
 
-### `POST /api/register`
+### `POST /api/v1/register`
 
 Creates a new Patient account and sends a magic link. If the email is already registered, silently sends a login link instead (email enumeration protection — the response is identical either way).
 
@@ -55,7 +55,7 @@ The Turnstile token is obtained from the widget rendered on the `/register` page
 
 ---
 
-### `POST /api/login`
+### `POST /api/v1/login`
 
 Sends a magic link to an existing Patient. If the email is not registered, returns `{ ok: true }` with no email sent (email enumeration protection).
 
@@ -73,7 +73,7 @@ Sends a magic link to an existing Patient. If the email is not registered, retur
 
 ---
 
-### `GET /api/auth/verify?token=<token>`
+### `GET /api/v1/auth/verify?token=<token>`
 
 Redeems a magic link token. Single-use; tokens expire after 20 minutes.
 
@@ -91,7 +91,7 @@ Redirects to `/register?error=<code>` where `<code>` is one of:
 
 ---
 
-### `POST /api/logout`
+### `POST /api/v1/logout`
 
 Destroys the current session. Safe to call without a valid session (no-op).
 
@@ -100,7 +100,7 @@ Redirects to `/register`. Clears the `session` cookie.
 
 ---
 
-### `GET /api/session`
+### `GET /api/v1/session`
 
 Returns the current session state. Used by the client to check auth on page load (the service worker may serve cached HTML to unauthenticated users, so a network check is required).
 
@@ -118,9 +118,9 @@ Returns the current session state. Used by the client to check auth on page load
 
 ---
 
-### `POST /api/login/silent`
+### `POST /api/v1/login/silent`
 
-Creates a Patient account if the email is not registered, then generates a magic link token without sending an email. The token is written to the database and can be retrieved via `wrangler d1 execute` for use at `GET /api/auth/verify`. Intended for local and staging developer workflows — see `npm run dev:login`.
+Creates a Patient account if the email is not registered, then generates a magic link token without sending an email. The token is written to the database and can be retrieved via `wrangler d1 execute` for use at `GET /api/v1/auth/verify`. Intended for local and staging developer workflows — see `npm run dev:login`.
 
 **Request**
 
@@ -164,7 +164,7 @@ A Prescription object has the following shape:
 
 ---
 
-### `GET /api/v1/prescriptions`
+### `GET /api/v1/v1/prescriptions`
 
 Returns the authenticated Patient's Prescriptions.
 
@@ -191,7 +191,7 @@ Empty array if no Prescriptions match the filters.
 
 ---
 
-### `POST /api/v1/prescriptions`
+### `POST /api/v1/v1/prescriptions`
 
 Creates a new Prescription for the authenticated Patient. Status defaults to `active`.
 
@@ -236,7 +236,7 @@ The created Prescription object.
 
 ---
 
-### `GET /api/v1/prescriptions/:prescriptionId`
+### `GET /api/v1/v1/prescriptions/:prescriptionId`
 
 Returns a single Prescription. Returns 404 whether the Prescription does not exist or belongs to a different Patient — the response is identical either way (existence is not confirmed).
 
@@ -252,7 +252,7 @@ The Prescription object.
 
 ---
 
-### `PATCH /api/v1/prescriptions/:prescriptionId`
+### `PATCH /api/v1/v1/prescriptions/:prescriptionId`
 
 Updates a Prescription. Only fields included in the request body are changed; omitted fields are left as-is.
 
@@ -280,11 +280,11 @@ The updated Prescription object.
 
 **Response — 422**
 
-Same error codes as `POST /api/v1/prescriptions`.
+Same error codes as `POST /api/v1/v1/prescriptions`.
 
 ---
 
-### `DELETE /api/v1/prescriptions/:prescriptionId`
+### `DELETE /api/v1/v1/prescriptions/:prescriptionId`
 
 Permanently deletes a Prescription and all associated Dose history. This operation is irreversible.
 
@@ -302,15 +302,15 @@ Permanently deletes a Prescription and all associated Dose history. This operati
 
 ---
 
-### `GET /api/v1/doctors`
+### `GET /api/v1/v1/doctors`
 
-Returns the distinct doctor names associated with the authenticated Patient's Prescriptions. Accepts the same `status` filter as `GET /api/v1/prescriptions` so the caller can keep the doctor picker in sync with the visible Prescription list.
+Returns the distinct doctor names associated with the authenticated Patient's Prescriptions. Accepts the same `status` filter as `GET /api/v1/v1/prescriptions` so the caller can keep the doctor picker in sync with the visible Prescription list.
 
 **Query parameters**
 
-| Parameter | Type                   | Default  | Description                                 |
-| --------- | ---------------------- | -------- | ------------------------------------------- |
-| `status`  | comma-separated string | `active` | Same values as `GET /api/v1/prescriptions`. |
+| Parameter | Type                   | Default  | Description                                    |
+| --------- | ---------------------- | -------- | ---------------------------------------------- |
+| `status`  | comma-separated string | `active` | Same values as `GET /api/v1/v1/prescriptions`. |
 
 **Response — 200**
 
