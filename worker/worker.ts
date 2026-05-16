@@ -93,21 +93,6 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
   }
 
-  const LEGACY_ROUTES: Record<string, string> = {
-    "/api/health": "/api/v1/health",
-    "/api/register": "/api/v1/register",
-    "/api/login/silent": "/api/v1/login/silent",
-    "/api/login": "/api/v1/login",
-    "/api/auth/verify": "/api/v1/auth/verify",
-    "/api/session": "/api/v1/session",
-    "/api/logout": "/api/v1/logout",
-  };
-  if (url.pathname in LEGACY_ROUTES) {
-    const newPath = LEGACY_ROUTES[url.pathname];
-    const newUrl = url.search ? `${newPath}${url.search}` : newPath;
-    return new Response(null, { status: 308, headers: { Location: newUrl } });
-  }
-
   if (url.pathname === "/api/v1/health") {
     const resend = new Resend(env.RESEND_API_KEY);
     const health = await checkHealth(env.DB, resend);

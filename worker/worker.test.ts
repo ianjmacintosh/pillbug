@@ -368,16 +368,6 @@ describe("GET /api/v1/health", () => {
 
     expect(await response.json()).toEqual({ db: "ok", email: "ok" });
   });
-
-  test("GET /api/health redirects 308 to /api/v1/health", async () => {
-    const response = await worker.fetch(
-      new Request("http://localhost/api/health"),
-      makeEnv(),
-    );
-
-    expect(response.status).toBe(308);
-    expect(response.headers.get("Location")).toBe("/api/v1/health");
-  });
 });
 
 describe("clear session cookie", () => {
