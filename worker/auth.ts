@@ -33,12 +33,14 @@ export interface AuthRepository {
 }
 
 export interface EmailSender {
-  sendMagicLink(to: string, token: string): Promise<void>;
+  sendVerificationEmail(to: string, token: string): Promise<void>;
+  sendLoginEmail(to: string, token: string): Promise<void>;
 }
 
 export interface SentEmail {
   to: string;
   token: string;
+  type: "verification" | "login";
 }
 
 const TOKEN_TTL_MS = 20 * 60 * 1000; // 20 minutes
@@ -77,7 +79,7 @@ export async function registerPatient(
   emailSender: EmailSender,
 ): Promise<{ ok: true }> {
   const { token } = await generateLoginToken(email, repo);
-  await emailSender.sendMagicLink(email, token);
+  await emailSender.sendVerificationEmail(email, token);
   return { ok: true };
 }
 
@@ -89,7 +91,7 @@ export async function sendLoginLink(
   const patient = await repo.findPatientByEmail(email);
   if (patient) {
     const token = await createPatientToken(patient.id, repo);
-    await emailSender.sendMagicLink(email, token);
+    await emailSender.sendLoginEmail(email, token);
   }
   return { ok: true };
 }

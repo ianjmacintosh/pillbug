@@ -118,7 +118,10 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     }
     const emailSender =
       env.EMAIL_MOCK === "true"
-        ? { sendMagicLink: async () => {} }
+        ? {
+            sendVerificationEmail: async () => {},
+            sendLoginEmail: async () => {},
+          }
         : makeResendEmailSender(env.RESEND_API_KEY, env.APP_URL);
     await registerPatient(email, repo, emailSender);
     return new Response(JSON.stringify({ ok: true }), {
@@ -138,7 +141,10 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     const { email } = await request.json<{ email: string }>();
     const emailSender =
       env.EMAIL_MOCK === "true"
-        ? { sendMagicLink: async () => {} }
+        ? {
+            sendVerificationEmail: async () => {},
+            sendLoginEmail: async () => {},
+          }
         : makeResendEmailSender(env.RESEND_API_KEY, env.APP_URL);
     await sendLoginLink(email, repo, emailSender);
     return new Response(JSON.stringify({ ok: true }), {

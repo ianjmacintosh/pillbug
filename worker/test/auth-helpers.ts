@@ -76,8 +76,11 @@ export function makeInMemoryRepo(): AuthRepository {
 export function makeEmailSpy(): { sender: EmailSender; sent: SentEmail[] } {
   const sent: SentEmail[] = [];
   const sender: EmailSender = {
-    async sendMagicLink(to, token) {
-      sent.push({ to, token });
+    async sendVerificationEmail(to, token) {
+      sent.push({ to, token, type: "verification" });
+    },
+    async sendLoginEmail(to, token) {
+      sent.push({ to, token, type: "login" });
     },
   };
   return { sender, sent };
