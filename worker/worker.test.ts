@@ -5,6 +5,7 @@ import { makeD1AuthRepo } from "./d1-auth-repo";
 import { makeResendEmailSender } from "./resend-email-sender";
 import { makeEmailSpy, makeInMemoryRepo } from "./test/auth-helpers";
 import { verifyTurnstileToken } from "./turnstile";
+import { checkHealth } from "./health";
 
 vi.mock("resend", () => ({ Resend: vi.fn() }));
 vi.mock("./d1-auth-repo", () => ({ makeD1AuthRepo: vi.fn() }));
@@ -114,14 +115,14 @@ describe("session cookie", () => {
   test("includes Secure, HttpOnly, and SameSite=Lax on HTTPS", async () => {
     const env = makeEnv();
     await worker.fetch(
-      makeRegisterRequest("https://pillbug.ianjmacintosh.com/api/register"),
+      makeRegisterRequest("https://pillbug.ianjmacintosh.com/api/v1/register"),
       env,
     );
     const token = email.sent[0].token;
 
     const response = await worker.fetch(
       new Request(
-        `https://pillbug.ianjmacintosh.com/api/auth/verify?token=${token}`,
+        `https://pillbug.ianjmacintosh.com/api/v1/auth/verify?token=${token}`,
       ),
       env,
     );
@@ -135,13 +136,13 @@ describe("session cookie", () => {
   test("omits Secure on HTTP", async () => {
     const env = makeEnv();
     await worker.fetch(
-      makeRegisterRequest("http://localhost/api/register"),
+      makeRegisterRequest("http://localhost/api/v1/register"),
       env,
     );
     const token = email.sent[0].token;
 
     const response = await worker.fetch(
-      new Request(`http://localhost/api/auth/verify?token=${token}`),
+      new Request(`http://localhost/api/v1/auth/verify?token=${token}`),
       env,
     );
 
@@ -153,44 +154,44 @@ describe("session cookie", () => {
 });
 
 describe("Resend lazy initialization", () => {
-  test("Resend is not constructed on POST /api/logout", async () => {
+  test("Resend is not constructed on POST /api/v1/logout", async () => {
     vi.mocked(Resend).mockClear();
 
     await worker.fetch(
-      new Request("http://localhost/api/logout", { method: "POST" }),
+      new Request("http://localhost/api/v1/logout", { method: "POST" }),
       makeEnv(),
     );
 
     expect(Resend).not.toHaveBeenCalled();
   });
 
-  test("makeResendEmailSender is not called on POST /api/logout", async () => {
+  test("makeResendEmailSender is not called on POST /api/v1/logout", async () => {
     vi.mocked(makeResendEmailSender).mockClear();
 
     await worker.fetch(
-      new Request("http://localhost/api/logout", { method: "POST" }),
+      new Request("http://localhost/api/v1/logout", { method: "POST" }),
       makeEnv(),
     );
 
     expect(makeResendEmailSender).not.toHaveBeenCalled();
   });
 
-  test("Resend is not constructed on GET /api/auth/verify", async () => {
+  test("Resend is not constructed on GET /api/v1/auth/verify", async () => {
     vi.mocked(Resend).mockClear();
 
     await worker.fetch(
-      new Request("http://localhost/api/auth/verify?token=bad"),
+      new Request("http://localhost/api/v1/auth/verify?token=bad"),
       makeEnv(),
     );
 
     expect(Resend).not.toHaveBeenCalled();
   });
 
-  test("makeResendEmailSender is not called on GET /api/auth/verify", async () => {
+  test("makeResendEmailSender is not called on GET /api/v1/auth/verify", async () => {
     vi.mocked(makeResendEmailSender).mockClear();
 
     await worker.fetch(
-      new Request("http://localhost/api/auth/verify?token=bad"),
+      new Request("http://localhost/api/v1/auth/verify?token=bad"),
       makeEnv(),
     );
 
@@ -205,7 +206,7 @@ describe("unhandled exception handling", () => {
     });
 
     const response = await worker.fetch(
-      new Request("http://localhost/api/register", { method: "POST" }),
+      new Request("http://localhost/api/v1/register", { method: "POST" }),
       makeEnv(),
     );
 
@@ -218,7 +219,7 @@ describe("unhandled exception handling", () => {
     });
 
     const response = await worker.fetch(
-      new Request("http://localhost/api/register", { method: "POST" }),
+      new Request("http://localhost/api/v1/register", { method: "POST" }),
       makeEnv(),
     );
 
@@ -231,7 +232,7 @@ describe("unhandled exception handling", () => {
     });
 
     const response = await worker.fetch(
-      new Request("http://localhost/api/register", { method: "POST" }),
+      new Request("http://localhost/api/v1/register", { method: "POST" }),
       makeEnv(),
     );
 
@@ -239,12 +240,12 @@ describe("unhandled exception handling", () => {
   });
 });
 
-describe("POST /api/register Turnstile validation", () => {
+describe("POST /api/v1/register Turnstile validation", () => {
   test("returns 200 when Turnstile token is valid", async () => {
     vi.mocked(verifyTurnstileToken).mockResolvedValue(true);
 
     const response = await worker.fetch(
-      makeRegisterRequest("http://localhost/api/register"),
+      makeRegisterRequest("http://localhost/api/v1/register"),
       makeEnv(),
     );
 
@@ -256,7 +257,7 @@ describe("POST /api/register Turnstile validation", () => {
     vi.mocked(verifyTurnstileToken).mockResolvedValue(false);
 
     const response = await worker.fetch(
-      makeRegisterRequest("http://localhost/api/register"),
+      makeRegisterRequest("http://localhost/api/v1/register"),
       makeEnv(),
     );
 
@@ -265,7 +266,7 @@ describe("POST /api/register Turnstile validation", () => {
   });
 });
 
-describe("POST /api/register EMAIL_MOCK", () => {
+describe("POST /api/v1/register EMAIL_MOCK", () => {
   test("does not call makeResendEmailSender when EMAIL_MOCK is true", async () => {
     vi.mocked(makeResendEmailSender).mockClear();
 
@@ -274,7 +275,7 @@ describe("POST /api/register EMAIL_MOCK", () => {
       EMAIL_MOCK: "true",
     } as unknown as Parameters<typeof worker.fetch>[1];
     await worker.fetch(
-      makeRegisterRequest("http://localhost/api/register"),
+      makeRegisterRequest("http://localhost/api/v1/register"),
       env,
     );
 
@@ -282,7 +283,7 @@ describe("POST /api/register EMAIL_MOCK", () => {
   });
 });
 
-describe("POST /api/login EMAIL_MOCK", () => {
+describe("POST /api/v1/login EMAIL_MOCK", () => {
   test("does not call makeResendEmailSender when EMAIL_MOCK is true", async () => {
     vi.mocked(makeResendEmailSender).mockClear();
 
@@ -291,7 +292,7 @@ describe("POST /api/login EMAIL_MOCK", () => {
       EMAIL_MOCK: "true",
     } as unknown as Parameters<typeof worker.fetch>[1];
     await worker.fetch(
-      new Request("http://localhost/api/login", {
+      new Request("http://localhost/api/v1/login", {
         method: "POST",
         body: JSON.stringify({ email: "delivered@resend.dev" }),
         headers: { "Content-Type": "application/json" },
@@ -303,7 +304,7 @@ describe("POST /api/login EMAIL_MOCK", () => {
   });
 });
 
-describe("GET /api/session", () => {
+describe("GET /api/v1/session", () => {
   let repo: ReturnType<typeof makeInMemoryRepo>;
 
   beforeEach(() => {
@@ -313,7 +314,7 @@ describe("GET /api/session", () => {
 
   test("returns 401 when no session cookie is present", async () => {
     const response = await worker.fetch(
-      new Request("http://localhost/api/session"),
+      new Request("http://localhost/api/v1/session"),
       makeEnv(),
     );
 
@@ -323,7 +324,7 @@ describe("GET /api/session", () => {
 
   test("returns 401 when session cookie does not match a session", async () => {
     const response = await worker.fetch(
-      new Request("http://localhost/api/session", {
+      new Request("http://localhost/api/v1/session", {
         headers: { Cookie: "session=unknown-session-id" },
       }),
       makeEnv(),
@@ -345,7 +346,7 @@ describe("GET /api/session", () => {
     await repo.createSession("session-id-1", "patient-1", expiresAt);
 
     const response = await worker.fetch(
-      new Request("http://localhost/api/session", {
+      new Request("http://localhost/api/v1/session", {
         headers: { Cookie: "session=session-id-1" },
       }),
       makeEnv(),
@@ -356,10 +357,23 @@ describe("GET /api/session", () => {
   });
 });
 
+describe("GET /api/v1/health", () => {
+  test("returns health status", async () => {
+    vi.mocked(checkHealth).mockResolvedValue({ db: "ok", email: "ok" });
+
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/health"),
+      makeEnv(),
+    );
+
+    expect(await response.json()).toEqual({ db: "ok", email: "ok" });
+  });
+});
+
 describe("clear session cookie", () => {
   test("includes Secure, HttpOnly, and SameSite=Lax on HTTPS", async () => {
     const response = await worker.fetch(
-      new Request("https://pillbug.ianjmacintosh.com/api/logout", {
+      new Request("https://pillbug.ianjmacintosh.com/api/v1/logout", {
         method: "POST",
       }),
       makeEnv(),
@@ -373,7 +387,7 @@ describe("clear session cookie", () => {
 
   test("omits Secure on HTTP", async () => {
     const response = await worker.fetch(
-      new Request("http://localhost/api/logout", { method: "POST" }),
+      new Request("http://localhost/api/v1/logout", { method: "POST" }),
       makeEnv(),
     );
 

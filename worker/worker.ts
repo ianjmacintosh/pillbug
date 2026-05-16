@@ -93,7 +93,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
   }
 
-  if (url.pathname === "/api/health") {
+  if (url.pathname === "/api/v1/health") {
     const resend = new Resend(env.RESEND_API_KEY);
     const health = await checkHealth(env.DB, resend);
     return new Response(JSON.stringify(health), {
@@ -101,7 +101,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     });
   }
 
-  if (url.pathname === "/api/register" && request.method === "POST") {
+  if (url.pathname === "/api/v1/register" && request.method === "POST") {
     const { email, turnstileToken } = await request.json<{
       email: string;
       turnstileToken: string;
@@ -129,7 +129,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     });
   }
 
-  if (url.pathname === "/api/login/silent" && request.method === "POST") {
+  if (url.pathname === "/api/v1/login/silent" && request.method === "POST") {
     const { email } = await request.json<{ email: string }>();
     await generateLoginToken(email, repo);
     return new Response(JSON.stringify({ ok: true }), {
@@ -137,7 +137,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     });
   }
 
-  if (url.pathname === "/api/login" && request.method === "POST") {
+  if (url.pathname === "/api/v1/login" && request.method === "POST") {
     const { email } = await request.json<{ email: string }>();
     const emailSender =
       env.EMAIL_MOCK === "true"
@@ -152,7 +152,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     });
   }
 
-  if (url.pathname === "/api/auth/verify" && request.method === "GET") {
+  if (url.pathname === "/api/v1/auth/verify" && request.method === "GET") {
     const token = url.searchParams.get("token") ?? "";
     const result = await verifyToken(token, repo);
     if ("error" in result) {
@@ -171,7 +171,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     });
   }
 
-  if (url.pathname === "/api/session" && request.method === "GET") {
+  if (url.pathname === "/api/v1/session" && request.method === "GET") {
     const sessionId = getSessionId(request);
     const session = sessionId ? await getSession(sessionId, repo) : null;
     if (!session) {
@@ -186,7 +186,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     );
   }
 
-  if (url.pathname === "/api/logout" && request.method === "POST") {
+  if (url.pathname === "/api/v1/logout" && request.method === "POST") {
     const sessionId = getSessionId(request);
     if (sessionId) await deleteSession(sessionId, repo);
     return new Response(null, {
