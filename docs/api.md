@@ -280,7 +280,7 @@ The updated Prescription object.
 
 **Response — 422**
 
-Same error codes as `POST /api/v1/v1/prescriptions`.
+Same error codes as `POST /api/v1/prescriptions`.
 
 ---
 
