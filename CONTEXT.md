@@ -150,8 +150,23 @@ erDiagram
         TEXT expires_at "NOT NULL"
     }
 
+    prescriptions {
+        TEXT id PK
+        TEXT patient_id FK
+        TEXT drug_name "NOT NULL"
+        TEXT dosage "NOT NULL"
+        TEXT schedule "NOT NULL, JSON"
+        TEXT start_date "NOT NULL"
+        TEXT end_date "nullable"
+        TEXT prescribing_doctor "nullable"
+        TEXT instructions "nullable"
+        TEXT status "NOT NULL, default active"
+        TEXT created_at "NOT NULL"
+    }
+
     patients ||--o{ magic_link_tokens : "authenticates via"
     patients ||--o{ sessions : "is active in"
+    patients ||--o{ prescriptions : "manages"
 ```
 
 `email` is stored as two columns: `email_lookup` (HMAC for indexed lookups) and `email_encrypted` (AES-GCM ciphertext for display). `magic_link_tokens.used_at` is nullable — null means the token has not yet been consumed. `patients.last_login_at` is nullable — null means the Patient is Unverified (has registered but never redeemed a magic link).

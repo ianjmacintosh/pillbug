@@ -10,9 +10,16 @@ import {
 import { deleteStaleUnverifiedPatients } from "./cron";
 import { Resend } from "resend";
 import { makeD1AuthRepo } from "./d1-auth-repo";
+import { makeD1PrescriptionRepo } from "./d1-prescriptions-repo";
 import { checkHealth } from "./health";
 import { makeResendEmailSender } from "./resend-email-sender";
 import { verifyTurnstileToken } from "./turnstile";
+import {
+  createPrescription,
+  listPrescriptions,
+  toPrescriptionResponse,
+  validateSchedule,
+} from "./prescriptions";
 
 interface Env {
   ASSETS: Fetcher;
@@ -88,6 +95,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const secure = url.protocol === "https:";
   const repo = makeD1AuthRepo(env.DB, env.EMAIL_SECRET);
+  const prescriptionRepo = makeD1PrescriptionRepo(env.DB);
 
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -208,6 +216,84 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
         Location: "/register",
         "Set-Cookie": clearSessionCookie(secure),
       },
+    });
+  }
+
+  if (url.pathname === "/api/v1/prescriptions" && request.method === "POST") {
+    const sessionId = getSessionId(request);
+    const session = sessionId ? await getSession(sessionId, repo) : null;
+    if (!session) {
+      return new Response(JSON.stringify({ error: "not_authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const body = await request.json<Record<string, unknown>>();
+    const required = ["drugName", "dosage", "schedule", "startDate"];
+    for (const field of required) {
+      if (!body[field]) {
+        return new Response(
+          JSON.stringify({ error: "missing_required_field" }),
+          { status: 400, headers: { "Content-Type": "application/json" } },
+        );
+      }
+    }
+    const scheduleError = validateSchedule(body.schedule);
+    if (scheduleError) {
+      return new Response(JSON.stringify(scheduleError), {
+        status: 422,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const result = await createPrescription(
+      {
+        drugName: String(body.drugName),
+        dosage: String(body.dosage),
+        schedule: body.schedule as never,
+        startDate: String(body.startDate),
+        endDate: body.endDate != null ? String(body.endDate) : null,
+        prescribingDoctor:
+          body.prescribingDoctor != null
+            ? String(body.prescribingDoctor)
+            : null,
+        instructions:
+          body.instructions != null ? String(body.instructions) : null,
+      },
+      session.patientId,
+      prescriptionRepo,
+    );
+    if ("error" in result) {
+      return new Response(JSON.stringify(result), {
+        status: 422,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify(toPrescriptionResponse(result)), {
+      status: 201,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (url.pathname === "/api/v1/prescriptions" && request.method === "GET") {
+    const sessionId = getSessionId(request);
+    const session = sessionId ? await getSession(sessionId, repo) : null;
+    if (!session) {
+      return new Response(JSON.stringify({ error: "not_authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const statusParam = url.searchParams.get("status") ?? "active";
+    const statusFilter = statusParam.split(",").map((s) => s.trim());
+    const prescriptions = await listPrescriptions(
+      session.patientId,
+      statusFilter,
+      prescriptionRepo,
+    );
+    const body = prescriptions.map(toPrescriptionResponse);
+    return new Response(JSON.stringify(body), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
     });
   }
 

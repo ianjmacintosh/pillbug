@@ -5,6 +5,6 @@ import Prescriptions from "./Prescriptions";
 describe("Prescriptions", () => {
   test("renders a heading", () => {
     render(<Prescriptions />);
-    expect(screen.getByRole("heading")).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 1 })).toBeTruthy();
   });
 });
