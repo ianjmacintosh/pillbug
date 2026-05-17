@@ -220,3 +220,20 @@ test("/login links to /register", async ({ page }) => {
   await page.getByRole("link", { name: /create an account/i }).click();
   await expect(page).toHaveURL("/register");
 });
+
+test("logout button ends the session and redirects to /register", async ({
+  page,
+  request,
+}) => {
+  const email = `delivered+logout-${Date.now()}@resend.dev`;
+  await request.post("/api/v1/register", {
+    data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
+  });
+  const token = await getLatestToken(email);
+  await page.goto(`/verify?token=${token}`);
+  await expect(page).toHaveURL("/");
+
+  await page.getByRole("button", { name: /log out/i }).click();
+
+  await expect(page).toHaveURL("/register");
+});
