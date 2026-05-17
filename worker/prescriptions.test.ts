@@ -47,39 +47,23 @@ function makeInMemoryPrescriptionRepo(): PrescriptionRepository & {
 }
 
 describe("validateSchedule", () => {
-  test("accepts a daily timeless schedule", () => {
-    expect(
-      validateSchedule({ days: "daily", times: [], timezoneMode: "local" }),
-    ).toBeNull();
-  });
-
-  test("accepts specific weekdays", () => {
+  test("accepts a per-day schedule with HH:MM times", () => {
     expect(
       validateSchedule({
-        days: ["monday", "wednesday", "friday"],
-        times: [],
+        days: { monday: ["08:00"], wednesday: ["08:00", "20:00"] },
         timezoneMode: "local",
       }),
     ).toBeNull();
   });
 
-  test("rejects an empty days array", () => {
-    expect(
-      validateSchedule({ days: [], times: [], timezoneMode: "local" }),
-    ).toEqual({ error: "invalid_days" });
+  test("accepts an empty days object", () => {
+    expect(validateSchedule({ days: {}, timezoneMode: "local" })).toBeNull();
   });
 
-  test("rejects an unrecognized days string", () => {
-    expect(
-      validateSchedule({ days: "weekly", times: [], timezoneMode: "local" }),
-    ).toEqual({ error: "invalid_days" });
-  });
-
-  test("rejects an array containing an invalid weekday", () => {
+  test("rejects an invalid day key", () => {
     expect(
       validateSchedule({
-        days: ["monday", "saturday", "funday"],
-        times: [],
+        days: { funday: ["08:00"] },
         timezoneMode: "local",
       }),
     ).toEqual({ error: "invalid_days" });
@@ -88,11 +72,16 @@ describe("validateSchedule", () => {
   test("rejects a time entry that is not HH:MM", () => {
     expect(
       validateSchedule({
-        days: "daily",
-        times: ["8am"],
+        days: { monday: ["8am"] },
         timezoneMode: "local",
       }),
     ).toEqual({ error: "invalid_time_format" });
+  });
+
+  test("rejects a non-object days value", () => {
+    expect(validateSchedule({ days: "daily", timezoneMode: "local" })).toEqual({
+      error: "invalid_days",
+    });
   });
 });
 
@@ -103,7 +92,7 @@ describe("createPrescription", () => {
       {
         drugName: "Metformin",
         dosage: "500mg",
-        schedule: { days: "daily", times: [], timezoneMode: "local" },
+        schedule: { days: { monday: ["08:00"] }, timezoneMode: "local" },
         startDate: "2024-01-01",
       },
       "patient-1",
@@ -124,7 +113,7 @@ describe("createPrescription", () => {
       {
         drugName: "Metformin",
         dosage: "500mg",
-        schedule: { days: "daily", times: [], timezoneMode: "local" },
+        schedule: { days: {}, timezoneMode: "local" },
         startDate: "2024-06-01",
         endDate: "2024-01-01",
       },
@@ -140,7 +129,7 @@ const BASE_PRESCRIPTION: Prescription = {
   patientId: "patient-1",
   drugName: "Metformin",
   dosage: "500mg",
-  schedule: { days: "daily", times: [], timezoneMode: "local" },
+  schedule: { days: {}, timezoneMode: "local" },
   startDate: "2024-01-01",
   endDate: null,
   prescribingDoctor: null,
@@ -239,7 +228,12 @@ describe("updatePrescription", () => {
     const result = await updatePrescription(
       "rx-1",
       "patient-1",
-      { schedule: { days: [], times: [], timezoneMode: "local" } },
+      {
+        schedule: {
+          days: { funday: ["08:00"] } as never,
+          timezoneMode: "local",
+        },
+      },
       repo,
     );
     expect(result).toEqual({ error: "invalid_days" });
