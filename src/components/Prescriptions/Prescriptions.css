@@ -66,3 +66,9 @@
   font-family: system-ui, sans-serif;
   font-size: 0.875rem;
 }
+
+.prescriptions .form-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}

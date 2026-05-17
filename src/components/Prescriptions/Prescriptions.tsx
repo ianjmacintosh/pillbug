@@ -14,6 +14,7 @@ interface Prescription {
 function Prescriptions() {
   const [revealed, setRevealed] = useState(false);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [formOpen, setFormOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [drugName, setDrugName] = useState("");
   const [dosage, setDosage] = useState("");
@@ -29,6 +30,21 @@ function Prescriptions() {
       setPrescriptions(data);
       setRevealed(true);
     }
+  }
+
+  function handleOpenForm() {
+    setError(null);
+    setFormOpen(true);
+  }
+
+  function handleCancel() {
+    setDrugName("");
+    setDosage("");
+    setStartDate("");
+    setEndDate("");
+    setInstructions("");
+    setError(null);
+    setFormOpen(false);
   }
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
@@ -51,14 +67,10 @@ function Prescriptions() {
 
     if (res.ok) {
       const created = (await res.json()) as Prescription;
-      setDrugName("");
-      setDosage("");
-      setStartDate("");
-      setEndDate("");
-      setInstructions("");
       if (revealed) {
         setPrescriptions((prev) => [created, ...prev]);
       }
+      handleCancel();
     } else {
       const data = (await res.json()) as { error: string };
       setError(data.error);
@@ -70,76 +82,6 @@ function Prescriptions() {
   return (
     <main className="prescriptions">
       <h1>Prescriptions</h1>
-
-      <section>
-        <h2>Add prescription</h2>
-        <form onSubmit={handleCreate}>
-          {error && <p role="alert">{error}</p>}
-
-          <div className="field">
-            <label htmlFor="drugName">Drug name</label>
-            <input
-              id="drugName"
-              type="text"
-              value={drugName}
-              onChange={(e) => setDrugName(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="field">
-            <label htmlFor="dosage">Dosage</label>
-            <input
-              id="dosage"
-              type="text"
-              value={dosage}
-              onChange={(e) => setDosage(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="date-fields">
-            <div className="field">
-              <label htmlFor="startDate">Start date</label>
-              <input
-                id="startDate"
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="field">
-              <label htmlFor="endDate">End date (optional)</label>
-              <input
-                id="endDate"
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="field">
-            <label htmlFor="instructions">Instructions (optional)</label>
-            <input
-              id="instructions"
-              type="text"
-              value={instructions}
-              onChange={(e) => setInstructions(e.target.value)}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="button-primary"
-          >
-            {submitting ? "Saving…" : "Add prescription"}
-          </button>
-        </form>
-      </section>
 
       <section>
         <h2>Your prescriptions</h2>
@@ -158,6 +100,93 @@ function Prescriptions() {
               </li>
             ))}
           </ul>
+        )}
+      </section>
+
+      <section>
+        {!formOpen ? (
+          <button
+            type="button"
+            onClick={handleOpenForm}
+            className="button-primary"
+          >
+            Add prescription
+          </button>
+        ) : (
+          <>
+            <h2>Add prescription</h2>
+            <form onSubmit={handleCreate}>
+              {error && <p role="alert">{error}</p>}
+
+              <div className="field">
+                <label htmlFor="drugName">Drug name</label>
+                <input
+                  id="drugName"
+                  type="text"
+                  value={drugName}
+                  onChange={(e) => setDrugName(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="field">
+                <label htmlFor="dosage">Dosage</label>
+                <input
+                  id="dosage"
+                  type="text"
+                  value={dosage}
+                  onChange={(e) => setDosage(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="date-fields">
+                <div className="field">
+                  <label htmlFor="startDate">Start date</label>
+                  <input
+                    id="startDate"
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="field">
+                  <label htmlFor="endDate">End date (optional)</label>
+                  <input
+                    id="endDate"
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="field">
+                <label htmlFor="instructions">Instructions (optional)</label>
+                <input
+                  id="instructions"
+                  type="text"
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
+                />
+              </div>
+
+              <div className="form-actions">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="button-primary"
+                >
+                  {submitting ? "Saving…" : "Save prescription"}
+                </button>
+                <button type="button" onClick={handleCancel}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </>
         )}
       </section>
     </main>
