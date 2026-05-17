@@ -138,7 +138,20 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   }
 
   if (url.pathname === "/api/v1/login" && request.method === "POST") {
-    const { email } = await request.json<{ email: string }>();
+    const { email, turnstileToken } = await request.json<{
+      email: string;
+      turnstileToken: string;
+    }>();
+    const tokenValid = await verifyTurnstileToken(
+      turnstileToken,
+      env.TURNSTILE_SECRET_KEY,
+    );
+    if (!tokenValid) {
+      return new Response(
+        JSON.stringify({ error: "invalid_turnstile_token" }),
+        { status: 403, headers: { "Content-Type": "application/json" } },
+      );
+    }
     const emailSender =
       env.EMAIL_MOCK === "true"
         ? {

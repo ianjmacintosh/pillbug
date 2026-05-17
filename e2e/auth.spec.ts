@@ -202,6 +202,13 @@ test("/login renders the login page", async ({ page }) => {
   ).toBeVisible();
 });
 
+test("/login?email= pre-fills the email input", async ({ page }) => {
+  await page.goto("/login?email=delivered%40resend.dev");
+  await expect(page.getByRole("textbox", { name: /email/i })).toHaveValue(
+    "delivered@resend.dev",
+  );
+});
+
 test("/check-your-email renders the confirmation page", async ({ page }) => {
   await page.goto("/check-your-email");
   await expect(
