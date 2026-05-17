@@ -1,14 +1,11 @@
 import { getPlatformProxy } from "wrangler";
 import type { D1Database } from "@cloudflare/workers-types";
-import {
-  expect,
-  test,
-  type APIRequestContext,
-  type Page,
-} from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { hashEmail } from "../worker/email-crypto";
 
-const TURNSTILE_DUMMY_TOKEN = "XXXX.DUMMY.TOKEN.XXXX";
+// Single shared patient for all prescription E2E tests.
+// login/silent creates the account on first run; subsequent runs reuse it.
+const SHARED_EMAIL = "delivered+e2e-prescriptions@resend.dev";
 
 interface Env {
   DB: D1Database;
@@ -32,15 +29,30 @@ async function getLatestToken(email: string): Promise<string> {
   }
 }
 
-async function loginAndGoToPrescriptions(
-  email: string,
-  page: Page,
-  request: APIRequestContext,
-): Promise<void> {
-  await request.post("/api/v1/register", {
-    data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
+async function clearPrescriptions(): Promise<void> {
+  const { env, dispose } = await getPlatformProxy<Env>({
+    environment: "staging",
   });
-  const token = await getLatestToken(email);
+  try {
+    const emailLookup = await hashEmail(
+      SHARED_EMAIL,
+      process.env.EMAIL_SECRET!,
+    );
+    await env.DB.prepare(
+      "DELETE FROM prescriptions WHERE patient_id IN (SELECT id FROM patients WHERE email_lookup = ?)",
+    )
+      .bind(emailLookup)
+      .run();
+  } finally {
+    await dispose();
+  }
+}
+
+async function login(page: Page): Promise<void> {
+  await page.request.post("/api/v1/login/silent", {
+    data: { email: SHARED_EMAIL },
+  });
+  const token = await getLatestToken(SHARED_EMAIL);
   await page.goto(`/verify?token=${token}`);
   await expect(page).toHaveURL("/");
   await page.goto("/prescriptions");
@@ -53,13 +65,15 @@ const BASE_PRESCRIPTION = {
   startDate: "2024-01-01",
 };
 
+test.beforeEach(async () => {
+  await clearPrescriptions();
+});
+
 test.describe("Prescription list", () => {
   test("list is hidden by default and shows empty state when patient has no prescriptions", async ({
     page,
-    request,
   }) => {
-    const email = `delivered+rx-empty-${Date.now()}@resend.dev`;
-    await loginAndGoToPrescriptions(email, page, request);
+    await login(page);
 
     await expect(
       page.getByRole("button", { name: /show all prescriptions/i }),
@@ -70,9 +84,8 @@ test.describe("Prescription list", () => {
     await expect(page.getByText(/no active prescriptions/i)).toBeVisible();
   });
 
-  test("Hide button collapses the list", async ({ page, request }) => {
-    const email = `delivered+rx-hide-${Date.now()}@resend.dev`;
-    await loginAndGoToPrescriptions(email, page, request);
+  test("Hide button collapses the list", async ({ page }) => {
+    await login(page);
 
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
@@ -90,10 +103,8 @@ test.describe("Prescription list", () => {
 
   test("list resets to hidden after navigating away and back", async ({
     page,
-    request,
   }) => {
-    const email = `delivered+rx-reset-${Date.now()}@resend.dev`;
-    await loginAndGoToPrescriptions(email, page, request);
+    await login(page);
 
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
@@ -115,10 +126,8 @@ test.describe("Prescription list", () => {
 test.describe("Prescription create", () => {
   test("add prescription form creates prescription and it appears in list", async ({
     page,
-    request,
   }) => {
-    const email = `delivered+rx-create-${Date.now()}@resend.dev`;
-    await loginAndGoToPrescriptions(email, page, request);
+    await login(page);
 
     await page.getByRole("button", { name: /add prescription/i }).click();
     await page.getByLabel(/drug name/i).fill("Metformin");
@@ -135,10 +144,8 @@ test.describe("Prescription create", () => {
 test.describe("Prescription edit", () => {
   test("edit form pre-populates fields and updates prescription on save", async ({
     page,
-    request,
   }) => {
-    const email = `delivered+rx-edit-${Date.now()}@resend.dev`;
-    await loginAndGoToPrescriptions(email, page, request);
+    await login(page);
 
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
@@ -162,10 +169,8 @@ test.describe("Prescription edit", () => {
 
   test("cancel closes edit form without modifying the prescription", async ({
     page,
-    request,
   }) => {
-    const email = `delivered+rx-cancel-edit-${Date.now()}@resend.dev`;
-    await loginAndGoToPrescriptions(email, page, request);
+    await login(page);
 
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
@@ -183,10 +188,8 @@ test.describe("Prescription edit", () => {
 test.describe("Prescription delete", () => {
   test("confirmation dialog warns about permanence and dose history; confirm removes prescription", async ({
     page,
-    request,
   }) => {
-    const email = `delivered+rx-delete-${Date.now()}@resend.dev`;
-    await loginAndGoToPrescriptions(email, page, request);
+    await login(page);
 
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
@@ -207,10 +210,8 @@ test.describe("Prescription delete", () => {
 
   test("cancel closes delete confirmation without removing prescription", async ({
     page,
-    request,
   }) => {
-    const email = `delivered+rx-cancel-delete-${Date.now()}@resend.dev`;
-    await loginAndGoToPrescriptions(email, page, request);
+    await login(page);
 
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
