@@ -1,11 +1,14 @@
 function CheckYourEmail() {
   return (
     <main>
-      <h1>Check your email</h1>
-      <p>We sent you a magic link. Click it to continue.</p>
+      <h1>You've Got Mail</h1>
       <p>
-        If you don&apos;t verify your account within 7 days of registration, it
-        will be permanently deleted.
+        We just emailed you a link to log into your Pillbug account. The link
+        will expire in 20 minutes!
+      </p>
+      <p>
+        If you can't find the email, check your "Spam" directory, or you can
+        search for an email from <i>noreply@mail.pillbug.ianjmacintosh.com</i>
       </p>
     </main>
   );

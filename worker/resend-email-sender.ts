@@ -39,7 +39,10 @@ export function makeResendEmailSender(
       await send(
         to,
         "Verify your Pillbug account",
-        renderTemplate(verificationTemplate, { magic_link: magicLink }),
+        renderTemplate(verificationTemplate, {
+          magic_link: magicLink,
+          login_link: `${appUrl}/login?email=${encodeURIComponent(to)}`,
+        }),
       );
     },
 

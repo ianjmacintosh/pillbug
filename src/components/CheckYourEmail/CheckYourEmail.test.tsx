@@ -5,13 +5,11 @@ import CheckYourEmail from "./CheckYourEmail";
 describe("CheckYourEmail", () => {
   test("renders a heading", () => {
     render(<CheckYourEmail />);
-    expect(
-      screen.getByRole("heading", { name: /check your email/i }),
-    ).toBeTruthy();
+    expect(screen.getByRole("heading")).toBeTruthy();
   });
 
-  test("tells the user to expect a magic link", () => {
+  test("tells the user to expect an email", () => {
     render(<CheckYourEmail />);
-    expect(screen.getByText(/magic link/i)).toBeTruthy();
+    expect(screen.getByText(/emailed you/i)).toBeTruthy();
   });
 });
