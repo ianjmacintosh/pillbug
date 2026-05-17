@@ -94,3 +94,7 @@
   border-bottom: 1px solid var(--gray-90);
   vertical-align: top;
 }
+
+.prescriptions .prescription-list + button {
+  margin-top: 1rem;
+}

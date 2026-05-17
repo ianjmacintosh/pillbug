@@ -32,6 +32,11 @@ function Prescriptions() {
     }
   }
 
+  function handleHide() {
+    setPrescriptions([]);
+    setRevealed(false);
+  }
+
   function handleOpenForm() {
     setError(null);
     setFormOpen(true);
@@ -94,28 +99,46 @@ function Prescriptions() {
             Show all prescriptions
           </button>
         ) : prescriptions.length === 0 ? (
-          <p>No active prescriptions.</p>
+          <>
+            <p>No active prescriptions.</p>
+            <button
+              type="button"
+              onClick={handleHide}
+              className="button-secondary"
+            >
+              Hide
+            </button>
+          </>
         ) : (
-          <table className="prescription-list">
-            <thead>
-              <tr>
-                <th>Start Date</th>
-                <th>End Date</th>
-                <th>Drug Name</th>
-                <th>Dosage</th>
-              </tr>
-            </thead>
-            <tbody>
-              {prescriptions.map((p) => (
-                <tr key={p.id}>
-                  <td>{p.startDate}</td>
-                  <td>{p.endDate ?? "—"}</td>
-                  <td>{p.drugName}</td>
-                  <td>{p.dosage}</td>
+          <>
+            <table className="prescription-list">
+              <thead>
+                <tr>
+                  <th>Start Date</th>
+                  <th>End Date</th>
+                  <th>Drug Name</th>
+                  <th>Dosage</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {prescriptions.map((p) => (
+                  <tr key={p.id}>
+                    <td>{p.startDate}</td>
+                    <td>{p.endDate ?? "—"}</td>
+                    <td>{p.drugName}</td>
+                    <td>{p.dosage}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <button
+              type="button"
+              onClick={handleHide}
+              className="button-secondary"
+            >
+              Hide
+            </button>
+          </>
         )}
       </section>
 
