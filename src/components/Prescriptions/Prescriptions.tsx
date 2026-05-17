@@ -76,48 +76,58 @@ function Prescriptions() {
         <form onSubmit={handleCreate}>
           {error && <p role="alert">{error}</p>}
 
-          <label htmlFor="drugName">Drug name</label>
-          <input
-            id="drugName"
-            type="text"
-            value={drugName}
-            onChange={(e) => setDrugName(e.target.value)}
-            required
-          />
+          <div className="field">
+            <label htmlFor="drugName">Drug name</label>
+            <input
+              id="drugName"
+              type="text"
+              value={drugName}
+              onChange={(e) => setDrugName(e.target.value)}
+              required
+            />
+          </div>
 
-          <label htmlFor="dosage">Dosage</label>
-          <input
-            id="dosage"
-            type="text"
-            value={dosage}
-            onChange={(e) => setDosage(e.target.value)}
-            required
-          />
+          <div className="field">
+            <label htmlFor="dosage">Dosage</label>
+            <input
+              id="dosage"
+              type="text"
+              value={dosage}
+              onChange={(e) => setDosage(e.target.value)}
+              required
+            />
+          </div>
 
-          <label htmlFor="startDate">Start date</label>
-          <input
-            id="startDate"
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            required
-          />
+          <div className="field">
+            <label htmlFor="startDate">Start date</label>
+            <input
+              id="startDate"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              required
+            />
+          </div>
 
-          <label htmlFor="endDate">End date (optional)</label>
-          <input
-            id="endDate"
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
+          <div className="field">
+            <label htmlFor="endDate">End date (optional)</label>
+            <input
+              id="endDate"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+          </div>
 
-          <label htmlFor="instructions">Instructions (optional)</label>
-          <input
-            id="instructions"
-            type="text"
-            value={instructions}
-            onChange={(e) => setInstructions(e.target.value)}
-          />
+          <div className="field">
+            <label htmlFor="instructions">Instructions (optional)</label>
+            <input
+              id="instructions"
+              type="text"
+              value={instructions}
+              onChange={(e) => setInstructions(e.target.value)}
+            />
+          </div>
 
           <button
             type="submit"
