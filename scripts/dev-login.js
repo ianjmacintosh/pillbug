@@ -40,4 +40,4 @@ const output = execFileSync(
 );
 
 const token = JSON.parse(output)[0].results[0].token;
-console.log(`${baseUrl}/api/v1/auth/verify?token=${token}`);
+console.log(`${baseUrl}/verify?token=${token}`);
