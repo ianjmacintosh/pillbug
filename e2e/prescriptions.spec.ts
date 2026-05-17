@@ -53,6 +53,65 @@ const BASE_PRESCRIPTION = {
   startDate: "2024-01-01",
 };
 
+test.describe("Prescription list", () => {
+  test("list is hidden by default and shows empty state when patient has no prescriptions", async ({
+    page,
+    request,
+  }) => {
+    const email = `delivered+rx-empty-${Date.now()}@resend.dev`;
+    await loginAndGoToPrescriptions(email, page, request);
+
+    await expect(
+      page.getByRole("button", { name: /show all prescriptions/i }),
+    ).toBeVisible();
+    await expect(page.getByRole("table")).not.toBeAttached();
+
+    await page.getByRole("button", { name: /show all prescriptions/i }).click();
+    await expect(page.getByText(/no active prescriptions/i)).toBeVisible();
+  });
+
+  test("Hide button collapses the list", async ({ page, request }) => {
+    const email = `delivered+rx-hide-${Date.now()}@resend.dev`;
+    await loginAndGoToPrescriptions(email, page, request);
+
+    await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+
+    await page.getByRole("button", { name: /show all prescriptions/i }).click();
+    await expect(page.getByRole("cell", { name: "Metformin" })).toBeVisible();
+
+    await page.getByRole("button", { name: /hide/i }).click();
+    await expect(page.getByRole("table")).not.toBeAttached();
+    await expect(
+      page.getByRole("button", { name: /show all prescriptions/i }),
+    ).toBeVisible();
+  });
+
+  test("list resets to hidden after navigating away and back", async ({
+    page,
+    request,
+  }) => {
+    const email = `delivered+rx-reset-${Date.now()}@resend.dev`;
+    await loginAndGoToPrescriptions(email, page, request);
+
+    await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+
+    await page.getByRole("button", { name: /show all prescriptions/i }).click();
+    await expect(page.getByRole("cell", { name: "Metformin" })).toBeVisible();
+
+    await page.goto("/settings");
+    await page.goto("/prescriptions");
+
+    await expect(page.getByRole("table")).not.toBeAttached();
+    await expect(
+      page.getByRole("button", { name: /show all prescriptions/i }),
+    ).toBeVisible();
+  });
+});
+
 test.describe("Prescription create", () => {
   test("add prescription form creates prescription and it appears in list", async ({
     page,
