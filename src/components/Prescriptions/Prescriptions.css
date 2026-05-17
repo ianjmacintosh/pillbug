@@ -1,3 +1,8 @@
+.prescriptions {
+  width: 100%;
+  max-width: 52rem;
+}
+
 .prescriptions h1 {
   margin-bottom: 2rem;
 }
@@ -22,6 +27,21 @@
   gap: 0.25rem;
 }
 
+.prescriptions .date-fields {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.prescriptions .date-fields .field {
+  flex: 1;
+}
+
+@media (max-width: 480px) {
+  .prescriptions .date-fields {
+    flex-direction: column;
+  }
+}
+
 .prescriptions label {
   font-family: system-ui, sans-serif;
   font-size: 0.875rem;
@@ -33,6 +53,7 @@
   border: 1px solid var(--gray-50);
   border-radius: 4px;
   font-size: 1rem;
+  width: 100%;
 }
 
 .prescriptions input:focus-visible {

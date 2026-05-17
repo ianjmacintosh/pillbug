@@ -98,25 +98,27 @@ function Prescriptions() {
             />
           </div>
 
-          <div className="field">
-            <label htmlFor="startDate">Start date</label>
-            <input
-              id="startDate"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              required
-            />
-          </div>
+          <div className="date-fields">
+            <div className="field">
+              <label htmlFor="startDate">Start date</label>
+              <input
+                id="startDate"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                required
+              />
+            </div>
 
-          <div className="field">
-            <label htmlFor="endDate">End date (optional)</label>
-            <input
-              id="endDate"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
+            <div className="field">
+              <label htmlFor="endDate">End date (optional)</label>
+              <input
+                id="endDate"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="field">
