@@ -31,7 +31,9 @@ function fillAndSubmitForm() {
   });
   fireEvent.click(screen.getByRole("button", { name: /turnstile/i }));
   fireEvent.click(screen.getByRole("checkbox", { name: /terms/i }));
-  fireEvent.submit(screen.getByRole("button", { name: /send magic link/i }));
+  fireEvent.submit(
+    screen.getByRole("button", { name: /email me a login link/i }),
+  );
 }
 
 describe("Register form submission", () => {
@@ -147,7 +149,7 @@ describe("Register", () => {
   test("has a submit button", () => {
     render(<Register />);
     expect(
-      screen.getByRole("button", { name: /send magic link/i }),
+      screen.getByRole("button", { name: /email me a login link/i }),
     ).toBeTruthy();
   });
 

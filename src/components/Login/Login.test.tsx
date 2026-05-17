@@ -44,7 +44,7 @@ describe("Login", () => {
   test("has a submit button", () => {
     render(<Login />);
     expect(
-      screen.getByRole("button", { name: /send magic link/i }),
+      screen.getByRole("button", { name: /email me a login link/i }),
     ).toBeTruthy();
   });
 

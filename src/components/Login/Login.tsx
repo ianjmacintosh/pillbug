@@ -54,7 +54,7 @@ function Login() {
           </p>
         )}
         <button type="submit" disabled={submitting} className="button-primary">
-          {submitting ? "Sending…" : "Send magic link"}
+          {submitting ? "Sending…" : "Email me a login link"}
         </button>
       </form>
       <p>

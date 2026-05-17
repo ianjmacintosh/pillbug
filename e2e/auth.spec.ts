@@ -161,7 +161,7 @@ test("registration form submits via UI and navigates to /check-your-email", asyn
   const responseInput = page.locator('input[name="cf-turnstile-response"]');
   await expect(responseInput).toHaveValue(TURNSTILE_DUMMY_TOKEN);
 
-  await page.getByRole("button", { name: /send magic link/i }).click();
+  await page.getByRole("button", { name: /email me a login link/i }).click();
   await expect(page).toHaveURL("/check-your-email");
 });
 
@@ -173,7 +173,7 @@ test("/register?challenge loads the registration form with the Turnstile interac
   await expect(page.getByRole("textbox", { name: /email/i })).toBeVisible();
   await expect(page.getByRole("checkbox", { name: /terms/i })).toBeVisible();
   await expect(
-    page.getByRole("button", { name: /send magic link/i }),
+    page.getByRole("button", { name: /email me a login link/i }),
   ).toBeVisible();
   // With the interactive challenge sitekey, the Turnstile widget initializes but
   // does not auto-resolve — the response stays empty until the user clicks.
@@ -189,7 +189,7 @@ test("/register renders the registration page", async ({ page }) => {
   await expect(page.getByRole("textbox", { name: /email/i })).toBeVisible();
   await expect(page.getByRole("checkbox", { name: /terms/i })).toBeVisible();
   await expect(
-    page.getByRole("button", { name: /send magic link/i }),
+    page.getByRole("button", { name: /email me a login link/i }),
   ).toBeVisible();
 });
 
@@ -198,7 +198,7 @@ test("/login renders the login page", async ({ page }) => {
   await expect(page.getByRole("heading")).toBeVisible();
   await expect(page.getByRole("textbox", { name: /email/i })).toBeVisible();
   await expect(
-    page.getByRole("button", { name: /send magic link/i }),
+    page.getByRole("button", { name: /email me a login link/i }),
   ).toBeVisible();
 });
 
