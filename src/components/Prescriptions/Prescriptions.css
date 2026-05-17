@@ -72,3 +72,25 @@
   gap: 0.75rem;
   align-items: center;
 }
+
+.prescriptions .prescription-list {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: system-ui, sans-serif;
+  font-size: 0.9375rem;
+}
+
+.prescriptions .prescription-list th {
+  text-align: left;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--gray-30);
+  padding: 0.375rem 0.75rem 0.375rem 0;
+  border-bottom: 1px solid var(--gray-90);
+}
+
+.prescriptions .prescription-list td {
+  padding: 0.625rem 0.75rem 0.625rem 0;
+  border-bottom: 1px solid var(--gray-90);
+  vertical-align: top;
+}

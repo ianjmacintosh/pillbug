@@ -86,20 +86,36 @@ function Prescriptions() {
       <section>
         <h2>Your prescriptions</h2>
         {!revealed ? (
-          <button type="button" onClick={handleReveal}>
+          <button
+            type="button"
+            onClick={handleReveal}
+            className="button-secondary"
+          >
             Show all prescriptions
           </button>
         ) : prescriptions.length === 0 ? (
           <p>No active prescriptions.</p>
         ) : (
-          <ul>
-            {prescriptions.map((p) => (
-              <li key={p.id}>
-                <strong>{p.drugName}</strong> — {p.dosage}
-                {p.instructions && <span> ({p.instructions})</span>}
-              </li>
-            ))}
-          </ul>
+          <table className="prescription-list">
+            <thead>
+              <tr>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Drug Name</th>
+                <th>Dosage</th>
+              </tr>
+            </thead>
+            <tbody>
+              {prescriptions.map((p) => (
+                <tr key={p.id}>
+                  <td>{p.startDate}</td>
+                  <td>{p.endDate ?? "—"}</td>
+                  <td>{p.drugName}</td>
+                  <td>{p.dosage}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </section>
 
@@ -181,7 +197,11 @@ function Prescriptions() {
                 >
                   {submitting ? "Saving…" : "Save prescription"}
                 </button>
-                <button type="button" onClick={handleCancel}>
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="button-secondary"
+                >
                   Cancel
                 </button>
               </div>
