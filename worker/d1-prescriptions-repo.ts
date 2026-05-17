@@ -1,9 +1,41 @@
 import type { D1Database } from "@cloudflare/workers-types";
 import type {
+  DayOfWeek,
   Prescription,
   PrescriptionRepository,
   Schedule,
 } from "./prescriptions";
+
+const ALL_DAYS: DayOfWeek[] = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+];
+
+type LegacySchedule = {
+  days: "daily" | string[];
+  times: string[];
+  timezoneMode: "local" | "fixed_utc";
+};
+
+export function parseScheduleJson(raw: string): Schedule {
+  const parsed = JSON.parse(raw) as Record<string, unknown>;
+  if ("times" in parsed) {
+    const legacy = parsed as unknown as LegacySchedule;
+    const selectedDays: DayOfWeek[] =
+      legacy.days === "daily" ? ALL_DAYS : (legacy.days as DayOfWeek[]);
+    const days: Partial<Record<DayOfWeek, string[]>> = {};
+    for (const day of selectedDays) {
+      days[day] = [...legacy.times];
+    }
+    return { days, timezoneMode: legacy.timezoneMode };
+  }
+  return parsed as unknown as Schedule;
+}
 
 type PrescriptionRow = {
   id: string;
@@ -25,7 +57,7 @@ function rowToPrescription(row: PrescriptionRow): Prescription {
     patientId: row.patient_id,
     drugName: row.drug_name,
     dosage: row.dosage,
-    schedule: JSON.parse(row.schedule) as Schedule,
+    schedule: parseScheduleJson(row.schedule),
     startDate: row.start_date,
     endDate: row.end_date,
     prescribingDoctor: row.prescribing_doctor,

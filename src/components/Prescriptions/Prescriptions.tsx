@@ -1,9 +1,37 @@
 import { useState } from "react";
 import "./Prescriptions.css";
 
+type DayOfWeek =
+  | "sunday"
+  | "monday"
+  | "tuesday"
+  | "wednesday"
+  | "thursday"
+  | "friday"
+  | "saturday";
+
+const WEEKDAYS: DayOfWeek[] = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+];
+
+const DAY_LABELS: Record<DayOfWeek, string> = {
+  sunday: "Sun",
+  monday: "Mon",
+  tuesday: "Tue",
+  wednesday: "Wed",
+  thursday: "Thu",
+  friday: "Fri",
+  saturday: "Sat",
+};
+
 interface Schedule {
-  days: "daily" | string[];
-  times: string[];
+  days: Partial<Record<DayOfWeek, string[]>>;
   timezoneMode: "local" | "fixed_utc";
 }
 
@@ -31,6 +59,8 @@ function Prescriptions() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [instructions, setInstructions] = useState("");
+  const [amDays, setAmDays] = useState<Set<DayOfWeek>>(new Set());
+  const [pmDays, setPmDays] = useState<Set<DayOfWeek>>(new Set());
   const [error, setError] = useState<string | null>(null);
 
   async function handleReveal() {
@@ -53,6 +83,8 @@ function Prescriptions() {
     setStartDate("");
     setEndDate("");
     setInstructions("");
+    setAmDays(new Set());
+    setPmDays(new Set());
     setError(null);
   }
 
@@ -74,9 +106,28 @@ function Prescriptions() {
     setStartDate(p.startDate);
     setEndDate(p.endDate ?? "");
     setInstructions(p.instructions ?? "");
+    const newAmDays = new Set<DayOfWeek>();
+    const newPmDays = new Set<DayOfWeek>();
+    for (const [day, times] of Object.entries(p.schedule.days)) {
+      if (times?.includes("08:00")) newAmDays.add(day as DayOfWeek);
+      if (times?.includes("20:00")) newPmDays.add(day as DayOfWeek);
+    }
+    setAmDays(newAmDays);
+    setPmDays(newPmDays);
     setError(null);
     setFormOpen(false);
     setEditingId(p.id);
+  }
+
+  function buildSchedule(): Schedule {
+    const days: Partial<Record<DayOfWeek, string[]>> = {};
+    for (const day of WEEKDAYS) {
+      const times: string[] = [];
+      if (amDays.has(day)) times.push("08:00");
+      if (pmDays.has(day)) times.push("20:00");
+      if (times.length > 0) days[day] = times;
+    }
+    return { days, timezoneMode: "local" };
   }
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
@@ -90,7 +141,7 @@ function Prescriptions() {
       body: JSON.stringify({
         drugName,
         dosage,
-        schedule: { days: "daily", times: [], timezoneMode: "local" },
+        schedule: buildSchedule(),
         startDate,
         endDate: endDate || null,
         instructions: instructions || null,
@@ -123,6 +174,7 @@ function Prescriptions() {
       body: JSON.stringify({
         drugName,
         dosage,
+        schedule: buildSchedule(),
         startDate,
         endDate: endDate || null,
         instructions: instructions || null,
@@ -155,6 +207,76 @@ function Prescriptions() {
   }
 
   const deletingPrescription = prescriptions.find((p) => p.id === deletingId);
+
+  function toggleDay(day: DayOfWeek, slot: "am" | "pm") {
+    const [days, setDays] =
+      slot === "am" ? [amDays, setAmDays] : [pmDays, setPmDays];
+    const next = new Set(days);
+    if (next.has(day)) next.delete(day);
+    else next.add(day);
+    setDays(next);
+  }
+
+  function toggleAll(slot: "am" | "pm") {
+    const [days, setDays] =
+      slot === "am" ? [amDays, setAmDays] : [pmDays, setPmDays];
+    if (days.size === WEEKDAYS.length) setDays(new Set());
+    else setDays(new Set(WEEKDAYS));
+  }
+
+  const scheduleGrid = (
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>All</th>
+          {WEEKDAYS.map((day) => (
+            <th key={day}>{DAY_LABELS[day]}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">AM</th>
+          <td>
+            <input
+              type="checkbox"
+              checked={amDays.size === WEEKDAYS.length}
+              onChange={() => toggleAll("am")}
+            />
+          </td>
+          {WEEKDAYS.map((day) => (
+            <td key={day}>
+              <input
+                type="checkbox"
+                checked={amDays.has(day)}
+                onChange={() => toggleDay(day, "am")}
+              />
+            </td>
+          ))}
+        </tr>
+        <tr>
+          <th scope="row">PM</th>
+          <td>
+            <input
+              type="checkbox"
+              checked={pmDays.size === WEEKDAYS.length}
+              onChange={() => toggleAll("pm")}
+            />
+          </td>
+          {WEEKDAYS.map((day) => (
+            <td key={day}>
+              <input
+                type="checkbox"
+                checked={pmDays.has(day)}
+                onChange={() => toggleDay(day, "pm")}
+              />
+            </td>
+          ))}
+        </tr>
+      </tbody>
+    </table>
+  );
 
   const prescriptionFields = (idPrefix: string) => (
     <>
@@ -214,6 +336,8 @@ function Prescriptions() {
           onChange={(e) => setInstructions(e.target.value)}
         />
       </div>
+
+      {scheduleGrid}
     </>
   );
 

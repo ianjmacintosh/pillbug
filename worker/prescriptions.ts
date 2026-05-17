@@ -1,17 +1,25 @@
-const VALID_WEEKDAYS = [
+export type DayOfWeek =
+  | "sunday"
+  | "monday"
+  | "tuesday"
+  | "wednesday"
+  | "thursday"
+  | "friday"
+  | "saturday";
+
+const VALID_WEEKDAYS: DayOfWeek[] = [
+  "sunday",
   "monday",
   "tuesday",
   "wednesday",
   "thursday",
   "friday",
   "saturday",
-  "sunday",
 ];
 const HH_MM = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 export interface Schedule {
-  days: "daily" | string[];
-  times: string[];
+  days: Partial<Record<DayOfWeek, string[]>>;
   timezoneMode: "local" | "fixed_utc";
 }
 
@@ -55,23 +63,24 @@ export interface PrescriptionRepository {
 }
 
 export function validateSchedule(schedule: unknown): { error: string } | null {
-  const s = schedule as { days?: unknown; times?: unknown };
+  const s = schedule as { days?: unknown };
 
-  if (Array.isArray(s.days)) {
-    if (
-      s.days.length === 0 ||
-      !s.days.every((d: unknown) => VALID_WEEKDAYS.includes(String(d)))
-    )
-      return { error: "invalid_days" };
-  } else if (s.days !== "daily") {
+  if (typeof s.days !== "object" || s.days === null || Array.isArray(s.days)) {
     return { error: "invalid_days" };
   }
 
-  if (
-    Array.isArray(s.times) &&
-    !s.times.every((t: unknown) => HH_MM.test(String(t)))
-  ) {
-    return { error: "invalid_time_format" };
+  for (const [key, times] of Object.entries(
+    s.days as Record<string, unknown>,
+  )) {
+    if (!VALID_WEEKDAYS.includes(key as DayOfWeek)) {
+      return { error: "invalid_days" };
+    }
+    if (
+      !Array.isArray(times) ||
+      !times.every((t: unknown) => HH_MM.test(String(t)))
+    ) {
+      return { error: "invalid_time_format" };
+    }
   }
 
   return null;
