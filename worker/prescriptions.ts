@@ -35,12 +35,23 @@ export interface Prescription {
   createdAt: string;
 }
 
+type UpdatableFields = Partial<
+  Omit<Prescription, "id" | "patientId" | "createdAt">
+>;
+
 export interface PrescriptionRepository {
   createPrescription(prescription: Prescription): Promise<void>;
   listPrescriptions(
     patientId: string,
     statusFilter: string[],
   ): Promise<Prescription[]>;
+  getPrescription(id: string, patientId: string): Promise<Prescription | null>;
+  updatePrescription(
+    id: string,
+    patientId: string,
+    fields: UpdatableFields,
+  ): Promise<Prescription | null>;
+  deletePrescription(id: string, patientId: string): Promise<boolean>;
 }
 
 export function validateSchedule(schedule: unknown): { error: string } | null {
@@ -120,4 +131,40 @@ export async function listPrescriptions(
   repo: PrescriptionRepository,
 ): Promise<Prescription[]> {
   return repo.listPrescriptions(patientId, statusFilter);
+}
+
+export async function updatePrescription(
+  id: string,
+  patientId: string,
+  fields: UpdatableFields,
+  repo: PrescriptionRepository,
+): Promise<Prescription | { error: string }> {
+  const existing = await repo.getPrescription(id, patientId);
+  if (!existing) return { error: "not_found" };
+
+  const effectiveStartDate = fields.startDate ?? existing.startDate;
+  const effectiveEndDate =
+    "endDate" in fields ? fields.endDate : existing.endDate;
+  if (effectiveEndDate && effectiveEndDate < effectiveStartDate) {
+    return { error: "end_date_before_start_date" };
+  }
+
+  if (fields.schedule) {
+    const scheduleError = validateSchedule(fields.schedule);
+    if (scheduleError) return scheduleError;
+  }
+
+  const updated = await repo.updatePrescription(id, patientId, fields);
+  if (!updated) return { error: "not_found" };
+  return updated;
+}
+
+export async function deletePrescription(
+  id: string,
+  patientId: string,
+  repo: PrescriptionRepository,
+): Promise<{ ok: true } | { error: string }> {
+  const deleted = await repo.deletePrescription(id, patientId);
+  if (!deleted) return { error: "not_found" };
+  return { ok: true };
 }
