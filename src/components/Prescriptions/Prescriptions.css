@@ -1,0 +1,72 @@
+.prescriptions h1 {
+  margin-bottom: 2rem;
+}
+
+.prescriptions section {
+  margin-bottom: 2.5rem;
+}
+
+.prescriptions h2 {
+  margin-bottom: 1.25rem;
+}
+
+.prescriptions form {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 1.25rem;
+  row-gap: 0.75rem;
+  align-items: baseline;
+}
+
+.prescriptions label {
+  font-family: system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+.prescriptions input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--gray-50);
+  border-radius: 4px;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.prescriptions input:focus-visible {
+  outline: 2px solid var(--gray-30);
+  outline-offset: 2px;
+}
+
+/* Error alert and submit button span both columns */
+.prescriptions form [role="alert"],
+.prescriptions form .button-primary {
+  grid-column: 1 / -1;
+}
+
+.prescriptions form [role="alert"] {
+  color: oklch(0.4 0.15 25);
+  font-size: 0.875rem;
+  font-family: system-ui, sans-serif;
+}
+
+.prescriptions form .button-primary {
+  margin-top: 0.5rem;
+  justify-self: start;
+}
+
+/* Collapse to single column on narrow viewports */
+@media (max-width: 480px) {
+  .prescriptions form {
+    grid-template-columns: 1fr;
+  }
+
+  .prescriptions label {
+    text-align: left;
+    margin-top: 0.25rem;
+  }
+
+  .prescriptions label:first-of-type {
+    margin-top: 0;
+  }
+}
