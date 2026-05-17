@@ -212,7 +212,7 @@ test("/login?email= pre-fills the email input", async ({ page }) => {
 test("/check-your-email renders the confirmation page", async ({ page }) => {
   await page.goto("/check-your-email");
   await expect(
-    page.getByRole("heading", { name: /check your email/i }),
+    page.getByRole("heading", { name: /you've got mail/i }),
   ).toBeVisible();
 });
 
