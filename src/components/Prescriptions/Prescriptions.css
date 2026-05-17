@@ -1,0 +1,100 @@
+.prescriptions {
+  width: 100%;
+  max-width: 52rem;
+}
+
+.prescriptions h1 {
+  margin-bottom: 2rem;
+}
+
+.prescriptions section {
+  margin-bottom: 2.5rem;
+}
+
+.prescriptions h2 {
+  margin-bottom: 1.25rem;
+}
+
+.prescriptions form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.prescriptions .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.prescriptions .date-fields {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.prescriptions .date-fields .field {
+  flex: 1;
+}
+
+@media (max-width: 480px) {
+  .prescriptions .date-fields {
+    flex-direction: column;
+  }
+}
+
+.prescriptions label {
+  font-family: system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.prescriptions input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--gray-50);
+  border-radius: 4px;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.prescriptions input:focus-visible {
+  outline: 2px solid var(--gray-30);
+  outline-offset: 2px;
+}
+
+.prescriptions form [role="alert"] {
+  color: oklch(0.4 0.15 25);
+  font-family: system-ui, sans-serif;
+  font-size: 0.875rem;
+}
+
+.prescriptions .form-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.prescriptions .prescription-list {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: system-ui, sans-serif;
+  font-size: 0.9375rem;
+}
+
+.prescriptions .prescription-list th {
+  text-align: left;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--gray-30);
+  padding: 0.375rem 0.75rem 0.375rem 0;
+  border-bottom: 1px solid var(--gray-90);
+}
+
+.prescriptions .prescription-list td {
+  padding: 0.625rem 0.75rem 0.625rem 0;
+  border-bottom: 1px solid var(--gray-90);
+  vertical-align: top;
+}
+
+.prescriptions .prescription-list + button {
+  margin-top: 1rem;
+}

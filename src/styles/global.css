@@ -47,3 +47,24 @@ main {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.button-secondary {
+  background-color: transparent;
+  color: var(--gray-30);
+  border: 1px solid var(--gray-70);
+  padding: 0.625rem 1.5rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button-secondary:hover {
+  background-color: var(--gray-90);
+  color: var(--gray-10);
+}
+
+.button-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

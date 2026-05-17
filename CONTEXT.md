@@ -150,8 +150,23 @@ erDiagram
         TEXT expires_at "NOT NULL"
     }
 
+    prescriptions {
+        TEXT id PK
+        TEXT patient_id FK
+        TEXT drug_name "NOT NULL"
+        TEXT dosage "NOT NULL"
+        TEXT schedule "NOT NULL, JSON"
+        TEXT start_date "NOT NULL"
+        TEXT end_date "nullable"
+        TEXT prescribing_doctor "nullable"
+        TEXT instructions "nullable"
+        TEXT status "NOT NULL, default active"
+        TEXT created_at "NOT NULL"
+    }
+
     patients ||--o{ magic_link_tokens : "authenticates via"
     patients ||--o{ sessions : "is active in"
+    patients ||--o{ prescriptions : "manages"
 ```
 
 `email` is stored as two columns: `email_lookup` (HMAC for indexed lookups) and `email_encrypted` (AES-GCM ciphertext for display). `magic_link_tokens.used_at` is nullable — null means the token has not yet been consumed. `patients.last_login_at` is nullable — null means the Patient is Unverified (has registered but never redeemed a magic link).
@@ -162,4 +177,4 @@ erDiagram
 - Exercises / OT activities are explicitly out of scope for now, though the concept of a **Prescription** is intentionally broad enough to accommodate them later.
 - Refill reminders are explicitly out of scope for v1. Pill count tracking introduces ongoing maintenance burden (entering counts, updating after refills) better suited to a later iteration.
 - Complex schedules (birth control cycles, every-N-hours dosing) are out of scope for v1 — Schedule supports clock-time-based daily/weekly patterns only.
-- **Prescription visibility** — unresolved. A Patient showing the app to someone (a doctor, a family member, a friend) may not want all Prescriptions visible (e.g. a prescription they find embarrassing). Per the Privacy by Default principle, sensitive Prescriptions should be hidden unless the Patient chooses to show them. Candidate approach: the Prescription list defaults to showing a filtered or redacted view, with a "Show all" affordance the Patient can tap when alone. The exact mechanism (per-Prescription toggle, session-level reveal, etc.) is an open design problem to be resolved when building the Prescription list view.
+- **Prescription visibility** — resolved. The Prescription list shows nothing by default (no entries, no count, no redacted placeholders). A "Show all prescriptions" affordance reveals the full list. This is a session-level reveal: it resets on navigation away from the list. Per Privacy by Default, even entry count is considered sensitive.
