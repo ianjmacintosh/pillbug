@@ -18,6 +18,7 @@ import Privacy from "../Privacy";
 import Register from "../Register";
 import Settings from "../Settings";
 import Terms from "../Terms";
+import Verify from "../Verify";
 
 const rootRoute = createRootRoute({
   component: Outlet,
@@ -133,6 +134,13 @@ const logoutRoute = createRoute({
   component: Logout,
 });
 
+const verifyRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: "/verify",
+  beforeLoad: redirectIfAuthenticated,
+  component: Verify,
+});
+
 const routeTree = rootRoute.addChildren([
   layoutRoute.addChildren([
     indexRoute,
@@ -145,6 +153,7 @@ const routeTree = rootRoute.addChildren([
     fillSessionRoute,
     prescriptionsRoute,
     logoutRoute,
+    verifyRoute,
   ]),
 ]);
 

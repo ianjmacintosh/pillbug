@@ -29,7 +29,7 @@ export function makeResendEmailSender(
 
   return {
     async sendVerificationEmail(to, token) {
-      const magicLink = `${appUrl}/api/auth/verify?token=${token}`;
+      const magicLink = `${appUrl}/verify?token=${token}`;
       await send(
         to,
         "Verify your Pillbug account",
@@ -38,7 +38,7 @@ export function makeResendEmailSender(
     },
 
     async sendLoginEmail(to, token) {
-      const magicLink = `${appUrl}/api/auth/verify?token=${token}`;
+      const magicLink = `${appUrl}/verify?token=${token}`;
       await send(
         to,
         "Your Pillbug sign-in link",

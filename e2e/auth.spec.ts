@@ -66,7 +66,7 @@ test.describe("POST /api/v1/register", () => {
 });
 
 test.describe("GET /api/v1/auth/verify", () => {
-  test("valid token creates a session and redirects to /", async ({
+  test("valid token creates a session and navigates to /", async ({
     page,
     request,
   }) => {
@@ -76,34 +76,58 @@ test.describe("GET /api/v1/auth/verify", () => {
     });
     const token = await getLatestToken(email);
 
-    await page.goto(`/api/v1/auth/verify?token=${token}`);
+    await page.goto(`/verify?token=${token}`);
 
     await expect(page).toHaveURL("/");
   });
 
-  test("invalid token redirects to /register with error", async ({ page }) => {
-    await page.goto("/api/v1/auth/verify?token=not-a-real-token");
+  test("invalid token shows error on the verify page", async ({ page }) => {
+    await page.goto("/verify?token=not-a-real-token");
 
-    await expect(page).toHaveURL("/register?error=invalid");
+    await expect(page).toHaveURL("/verify?token=not-a-real-token");
+    await expect(
+      page.getByRole("heading", { name: /invalid or expired/i }),
+    ).toBeVisible();
   });
 
-  test("used token redirects to /register with error", async ({
+  test("unauthenticated user with used token sees error on the verify page", async ({
     page,
     request,
   }) => {
-    const email = `delivered+verify-used-${Date.now()}@resend.dev`;
+    const email = `delivered+verify-used-unauth-${Date.now()}@resend.dev`;
     await request.post("/api/v1/register", {
       data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
     });
     const token = await getLatestToken(email);
 
-    await page.goto(`/api/v1/auth/verify?token=${token}`);
-    await page.goto(`/api/v1/auth/verify?token=${token}`);
+    await request.get(`/api/v1/auth/verify?token=${token}`);
+    await page.goto(`/verify?token=${token}`);
 
-    await expect(page).toHaveURL("/register?error=used");
+    await expect(page).toHaveURL(`/verify?token=${token}`);
+    await expect(
+      page.getByRole("heading", { name: /invalid or expired/i }),
+    ).toBeVisible();
   });
 
-  test("expired token redirects to /register with error", async ({
+  test("authenticated user with used token is redirected to /", async ({
+    page,
+    request,
+  }) => {
+    const email = `delivered+verify-used-auth-${Date.now()}@resend.dev`;
+    await request.post("/api/v1/register", {
+      data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
+    });
+    const token = await getLatestToken(email);
+
+    await page.goto(`/verify?token=${token}`);
+    await expect(page).toHaveURL("/"); // wait for async verification + navigation to complete
+
+    await page.goto(`/verify?token=${token}`);
+
+    await expect(page).toHaveURL("/");
+  });
+
+  test("expired token shows error on the verify page", async ({
     page,
     request,
   }) => {
@@ -114,9 +138,12 @@ test.describe("GET /api/v1/auth/verify", () => {
     const token = await getLatestToken(email);
     await expireToken(token);
 
-    await page.goto(`/api/v1/auth/verify?token=${token}`);
+    await page.goto(`/verify?token=${token}`);
 
-    await expect(page).toHaveURL("/register?error=expired");
+    await expect(page).toHaveURL(`/verify?token=${token}`);
+    await expect(
+      page.getByRole("heading", { name: /invalid or expired/i }),
+    ).toBeVisible();
   });
 });
 

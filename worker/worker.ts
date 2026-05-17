@@ -156,16 +156,16 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     const token = url.searchParams.get("token") ?? "";
     const result = await verifyToken(token, repo);
     if ("error" in result) {
-      return new Response(null, {
-        status: 302,
-        headers: { Location: `/register?error=${result.error}` },
+      return new Response(JSON.stringify({ error: result.error }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
       });
     }
     const sessionId = await createSession(result.patientId, repo);
-    return new Response(null, {
-      status: 302,
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
       headers: {
-        Location: "/",
+        "Content-Type": "application/json",
         "Set-Cookie": sessionCookie(sessionId, secure),
       },
     });
