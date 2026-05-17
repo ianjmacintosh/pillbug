@@ -252,20 +252,22 @@ function Prescriptions() {
                   associated Dose history. This action is permanent and cannot
                   be undone.
                 </p>
-                <button
-                  type="button"
-                  onClick={handleConfirmDelete}
-                  className="button-danger"
-                >
-                  Yes, delete
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDeletingId(null)}
-                  className="button-secondary"
-                >
-                  Cancel
-                </button>
+                <div className="form-actions">
+                  <button
+                    type="button"
+                    onClick={handleConfirmDelete}
+                    className="button-danger"
+                  >
+                    Yes, delete
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeletingId(null)}
+                    className="button-secondary"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
             <table className="prescription-list">
