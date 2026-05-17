@@ -5,6 +5,36 @@ import type {
   Schedule,
 } from "./prescriptions";
 
+type PrescriptionRow = {
+  id: string;
+  patient_id: string;
+  drug_name: string;
+  dosage: string;
+  schedule: string;
+  start_date: string;
+  end_date: string | null;
+  prescribing_doctor: string | null;
+  instructions: string | null;
+  status: string;
+  created_at: string;
+};
+
+function rowToPrescription(row: PrescriptionRow): Prescription {
+  return {
+    id: row.id,
+    patientId: row.patient_id,
+    drugName: row.drug_name,
+    dosage: row.dosage,
+    schedule: JSON.parse(row.schedule) as Schedule,
+    startDate: row.start_date,
+    endDate: row.end_date,
+    prescribingDoctor: row.prescribing_doctor,
+    instructions: row.instructions,
+    status: row.status as Prescription["status"],
+    createdAt: row.created_at,
+  };
+}
+
 export function makeD1PrescriptionRepo(db: D1Database): PrescriptionRepository {
   return {
     async createPrescription(p) {
@@ -41,32 +71,61 @@ export function makeD1PrescriptionRepo(db: D1Database): PrescriptionRepository {
            WHERE patient_id = ? AND status IN (${placeholders})`,
         )
         .bind(patientId, ...statusFilter)
-        .all<{
-          id: string;
-          patient_id: string;
-          drug_name: string;
-          dosage: string;
-          schedule: string;
-          start_date: string;
-          end_date: string | null;
-          prescribing_doctor: string | null;
-          instructions: string | null;
-          status: string;
-          created_at: string;
-        }>();
-      return result.results.map((row) => ({
-        id: row.id,
-        patientId: row.patient_id,
-        drugName: row.drug_name,
-        dosage: row.dosage,
-        schedule: JSON.parse(row.schedule) as Schedule,
-        startDate: row.start_date,
-        endDate: row.end_date,
-        prescribingDoctor: row.prescribing_doctor,
-        instructions: row.instructions,
-        status: row.status as Prescription["status"],
-        createdAt: row.created_at,
-      }));
+        .all<PrescriptionRow>();
+      return result.results.map(rowToPrescription);
+    },
+
+    async getPrescription(id, patientId) {
+      const result = await db
+        .prepare(
+          `SELECT id, patient_id, drug_name, dosage, schedule, start_date,
+                  end_date, prescribing_doctor, instructions, status, created_at
+           FROM prescriptions
+           WHERE id = ? AND patient_id = ?`,
+        )
+        .bind(id, patientId)
+        .first<PrescriptionRow>();
+      return result ? rowToPrescription(result) : null;
+    },
+
+    async updatePrescription(id, patientId, fields) {
+      const columnMap: Record<string, string> = {
+        drugName: "drug_name",
+        dosage: "dosage",
+        schedule: "schedule",
+        startDate: "start_date",
+        endDate: "end_date",
+        prescribingDoctor: "prescribing_doctor",
+        instructions: "instructions",
+        status: "status",
+      };
+      const setClauses: string[] = [];
+      const values: unknown[] = [];
+      for (const [key, col] of Object.entries(columnMap)) {
+        if (key in fields) {
+          setClauses.push(`${col} = ?`);
+          const v = fields[key as keyof typeof fields];
+          values.push(key === "schedule" ? JSON.stringify(v) : v);
+        }
+      }
+      if (setClauses.length === 0) {
+        return this.getPrescription(id, patientId);
+      }
+      await db
+        .prepare(
+          `UPDATE prescriptions SET ${setClauses.join(", ")} WHERE id = ? AND patient_id = ?`,
+        )
+        .bind(...values, id, patientId)
+        .run();
+      return this.getPrescription(id, patientId);
+    },
+
+    async deletePrescription(id, patientId) {
+      const result = await db
+        .prepare(`DELETE FROM prescriptions WHERE id = ? AND patient_id = ?`)
+        .bind(id, patientId)
+        .run();
+      return (result.meta.changes ?? 0) > 0;
     },
   };
 }

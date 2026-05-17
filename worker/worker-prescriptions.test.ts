@@ -185,3 +185,130 @@ describe("GET /api/v1/prescriptions", () => {
     expect(data[0].drugName).toBe("Mine");
   });
 });
+
+describe("PATCH /api/v1/prescriptions/:prescriptionId", () => {
+  test("returns 401 when unauthenticated", async () => {
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/prescriptions/rx-1", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dosage: "1000mg" }),
+      }),
+      makeEnv(),
+    );
+    expect(response.status).toBe(401);
+  });
+
+  test("returns 404 when prescription not found or belongs to another patient", async () => {
+    const authRepo = makeInMemoryRepo();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(authRepo);
+    const { cookie } = await makeAuthenticatedSession(authRepo);
+
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/prescriptions/rx-missing", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Cookie: cookie },
+        body: JSON.stringify({ dosage: "1000mg" }),
+      }),
+      makeEnv(),
+    );
+    expect(response.status).toBe(404);
+  });
+
+  test("returns 200 with updated prescription when valid partial body", async () => {
+    const authRepo = makeInMemoryRepo();
+    const prescriptionRepo = makeInMemoryPrescriptionRepo();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(authRepo);
+    vi.mocked(makeD1PrescriptionRepo).mockReturnValue(prescriptionRepo);
+
+    const { patientId, cookie } = await makeAuthenticatedSession(authRepo);
+    await prescriptionRepo.createPrescription({
+      id: "rx-1",
+      patientId,
+      drugName: "Metformin",
+      dosage: "500mg",
+      schedule: { days: "daily", times: [], timezoneMode: "local" },
+      startDate: "2024-01-01",
+      endDate: null,
+      prescribingDoctor: null,
+      instructions: null,
+      status: "active",
+      createdAt: new Date().toISOString(),
+    });
+
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/prescriptions/rx-1", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Cookie: cookie },
+        body: JSON.stringify({ dosage: "1000mg" }),
+      }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    const data = await response.json<Record<string, unknown>>();
+    expect(data.dosage).toBe("1000mg");
+    expect(data.drugName).toBe("Metformin");
+    expect(data.patientId).toBeUndefined();
+  });
+});
+
+describe("DELETE /api/v1/prescriptions/:prescriptionId", () => {
+  test("returns 401 when unauthenticated", async () => {
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/prescriptions/rx-1", {
+        method: "DELETE",
+      }),
+      makeEnv(),
+    );
+    expect(response.status).toBe(401);
+  });
+
+  test("returns 404 when prescription not found or belongs to another patient", async () => {
+    const authRepo = makeInMemoryRepo();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(authRepo);
+    const { cookie } = await makeAuthenticatedSession(authRepo);
+
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/prescriptions/rx-missing", {
+        method: "DELETE",
+        headers: { Cookie: cookie },
+      }),
+      makeEnv(),
+    );
+    expect(response.status).toBe(404);
+  });
+
+  test("returns 200 with ok: true when prescription is deleted", async () => {
+    const authRepo = makeInMemoryRepo();
+    const prescriptionRepo = makeInMemoryPrescriptionRepo();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(authRepo);
+    vi.mocked(makeD1PrescriptionRepo).mockReturnValue(prescriptionRepo);
+
+    const { patientId, cookie } = await makeAuthenticatedSession(authRepo);
+    await prescriptionRepo.createPrescription({
+      id: "rx-1",
+      patientId,
+      drugName: "Metformin",
+      dosage: "500mg",
+      schedule: { days: "daily", times: [], timezoneMode: "local" },
+      startDate: "2024-01-01",
+      endDate: null,
+      prescribingDoctor: null,
+      instructions: null,
+      status: "active",
+      createdAt: new Date().toISOString(),
+    });
+
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/prescriptions/rx-1", {
+        method: "DELETE",
+        headers: { Cookie: cookie },
+      }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true });
+  });
+});

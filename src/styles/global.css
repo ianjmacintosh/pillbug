@@ -68,3 +68,29 @@ main {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.button-danger {
+  background-color: oklch(0.55 0.22 25);
+  color: oklch(1 0 0);
+  border: none;
+  padding: 0.625rem 1.5rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button-danger:hover {
+  background-color: oklch(0.45 0.22 25);
+}
+
+.button-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.button-sm {
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  border-radius: 3px;
+}

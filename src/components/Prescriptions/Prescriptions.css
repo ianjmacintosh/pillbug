@@ -98,3 +98,9 @@
 .prescriptions .prescription-list + button {
   margin-top: 1rem;
 }
+
+.prescriptions .prescription-list td:last-child {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}

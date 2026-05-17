@@ -16,8 +16,10 @@ import { makeResendEmailSender } from "./resend-email-sender";
 import { verifyTurnstileToken } from "./turnstile";
 import {
   createPrescription,
+  deletePrescription,
   listPrescriptions,
   toPrescriptionResponse,
+  updatePrescription,
   validateSchedule,
 } from "./prescriptions";
 
@@ -130,7 +132,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
             sendVerificationEmail: async () => {},
             sendLoginEmail: async () => {},
           }
-        : makeResendEmailSender(env.RESEND_API_KEY, env.APP_URL);
+        : makeResendEmailSender(env.RESEND_API_KEY, url.origin);
     await registerPatient(email, repo, emailSender);
     return new Response(JSON.stringify({ ok: true }), {
       headers: { "Content-Type": "application/json" },
@@ -166,7 +168,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
             sendVerificationEmail: async () => {},
             sendLoginEmail: async () => {},
           }
-        : makeResendEmailSender(env.RESEND_API_KEY, env.APP_URL);
+        : makeResendEmailSender(env.RESEND_API_KEY, url.origin);
     await sendLoginLink(email, repo, emailSender);
     return new Response(JSON.stringify({ ok: true }), {
       headers: { "Content-Type": "application/json" },
@@ -292,6 +294,90 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     );
     const body = prescriptions.map(toPrescriptionResponse);
     return new Response(JSON.stringify(body), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const prescriptionMatch = url.pathname.match(
+    /^\/api\/v1\/prescriptions\/([^/]+)$/,
+  );
+
+  if (prescriptionMatch && request.method === "PATCH") {
+    const sessionId = getSessionId(request);
+    const session = sessionId ? await getSession(sessionId, repo) : null;
+    if (!session) {
+      return new Response(JSON.stringify({ error: "not_authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const prescriptionId = prescriptionMatch[1];
+    const body = await request.json<Record<string, unknown>>();
+    const fields: Record<string, unknown> = {};
+    const allowed = [
+      "drugName",
+      "dosage",
+      "schedule",
+      "startDate",
+      "endDate",
+      "prescribingDoctor",
+      "instructions",
+      "status",
+    ];
+    for (const key of allowed) {
+      if (key in body) fields[key] = body[key];
+    }
+    if (fields.schedule) {
+      const scheduleError = validateSchedule(fields.schedule);
+      if (scheduleError) {
+        return new Response(JSON.stringify(scheduleError), {
+          status: 422,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+    }
+    const result = await updatePrescription(
+      prescriptionId,
+      session.patientId,
+      fields as never,
+      prescriptionRepo,
+    );
+    if ("error" in result) {
+      const status = result.error === "not_found" ? 404 : 422;
+      return new Response(JSON.stringify(result), {
+        status,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify(toPrescriptionResponse(result)), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (prescriptionMatch && request.method === "DELETE") {
+    const sessionId = getSessionId(request);
+    const session = sessionId ? await getSession(sessionId, repo) : null;
+    if (!session) {
+      return new Response(JSON.stringify({ error: "not_authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const prescriptionId = prescriptionMatch[1];
+    const result = await deletePrescription(
+      prescriptionId,
+      session.patientId,
+      prescriptionRepo,
+    );
+    if ("error" in result) {
+      return new Response(JSON.stringify(result), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify({ ok: true }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
