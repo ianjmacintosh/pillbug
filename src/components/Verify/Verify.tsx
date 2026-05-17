@@ -1,23 +1,22 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useSearch } from "@tanstack/react-router";
 import VerifyError from "../VerifyError";
 
 function Verify() {
   const { token } = useSearch({ strict: false }) as { token?: string };
-  const navigate = useNavigate();
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     async function verify() {
       const res = await fetch(`/api/v1/auth/verify?token=${token ?? ""}`);
       if (res.ok) {
-        await navigate({ to: "/" });
+        window.location.replace("/");
       } else {
         setFailed(true);
       }
     }
     verify();
-  }, [token, navigate]);
+  }, [token]);
 
   if (failed) return <VerifyError />;
 

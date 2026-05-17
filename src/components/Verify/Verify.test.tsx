@@ -1,12 +1,10 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import { afterEach } from "vitest";
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import Verify from "./Verify";
 
-const mockNavigate = vi.fn();
 vi.mock("@tanstack/react-router", () => ({
   useSearch: () => ({ token: "test-token" }),
-  useNavigate: () => mockNavigate,
+  useNavigate: () => vi.fn(),
 }));
 
 describe("Verify", () => {
@@ -20,14 +18,16 @@ describe("Verify", () => {
     expect(screen.getByText(/verifying/i)).toBeTruthy();
   });
 
-  test("navigates to / when verification succeeds", async () => {
+  test("does a full page navigation to / when verification succeeds", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify({ ok: true }), { status: 200 }),
     );
+    const replaceSpy = vi.fn();
+    vi.stubGlobal("location", { replace: replaceSpy });
 
     render(<Verify />);
 
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith({ to: "/" }));
+    await waitFor(() => expect(replaceSpy).toHaveBeenCalledWith("/"));
   });
 
   test("shows error content when verification fails", async () => {
