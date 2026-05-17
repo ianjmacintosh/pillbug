@@ -148,8 +148,10 @@ A Prescription object has the following shape:
   "drugName": "Metformin",
   "dosage": "500mg",
   "schedule": {
-    "days": "daily" | ["monday", "tuesday", ...],
-    "times": ["08:00", "20:00"],
+    "days": {
+      "monday": ["08:00", "20:00"],
+      "friday": ["08:00"]
+    },
     "timezoneMode": "local" | "fixed_utc"
   },
   "startDate": "2024-01-01",
@@ -160,7 +162,9 @@ A Prescription object has the following shape:
 }
 ```
 
-`endDate`, `prescribingDoctor`, and `instructions` are optional and may be `null`. `startDate` and `endDate` are ISO 8601 date strings (`YYYY-MM-DD`). `timezoneMode` defaults to `"local"` if omitted on create.
+`schedule.days` maps each weekday name (`"sunday"` through `"saturday"`) to an array of `HH:MM` dose times for that day. Omitting a day means no dose on that day. `timezoneMode` defaults to `"local"` if omitted on create.
+
+`endDate`, `prescribingDoctor`, and `instructions` are optional and may be `null`. `startDate` and `endDate` are ISO 8601 date strings (`YYYY-MM-DD`).
 
 ---
 
@@ -202,9 +206,8 @@ Creates a new Prescription for the authenticated Patient. Status defaults to `ac
   "drugName": "Metformin",
   "dosage": "500mg",
   "schedule": {
-    "days": "daily" | ["monday", "tuesday", ...],
-    "times": ["08:00", "20:00"],
-    "timezoneMode": "local" | "fixed_utc"
+    "days": { "monday": ["08:00", "20:00"], "friday": ["08:00"] },
+    "timezoneMode": "local"
   },
   "startDate": "2024-01-01",
   "endDate": "2024-06-01",
@@ -227,12 +230,12 @@ The created Prescription object.
 
 **Response — 422** (semantically invalid)
 
-| Code                         | Meaning                                                                        |
-| ---------------------------- | ------------------------------------------------------------------------------ |
-| `end_date_before_start_date` | `endDate` is earlier than `startDate`                                          |
-| `invalid_status`             | `status` value is not a recognised enum value                                  |
-| `invalid_time_format`        | A time in `schedule.times` is not `HH:MM`                                      |
-| `invalid_days`               | `schedule.days` is not `"daily"` or a non-empty array of valid weekday strings |
+| Code                         | Meaning                                                                  |
+| ---------------------------- | ------------------------------------------------------------------------ |
+| `end_date_before_start_date` | `endDate` is earlier than `startDate`                                    |
+| `invalid_status`             | `status` value is not a recognised enum value                            |
+| `invalid_time_format`        | A time in a `schedule.days` entry is not `HH:MM`                         |
+| `invalid_days`               | `schedule.days` contains an unrecognised weekday key or is not an object |
 
 ---
 
