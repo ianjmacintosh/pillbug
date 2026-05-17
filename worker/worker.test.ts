@@ -37,6 +37,17 @@ function makeRegisterRequest(url: string) {
   });
 }
 
+function makeLoginRequest(url: string) {
+  return new Request(url, {
+    method: "POST",
+    body: JSON.stringify({
+      email: "delivered@resend.dev",
+      turnstileToken: "valid-token",
+    }),
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 beforeEach(() => {
   vi.mocked(makeD1AuthRepo).mockReturnValue(makeInMemoryRepo());
   vi.mocked(makeResendEmailSender).mockReturnValue(makeEmailSpy().sender);
@@ -283,6 +294,32 @@ describe("POST /api/v1/register EMAIL_MOCK", () => {
   });
 });
 
+describe("POST /api/v1/login Turnstile validation", () => {
+  test("returns 200 when Turnstile token is valid", async () => {
+    vi.mocked(verifyTurnstileToken).mockResolvedValue(true);
+
+    const response = await worker.fetch(
+      makeLoginRequest("http://localhost/api/v1/login"),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true });
+  });
+
+  test("returns 403 when Turnstile token is invalid", async () => {
+    vi.mocked(verifyTurnstileToken).mockResolvedValue(false);
+
+    const response = await worker.fetch(
+      makeLoginRequest("http://localhost/api/v1/login"),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ error: "invalid_turnstile_token" });
+  });
+});
+
 describe("POST /api/v1/login EMAIL_MOCK", () => {
   test("does not call makeResendEmailSender when EMAIL_MOCK is true", async () => {
     vi.mocked(makeResendEmailSender).mockClear();
@@ -291,14 +328,7 @@ describe("POST /api/v1/login EMAIL_MOCK", () => {
       ...makeEnv(),
       EMAIL_MOCK: "true",
     } as unknown as Parameters<typeof worker.fetch>[1];
-    await worker.fetch(
-      new Request("http://localhost/api/v1/login", {
-        method: "POST",
-        body: JSON.stringify({ email: "delivered@resend.dev" }),
-        headers: { "Content-Type": "application/json" },
-      }),
-      env,
-    );
+    await worker.fetch(makeLoginRequest("http://localhost/api/v1/login"), env);
 
     expect(makeResendEmailSender).not.toHaveBeenCalled();
   });

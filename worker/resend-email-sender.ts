@@ -5,8 +5,14 @@ import loginTemplate from "./emails/login.html?raw";
 import { Resend } from "resend";
 import type { EmailSender } from "./auth";
 
-function renderTemplate(template: string, magicLink: string): string {
-  return template.replaceAll("{{magic_link}}", magicLink);
+function renderTemplate(
+  template: string,
+  tokens: Record<string, string>,
+): string {
+  return Object.entries(tokens).reduce(
+    (html, [key, value]) => html.replaceAll(`{{${key}}}`, value),
+    template,
+  );
 }
 
 export function makeResendEmailSender(
@@ -33,7 +39,10 @@ export function makeResendEmailSender(
       await send(
         to,
         "Verify your Pillbug account",
-        renderTemplate(verificationTemplate, magicLink),
+        renderTemplate(verificationTemplate, {
+          magic_link: magicLink,
+          login_link: `${appUrl}/login?email=${encodeURIComponent(to)}`,
+        }),
       );
     },
 
@@ -42,7 +51,10 @@ export function makeResendEmailSender(
       await send(
         to,
         "Your Pillbug sign-in link",
-        renderTemplate(loginTemplate, magicLink),
+        renderTemplate(loginTemplate, {
+          magic_link: magicLink,
+          login_link: `${appUrl}/login?email=${encodeURIComponent(to)}`,
+        }),
       );
     },
   };
