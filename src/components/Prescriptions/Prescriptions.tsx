@@ -288,10 +288,18 @@ function Prescriptions() {
                     <td>{p.drugName}</td>
                     <td>{p.dosage}</td>
                     <td>
-                      <button type="button" onClick={() => handleEdit(p)}>
+                      <button
+                        type="button"
+                        onClick={() => handleEdit(p)}
+                        className="button-secondary button-sm"
+                      >
                         Edit
                       </button>
-                      <button type="button" onClick={() => setDeletingId(p.id)}>
+                      <button
+                        type="button"
+                        onClick={() => setDeletingId(p.id)}
+                        className="button-danger button-sm"
+                      >
                         Delete
                       </button>
                     </td>
