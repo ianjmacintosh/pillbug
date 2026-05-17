@@ -164,7 +164,7 @@ A Prescription object has the following shape:
 
 ---
 
-### `GET /api/v1/v1/prescriptions`
+### `GET /api/v1/prescriptions`
 
 Returns the authenticated Patient's Prescriptions.
 
@@ -191,7 +191,7 @@ Empty array if no Prescriptions match the filters.
 
 ---
 
-### `POST /api/v1/v1/prescriptions`
+### `POST /api/v1/prescriptions`
 
 Creates a new Prescription for the authenticated Patient. Status defaults to `active`.
 
@@ -236,7 +236,7 @@ The created Prescription object.
 
 ---
 
-### `GET /api/v1/v1/prescriptions/:prescriptionId`
+### `GET /api/v1/prescriptions/:prescriptionId`
 
 Returns a single Prescription. Returns 404 whether the Prescription does not exist or belongs to a different Patient — the response is identical either way (existence is not confirmed).
 
@@ -252,7 +252,7 @@ The Prescription object.
 
 ---
 
-### `PATCH /api/v1/v1/prescriptions/:prescriptionId`
+### `PATCH /api/v1/prescriptions/:prescriptionId`
 
 Updates a Prescription. Only fields included in the request body are changed; omitted fields are left as-is.
 
@@ -284,7 +284,7 @@ Same error codes as `POST /api/v1/v1/prescriptions`.
 
 ---
 
-### `DELETE /api/v1/v1/prescriptions/:prescriptionId`
+### `DELETE /api/v1/prescriptions/:prescriptionId`
 
 Permanently deletes a Prescription and all associated Dose history. This operation is irreversible.
 
@@ -302,15 +302,15 @@ Permanently deletes a Prescription and all associated Dose history. This operati
 
 ---
 
-### `GET /api/v1/v1/doctors`
+### `GET /api/v1/doctors`
 
-Returns the distinct doctor names associated with the authenticated Patient's Prescriptions. Accepts the same `status` filter as `GET /api/v1/v1/prescriptions` so the caller can keep the doctor picker in sync with the visible Prescription list.
+Returns the distinct doctor names associated with the authenticated Patient's Prescriptions. Accepts the same `status` filter as `GET /api/v1/prescriptions` so the caller can keep the doctor picker in sync with the visible Prescription list.
 
 **Query parameters**
 
-| Parameter | Type                   | Default  | Description                                    |
-| --------- | ---------------------- | -------- | ---------------------------------------------- |
-| `status`  | comma-separated string | `active` | Same values as `GET /api/v1/v1/prescriptions`. |
+| Parameter | Type                   | Default  | Description                                 |
+| --------- | ---------------------- | -------- | ------------------------------------------- |
+| `status`  | comma-separated string | `active` | Same values as `GET /api/v1/prescriptions`. |
 
 **Response — 200**
 
