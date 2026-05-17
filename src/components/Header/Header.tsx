@@ -2,7 +2,7 @@ import "./Header.css";
 
 async function handleLogout() {
   await fetch("/api/v1/logout", { method: "POST" });
-  window.location.href = "/register";
+  window.location.replace("/register");
 }
 
 function Header({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
