@@ -20,5 +20,13 @@ export function makeInMemoryDoseRepo(): DoseRepository {
       dose.status = status;
       return dose;
     },
+    async deleteDose(id, patientId) {
+      const idx = doses.findIndex(
+        (d) => d.id === id && d.patientId === patientId,
+      );
+      if (idx === -1) return false;
+      doses.splice(idx, 1);
+      return true;
+    },
   };
 }

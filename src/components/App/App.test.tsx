@@ -111,9 +111,8 @@ describe("App", () => {
   });
 
   test("checks the checkbox for a resolved taken dose", async () => {
-    const resolvedDose = { ...MONDAY_DOSE, resolvedDose: { status: "taken" } };
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify([resolvedDose]), { status: 200 }),
+      new Response(JSON.stringify([MONDAY_DOSE_RESOLVED]), { status: 200 }),
     );
     render(<App today={TODAY} />);
     await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
@@ -122,22 +121,7 @@ describe("App", () => {
     });
   });
 
-  test("clicking an unresolved actionable dose reveals Taken and Missed buttons", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify([MONDAY_DOSE]), { status: 200 }),
-    );
-    render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
-    await waitFor(() => screen.getByRole("checkbox"));
-
-    const checkbox = screen.getByRole("checkbox");
-    await userEvent.click(checkbox);
-
-    expect(screen.getByRole("button", { name: /taken/i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /missed/i })).toBeTruthy();
-  });
-
-  test("tapping Taken posts a dose and shows the item as resolved", async () => {
+  test("clicking an unresolved actionable checkbox posts a taken dose and checks it", async () => {
     const createdDose = {
       id: "dose-1",
       patientId: "patient-1",
@@ -159,7 +143,6 @@ describe("App", () => {
     await waitFor(() => screen.getByRole("checkbox"));
 
     await userEvent.click(screen.getByRole("checkbox"));
-    await userEvent.click(screen.getByRole("button", { name: /taken/i }));
 
     await waitFor(() => {
       expect(screen.getByRole("checkbox", { checked: true })).toBeTruthy();
@@ -181,133 +164,46 @@ describe("App", () => {
     expect(body.status).toBe("taken");
   });
 
-  test("tapping Missed posts a dose and shows the item as resolved", async () => {
-    const createdDose = {
-      id: "dose-2",
-      patientId: "patient-1",
-      prescriptionId: "rx-1",
-      scheduledAt: "2024-03-11T08:00:00Z",
-      status: "missed",
-      loggedAt: "2024-03-13T09:00:00.000Z",
-      createdAt: "2024-03-13T09:00:00.000Z",
-    };
-    vi.spyOn(globalThis, "fetch")
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify([MONDAY_DOSE]), { status: 200 }),
-      )
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify(createdDose), { status: 201 }),
-      );
-    render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
-    await waitFor(() => screen.getByRole("checkbox"));
-
-    await userEvent.click(screen.getByRole("checkbox"));
-    await userEvent.click(screen.getByRole("button", { name: /missed/i }));
-
-    await waitFor(() => {
-      const checkbox = screen.getByRole("checkbox") as HTMLInputElement;
-      expect(checkbox.disabled).toBe(true);
-    });
-  });
-
-  test("Cancel button dismisses inline options without posting", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify([MONDAY_DOSE]), { status: 200 }),
-    );
-    render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
-    await waitFor(() => screen.getByRole("checkbox"));
-
-    await userEvent.click(screen.getByRole("checkbox"));
-    expect(screen.getByRole("button", { name: /taken/i })).toBeTruthy();
-
-    await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-
-    expect(screen.queryByRole("button", { name: /taken/i })).toBeNull();
-    expect(vi.mocked(globalThis.fetch).mock.calls).toHaveLength(1);
-  });
-
-  test("future non-actionable doses do not reveal inline options when clicked", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify([FRIDAY_DOSE]), { status: 200 }),
-    );
-    render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
-    await waitFor(() => screen.getByRole("checkbox"));
-
-    await userEvent.click(screen.getByRole("checkbox"));
-
-    expect(screen.queryByRole("button", { name: /taken/i })).toBeNull();
-    expect(screen.queryByRole("button", { name: /missed/i })).toBeNull();
-  });
-
-  test("resolved doses show a persistent Edit button", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify([MONDAY_DOSE_RESOLVED]), { status: 200 }),
-    );
-    render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /edit/i })).toBeTruthy();
-    });
-  });
-
-  test("clicking Edit on a resolved dose reveals Taken and Missed buttons", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify([MONDAY_DOSE_RESOLVED]), { status: 200 }),
-    );
-    render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
-    await waitFor(() => screen.getByRole("button", { name: /edit/i }));
-
-    await userEvent.click(screen.getByRole("button", { name: /edit/i }));
-
-    expect(screen.getByRole("button", { name: /taken/i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /missed/i })).toBeTruthy();
-  });
-
-  test("choosing a new status from Edit sends PATCH and updates the item", async () => {
-    const updatedDose = {
-      id: "dose-1",
-      patientId: "patient-1",
-      prescriptionId: "rx-1",
-      scheduledAt: "2024-03-11T08:00:00Z",
-      status: "missed",
-      loggedAt: "2024-03-13T09:00:00.000Z",
-      createdAt: "2024-03-11T08:05:00.000Z",
-    };
+  test("clicking a resolved checkbox sends DELETE and unchecks the item", async () => {
     vi.spyOn(globalThis, "fetch")
       .mockResolvedValueOnce(
         new Response(JSON.stringify([MONDAY_DOSE_RESOLVED]), { status: 200 }),
       )
       .mockResolvedValueOnce(
-        new Response(JSON.stringify(updatedDose), { status: 200 }),
+        new Response(JSON.stringify({ ok: true }), { status: 200 }),
       );
     render(<App today={TODAY} />);
     await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
-    await waitFor(() => screen.getByRole("button", { name: /edit/i }));
+    await waitFor(() => screen.getByRole("checkbox", { checked: true }));
 
-    await userEvent.click(screen.getByRole("button", { name: /edit/i }));
-    await userEvent.click(screen.getByRole("button", { name: /missed/i }));
+    await userEvent.click(screen.getByRole("checkbox", { checked: true }));
 
     await waitFor(() => {
-      expect(screen.queryByRole("button", { name: /edit/i })).toBeTruthy();
-      expect(screen.queryByRole("button", { name: /taken/i })).toBeNull();
+      expect(screen.getByRole("checkbox", { checked: false })).toBeTruthy();
     });
 
     const calls = vi.mocked(globalThis.fetch).mock.calls;
-    const patchCall = calls.find(([url, init]) => {
+    const deleteCall = calls.find(([url, init]) => {
       const method = (init as RequestInit | undefined)?.method;
       return (
         typeof url === "string" &&
         url.includes("/api/v1/doses/dose-1") &&
-        method === "PATCH"
+        method === "DELETE"
       );
     });
-    expect(patchCall).toBeTruthy();
-    const body = JSON.parse((patchCall![1] as RequestInit).body as string);
-    expect(body.status).toBe("missed");
+    expect(deleteCall).toBeTruthy();
+  });
+
+  test("future non-actionable checkboxes are disabled", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify([FRIDAY_DOSE]), { status: 200 }),
+    );
+    render(<App today={TODAY} />);
+    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
+    await waitFor(() => {
+      const cb = screen.getByRole("checkbox") as HTMLInputElement;
+      expect(cb.disabled).toBe(true);
+    });
   });
 
   test("hides the list and shows reveal button again on clicking Hide", async () => {

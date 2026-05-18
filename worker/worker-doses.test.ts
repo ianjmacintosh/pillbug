@@ -198,6 +198,68 @@ describe("PATCH /api/v1/doses/:doseId", () => {
   });
 });
 
+describe("DELETE /api/v1/doses/:doseId", () => {
+  test("returns 401 when unauthenticated", async () => {
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/doses/some-dose-id", {
+        method: "DELETE",
+      }),
+      makeEnv(),
+    );
+    expect(response.status).toBe(401);
+  });
+
+  test("returns 404 when dose does not exist", async () => {
+    const authRepo = makeInMemoryRepo();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(authRepo);
+    const { cookie } = await makeAuthenticatedSession(authRepo);
+
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/doses/nonexistent-id", {
+        method: "DELETE",
+        headers: { Cookie: cookie },
+      }),
+      makeEnv(),
+    );
+    expect(response.status).toBe(404);
+  });
+
+  test("returns 200 and removes the dose", async () => {
+    const authRepo = makeInMemoryRepo();
+    const doseRepo = makeInMemoryDoseRepo();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(authRepo);
+    vi.mocked(makeD1DoseRepo).mockReturnValue(doseRepo);
+    const { patientId, cookie } = await makeAuthenticatedSession(authRepo);
+
+    await doseRepo.createDose({
+      id: "dose-to-delete",
+      patientId,
+      prescriptionId: "rx-1",
+      scheduledAt: "2024-03-11T08:00:00Z",
+      status: "taken",
+      loggedAt: "2024-03-11T08:05:00Z",
+      createdAt: "2024-03-11T08:05:00Z",
+    });
+
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/doses/dose-to-delete", {
+        method: "DELETE",
+        headers: { Cookie: cookie },
+      }),
+      makeEnv(),
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true });
+
+    const remaining = await doseRepo.listDoses(
+      patientId,
+      "2024-03-11",
+      "2024-03-11",
+    );
+    expect(remaining).toHaveLength(0);
+  });
+});
+
 describe("GET /api/v1/doses", () => {
   test("returns 401 when unauthenticated", async () => {
     const response = await worker.fetch(

@@ -395,6 +395,30 @@ The updated Dose object.
 
 ---
 
+### `DELETE /api/v1/doses/:doseId`
+
+Removes a previously recorded Dose. Only the authenticated Patient who owns the Dose may delete it. Used when a patient unchecks a dose they previously marked as taken.
+
+**Response — 200**
+
+```json
+{ "ok": true }
+```
+
+**Response — 401**
+
+```json
+{ "error": "not_authenticated" }
+```
+
+**Response — 404**
+
+```json
+{ "error": "not_found" }
+```
+
+---
+
 ### `GET /api/v1/doses`
 
 Returns the authenticated Patient's logged Doses within a date range.

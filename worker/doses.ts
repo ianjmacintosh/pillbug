@@ -16,4 +16,5 @@ export interface DoseRepository {
     patientId: string,
     status: "taken" | "missed",
   ): Promise<Dose | null>;
+  deleteDose(id: string, patientId: string): Promise<boolean>;
 }

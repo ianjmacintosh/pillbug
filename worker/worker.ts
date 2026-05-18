@@ -388,6 +388,29 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
 
   const doseMatch = url.pathname.match(/^\/api\/v1\/doses\/([^/]+)$/);
 
+  if (doseMatch && request.method === "DELETE") {
+    const sessionId = getSessionId(request);
+    const session = sessionId ? await getSession(sessionId, repo) : null;
+    if (!session) {
+      return new Response(JSON.stringify({ error: "not_authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const doseId = doseMatch[1];
+    const deleted = await doseRepo.deleteDose(doseId, session.patientId);
+    if (!deleted) {
+      return new Response(JSON.stringify({ error: "not_found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   if (doseMatch && request.method === "PATCH") {
     const sessionId = getSessionId(request);
     const session = sessionId ? await getSession(sessionId, repo) : null;
