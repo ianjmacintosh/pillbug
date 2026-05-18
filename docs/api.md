@@ -305,6 +305,103 @@ Permanently deletes a Prescription and all associated Dose history. This operati
 
 ---
 
+## Dose endpoints
+
+All Dose endpoints require a valid session cookie. Unauthenticated requests return 401.
+
+A Dose object has the following shape:
+
+```json
+{
+  "id": "<uuid>",
+  "patientId": "<uuid>",
+  "prescriptionId": "<uuid>",
+  "scheduledAt": "2024-03-11T08:00:00Z",
+  "status": "taken" | "missed",
+  "loggedAt": "2024-03-11T08:05:00.000Z",
+  "createdAt": "2024-03-11T08:05:00.000Z"
+}
+```
+
+`scheduledAt` is the local clock time of the scheduled dose expressed as a UTC-format timestamp (e.g. `"2024-03-11T08:00:00Z"`). The date and time components correspond to the patient's schedule entry. `loggedAt` is the actual moment the patient logged the dose.
+
+---
+
+### `GET /api/v1/doses`
+
+Returns the authenticated Patient's logged Doses within a date range.
+
+**Query parameters**
+
+| Parameter | Type   | Required | Description                         |
+| --------- | ------ | -------- | ----------------------------------- |
+| `start`   | string | Yes      | Start date `YYYY-MM-DD` (inclusive) |
+| `end`     | string | Yes      | End date `YYYY-MM-DD` (inclusive)   |
+
+**Response — 200**
+
+```json
+[{ ...Dose }, ...]
+```
+
+Empty array if no Doses exist in the range.
+
+**Response — 400** (missing required query parameter)
+
+```json
+{ "error": "missing_required_param" }
+```
+
+**Response — 401**
+
+```json
+{ "error": "not_authenticated" }
+```
+
+---
+
+### `GET /api/v1/scheduled-doses`
+
+Returns the authenticated Patient's Scheduled Doses for a date range, projected from their active Prescriptions and resolved against any logged Doses. Only active Prescriptions generate Scheduled Doses.
+
+**Query parameters**
+
+| Parameter | Type   | Required | Description                         |
+| --------- | ------ | -------- | ----------------------------------- |
+| `start`   | string | Yes      | Start date `YYYY-MM-DD` (inclusive) |
+| `end`     | string | Yes      | End date `YYYY-MM-DD` (inclusive)   |
+
+**Response — 200**
+
+```json
+[
+  {
+    "prescriptionId": "<uuid>",
+    "drugName": "Metformin",
+    "scheduledAt": "2024-03-11T08:00:00Z",
+    "actionable": true,
+    "resolvedDose": { "status": "taken" } | null
+  },
+  ...
+]
+```
+
+`actionable` is `false` for Scheduled Doses whose date is after today. `resolvedDose` is non-null when a matching Dose has been logged for that slot.
+
+**Response — 400** (missing required query parameter)
+
+```json
+{ "error": "missing_required_param" }
+```
+
+**Response — 401**
+
+```json
+{ "error": "not_authenticated" }
+```
+
+---
+
 ### `GET /api/v1/doctors`
 
 Returns the distinct doctor names associated with the authenticated Patient's Prescriptions. Accepts the same `status` filter as `GET /api/v1/prescriptions` so the caller can keep the doctor picker in sync with the visible Prescription list.

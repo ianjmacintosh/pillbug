@@ -51,6 +51,10 @@ Stored as JSON in the `schedule` column. Each day is keyed independently (e.g. `
 A healthcare provider optionally associated with one or more Prescriptions. Private to each Patient. Required field: name. Optional fields: phone, address, email.
 _Avoid_: Provider, Clinician, Physician
 
+**Scheduled Dose**:
+A Prescription's Schedule projected onto a specific calendar date and time — an expected dose instance that may or may not yet be backed by a recorded Dose. Scheduled Doses are derived, not stored; they exist as long as the Prescription is active and the date falls within its schedule.
+_Avoid_: Pending dose, Upcoming dose, Dose slot
+
 **Dose**:
 A recorded instance of a Patient taking or missing a Prescription at a specific time. Has a status: taken or missed.
 _Avoid_: Administration, Intake, Log Entry
@@ -101,6 +105,10 @@ _Avoid_: Prescription Link (too close to Share Link), Prescription Invite, Rx Te
 **Prescription Suggestion Generator**:
 A public form on Pillbug for constructing a Prescription Suggestion URL. Accessible without a Pillbug account. Accepts drug name, dosage, instructions, and optional end date, and produces a shareable URL the Doctor can send to a Patient.
 _Avoid_: Rx tool, Link builder, Prescription creator
+
+**Scheduled Dose List (Week View)**:
+The Patient's home screen: a checklist of all Scheduled Doses for the current calendar week (Monday–Sunday), grouped under a heading per day. Shows Active Prescriptions only. Hidden by default per Privacy by Default — no entries, count, or placeholders are visible until the Patient explicitly reveals the list (session-level, resets on navigation, independent of the Prescription list's own reveal). Future Scheduled Doses (days not yet reached) are visible but not actionable — no pre-logging. Past unresolved Scheduled Doses remain actionable; the Patient can still log them as taken or missed retroactively. The Patient can navigate backward week-by-week to the Monday of the week containing their Registration date; forward navigation is blocked. Tapping a Scheduled Dose reveals inline options: Taken or Missed. Logging records a Dose at the actual current time. A Dose logged via Reminder resolution also resolves the corresponding Scheduled Dose here.
+_Avoid_: Home, Weekly view, Dose schedule, Medication checklist
 
 **Adherence Record**:
 A read-only view of a Patient's Prescriptions (active and completed), Dose history, and Fill Session history (including any refill flags raised), showing how consistently they have followed their prescribed schedule. Intended for sharing with a healthcare provider.

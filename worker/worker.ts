@@ -22,6 +22,8 @@ import {
   updatePrescription,
   validateSchedule,
 } from "./prescriptions";
+import { makeD1DoseRepo } from "./d1-doses-repo";
+import { scheduledDoses } from "./scheduled-doses";
 
 interface Env {
   ASSETS: Fetcher;
@@ -98,6 +100,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   const secure = url.protocol === "https:";
   const repo = makeD1AuthRepo(env.DB, env.EMAIL_SECRET);
   const prescriptionRepo = makeD1PrescriptionRepo(env.DB);
+  const doseRepo = makeD1DoseRepo(env.DB);
 
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -378,6 +381,61 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       });
     }
     return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (url.pathname === "/api/v1/doses" && request.method === "GET") {
+    const sessionId = getSessionId(request);
+    const session = sessionId ? await getSession(sessionId, repo) : null;
+    if (!session) {
+      return new Response(JSON.stringify({ error: "not_authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const start = url.searchParams.get("start");
+    const end = url.searchParams.get("end");
+    if (!start || !end) {
+      return new Response(JSON.stringify({ error: "missing_required_param" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const doses = await doseRepo.listDoses(session.patientId, start, end);
+    return new Response(JSON.stringify(doses), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (url.pathname === "/api/v1/scheduled-doses" && request.method === "GET") {
+    const sessionId = getSessionId(request);
+    const session = sessionId ? await getSession(sessionId, repo) : null;
+    if (!session) {
+      return new Response(JSON.stringify({ error: "not_authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const start = url.searchParams.get("start");
+    const end = url.searchParams.get("end");
+    if (!start || !end) {
+      return new Response(JSON.stringify({ error: "missing_required_param" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const today = new Date().toISOString().slice(0, 10);
+    const prescriptions = await listPrescriptions(
+      session.patientId,
+      ["active"],
+      prescriptionRepo,
+    );
+    const doses = await doseRepo.listDoses(session.patientId, start, end);
+    const result = scheduledDoses(prescriptions, start, end, today, doses);
+    return new Response(JSON.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
