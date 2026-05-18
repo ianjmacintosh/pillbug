@@ -7,7 +7,7 @@ interface ScheduledDose {
   dosage: string;
   scheduledAt: string;
   actionable: boolean;
-  resolvedDose: { status: "taken" | "missed" } | null;
+  resolvedDose: { id: string; status: "taken" | "missed" } | null;
 }
 
 const WEEK_DAY_NAMES = [
@@ -47,6 +47,7 @@ function App({
 }) {
   const [revealed, setRevealed] = useState(false);
   const [doses, setDoses] = useState<ScheduledDose[]>([]);
+  const [expandedSlot, setExpandedSlot] = useState<string | null>(null);
 
   const { monday, sunday } = getWeekBoundaries(today);
   const weekDates = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
@@ -104,8 +105,69 @@ function App({
                     {dayDoses.map((dose) => {
                       const time = dose.scheduledAt.slice(11, 16);
                       const checked = dose.resolvedDose?.status === "taken";
-                      const disabled =
-                        !dose.actionable || dose.resolvedDose !== null;
+                      const resolved = dose.resolvedDose !== null;
+                      const disabled = !dose.actionable || resolved;
+                      const isExpanded = expandedSlot === dose.scheduledAt;
+
+                      async function logDose(status: "taken" | "missed") {
+                        if (dose.resolvedDose) {
+                          const res = await fetch(
+                            `/api/v1/doses/${dose.resolvedDose.id}`,
+                            {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ status }),
+                            },
+                          );
+                          if (res.ok) {
+                            setDoses((prev) =>
+                              prev.map((d) =>
+                                d.scheduledAt === dose.scheduledAt
+                                  ? {
+                                      ...d,
+                                      resolvedDose: {
+                                        id: dose.resolvedDose!.id,
+                                        status,
+                                      },
+                                    }
+                                  : d,
+                              ),
+                            );
+                            setExpandedSlot(null);
+                          }
+                        } else {
+                          const res = await fetch("/api/v1/doses", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              prescriptionId: dose.prescriptionId,
+                              scheduledAt: dose.scheduledAt,
+                              status,
+                            }),
+                          });
+                          if (res.ok) {
+                            const created = (await res.json()) as {
+                              id: string;
+                              status: "taken" | "missed";
+                            };
+                            setDoses((prev) =>
+                              prev.map((d) =>
+                                d.scheduledAt === dose.scheduledAt
+                                  ? {
+                                      ...d,
+                                      resolvedDose: {
+                                        id: created.id,
+                                        status: created.status,
+                                      },
+                                    }
+                                  : d,
+                              ),
+                            );
+                            setExpandedSlot(null);
+                          }
+                        }
+                      }
+
                       return (
                         <li key={dose.scheduledAt}>
                           <label>
@@ -113,12 +175,48 @@ function App({
                               type="checkbox"
                               checked={checked}
                               disabled={disabled}
-                              onChange={() => {}}
+                              onChange={() => {
+                                if (dose.actionable && !resolved) {
+                                  setExpandedSlot(
+                                    isExpanded ? null : dose.scheduledAt,
+                                  );
+                                }
+                              }}
                             />
                             <span className="dose-time">{time}</span>
                             <span className="dose-dosage">{dose.dosage}</span>
                             <span className="dose-drug">{dose.drugName}</span>
                           </label>
+                          {resolved && dose.actionable && !isExpanded && (
+                            <button
+                              type="button"
+                              onClick={() => setExpandedSlot(dose.scheduledAt)}
+                            >
+                              Edit
+                            </button>
+                          )}
+                          {isExpanded && (
+                            <div className="dose-actions">
+                              <button
+                                type="button"
+                                onClick={() => logDose("taken")}
+                              >
+                                Taken
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => logDose("missed")}
+                              >
+                                Missed
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setExpandedSlot(null)}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          )}
                         </li>
                       );
                     })}

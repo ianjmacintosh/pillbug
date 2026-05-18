@@ -93,7 +93,7 @@ describe("scheduledDoses", () => {
       [loggedDose],
     );
     const monday = result.find((d) => d.scheduledAt === "2024-03-11T08:00:00Z");
-    expect(monday?.resolvedDose).toEqual({ status: "taken" });
+    expect(monday?.resolvedDose).toEqual({ id: "dose-1", status: "taken" });
   });
 
   test("marks future days as non-actionable and past days as actionable", () => {

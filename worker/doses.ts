@@ -11,4 +11,9 @@ export interface Dose {
 export interface DoseRepository {
   createDose(dose: Dose): Promise<void>;
   listDoses(patientId: string, start: string, end: string): Promise<Dose[]>;
+  updateDoseStatus(
+    id: string,
+    patientId: string,
+    status: "taken" | "missed",
+  ): Promise<Dose | null>;
 }

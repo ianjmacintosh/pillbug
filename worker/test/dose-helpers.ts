@@ -14,5 +14,11 @@ export function makeInMemoryDoseRepo(): DoseRepository {
           d.scheduledAt.slice(0, 10) <= end,
       );
     },
+    async updateDoseStatus(id, patientId, status) {
+      const dose = doses.find((d) => d.id === id && d.patientId === patientId);
+      if (!dose) return null;
+      dose.status = status;
+      return dose;
+    },
   };
 }

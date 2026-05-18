@@ -56,5 +56,20 @@ export function makeD1DoseRepo(db: D1Database): DoseRepository {
         .all<DoseRow>();
       return result.results.map(rowToDose);
     },
+
+    async updateDoseStatus(id, patientId, status) {
+      await db
+        .prepare(`UPDATE doses SET status = ? WHERE id = ? AND patient_id = ?`)
+        .bind(status, id, patientId)
+        .run();
+      const row = await db
+        .prepare(
+          `SELECT id, patient_id, prescription_id, scheduled_at, status, logged_at, created_at
+           FROM doses WHERE id = ? AND patient_id = ?`,
+        )
+        .bind(id, patientId)
+        .first<DoseRow>();
+      return row ? rowToDose(row) : null;
+    },
   };
 }
