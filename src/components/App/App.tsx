@@ -4,6 +4,7 @@ import "./App.css";
 interface ScheduledDose {
   prescriptionId: string;
   drugName: string;
+  dosage: string;
   scheduledAt: string;
   actionable: boolean;
   resolvedDose: { status: "taken" | "missed" } | null;
@@ -100,18 +101,25 @@ function App({
                 <h2>{dayName}</h2>
                 {dayDoses.length > 0 && (
                   <ul>
-                    {dayDoses.map((dose) => (
-                      <li
-                        key={dose.scheduledAt}
-                        aria-disabled={!dose.actionable ? "true" : undefined}
-                      >
-                        <span>{dose.drugName}</span>
-                        <span>{dose.scheduledAt.slice(11, 16)}</span>
-                        {dose.resolvedDose && (
-                          <span>{dose.resolvedDose.status}</span>
-                        )}
-                      </li>
-                    ))}
+                    {dayDoses.map((dose) => {
+                      const time = dose.scheduledAt.slice(11, 16);
+                      const checked = dose.resolvedDose?.status === "taken";
+                      const disabled =
+                        !dose.actionable || dose.resolvedDose !== null;
+                      return (
+                        <li key={dose.scheduledAt}>
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              disabled={disabled}
+                              onChange={() => {}}
+                            />
+                            {time}: {dose.drugName} {dose.dosage}
+                          </label>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </section>

@@ -4,6 +4,7 @@ import type { Dose } from "./doses";
 export interface ScheduledDose {
   prescriptionId: string;
   drugName: string;
+  dosage: string;
   scheduledAt: string;
   actionable: boolean;
   resolvedDose: { status: "taken" | "missed" } | null;
@@ -51,6 +52,7 @@ export function scheduledDoses(
         result.push({
           prescriptionId: rx.id,
           drugName: rx.drugName,
+          dosage: rx.dosage,
           scheduledAt,
           actionable,
           resolvedDose: match ? { status: match.status } : null,

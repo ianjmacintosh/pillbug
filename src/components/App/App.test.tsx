@@ -9,6 +9,7 @@ const TODAY = "2024-03-13";
 const MONDAY_DOSE = {
   prescriptionId: "rx-1",
   drugName: "Metformin",
+  dosage: "500mg",
   scheduledAt: "2024-03-11T08:00:00Z",
   actionable: true,
   resolvedDose: null,
@@ -17,6 +18,7 @@ const MONDAY_DOSE = {
 const FRIDAY_DOSE = {
   prescriptionId: "rx-1",
   drugName: "Metformin",
+  dosage: "500mg",
   scheduledAt: "2024-03-15T08:00:00Z",
   actionable: false,
   resolvedDose: null,
@@ -88,22 +90,22 @@ describe("App", () => {
     });
   });
 
-  test("marks non-actionable doses as aria-disabled", async () => {
+  test("disables the checkbox for non-actionable future doses", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
       new Response(JSON.stringify([MONDAY_DOSE, FRIDAY_DOSE]), { status: 200 }),
     );
     render(<App today={TODAY} />);
     await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
     await waitFor(() => {
-      const items = screen.getAllByRole("listitem");
-      const nonActionable = items.filter(
-        (item) => item.getAttribute("aria-disabled") === "true",
+      const checkboxes = screen.getAllByRole("checkbox");
+      const disabled = checkboxes.filter(
+        (cb) => (cb as HTMLInputElement).disabled,
       );
-      expect(nonActionable).toHaveLength(1);
+      expect(disabled).toHaveLength(1);
     });
   });
 
-  test("shows resolved dose status", async () => {
+  test("checks the checkbox for a resolved taken dose", async () => {
     const resolvedDose = { ...MONDAY_DOSE, resolvedDose: { status: "taken" } };
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
       new Response(JSON.stringify([resolvedDose]), { status: 200 }),
@@ -111,7 +113,7 @@ describe("App", () => {
     render(<App today={TODAY} />);
     await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
     await waitFor(() => {
-      expect(screen.getByText(/taken/i)).toBeTruthy();
+      expect(screen.getByRole("checkbox", { checked: true })).toBeTruthy();
     });
   });
 
