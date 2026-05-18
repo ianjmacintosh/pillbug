@@ -7,7 +7,7 @@ interface ScheduledDose {
   dosage: string;
   scheduledAt: string;
   actionable: boolean;
-  resolvedDose: { status: "taken" | "missed" } | null;
+  resolvedDose: { id: string; status: "taken" | "missed" } | null;
 }
 
 const WEEK_DAY_NAMES = [
@@ -103,17 +103,62 @@ function App({
                   <ul>
                     {dayDoses.map((dose) => {
                       const time = dose.scheduledAt.slice(11, 16);
-                      const checked = dose.resolvedDose?.status === "taken";
-                      const disabled =
-                        !dose.actionable || dose.resolvedDose !== null;
+                      const checked = dose.resolvedDose !== null;
+
+                      async function handleToggle() {
+                        if (dose.resolvedDose) {
+                          const res = await fetch(
+                            `/api/v1/doses/${dose.resolvedDose.id}`,
+                            { method: "DELETE" },
+                          );
+                          if (res.ok) {
+                            setDoses((prev) =>
+                              prev.map((d) =>
+                                d.scheduledAt === dose.scheduledAt
+                                  ? { ...d, resolvedDose: null }
+                                  : d,
+                              ),
+                            );
+                          }
+                        } else {
+                          const res = await fetch("/api/v1/doses", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              prescriptionId: dose.prescriptionId,
+                              scheduledAt: dose.scheduledAt,
+                              status: "taken",
+                            }),
+                          });
+                          if (res.ok) {
+                            const created = (await res.json()) as {
+                              id: string;
+                            };
+                            setDoses((prev) =>
+                              prev.map((d) =>
+                                d.scheduledAt === dose.scheduledAt
+                                  ? {
+                                      ...d,
+                                      resolvedDose: {
+                                        id: created.id,
+                                        status: "taken" as const,
+                                      },
+                                    }
+                                  : d,
+                              ),
+                            );
+                          }
+                        }
+                      }
+
                       return (
                         <li key={dose.scheduledAt}>
                           <label>
                             <input
                               type="checkbox"
                               checked={checked}
-                              disabled={disabled}
-                              onChange={() => {}}
+                              disabled={!dose.actionable}
+                              onChange={handleToggle}
                             />
                             <span className="dose-time">{time}</span>
                             <span className="dose-dosage">{dose.dosage}</span>

@@ -7,7 +7,7 @@ export interface ScheduledDose {
   dosage: string;
   scheduledAt: string;
   actionable: boolean;
-  resolvedDose: { status: "taken" | "missed" } | null;
+  resolvedDose: { id: string; status: "taken" | "missed" } | null;
 }
 
 const DAY_NAMES: DayOfWeek[] = [
@@ -55,7 +55,7 @@ export function scheduledDoses(
           dosage: rx.dosage,
           scheduledAt,
           actionable,
-          resolvedDose: match ? { status: match.status } : null,
+          resolvedDose: match ? { id: match.id, status: match.status } : null,
         });
       }
     }

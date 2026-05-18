@@ -327,6 +327,98 @@ A Dose object has the following shape:
 
 ---
 
+### `POST /api/v1/doses`
+
+Records a Dose for the authenticated Patient. `loggedAt` and `createdAt` are set by the server.
+
+**Request**
+
+```json
+{
+  "prescriptionId": "<uuid>",
+  "scheduledAt": "2024-03-11T08:00:00Z",
+  "status": "taken" | "missed"
+}
+```
+
+Required: `prescriptionId`, `scheduledAt`, `status`.
+
+**Response — 201**
+
+The created Dose object.
+
+**Response — 400** (missing required field)
+
+```json
+{ "error": "missing_required_field" }
+```
+
+**Response — 401**
+
+```json
+{ "error": "not_authenticated" }
+```
+
+---
+
+### `PATCH /api/v1/doses/:doseId`
+
+Updates the `status` of a previously recorded Dose. Only the authenticated Patient who owns the Dose may update it.
+
+**Request**
+
+```json
+{ "status": "taken" | "missed" }
+```
+
+**Response — 200**
+
+The updated Dose object.
+
+**Response — 400** (missing required field)
+
+```json
+{ "error": "missing_required_field" }
+```
+
+**Response — 401**
+
+```json
+{ "error": "not_authenticated" }
+```
+
+**Response — 404**
+
+```json
+{ "error": "not_found" }
+```
+
+---
+
+### `DELETE /api/v1/doses/:doseId`
+
+Removes a previously recorded Dose. Only the authenticated Patient who owns the Dose may delete it. Used when a patient unchecks a dose they previously marked as taken.
+
+**Response — 200**
+
+```json
+{ "ok": true }
+```
+
+**Response — 401**
+
+```json
+{ "error": "not_authenticated" }
+```
+
+**Response — 404**
+
+```json
+{ "error": "not_found" }
+```
+
+---
+
 ### `GET /api/v1/doses`
 
 Returns the authenticated Patient's logged Doses within a date range.
@@ -380,7 +472,7 @@ Returns the authenticated Patient's Scheduled Doses for a date range, projected 
     "drugName": "Metformin",
     "scheduledAt": "2024-03-11T08:00:00Z",
     "actionable": true,
-    "resolvedDose": { "status": "taken" } | null
+    "resolvedDose": { "id": "<uuid>", "status": "taken" } | null
   },
   ...
 ]

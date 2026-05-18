@@ -15,6 +15,11 @@ const MONDAY_DOSE = {
   resolvedDose: null,
 };
 
+const MONDAY_DOSE_RESOLVED = {
+  ...MONDAY_DOSE,
+  resolvedDose: { id: "dose-1", status: "taken" },
+};
+
 const FRIDAY_DOSE = {
   prescriptionId: "rx-1",
   drugName: "Metformin",
@@ -106,14 +111,98 @@ describe("App", () => {
   });
 
   test("checks the checkbox for a resolved taken dose", async () => {
-    const resolvedDose = { ...MONDAY_DOSE, resolvedDose: { status: "taken" } };
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify([resolvedDose]), { status: 200 }),
+      new Response(JSON.stringify([MONDAY_DOSE_RESOLVED]), { status: 200 }),
     );
     render(<App today={TODAY} />);
     await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
     await waitFor(() => {
       expect(screen.getByRole("checkbox", { checked: true })).toBeTruthy();
+    });
+  });
+
+  test("clicking an unresolved actionable checkbox posts a taken dose and checks it", async () => {
+    const createdDose = {
+      id: "dose-1",
+      patientId: "patient-1",
+      prescriptionId: "rx-1",
+      scheduledAt: "2024-03-11T08:00:00Z",
+      status: "taken",
+      loggedAt: "2024-03-13T09:00:00.000Z",
+      createdAt: "2024-03-13T09:00:00.000Z",
+    };
+    vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify([MONDAY_DOSE]), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(createdDose), { status: 201 }),
+      );
+    render(<App today={TODAY} />);
+    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
+    await waitFor(() => screen.getByRole("checkbox"));
+
+    await userEvent.click(screen.getByRole("checkbox"));
+
+    await waitFor(() => {
+      expect(screen.getByRole("checkbox", { checked: true })).toBeTruthy();
+    });
+
+    const calls = vi.mocked(globalThis.fetch).mock.calls;
+    const postCall = calls.find(([url, init]) => {
+      const method = (init as RequestInit | undefined)?.method;
+      return (
+        typeof url === "string" &&
+        url.includes("/api/v1/doses") &&
+        method === "POST"
+      );
+    });
+    expect(postCall).toBeTruthy();
+    const body = JSON.parse((postCall![1] as RequestInit).body as string);
+    expect(body.prescriptionId).toBe("rx-1");
+    expect(body.scheduledAt).toBe("2024-03-11T08:00:00Z");
+    expect(body.status).toBe("taken");
+  });
+
+  test("clicking a resolved checkbox sends DELETE and unchecks the item", async () => {
+    vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify([MONDAY_DOSE_RESOLVED]), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ ok: true }), { status: 200 }),
+      );
+    render(<App today={TODAY} />);
+    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
+    await waitFor(() => screen.getByRole("checkbox", { checked: true }));
+
+    await userEvent.click(screen.getByRole("checkbox", { checked: true }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("checkbox", { checked: false })).toBeTruthy();
+    });
+
+    const calls = vi.mocked(globalThis.fetch).mock.calls;
+    const deleteCall = calls.find(([url, init]) => {
+      const method = (init as RequestInit | undefined)?.method;
+      return (
+        typeof url === "string" &&
+        url.includes("/api/v1/doses/dose-1") &&
+        method === "DELETE"
+      );
+    });
+    expect(deleteCall).toBeTruthy();
+  });
+
+  test("future non-actionable checkboxes are disabled", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify([FRIDAY_DOSE]), { status: 200 }),
+    );
+    render(<App today={TODAY} />);
+    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
+    await waitFor(() => {
+      const cb = screen.getByRole("checkbox") as HTMLInputElement;
+      expect(cb.disabled).toBe(true);
     });
   });
 

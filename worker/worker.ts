@@ -386,6 +386,101 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     });
   }
 
+  const doseMatch = url.pathname.match(/^\/api\/v1\/doses\/([^/]+)$/);
+
+  if (doseMatch && request.method === "DELETE") {
+    const sessionId = getSessionId(request);
+    const session = sessionId ? await getSession(sessionId, repo) : null;
+    if (!session) {
+      return new Response(JSON.stringify({ error: "not_authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const doseId = doseMatch[1];
+    const deleted = await doseRepo.deleteDose(doseId, session.patientId);
+    if (!deleted) {
+      return new Response(JSON.stringify({ error: "not_found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (doseMatch && request.method === "PATCH") {
+    const sessionId = getSessionId(request);
+    const session = sessionId ? await getSession(sessionId, repo) : null;
+    if (!session) {
+      return new Response(JSON.stringify({ error: "not_authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const body = await request.json<Record<string, unknown>>();
+    if (!body.status) {
+      return new Response(JSON.stringify({ error: "missing_required_field" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const doseId = doseMatch[1];
+    const updated = await doseRepo.updateDoseStatus(
+      doseId,
+      session.patientId,
+      body.status as "taken" | "missed",
+    );
+    if (!updated) {
+      return new Response(JSON.stringify({ error: "not_found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify(updated), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (url.pathname === "/api/v1/doses" && request.method === "POST") {
+    const sessionId = getSessionId(request);
+    const session = sessionId ? await getSession(sessionId, repo) : null;
+    if (!session) {
+      return new Response(JSON.stringify({ error: "not_authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const body = await request.json<Record<string, unknown>>();
+    const required = ["prescriptionId", "scheduledAt", "status"];
+    for (const field of required) {
+      if (!body[field]) {
+        return new Response(
+          JSON.stringify({ error: "missing_required_field" }),
+          { status: 400, headers: { "Content-Type": "application/json" } },
+        );
+      }
+    }
+    const now = new Date().toISOString();
+    const dose = {
+      id: crypto.randomUUID(),
+      patientId: session.patientId,
+      prescriptionId: String(body.prescriptionId),
+      scheduledAt: String(body.scheduledAt),
+      status: body.status as "taken" | "missed",
+      loggedAt: now,
+      createdAt: now,
+    };
+    await doseRepo.createDose(dose);
+    return new Response(JSON.stringify(dose), {
+      status: 201,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   if (url.pathname === "/api/v1/doses" && request.method === "GET") {
     const sessionId = getSessionId(request);
     const session = sessionId ? await getSession(sessionId, repo) : null;
