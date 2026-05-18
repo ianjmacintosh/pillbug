@@ -115,7 +115,9 @@ function App({
                               disabled={disabled}
                               onChange={() => {}}
                             />
-                            {time}: {dose.drugName} {dose.dosage}
+                            <span className="dose-time">{time}</span>
+                            <span className="dose-dosage">{dose.dosage}</span>
+                            <span className="dose-drug">{dose.drugName}</span>
                           </label>
                         </li>
                       );
