@@ -193,7 +193,34 @@ erDiagram
     patients ||--o{ sessions : "is active in"
 ```
 
-`email` is stored as two columns: `email_lookup` (HMAC for indexed lookups) and `email_encrypted` (AES-GCM ciphertext for display). `magic_link_tokens.used_at` is nullable — null means the token has not yet been consumed. `patients.last_login_at` is nullable — null means the Patient is Unverified (has registered but never redeemed a magic link).
+**patients**
+
+| Column              | Description                                                                         |
+| ------------------- | ----------------------------------------------------------------------------------- |
+| `id`                | UUID primary key                                                                    |
+| `email_lookup`      | HMAC of the email address — used for fast indexed lookups without storing plaintext |
+| `email_encrypted`   | AES-GCM ciphertext of the email address — decrypted only for display                |
+| `terms_accepted_at` | When the Patient accepted the Terms of Service at Registration                      |
+| `created_at`        | When the Patient record was created                                                 |
+| `last_login_at`     | Most recent magic link redemption; `NULL` means the Patient is Unverified           |
+
+**magic_link_tokens**
+
+| Column       | Description                                           |
+| ------------ | ----------------------------------------------------- |
+| `token`      | Opaque token included in the magic link URL           |
+| `patient_id` | Owning Patient; cascades on delete                    |
+| `expires_at` | Token validity deadline (20-minute window from issue) |
+| `used_at`    | When the token was redeemed; `NULL` means unused      |
+
+**sessions**
+
+| Column       | Description                                               |
+| ------------ | --------------------------------------------------------- |
+| `id`         | Opaque session ID stored in the `session` HttpOnly cookie |
+| `patient_id` | Owning Patient; cascades on delete                        |
+| `created_at` | When the session was established                          |
+| `expires_at` | Session expiry (30-day TTL from creation)                 |
 
 ### Prescriptions
 
@@ -214,7 +241,19 @@ erDiagram
     }
 ```
 
-`schedule` is a JSON object mapping day-of-week names to arrays of `HH:MM` times (e.g. `{ "monday": ["08:00", "20:00"] }`). `status` is one of `active`, `completed`, `paused`, or `discontinued`. Deleting a Prescription cascades to all associated Doses.
+| Column               | Description                                                                            |
+| -------------------- | -------------------------------------------------------------------------------------- |
+| `id`                 | UUID primary key                                                                       |
+| `patient_id`         | Owning Patient; cascades on delete                                                     |
+| `drug_name`          | Free-text drug name (e.g., "Metformin")                                                |
+| `dosage`             | Free-text prescribed amount (e.g., "500mg", "two 20mg tablets")                        |
+| `schedule`           | JSON map of day-of-week → `HH:MM` time list (e.g., `{ "monday": ["08:00", "20:00"] }`) |
+| `start_date`         | `YYYY-MM-DD` date from which Scheduled Doses begin generating                          |
+| `end_date`           | `YYYY-MM-DD` date after which no further Scheduled Doses generate; `NULL` = open-ended |
+| `prescribing_doctor` | Free-text doctor name; `NULL` if not provided                                          |
+| `instructions`       | Free-text Patient-facing directions (e.g., "Take with food"); `NULL` if not provided   |
+| `status`             | `active`, `completed`, `paused`, or `discontinued`; defaults to `active`               |
+| `created_at`         | When the Prescription record was created                                               |
 
 ### Doses
 
@@ -231,7 +270,15 @@ erDiagram
     }
 ```
 
-`scheduled_at` encodes the local clock time of the Scheduled Dose as a UTC-format timestamp (e.g. `2024-03-11T08:00:00Z`). `logged_at` is the actual moment the Patient recorded the dose. Only `taken` Doses are stored — a missing record means the dose was missed or ignored.
+| Column            | Description                                                                                                                                                                                                         |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`              | UUID primary key                                                                                                                                                                                                    |
+| `patient_id`      | Owning Patient; cascades on delete                                                                                                                                                                                  |
+| `prescription_id` | The Prescription this Dose resolves; cascades on delete                                                                                                                                                             |
+| `scheduled_at`    | The local clock time of the Scheduled Dose slot expressed as a UTC-format timestamp (e.g., `2024-03-11T08:00:00Z`); the date and time components come from the Prescription's schedule, not from UTC conversion     |
+| `status`          | Currently always `taken` — only taken Doses are recorded; a missing row means the dose was missed or ignored                                                                                                        |
+| `logged_at`       | When the Patient tapped the checkbox, as recorded by the server at request time. For retroactive logging this reflects when the Patient logged it, not necessarily when they ingested the medication                |
+| `created_at`      | When the database row was written. Currently always identical to `logged_at` since both are set server-side on the same request — the distinction would matter if the Patient could supply their own ingestion time |
 
 ## Flagged ambiguities
 
@@ -240,3 +287,4 @@ erDiagram
 - Refill reminders are explicitly out of scope for v1. Pill count tracking introduces ongoing maintenance burden (entering counts, updating after refills) better suited to a later iteration.
 - Complex schedules (birth control cycles, every-N-hours dosing) are out of scope for v1 — Schedule supports clock-time-based daily/weekly patterns only.
 - **Prescription visibility** — resolved. The Prescription list shows nothing by default (no entries, no count, no redacted placeholders). A "Show all prescriptions" affordance reveals the full list. This is a session-level reveal: it resets on navigation away from the list. Per Privacy by Default, even entry count is considered sensitive.
+- **Partial dosage logging** — unresolved. A Patient may take a different amount than prescribed: a single 40mg tablet when 15mg was scheduled, or one of two prescribed 20mg tablets due to running out. The current Dose schema has no field for actual quantity or actual dosage taken — it records only whether the scheduled slot was fulfilled. If this use case is supported in future, a `quantity_taken` or `actual_dosage` field on `doses` would be needed, and the Prescription's `dosage` field (currently free text) may need to become structured to allow comparison.
