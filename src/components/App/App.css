@@ -1,0 +1,27 @@
+.home section {
+  margin-block-end: 1.5rem;
+}
+
+.home ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.home ul li label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.home ul li label input[type="checkbox"] {
+  flex-shrink: 0;
+}
+
+.home ul li label .dose-time {
+  font-variant-numeric: tabular-nums;
+  min-width: 3.5rem;
+}
