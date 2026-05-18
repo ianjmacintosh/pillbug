@@ -104,3 +104,25 @@
   gap: 0.5rem;
   align-items: center;
 }
+
+.prescriptions .schedule-section table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.prescriptions .schedule-section th,
+.prescriptions .schedule-section td {
+  border: 1px solid var(--gray-90);
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+}
+
+.prescriptions .schedule-section input[type="checkbox"] {
+  width: 1.75rem;
+  height: 1.75rem;
+  cursor: pointer;
+}
+
+.prescriptions .schedule-section .select-all-col {
+  background-color: oklch(0.95 0 0);
+}

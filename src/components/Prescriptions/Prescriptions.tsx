@@ -21,13 +21,13 @@ const WEEKDAYS: DayOfWeek[] = [
 ];
 
 const DAY_LABELS: Record<DayOfWeek, string> = {
-  sunday: "Sun",
-  monday: "Mon",
-  tuesday: "Tue",
-  wednesday: "Wed",
-  thursday: "Thu",
-  friday: "Fri",
-  saturday: "Sat",
+  sunday: "Sunday",
+  monday: "Monday",
+  tuesday: "Tuesday",
+  wednesday: "Wednesday",
+  thursday: "Thursday",
+  friday: "Friday",
+  saturday: "Saturday",
 };
 
 interface Schedule {
@@ -59,8 +59,8 @@ function Prescriptions() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [instructions, setInstructions] = useState("");
-  const [amDays, setAmDays] = useState<Set<DayOfWeek>>(new Set());
-  const [pmDays, setPmDays] = useState<Set<DayOfWeek>>(new Set());
+  const [scheduledDays, setScheduledDays] = useState<Set<DayOfWeek>>(new Set());
+  const [doseTimes, setDoseTimes] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   async function handleReveal() {
@@ -83,8 +83,8 @@ function Prescriptions() {
     setStartDate("");
     setEndDate("");
     setInstructions("");
-    setAmDays(new Set());
-    setPmDays(new Set());
+    setScheduledDays(new Set());
+    setDoseTimes([]);
     setError(null);
   }
 
@@ -106,14 +106,16 @@ function Prescriptions() {
     setStartDate(p.startDate);
     setEndDate(p.endDate ?? "");
     setInstructions(p.instructions ?? "");
-    const newAmDays = new Set<DayOfWeek>();
-    const newPmDays = new Set<DayOfWeek>();
+    const days = new Set<DayOfWeek>();
+    const allTimes = new Set<string>();
     for (const [day, times] of Object.entries(p.schedule.days)) {
-      if (times?.includes("08:00")) newAmDays.add(day as DayOfWeek);
-      if (times?.includes("20:00")) newPmDays.add(day as DayOfWeek);
+      if (times && times.length > 0) {
+        days.add(day as DayOfWeek);
+        times.forEach((t) => allTimes.add(t));
+      }
     }
-    setAmDays(newAmDays);
-    setPmDays(newPmDays);
+    setScheduledDays(days);
+    setDoseTimes(Array.from(allTimes).sort());
     setError(null);
     setFormOpen(false);
     setEditingId(p.id);
@@ -122,10 +124,7 @@ function Prescriptions() {
   function buildSchedule(): Schedule {
     const days: Partial<Record<DayOfWeek, string[]>> = {};
     for (const day of WEEKDAYS) {
-      const times: string[] = [];
-      if (amDays.has(day)) times.push("08:00");
-      if (pmDays.has(day)) times.push("20:00");
-      if (times.length > 0) days[day] = times;
+      if (scheduledDays.has(day)) days[day] = [...doseTimes];
     }
     return { days, timezoneMode: "local" };
   }
@@ -208,74 +207,91 @@ function Prescriptions() {
 
   const deletingPrescription = prescriptions.find((p) => p.id === deletingId);
 
-  function toggleDay(day: DayOfWeek, slot: "am" | "pm") {
-    const [days, setDays] =
-      slot === "am" ? [amDays, setAmDays] : [pmDays, setPmDays];
-    const next = new Set(days);
+  function toggleDay(day: DayOfWeek) {
+    const next = new Set(scheduledDays);
     if (next.has(day)) next.delete(day);
     else next.add(day);
-    setDays(next);
+    setScheduledDays(next);
   }
 
-  function toggleAll(slot: "am" | "pm") {
-    const [days, setDays] =
-      slot === "am" ? [amDays, setAmDays] : [pmDays, setPmDays];
-    if (days.size === WEEKDAYS.length) setDays(new Set());
-    else setDays(new Set(WEEKDAYS));
+  function toggleAllDays() {
+    if (scheduledDays.size === WEEKDAYS.length) setScheduledDays(new Set());
+    else setScheduledDays(new Set(WEEKDAYS));
   }
 
-  const scheduleGrid = (
-    <table>
-      <thead>
-        <tr>
-          <th></th>
-          <th>All</th>
-          {WEEKDAYS.map((day) => (
-            <th key={day}>{DAY_LABELS[day]}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th scope="row">AM</th>
-          <td>
-            <input
-              type="checkbox"
-              checked={amDays.size === WEEKDAYS.length}
-              onChange={() => toggleAll("am")}
-            />
-          </td>
-          {WEEKDAYS.map((day) => (
-            <td key={day}>
+  function addDoseTime() {
+    setDoseTimes((prev) => [...prev, ""]);
+  }
+
+  function updateDoseTime(index: number, value: string) {
+    setDoseTimes((prev) => prev.map((t, i) => (i === index ? value : t)));
+  }
+
+  function removeDoseTime(index: number) {
+    setDoseTimes((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  const scheduleSection = (
+    <div className="schedule-section">
+      <table>
+        <thead>
+          <tr>
+            <th className="select-all-col">
+              <label htmlFor="select-all">Select All</label>
+            </th>
+            {WEEKDAYS.map((day) => (
+              <th key={day}>
+                <label htmlFor={`day-${day}`}>{DAY_LABELS[day]}</label>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td className="select-all-col">
               <input
+                id="select-all"
                 type="checkbox"
-                checked={amDays.has(day)}
-                onChange={() => toggleDay(day, "am")}
+                checked={scheduledDays.size === WEEKDAYS.length}
+                onChange={toggleAllDays}
               />
             </td>
-          ))}
-        </tr>
-        <tr>
-          <th scope="row">PM</th>
-          <td>
-            <input
-              type="checkbox"
-              checked={pmDays.size === WEEKDAYS.length}
-              onChange={() => toggleAll("pm")}
-            />
-          </td>
-          {WEEKDAYS.map((day) => (
-            <td key={day}>
+            {WEEKDAYS.map((day) => (
+              <td key={day}>
+                <input
+                  id={`day-${day}`}
+                  type="checkbox"
+                  checked={scheduledDays.has(day)}
+                  onChange={() => toggleDay(day)}
+                />
+              </td>
+            ))}
+          </tr>
+        </tbody>
+      </table>
+
+      <fieldset>
+        <legend>Dose times</legend>
+        {doseTimes.map((time, i) => (
+          <div key={i} className="dose-time-entry">
+            <label>
+              Time {i + 1}
               <input
-                type="checkbox"
-                checked={pmDays.has(day)}
-                onChange={() => toggleDay(day, "pm")}
+                type="time"
+                value={time}
+                onChange={(e) => updateDoseTime(i, e.target.value)}
               />
-            </td>
-          ))}
-        </tr>
-      </tbody>
-    </table>
+            </label>
+            <button type="button" onClick={() => removeDoseTime(i)}>
+              Remove
+            </button>
+          </div>
+        ))}
+        <button type="button" onClick={addDoseTime}>
+          Add dose time
+        </button>
+      </fieldset>
+    </div>
   );
 
   const prescriptionFields = (idPrefix: string) => (
@@ -337,7 +353,7 @@ function Prescriptions() {
         />
       </div>
 
-      {scheduleGrid}
+      {scheduleSection}
     </>
   );
 

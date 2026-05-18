@@ -23,7 +23,7 @@ describe("Prescriptions", () => {
     expect(screen.getByRole("heading", { level: 1 })).toBeTruthy();
   });
 
-  describe("schedule grid", () => {
+  describe("schedule", () => {
     async function openCreateForm() {
       render(<Prescriptions />);
       await userEvent.click(
@@ -31,76 +31,72 @@ describe("Prescriptions", () => {
       );
     }
 
-    test("create form renders AM and PM rows for each day column", async () => {
+    test("create form renders a checkbox for each day of the week", async () => {
       await openCreateForm();
-      const grid = screen.getByRole("table");
-      expect(grid).toBeTruthy();
-      for (const day of ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]) {
-        expect(screen.getByRole("columnheader", { name: day })).toBeTruthy();
+      for (const day of [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ]) {
+        expect(screen.getByRole("checkbox", { name: day })).toBeTruthy();
       }
-      expect(screen.getByRole("columnheader", { name: /all/i })).toBeTruthy();
-      const amCheckboxes = screen
-        .getAllByRole("checkbox")
-        .filter((el) => el.closest("tr")?.textContent?.startsWith("AM"));
-      expect(amCheckboxes).toHaveLength(8); // Toggle All + 7 days
-      const pmCheckboxes = screen
-        .getAllByRole("checkbox")
-        .filter((el) => el.closest("tr")?.textContent?.startsWith("PM"));
-      expect(pmCheckboxes).toHaveLength(8);
     });
 
-    test("checking Monday AM and submitting sends 08:00 for monday", async () => {
-      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            ...SAMPLE_PRESCRIPTION,
-            schedule: { days: { monday: ["08:00"] }, timezoneMode: "local" },
-          }),
-          { status: 201 },
-        ),
-      );
+    test("create form renders a 'Select All' toggle checkbox", async () => {
+      await openCreateForm();
+      expect(
+        screen.getByRole("checkbox", { name: /select all/i }),
+      ).toBeTruthy();
+    });
 
+    test("clicking 'Add dose time' adds a time input", async () => {
+      await openCreateForm();
+      expect(screen.queryByLabelText(/time 1/i)).toBeNull();
+      await userEvent.click(
+        screen.getByRole("button", { name: /add dose time/i }),
+      );
+      expect(screen.getByLabelText(/time 1/i)).toBeTruthy();
+    });
+
+    test("clicking Remove on a dose time removes that entry", async () => {
+      await openCreateForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /add dose time/i }),
+      );
+      expect(screen.getByLabelText(/time 1/i)).toBeTruthy();
+      await userEvent.click(screen.getByRole("button", { name: /remove/i }));
+      expect(screen.queryByLabelText(/time 1/i)).toBeNull();
+    });
+
+    test("submitting with a day checked and a time set sends the correct schedule", async () => {
+      const fetchSpy = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(SAMPLE_PRESCRIPTION), { status: 201 }),
+        );
       await openCreateForm();
       await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
       await userEvent.type(screen.getByLabelText(/dosage/i), "100mg");
       await userEvent.type(screen.getByLabelText(/start date/i), "2024-06-01");
 
-      const monCol = (
-        screen.getByRole("columnheader", {
-          name: "Mon",
-        }) as HTMLTableCellElement
-      ).cellIndex;
-      const amRow = screen
-        .getAllByRole("row")
-        .find((r) => r.textContent?.startsWith("AM"))!;
-      const amCells = amRow.querySelectorAll("td");
-      const monAmCheckbox = amCells[monCol - 1]?.querySelector(
-        'input[type="checkbox"]',
-      ) as HTMLInputElement;
-      await userEvent.click(monAmCheckbox);
+      await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /add dose time/i }),
+      );
+      const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
+      await userEvent.clear(timeInput);
+      await userEvent.type(timeInput, "08:00");
 
       await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
       const body = JSON.parse(
         (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
       );
-      expect(body.schedule.days.monday).toContain("08:00");
-    });
-
-    test("Toggle All AM checks all 7 days AM", async () => {
-      await openCreateForm();
-      const amRow = screen
-        .getAllByRole("row")
-        .find((r) => r.textContent?.startsWith("AM"))!;
-      const toggleAllAm = amRow.querySelectorAll(
-        'input[type="checkbox"]',
-      )[0] as HTMLInputElement;
-      await userEvent.click(toggleAllAm);
-
-      const amCheckboxes = Array.from(
-        amRow.querySelectorAll('input[type="checkbox"]'),
-      ) as HTMLInputElement[];
-      expect(amCheckboxes.every((cb) => cb.checked)).toBe(true);
+      expect(body.schedule.days.monday).toEqual(["08:00"]);
     });
   });
 
@@ -128,7 +124,7 @@ describe("Prescriptions", () => {
       ).toBe("2024-01-01");
     });
 
-    test("edit form pre-populates AM checkbox for days in schedule", async () => {
+    test("edit form pre-populates scheduled days and times from prescription", async () => {
       const withSchedule = {
         ...SAMPLE_PRESCRIPTION,
         schedule: {
@@ -138,25 +134,24 @@ describe("Prescriptions", () => {
       };
       await revealAndClickEdit(withSchedule);
 
-      const amRow = screen
-        .getAllByRole("row")
-        .find((r) => r.textContent?.startsWith("AM"))!;
-      const amCheckboxes = Array.from(
-        amRow.querySelectorAll('input[type="checkbox"]'),
-      ) as HTMLInputElement[];
-      // index 0 = toggle all, 1 = Sun, 2 = Mon, 3 = Tue, 4 = Wed, 5 = Thu, 6 = Fri, 7 = Sat
-      expect(amCheckboxes[2].checked).toBe(true); // Mon
-      expect(amCheckboxes[6].checked).toBe(true); // Fri
-      expect(amCheckboxes[1].checked).toBe(false); // Sun
+      expect(
+        (screen.getByRole("checkbox", { name: "Monday" }) as HTMLInputElement)
+          .checked,
+      ).toBe(true);
+      expect(
+        (screen.getByRole("checkbox", { name: "Friday" }) as HTMLInputElement)
+          .checked,
+      ).toBe(true);
+      expect(
+        (screen.getByRole("checkbox", { name: "Sunday" }) as HTMLInputElement)
+          .checked,
+      ).toBe(false);
 
-      const pmRow = screen
-        .getAllByRole("row")
-        .find((r) => r.textContent?.startsWith("PM"))!;
-      const pmCheckboxes = Array.from(
-        pmRow.querySelectorAll('input[type="checkbox"]'),
-      ) as HTMLInputElement[];
-      expect(pmCheckboxes[6].checked).toBe(true); // Fri PM
-      expect(pmCheckboxes[2].checked).toBe(false); // Mon PM
+      const timeInput1 = screen.getByLabelText(/time 1/i) as HTMLInputElement;
+      const timeInput2 = screen.getByLabelText(/time 2/i) as HTMLInputElement;
+      const timeValues = [timeInput1.value, timeInput2.value].sort();
+      expect(timeValues).toContain("08:00");
+      expect(timeValues).toContain("20:00");
     });
 
     test("edit form sends updated schedule in PATCH body", async () => {
@@ -189,19 +184,15 @@ describe("Prescriptions", () => {
       await waitFor(() => screen.getByText("Metformin"));
       await userEvent.click(screen.getByRole("button", { name: /edit/i }));
 
-      const pmRow = screen
-        .getAllByRole("row")
-        .find((r) => r.textContent?.startsWith("PM"))!;
-      const wedCol = (
-        screen.getByRole("columnheader", {
-          name: "Wed",
-        }) as HTMLTableCellElement
-      ).cellIndex;
-      const pmCells = pmRow.querySelectorAll("td");
-      const wedPmCheckbox = pmCells[wedCol - 1]?.querySelector(
-        'input[type="checkbox"]',
-      ) as HTMLInputElement;
-      await userEvent.click(wedPmCheckbox);
+      await userEvent.click(
+        screen.getByRole("checkbox", { name: "Wednesday" }),
+      );
+      await userEvent.click(
+        screen.getByRole("button", { name: /add dose time/i }),
+      );
+      const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
+      await userEvent.clear(timeInput);
+      await userEvent.type(timeInput, "20:00");
 
       await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
