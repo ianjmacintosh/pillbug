@@ -46,9 +46,11 @@ describe("Prescriptions", () => {
       }
     });
 
-    test("create form renders an 'All days' toggle checkbox", async () => {
+    test("create form renders a 'Select All' toggle checkbox", async () => {
       await openCreateForm();
-      expect(screen.getByRole("checkbox", { name: /all days/i })).toBeTruthy();
+      expect(
+        screen.getByRole("checkbox", { name: /select all/i }),
+      ).toBeTruthy();
     });
 
     test("clicking 'Add dose time' adds a time input", async () => {

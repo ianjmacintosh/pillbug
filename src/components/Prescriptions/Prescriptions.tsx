@@ -233,27 +233,42 @@ function Prescriptions() {
 
   const scheduleSection = (
     <div className="schedule-section">
-      <fieldset>
-        <legend>Days</legend>
-        <label>
-          <input
-            type="checkbox"
-            checked={scheduledDays.size === WEEKDAYS.length}
-            onChange={toggleAllDays}
-          />
-          All days
-        </label>
-        {WEEKDAYS.map((day) => (
-          <label key={day}>
-            <input
-              type="checkbox"
-              checked={scheduledDays.has(day)}
-              onChange={() => toggleDay(day)}
-            />
-            {DAY_LABELS[day]}
-          </label>
-        ))}
-      </fieldset>
+      <table>
+        <thead>
+          <tr>
+            <th className="select-all-col">
+              <label htmlFor="select-all">Select All</label>
+            </th>
+            {WEEKDAYS.map((day) => (
+              <th key={day}>
+                <label htmlFor={`day-${day}`}>{DAY_LABELS[day]}</label>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td className="select-all-col">
+              <input
+                id="select-all"
+                type="checkbox"
+                checked={scheduledDays.size === WEEKDAYS.length}
+                onChange={toggleAllDays}
+              />
+            </td>
+            {WEEKDAYS.map((day) => (
+              <td key={day}>
+                <input
+                  id={`day-${day}`}
+                  type="checkbox"
+                  checked={scheduledDays.has(day)}
+                  onChange={() => toggleDay(day)}
+                />
+              </td>
+            ))}
+          </tr>
+        </tbody>
+      </table>
 
       <fieldset>
         <legend>Dose times</legend>
