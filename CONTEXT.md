@@ -43,9 +43,9 @@ A Prescription can be hard-deleted. Deletion is permanent and cascades to all as
 The set of clock-based times at which a Patient should take a Prescription, on specified days of the week.
 _Avoid_: Recurrence, Timetable, Frequency
 
-Fields: days (a map of day-of-week → list of UTC HH:MM times for that day; currently AM = 08:00 UTC and PM = 20:00 UTC), timezone mode (local — follows Patient's current timezone; or fixed UTC — Reminders fire at an absolute UTC time regardless of where the Patient is). Local is the default; fixed UTC is an advanced setting for medications requiring strict interval adherence across timezones.
+Fields: days (a map of day-of-week → list of HH:MM times for that day).
 
-Stored as JSON in the `schedule` column. Each day is keyed independently (e.g. `{ "monday": ["08:00"], "friday": ["08:00", "20:00"] }`), supporting different times per day. The UI presents a Sun–Sat × AM/PM grid; the backend stores HH:MM UTC times so that arbitrary times can be added in a future slice without a schema change.
+Stored as JSON in the `schedule` column. Each day is keyed independently (e.g. `{ "monday": ["08:00"], "friday": ["08:00", "20:00"] }`), supporting different times per day.
 
 **Doctor**:
 A healthcare provider optionally associated with one or more Prescriptions. Private to each Patient. Required field: name. Optional fields: phone, address, email.
