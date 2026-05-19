@@ -35,6 +35,33 @@ function getWeekBoundaries(date: string): { monday: string; sunday: string } {
   };
 }
 
+function formatShortDate(dateStr: string): string {
+  return new Date(dateStr + "T00:00:00Z").toLocaleDateString("en-US", {
+    month: "numeric",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+function formatTime(scheduledAt: string): string {
+  return new Date(scheduledAt).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "UTC",
+  });
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr + "T00:00:00Z").toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 function addDays(dateStr: string, days: number): string {
   const d = new Date(dateStr + "T00:00:00Z");
   d.setUTCDate(d.getUTCDate() + days);
@@ -114,7 +141,10 @@ function App({
 
   return (
     <main className="home">
-      <h1>Your doses this week</h1>
+      <h1>Weekly Dose Schedule</h1>
+      <h2 className="week-range">
+        {formatShortDate(displayedMonday)}–{formatShortDate(sunday)}
+      </h2>
 
       {!revealed ? (
         <button
@@ -136,10 +166,11 @@ function App({
             return (
               <section key={date} aria-current={isToday ? "date" : undefined}>
                 <h2>{dayName}</h2>
+                <time dateTime={date}>{formatDate(date)}</time>
                 {dayDoses.length > 0 && (
                   <ul>
                     {dayDoses.map((dose) => {
-                      const time = dose.scheduledAt.slice(11, 16);
+                      const time = formatTime(dose.scheduledAt);
                       const checked = dose.resolvedDose !== null;
 
                       async function handleToggle() {
@@ -210,31 +241,33 @@ function App({
             );
           })}
 
-          <button
-            type="button"
-            onClick={handlePreviousWeek}
-            disabled={atFloor}
-            className="button-secondary"
-          >
-            Previous week
-          </button>
+          <div className="week-nav">
+            <button
+              type="button"
+              onClick={handlePreviousWeek}
+              disabled={atFloor}
+              className="button-secondary"
+            >
+              Previous week
+            </button>
 
-          <button
-            type="button"
-            onClick={handleNextWeek}
-            disabled={atCeiling}
-            className="button-secondary"
-          >
-            Next week
-          </button>
+            <button
+              type="button"
+              onClick={handleNextWeek}
+              disabled={atCeiling}
+              className="button-secondary"
+            >
+              Next week
+            </button>
 
-          <button
-            type="button"
-            onClick={handleHide}
-            className="button-secondary"
-          >
-            Hide
-          </button>
+            <button
+              type="button"
+              onClick={handleHide}
+              className="button-secondary"
+            >
+              Hide
+            </button>
+          </div>
         </>
       )}
     </main>
