@@ -1,3 +1,4 @@
+import { getRouteApi } from "@tanstack/react-router";
 import { useState } from "react";
 import "./App.css";
 
@@ -20,8 +21,8 @@ const WEEK_DAY_NAMES = [
   "Sunday",
 ];
 
-function getWeekBoundaries(today: string): { monday: string; sunday: string } {
-  const d = new Date(today + "T00:00:00Z");
+function getWeekBoundaries(date: string): { monday: string; sunday: string } {
+  const d = new Date(date + "T00:00:00Z");
   const day = d.getUTCDay();
   const daysToMonday = (day + 6) % 7;
   const monday = new Date(d);
@@ -40,20 +41,42 @@ function addDays(dateStr: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+const Route = getRouteApi("/layout/");
+
 function App({
   today = new Date().toISOString().slice(0, 10),
 }: {
   today?: string;
 }) {
+  const { registrationDate } = Route.useLoaderData();
+  const { monday: currentWeekMonday } = getWeekBoundaries(today);
   const [revealed, setRevealed] = useState(false);
   const [doses, setDoses] = useState<ScheduledDose[]>([]);
+  const [displayedMonday, setDisplayedMonday] = useState(currentWeekMonday);
 
-  const { monday, sunday } = getWeekBoundaries(today);
-  const weekDates = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
+  const sunday = addDays(displayedMonday, 6);
+  const weekDates = Array.from({ length: 7 }, (_, i) =>
+    addDays(displayedMonday, i),
+  );
+
+  const floor = registrationDate
+    ? getWeekBoundaries(registrationDate).monday
+    : null;
+  const atFloor = floor !== null && displayedMonday <= floor;
+
+  async function fetchDoses(weekMonday: string) {
+    const weekSunday = addDays(weekMonday, 6);
+    const res = await fetch(
+      `/api/v1/scheduled-doses?start=${weekMonday}&end=${weekSunday}`,
+    );
+    if (res.ok) {
+      setDoses((await res.json()) as ScheduledDose[]);
+    }
+  }
 
   async function handleReveal() {
     const res = await fetch(
-      `/api/v1/scheduled-doses?start=${monday}&end=${sunday}`,
+      `/api/v1/scheduled-doses?start=${displayedMonday}&end=${sunday}`,
     );
     if (res.ok) {
       setDoses((await res.json()) as ScheduledDose[]);
@@ -61,9 +84,16 @@ function App({
     }
   }
 
+  async function handlePreviousWeek() {
+    const prevMonday = addDays(displayedMonday, -7);
+    setDisplayedMonday(prevMonday);
+    await fetchDoses(prevMonday);
+  }
+
   function handleHide() {
     setDoses([]);
     setRevealed(false);
+    setDisplayedMonday(currentWeekMonday);
   }
 
   const dosesByDate = new Map<string, ScheduledDose[]>();
@@ -172,6 +202,15 @@ function App({
               </section>
             );
           })}
+
+          <button
+            type="button"
+            onClick={handlePreviousWeek}
+            disabled={atFloor}
+            className="button-secondary"
+          >
+            Previous week
+          </button>
 
           <button
             type="button"

@@ -88,6 +88,14 @@ export function makeD1AuthRepo(
         .first<{ patientId: string; expiresAt: string }>();
     },
 
+    async findPatientCreatedAt(patientId) {
+      const row = await db
+        .prepare("SELECT created_at as createdAt FROM patients WHERE id = ?")
+        .bind(patientId)
+        .first<{ createdAt: string }>();
+      return row?.createdAt ?? null;
+    },
+
     async deleteSession(id) {
       await db.prepare("DELETE FROM sessions WHERE id = ?").bind(id).run();
     },
