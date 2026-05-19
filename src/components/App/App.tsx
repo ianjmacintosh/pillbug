@@ -63,6 +63,7 @@ function App({
     ? getWeekBoundaries(registrationDate).monday
     : null;
   const atFloor = floor !== null && displayedMonday <= floor;
+  const atCeiling = displayedMonday >= currentWeekMonday;
 
   async function fetchDoses(weekMonday: string) {
     const weekSunday = addDays(weekMonday, 6);
@@ -88,6 +89,12 @@ function App({
     const prevMonday = addDays(displayedMonday, -7);
     setDisplayedMonday(prevMonday);
     await fetchDoses(prevMonday);
+  }
+
+  async function handleNextWeek() {
+    const nextMonday = addDays(displayedMonday, 7);
+    setDisplayedMonday(nextMonday);
+    await fetchDoses(nextMonday);
   }
 
   function handleHide() {
@@ -210,6 +217,15 @@ function App({
             className="button-secondary"
           >
             Previous week
+          </button>
+
+          <button
+            type="button"
+            onClick={handleNextWeek}
+            disabled={atCeiling}
+            className="button-secondary"
+          >
+            Next week
           </button>
 
           <button

@@ -288,14 +288,47 @@ describe("App", () => {
     });
   });
 
-  test("does not show a Next week button", async () => {
+  test("Next week button is disabled when viewing the current week", async () => {
     mockRegistrationDate = REGISTRATION_DATE;
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
       new Response(JSON.stringify([]), { status: 200 }),
     );
     render(<App today={TODAY} />);
     await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
+    await waitFor(() => {
+      const btn = screen.getByRole("button", {
+        name: /next week/i,
+      }) as HTMLButtonElement;
+      expect(btn.disabled).toBe(true);
+    });
+  });
+
+  test("clicking Next week fetches the following week's doses", async () => {
+    mockRegistrationDate = REGISTRATION_DATE;
+    vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }));
+    render(<App today={TODAY} />);
+    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
     await waitFor(() => screen.getByRole("button", { name: /previous week/i }));
-    expect(screen.queryByRole("button", { name: /next week/i })).toBeNull();
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /previous week/i }),
+    );
+    await waitFor(() => {
+      const calls = vi.mocked(globalThis.fetch).mock.calls;
+      expect(calls[calls.length - 1][0] as string).toContain(
+        "start=2024-03-04",
+      );
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: /next week/i }));
+    await waitFor(() => {
+      const calls = vi.mocked(globalThis.fetch).mock.calls;
+      const url = calls[calls.length - 1][0] as string;
+      expect(url).toContain("start=2024-03-11");
+      expect(url).toContain("end=2024-03-17");
+    });
   });
 });
