@@ -24,6 +24,7 @@ import {
 } from "./prescriptions";
 import { makeD1DoseRepo } from "./d1-doses-repo";
 import { scheduledDoses } from "./scheduled-doses";
+import { isDoseStatus } from "./doses";
 
 interface Env {
   ASSETS: Fetcher;
@@ -427,7 +428,8 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       });
     }
     const body = await request.json<Record<string, unknown>>();
-    if (!body.status) {
+    const patchStatus = body.status;
+    if (!isDoseStatus(patchStatus)) {
       return new Response(JSON.stringify({ error: "missing_required_field" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
@@ -437,7 +439,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     const updated = await doseRepo.updateDoseStatus(
       doseId,
       session.patientId,
-      body.status as "taken" | "missed",
+      patchStatus,
     );
     if (!updated) {
       return new Response(JSON.stringify({ error: "not_found" }), {
@@ -461,14 +463,15 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       });
     }
     const body = await request.json<Record<string, unknown>>();
-    const required = ["prescriptionId", "scheduledAt", "status"];
-    for (const field of required) {
-      if (!body[field]) {
-        return new Response(
-          JSON.stringify({ error: "missing_required_field" }),
-          { status: 400, headers: { "Content-Type": "application/json" } },
-        );
-      }
+    if (
+      !body.prescriptionId ||
+      !body.scheduledAt ||
+      !isDoseStatus(body.status)
+    ) {
+      return new Response(JSON.stringify({ error: "missing_required_field" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
     const now = new Date().toISOString();
     const dose = {
@@ -476,7 +479,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       patientId: session.patientId,
       prescriptionId: String(body.prescriptionId),
       scheduledAt: String(body.scheduledAt),
-      status: body.status as "taken" | "missed",
+      status: body.status,
       loggedAt: now,
       createdAt: now,
     };

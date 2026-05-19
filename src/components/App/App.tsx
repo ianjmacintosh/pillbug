@@ -1,5 +1,6 @@
 import { getRouteApi } from "@tanstack/react-router";
 import { useState } from "react";
+import { weekBoundaries } from "../../../shared/week-boundaries";
 import "./App.css";
 
 interface ScheduledDose {
@@ -8,7 +9,7 @@ interface ScheduledDose {
   dosage: string;
   scheduledAt: string;
   actionable: boolean;
-  resolvedDose: { id: string; status: "taken" | "missed" } | null;
+  resolvedDose: { id: string; status: "taken" } | null;
 }
 
 const WEEK_DAY_NAMES = [
@@ -20,20 +21,6 @@ const WEEK_DAY_NAMES = [
   "Saturday",
   "Sunday",
 ];
-
-function getWeekBoundaries(date: string): { monday: string; sunday: string } {
-  const d = new Date(date + "T00:00:00Z");
-  const day = d.getUTCDay();
-  const daysToMonday = (day + 6) % 7;
-  const monday = new Date(d);
-  monday.setUTCDate(d.getUTCDate() - daysToMonday);
-  const sunday = new Date(monday);
-  sunday.setUTCDate(monday.getUTCDate() + 6);
-  return {
-    monday: monday.toISOString().slice(0, 10),
-    sunday: sunday.toISOString().slice(0, 10),
-  };
-}
 
 function formatShortDate(dateStr: string): string {
   return new Date(dateStr + "T00:00:00Z").toLocaleDateString("en-US", {
@@ -76,7 +63,7 @@ function App({
   today?: string;
 }) {
   const { registrationDate } = Route.useLoaderData();
-  const { monday: currentWeekMonday } = getWeekBoundaries(today);
+  const { monday: currentWeekMonday } = weekBoundaries(today);
   const [revealed, setRevealed] = useState(false);
   const [doses, setDoses] = useState<ScheduledDose[]>([]);
   const [displayedMonday, setDisplayedMonday] = useState(currentWeekMonday);
@@ -87,7 +74,7 @@ function App({
   );
 
   const floor = registrationDate
-    ? getWeekBoundaries(registrationDate).monday
+    ? weekBoundaries(registrationDate).monday
     : null;
   const atFloor = floor !== null && displayedMonday <= floor;
   const atCeiling = displayedMonday >= currentWeekMonday;
