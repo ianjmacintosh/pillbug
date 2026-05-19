@@ -423,6 +423,8 @@ Removes a previously recorded Dose. Only the authenticated Patient who owns the 
 
 Returns the authenticated Patient's logged Doses within a date range.
 
+> **Open question — API unification:** A future design may consolidate `GET /api/v1/doses` and `GET /api/v1/scheduled-doses` into a single endpoint by adding a query parameter (e.g. `status=scheduled`) that switches the response from raw Dose records to the projected Scheduled Dose list. This would make `/scheduled-doses` redundant. Not yet decided — the Adherence Record will likely inform the right shape here.
+
 **Query parameters**
 
 | Parameter | Type   | Required | Description                         |

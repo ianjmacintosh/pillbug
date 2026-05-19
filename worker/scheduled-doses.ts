@@ -1,5 +1,5 @@
 import type { Prescription, DayOfWeek } from "./prescriptions";
-import type { Dose } from "./doses";
+import type { Dose, DoseStatus } from "./doses";
 
 export interface ScheduledDose {
   prescriptionId: string;
@@ -7,7 +7,7 @@ export interface ScheduledDose {
   dosage: string;
   scheduledAt: string;
   actionable: boolean;
-  resolvedDose: { id: string; status: "taken" | "missed" } | null;
+  resolvedDose: { id: string; status: DoseStatus } | null;
 }
 
 const DAY_NAMES: DayOfWeek[] = [
