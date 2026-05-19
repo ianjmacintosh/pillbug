@@ -1,3 +1,7 @@
+export function navigationFloor(registrationDate: string): string {
+  return weekBoundaries(registrationDate).monday;
+}
+
 export function weekBoundaries(date: string): {
   monday: string;
   sunday: string;

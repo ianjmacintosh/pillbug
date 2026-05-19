@@ -1,3 +1,4 @@
+import { getRouteApi } from "@tanstack/react-router";
 import { useState } from "react";
 import "./App.css";
 
@@ -20,8 +21,8 @@ const WEEK_DAY_NAMES = [
   "Sunday",
 ];
 
-function getWeekBoundaries(today: string): { monday: string; sunday: string } {
-  const d = new Date(today + "T00:00:00Z");
+function getWeekBoundaries(date: string): { monday: string; sunday: string } {
+  const d = new Date(date + "T00:00:00Z");
   const day = d.getUTCDay();
   const daysToMonday = (day + 6) % 7;
   const monday = new Date(d);
@@ -34,26 +35,76 @@ function getWeekBoundaries(today: string): { monday: string; sunday: string } {
   };
 }
 
+function formatShortDate(dateStr: string): string {
+  return new Date(dateStr + "T00:00:00Z").toLocaleDateString("en-US", {
+    month: "numeric",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+function formatTime(scheduledAt: string): string {
+  return new Date(scheduledAt).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "UTC",
+  });
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr + "T00:00:00Z").toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 function addDays(dateStr: string, days: number): string {
   const d = new Date(dateStr + "T00:00:00Z");
   d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().slice(0, 10);
 }
 
+const Route = getRouteApi("/layout/");
+
 function App({
   today = new Date().toISOString().slice(0, 10),
 }: {
   today?: string;
 }) {
+  const { registrationDate } = Route.useLoaderData();
+  const { monday: currentWeekMonday } = getWeekBoundaries(today);
   const [revealed, setRevealed] = useState(false);
   const [doses, setDoses] = useState<ScheduledDose[]>([]);
+  const [displayedMonday, setDisplayedMonday] = useState(currentWeekMonday);
 
-  const { monday, sunday } = getWeekBoundaries(today);
-  const weekDates = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
+  const sunday = addDays(displayedMonday, 6);
+  const weekDates = Array.from({ length: 7 }, (_, i) =>
+    addDays(displayedMonday, i),
+  );
+
+  const floor = registrationDate
+    ? getWeekBoundaries(registrationDate).monday
+    : null;
+  const atFloor = floor !== null && displayedMonday <= floor;
+  const atCeiling = displayedMonday >= currentWeekMonday;
+
+  async function fetchDoses(weekMonday: string) {
+    const weekSunday = addDays(weekMonday, 6);
+    const res = await fetch(
+      `/api/v1/scheduled-doses?start=${weekMonday}&end=${weekSunday}`,
+    );
+    if (res.ok) {
+      setDoses((await res.json()) as ScheduledDose[]);
+    }
+  }
 
   async function handleReveal() {
     const res = await fetch(
-      `/api/v1/scheduled-doses?start=${monday}&end=${sunday}`,
+      `/api/v1/scheduled-doses?start=${displayedMonday}&end=${sunday}`,
     );
     if (res.ok) {
       setDoses((await res.json()) as ScheduledDose[]);
@@ -61,9 +112,22 @@ function App({
     }
   }
 
+  async function handlePreviousWeek() {
+    const prevMonday = addDays(displayedMonday, -7);
+    setDisplayedMonday(prevMonday);
+    await fetchDoses(prevMonday);
+  }
+
+  async function handleNextWeek() {
+    const nextMonday = addDays(displayedMonday, 7);
+    setDisplayedMonday(nextMonday);
+    await fetchDoses(nextMonday);
+  }
+
   function handleHide() {
     setDoses([]);
     setRevealed(false);
+    setDisplayedMonday(currentWeekMonday);
   }
 
   const dosesByDate = new Map<string, ScheduledDose[]>();
@@ -77,7 +141,10 @@ function App({
 
   return (
     <main className="home">
-      <h1>Your doses this week</h1>
+      <h1>Weekly Dose Schedule</h1>
+      <h2 className="week-range">
+        {formatShortDate(displayedMonday)}–{formatShortDate(sunday)}
+      </h2>
 
       {!revealed ? (
         <button
@@ -99,10 +166,11 @@ function App({
             return (
               <section key={date} aria-current={isToday ? "date" : undefined}>
                 <h2>{dayName}</h2>
+                <time dateTime={date}>{formatDate(date)}</time>
                 {dayDoses.length > 0 && (
                   <ul>
                     {dayDoses.map((dose) => {
-                      const time = dose.scheduledAt.slice(11, 16);
+                      const time = formatTime(dose.scheduledAt);
                       const checked = dose.resolvedDose !== null;
 
                       async function handleToggle() {
@@ -173,13 +241,33 @@ function App({
             );
           })}
 
-          <button
-            type="button"
-            onClick={handleHide}
-            className="button-secondary"
-          >
-            Hide
-          </button>
+          <div className="week-nav">
+            <button
+              type="button"
+              onClick={handlePreviousWeek}
+              disabled={atFloor}
+              className="button-secondary"
+            >
+              Previous week
+            </button>
+
+            <button
+              type="button"
+              onClick={handleNextWeek}
+              disabled={atCeiling}
+              className="button-secondary"
+            >
+              Next week
+            </button>
+
+            <button
+              type="button"
+              onClick={handleHide}
+              className="button-secondary"
+            >
+              Hide
+            </button>
+          </div>
         </>
       )}
     </main>

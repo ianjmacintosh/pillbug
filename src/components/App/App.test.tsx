@@ -1,10 +1,25 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import App from "./App";
 
 // Wednesday — Monday of the week is 2024-03-11, Sunday is 2024-03-17
 const TODAY = "2024-03-13";
+// Registration on 2024-03-06 (Wednesday) → floor Monday is 2024-03-04
+const REGISTRATION_DATE = "2024-03-06";
+
+let mockRegistrationDate: string | null = null;
+
+vi.mock("@tanstack/react-router", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@tanstack/react-router")>();
+  return {
+    ...actual,
+    getRouteApi: () => ({
+      useLoaderData: () => ({ registrationDate: mockRegistrationDate }),
+    }),
+  };
+});
 
 const MONDAY_DOSE = {
   prescriptionId: "rx-1",
@@ -29,6 +44,9 @@ const FRIDAY_DOSE = {
   resolvedDose: null,
 };
 
+beforeEach(() => {
+  mockRegistrationDate = null;
+});
 afterEach(() => vi.restoreAllMocks());
 
 describe("App", () => {
@@ -216,5 +234,101 @@ describe("App", () => {
     await userEvent.click(screen.getByRole("button", { name: /hide/i }));
     expect(screen.queryByRole("list")).toBeNull();
     expect(screen.getByRole("button", { name: /show doses/i })).toBeTruthy();
+  });
+
+  test("shows a Previous week button after reveal", async () => {
+    mockRegistrationDate = REGISTRATION_DATE;
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify([]), { status: 200 }),
+    );
+    render(<App today={TODAY} />);
+    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /previous week/i }),
+      ).toBeTruthy();
+    });
+  });
+
+  test("clicking Previous week fetches doses for the prior week", async () => {
+    mockRegistrationDate = REGISTRATION_DATE;
+    vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }));
+    render(<App today={TODAY} />);
+    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
+    await waitFor(() => screen.getByRole("button", { name: /previous week/i }));
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /previous week/i }),
+    );
+
+    await waitFor(() => {
+      const calls = vi.mocked(globalThis.fetch).mock.calls;
+      const lastCall = calls[calls.length - 1];
+      const url = lastCall[0] as string;
+      expect(url).toContain("start=2024-03-04");
+      expect(url).toContain("end=2024-03-10");
+    });
+  });
+
+  test("Previous week button is disabled when at the registration floor week", async () => {
+    // TODAY is 2024-03-13, register on 2024-03-11 (Monday) → floor is 2024-03-11 (current week)
+    mockRegistrationDate = "2024-03-11";
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify([]), { status: 200 }),
+    );
+    render(<App today={TODAY} />);
+    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
+    await waitFor(() => {
+      const btn = screen.getByRole("button", {
+        name: /previous week/i,
+      }) as HTMLButtonElement;
+      expect(btn.disabled).toBe(true);
+    });
+  });
+
+  test("Next week button is disabled when viewing the current week", async () => {
+    mockRegistrationDate = REGISTRATION_DATE;
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify([]), { status: 200 }),
+    );
+    render(<App today={TODAY} />);
+    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
+    await waitFor(() => {
+      const btn = screen.getByRole("button", {
+        name: /next week/i,
+      }) as HTMLButtonElement;
+      expect(btn.disabled).toBe(true);
+    });
+  });
+
+  test("clicking Next week fetches the following week's doses", async () => {
+    mockRegistrationDate = REGISTRATION_DATE;
+    vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }));
+    render(<App today={TODAY} />);
+    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
+    await waitFor(() => screen.getByRole("button", { name: /previous week/i }));
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /previous week/i }),
+    );
+    await waitFor(() => {
+      const calls = vi.mocked(globalThis.fetch).mock.calls;
+      expect(calls[calls.length - 1][0] as string).toContain(
+        "start=2024-03-04",
+      );
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: /next week/i }));
+    await waitFor(() => {
+      const calls = vi.mocked(globalThis.fetch).mock.calls;
+      const url = calls[calls.length - 1][0] as string;
+      expect(url).toContain("start=2024-03-11");
+      expect(url).toContain("end=2024-03-17");
+    });
   });
 });

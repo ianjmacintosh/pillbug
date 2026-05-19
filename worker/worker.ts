@@ -206,8 +206,14 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
         headers: { "Content-Type": "application/json" },
       });
     }
+    const createdAt = await repo.findPatientCreatedAt(session.patientId);
+    const registrationDate = createdAt ? createdAt.slice(0, 10) : null;
     return new Response(
-      JSON.stringify({ ok: true, patientId: session.patientId }),
+      JSON.stringify({
+        ok: true,
+        patientId: session.patientId,
+        registrationDate,
+      }),
       { headers: { "Content-Type": "application/json" } },
     );
   }

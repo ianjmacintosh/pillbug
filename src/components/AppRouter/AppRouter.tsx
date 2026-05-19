@@ -43,18 +43,6 @@ async function requireAuth() {
   }
 }
 
-async function requireAuthHome() {
-  let res: Response;
-  try {
-    res = await fetch("/api/v1/session");
-  } catch {
-    return;
-  }
-  if (!res.ok) {
-    throw redirect({ to: "/register" });
-  }
-}
-
 async function redirectIfAuthenticated() {
   let res: Response;
   try {
@@ -70,7 +58,19 @@ async function redirectIfAuthenticated() {
 const indexRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/",
-  beforeLoad: requireAuthHome,
+  loader: async () => {
+    let res: Response;
+    try {
+      res = await fetch("/api/v1/session");
+    } catch {
+      return { registrationDate: null };
+    }
+    if (!res.ok) {
+      throw redirect({ to: "/register" });
+    }
+    const data = (await res.json()) as { registrationDate: string | null };
+    return { registrationDate: data.registrationDate };
+  },
   component: App,
 });
 

@@ -27,6 +27,7 @@ export interface AuthRepository {
   findSession(
     id: string,
   ): Promise<{ patientId: string; expiresAt: string } | null>;
+  findPatientCreatedAt(patientId: string): Promise<string | null>;
   deleteSession(id: string): Promise<void>;
   findUnverifiedPatientsBefore(cutoff: string): Promise<{ id: string }[]>;
   deletePatient(patientId: string): Promise<void>;

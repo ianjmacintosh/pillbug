@@ -56,6 +56,9 @@ export function makeInMemoryRepo(): AuthRepository {
     async deleteSession(id) {
       sessions.delete(id);
     },
+    async findPatientCreatedAt(patientId) {
+      return patients.get(patientId)?.createdAt ?? null;
+    },
     async findUnverifiedPatientsBefore(cutoff) {
       return [...patients.values()]
         .filter((p) => p.lastLoginAt === null && p.createdAt <= cutoff)

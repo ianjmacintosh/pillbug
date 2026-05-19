@@ -383,7 +383,14 @@ describe("GET /api/v1/session", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true, patientId: "patient-1" });
+    const body = (await response.json()) as {
+      ok: boolean;
+      patientId: string;
+      registrationDate: string | null;
+    };
+    expect(body.ok).toBe(true);
+    expect(body.patientId).toBe("patient-1");
+    expect(body.registrationDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });
 
