@@ -2,31 +2,11 @@ import { getPlatformProxy } from "wrangler";
 import type { D1Database } from "@cloudflare/workers-types";
 import { expect, test, type Page } from "@playwright/test";
 import { hashEmail } from "../worker/email-crypto";
-
-// Single shared patient for all prescription E2E tests.
-// login/silent creates the account on first run; subsequent runs reuse it.
-const SHARED_EMAIL = "delivered+e2e-prescriptions@resend.dev";
+import { getLatestToken } from "./helpers";
+import { PRESCRIPTIONS_PATIENT_EMAIL } from "./test-accounts";
 
 interface Env {
   DB: D1Database;
-}
-
-async function getLatestToken(email: string): Promise<string> {
-  const { env, dispose } = await getPlatformProxy<Env>({
-    environment: "staging",
-  });
-  try {
-    const emailLookup = await hashEmail(email, process.env.EMAIL_SECRET!);
-    const row = await env.DB.prepare(
-      "SELECT t.token FROM magic_link_tokens t JOIN patients p ON t.patient_id = p.id WHERE p.email_lookup = ? ORDER BY t.rowid DESC LIMIT 1",
-    )
-      .bind(emailLookup)
-      .first<{ token: string }>();
-    if (!row) throw new Error(`No token found for ${email}`);
-    return row.token;
-  } finally {
-    await dispose();
-  }
 }
 
 async function clearPrescriptions(): Promise<void> {
@@ -35,7 +15,7 @@ async function clearPrescriptions(): Promise<void> {
   });
   try {
     const emailLookup = await hashEmail(
-      SHARED_EMAIL,
+      PRESCRIPTIONS_PATIENT_EMAIL,
       process.env.EMAIL_SECRET!,
     );
     await env.DB.prepare(
@@ -50,9 +30,9 @@ async function clearPrescriptions(): Promise<void> {
 
 async function login(page: Page): Promise<void> {
   await page.request.post("/api/v1/login/silent", {
-    data: { email: SHARED_EMAIL },
+    data: { email: PRESCRIPTIONS_PATIENT_EMAIL },
   });
-  const token = await getLatestToken(SHARED_EMAIL);
+  const token = await getLatestToken(PRESCRIPTIONS_PATIENT_EMAIL);
   await page.goto(`/verify?token=${token}`);
   await expect(page).toHaveURL("/");
   await page.goto("/prescriptions");

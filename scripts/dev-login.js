@@ -1,5 +1,6 @@
 import { execFileSync } from "child_process";
 
+// Keep in sync with ALICE_EMAIL in e2e/test-accounts.ts.
 const EMAIL = "test-user-alice@pillbug.ianjmacintosh.com";
 const env = process.argv.includes("--env")
   ? process.argv[process.argv.indexOf("--env") + 1]
