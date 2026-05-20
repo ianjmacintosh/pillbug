@@ -30,7 +30,7 @@ The event that activates a Patient's account — their first successful Verifica
 _Avoid_: Email confirmation, Account activation, Email validation
 
 **Verification Code**:
-A 4-digit numeric code included in verification and login emails alongside the magic link. Displayed prominently in the email; the Patient enters it on the Enter Code screen to create a session on the device of their choosing, without clicking the magic link. Valid for the same 20-minute window as the associated token. Stored as an HMAC-SHA256 hash in `magic_link_tokens.pin_hash`. After 5 failed entries the code is permanently locked — the magic link in the email remains valid as a fallback. The Verification Code and magic link are two paths to the same outcome; using either one does not invalidate the other, but a successful redemption via magic link marks the token used, preventing further code entry.
+A 4-digit numeric code included in verification and login emails alongside the magic link. Displayed prominently in the email; the Patient enters it on the Enter Code screen to create a session on the device of their choosing, without clicking the magic link. Valid for the same 20-minute window as the associated token. Stored as a hash in `magic_link_tokens.pin_hash`. After 5 failed entries the code is permanently locked — the magic link in the email remains valid as a fallback. The Verification Code and magic link are two paths to the same outcome; using either one does not invalidate the other, but a successful redemption via magic link marks the token used, preventing further code entry.
 _Avoid_: PIN, OTP, One-time password
 
 **Enter Code Screen**:
@@ -163,7 +163,7 @@ erDiagram
         TEXT id PK
     }
 
-    patients ||--o{ magic_link_tokens : "authenticates via"
+    patients |o--o{ magic_link_tokens : "authenticates via"
     patients ||--o{ sessions : "is active in"
     patients ||--o{ prescriptions : "manages"
     patients ||--o{ doses : "logs"
@@ -185,9 +185,11 @@ erDiagram
 
     magic_link_tokens {
         TEXT token PK
-        TEXT patient_id FK
+        TEXT patient_id FK "nullable"
         TEXT expires_at "NOT NULL"
         TEXT used_at "nullable"
+        TEXT pin_hash "NOT NULL"
+        INTEGER failed_attempts "NOT NULL"
     }
 
     sessions {
@@ -210,7 +212,7 @@ erDiagram
 | `email_encrypted`   | AES-GCM ciphertext of the email address — decrypted only for display                |
 | `terms_accepted_at` | When the Patient accepted the Terms of Service at Registration                      |
 | `created_at`        | When the Patient record was created                                                 |
-| `last_login_at`     | Most recent magic link redemption; `NULL` means the Patient is Unverified           |
+| `last_login_at`     | Most recent successful login; `NULL` means the Patient is Unverified                |
 
 **magic_link_tokens**
 
@@ -220,7 +222,7 @@ erDiagram
 | `patient_id`      | Owning Patient; cascades on delete                                                                       |
 | `expires_at`      | Token validity deadline (20-minute window from issue)                                                    |
 | `used_at`         | When the token was redeemed via magic link; `NULL` means unused                                          |
-| `pin_hash`        | HMAC-SHA256 of the 4-digit Verification Code; set at token creation                                      |
+| `pin_hash`        | Hash of the 4-digit Verification Code; set at token creation                                             |
 | `failed_attempts` | Count of incorrect Verification Code submissions; the code is locked (returns `locked`) when this hits 5 |
 
 **sessions**
