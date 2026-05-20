@@ -199,6 +199,31 @@ describe("verifyPin", () => {
       (await repo.findPatientByEmail("a@b.com"))?.lastLoginAt,
     ).not.toBeNull();
   });
+
+  test("deletes other unused tokens for the patient on success", async () => {
+    const repo = makeInMemoryRepo();
+    await repo.createPatient("p1", "a@b.com", new Date().toISOString());
+    const expiresAt = new Date(Date.now() + 20 * 60 * 1000).toISOString();
+    await repo.createToken("tok1", "p1", expiresAt, "1111");
+    await repo.createToken("tok2", "p1", expiresAt, "2222");
+
+    await verifyPin("tok1", "1111", repo, identityHash);
+
+    expect(await repo.findToken("tok2")).toBeNull();
+  });
+
+  test("does not delete tokens belonging to other patients on success", async () => {
+    const repo = makeInMemoryRepo();
+    await repo.createPatient("p1", "a@b.com", new Date().toISOString());
+    await repo.createPatient("p2", "b@b.com", new Date().toISOString());
+    const expiresAt = new Date(Date.now() + 20 * 60 * 1000).toISOString();
+    await repo.createToken("tok1", "p1", expiresAt, "1111");
+    await repo.createToken("tok2", "p2", expiresAt, "2222");
+
+    await verifyPin("tok1", "1111", repo, identityHash);
+
+    expect(await repo.findToken("tok2")).not.toBeNull();
+  });
 });
 
 describe("createSession", () => {

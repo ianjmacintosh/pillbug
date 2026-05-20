@@ -127,5 +127,21 @@ export function makeD1AuthRepo(
         .bind(patientId)
         .run();
     },
+    async deleteUnusedTokensForPatient(patientId) {
+      await db
+        .prepare(
+          "DELETE FROM magic_link_tokens WHERE patient_id = ? AND used_at IS NULL",
+        )
+        .bind(patientId)
+        .run();
+    },
+    async deleteExpiredAndUsedTokens(cutoff) {
+      await db
+        .prepare(
+          "DELETE FROM magic_link_tokens WHERE expires_at < ? OR used_at IS NOT NULL",
+        )
+        .bind(cutoff)
+        .run();
+    },
   };
 }

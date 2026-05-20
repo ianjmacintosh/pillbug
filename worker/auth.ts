@@ -35,6 +35,8 @@ export interface AuthRepository {
   deleteSession(id: string): Promise<void>;
   findUnverifiedPatientsBefore(cutoff: string): Promise<{ id: string }[]>;
   deletePatient(patientId: string): Promise<void>;
+  deleteUnusedTokensForPatient(patientId: string): Promise<void>;
+  deleteExpiredAndUsedTokens(cutoff: string): Promise<void>;
 }
 
 export interface EmailSender {
@@ -145,6 +147,7 @@ export async function verifyPin(
   const now = new Date().toISOString();
   await repo.markTokenUsed(token, now);
   await repo.updateLastLoginAt(record.patientId, now);
+  await repo.deleteUnusedTokensForPatient(record.patientId);
   return { ok: true, patientId: record.patientId };
 }
 

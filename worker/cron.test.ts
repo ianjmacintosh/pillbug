@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { deleteStaleUnverifiedPatients } from "./cron";
+import { deleteStaleUnverifiedPatients, deleteExpiredTokens } from "./cron";
 import { makeInMemoryRepo } from "./test/auth-helpers";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -73,5 +73,41 @@ describe("deleteStaleUnverifiedPatients", () => {
     expect(
       await repo.findPatientByEmail("delivered+cron-test@resend.dev"),
     ).not.toBeNull();
+  });
+});
+
+describe("deleteExpiredTokens", () => {
+  test("deletes expired tokens", async () => {
+    const repo = makeInMemoryRepo();
+    await repo.createPatient("p1", "a@b.com", new Date().toISOString());
+    const pastExpiresAt = new Date(Date.now() - 1).toISOString();
+    await repo.createToken("tok-expired", "p1", pastExpiresAt, "1234");
+
+    await deleteExpiredTokens(repo, new Date().toISOString());
+
+    expect(await repo.findToken("tok-expired")).toBeNull();
+  });
+
+  test("deletes used tokens", async () => {
+    const repo = makeInMemoryRepo();
+    await repo.createPatient("p1", "a@b.com", new Date().toISOString());
+    const expiresAt = new Date(Date.now() + 20 * 60 * 1000).toISOString();
+    await repo.createToken("tok-used", "p1", expiresAt, "1234");
+    await repo.markTokenUsed("tok-used", new Date().toISOString());
+
+    await deleteExpiredTokens(repo, new Date().toISOString());
+
+    expect(await repo.findToken("tok-used")).toBeNull();
+  });
+
+  test("retains valid unused tokens", async () => {
+    const repo = makeInMemoryRepo();
+    await repo.createPatient("p1", "a@b.com", new Date().toISOString());
+    const expiresAt = new Date(Date.now() + 20 * 60 * 1000).toISOString();
+    await repo.createToken("tok-valid", "p1", expiresAt, "1234");
+
+    await deleteExpiredTokens(repo, new Date().toISOString());
+
+    expect(await repo.findToken("tok-valid")).not.toBeNull();
   });
 });

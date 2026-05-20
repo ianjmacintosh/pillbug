@@ -89,6 +89,17 @@ export function makeInMemoryRepo(): AuthRepository {
         if (s.patientId === patientId) sessions.delete(id);
       }
     },
+    async deleteUnusedTokensForPatient(patientId) {
+      for (const [token, t] of tokens) {
+        if (t.patientId === patientId && t.usedAt === null)
+          tokens.delete(token);
+      }
+    },
+    async deleteExpiredAndUsedTokens(cutoff) {
+      for (const [token, t] of tokens) {
+        if (t.expiresAt < cutoff || t.usedAt !== null) tokens.delete(token);
+      }
+    },
   };
 }
 

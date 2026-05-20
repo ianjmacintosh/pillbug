@@ -8,7 +8,7 @@ import {
   deleteSession,
 } from "./auth";
 import { hashPin as hashPinFn } from "./email-crypto";
-import { deleteStaleUnverifiedPatients } from "./cron";
+import { deleteStaleUnverifiedPatients, deleteExpiredTokens } from "./cron";
 import { Resend } from "resend";
 import { makeD1AuthRepo } from "./d1-auth-repo";
 import { makeD1PrescriptionRepo } from "./d1-prescriptions-repo";
@@ -90,11 +90,13 @@ export default {
   },
 
   async scheduled(controller: ScheduledController, env: Env): Promise<void> {
+    const repo = makeD1AuthRepo(env.DB, env.EMAIL_SECRET);
+    const now = new Date(controller.scheduledTime).toISOString();
     const cutoffDate = new Date(
       controller.scheduledTime - 7 * 24 * 60 * 60 * 1000,
     ).toISOString();
-    const repo = makeD1AuthRepo(env.DB, env.EMAIL_SECRET);
     await deleteStaleUnverifiedPatients(repo, cutoffDate);
+    await deleteExpiredTokens(repo, now);
   },
 };
 
