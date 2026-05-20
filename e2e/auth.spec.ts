@@ -1,10 +1,7 @@
 import { getPlatformProxy } from "wrangler";
 import type { D1Database } from "@cloudflare/workers-types";
 import { expect, test } from "@playwright/test";
-
-// Cloudflare Turnstile dummy token produced by the always-passes test sitekey.
-// Only validates against the test secret key (1x0000000000000000000000000000000AA).
-const TURNSTILE_DUMMY_TOKEN = "XXXX.DUMMY.TOKEN.XXXX";
+import { setKnownPin, TURNSTILE_DUMMY_TOKEN, TEST_PIN } from "./helpers";
 
 interface Env {
   DB: D1Database;
@@ -29,8 +26,12 @@ async function silentLogin(
   email: string,
   request: Parameters<Parameters<typeof test>[1]>[0]["request"],
 ): Promise<{ token: string; pin: string }> {
-  const res = await request.post("/api/v1/login/silent", { data: { email } });
-  return res.json() as Promise<{ token: string; pin: string }>;
+  const res = await request.post("/api/v1/login", {
+    data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
+  });
+  const { token } = (await res.json()) as { token: string };
+  await setKnownPin(token);
+  return { token, pin: TEST_PIN };
 }
 
 test.describe("POST /api/v1/register", () => {
