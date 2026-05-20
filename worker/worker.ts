@@ -141,7 +141,12 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
             sendLoginEmail: async () => {},
           }
         : makeResendEmailSender(env.RESEND_API_KEY, url.origin);
-    const { token } = await registerPatient(email, repo, emailSender, hashPin);
+    const { token } = await registerPatient(
+      email.trim(),
+      repo,
+      emailSender,
+      hashPin,
+    );
     return new Response(JSON.stringify({ ok: true, token }), {
       headers: { "Content-Type": "application/json" },
     });
@@ -169,7 +174,12 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
             sendLoginEmail: async () => {},
           }
         : makeResendEmailSender(env.RESEND_API_KEY, url.origin);
-    const { token } = await sendLoginLink(email, repo, emailSender, hashPin);
+    const { token } = await sendLoginLink(
+      email.trim(),
+      repo,
+      emailSender,
+      hashPin,
+    );
     return new Response(JSON.stringify({ ok: true, token }), {
       headers: { "Content-Type": "application/json" },
     });
