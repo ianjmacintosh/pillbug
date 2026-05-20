@@ -1,24 +1,25 @@
 import { getPlatformProxy } from "wrangler";
 import type { D1Database } from "@cloudflare/workers-types";
-import { hashEmail } from "../worker/email-crypto";
+import { hashPin } from "../worker/email-crypto";
 
 interface Env {
   DB: D1Database;
 }
 
-export async function getLatestToken(email: string): Promise<string> {
+export const TURNSTILE_DUMMY_TOKEN = "XXXX.DUMMY.TOKEN.XXXX";
+export const TEST_PIN = "1234";
+
+export async function setKnownPin(token: string): Promise<void> {
   const { env, dispose } = await getPlatformProxy<Env>({
     environment: "staging",
   });
   try {
-    const emailLookup = await hashEmail(email, process.env.EMAIL_SECRET!);
-    const row = await env.DB.prepare(
-      "SELECT t.token FROM magic_link_tokens t JOIN patients p ON t.patient_id = p.id WHERE p.email_lookup = ? ORDER BY t.rowid DESC LIMIT 1",
+    const pinHash = await hashPin(TEST_PIN, process.env.PIN_SECRET!);
+    await env.DB.prepare(
+      "UPDATE magic_link_tokens SET pin_hash = ? WHERE token = ?",
     )
-      .bind(emailLookup)
-      .first<{ token: string }>();
-    if (!row) throw new Error(`No token found for ${email}`);
-    return row.token;
+      .bind(pinHash, token)
+      .run();
   } finally {
     await dispose();
   }
