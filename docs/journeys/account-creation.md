@@ -1,5 +1,7 @@
 # Account Creation
 
+> **Note:** This journey was written before the switch from magic link to Verification Code login. Stage 8 ("Find Link") and the key risk note reflect the old flow. The current flow asks the Patient to enter a 4-digit code instead of tapping a link.
+
 ```mermaid
 xychart-beta
     title "Account Creation"

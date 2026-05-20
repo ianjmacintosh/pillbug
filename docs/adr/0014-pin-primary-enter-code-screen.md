@@ -6,7 +6,7 @@ We introduced a 4-digit Verification Code and an Enter Code screen as the primar
 
 ## Decisions
 
-**PIN-primary, magic link as in-email fallback only.** The Enter Code screen is the default post-registration and post-login destination. The magic link is not surfaced on the Enter Code screen — it appears only in the email as a "can't enter the code?" escape hatch. Presenting both options equally on-screen was rejected as likely to confuse Patients about which to use.
+**Enter Code screen as the primary path; pre-filled link kept off-screen.** The Enter Code screen is the default post-registration and post-login destination. The pre-filled link that auto-submits the code is not surfaced on the Enter Code screen — it appears only in the email as a "can't enter the code?" convenience. Presenting both options equally on-screen was rejected as likely to confuse Patients about which to use.
 
 **4-digit numeric Verification Code.** Short enough to transcribe easily from a phone screen to a desktop. The small keyspace (10,000 combinations) is mitigated by the 5-attempt lockout and the 20-minute token TTL. A longer code would reduce brute-force risk marginally but increase transcription friction meaningfully for a health-sensitive context where the Patient may be reading from one device while typing on another.
 
@@ -16,7 +16,7 @@ We introduced a 4-digit Verification Code and an Enter Code screen as the primar
 
 **5-attempt lockout applies to all paths.** After 5 failed code entries, `failed_attempts` reaches 5 and the token is permanently locked — subsequent attempts (typed or via the pre-filled link) return `{ error: "locked" }`. Because the in-email link carries the Verification Code in the URL and resolves through the same endpoint, lockout blocks both. A locked Patient's only path forward is to request a new code from `/login`. This is acceptable: the lockout is per-token, not per-account, and the 20-minute TTL already limits the damage window.
 
-**Four distinct error states: `invalid`, `expired`, `used`, `locked`.** Each maps to a specific UI message on the Enter Code screen. `used` means the token was already redeemed (likely via magic link on another device); `locked` means too many failed code entries. Collapsing these into a single error was rejected because the recovery path differs: `used` → "you may already be logged in elsewhere, log in here"; `locked` → "too many attempts, request a new link."
+**Four distinct error states: `invalid`, `expired`, `used`, `locked`.** Each maps to a specific UI message on the Enter Code screen. `used` means the token was already redeemed (likely on another device); `locked` means too many failed code entries. Collapsing these into a single error was rejected because the recovery path differs: `used` → "you may already be logged in elsewhere, log in here"; `locked` → "too many attempts, request a new link."
 
 **Same flow for registration and login.** Both redirect to `/enter-code?token=<uuid>` after form submission. Only the email copy differs. Diverging the two flows was rejected as added complexity with no benefit.
 

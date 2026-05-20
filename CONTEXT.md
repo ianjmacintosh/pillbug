@@ -218,7 +218,7 @@ erDiagram
 
 | Column            | Description                                                                                              |
 | ----------------- | -------------------------------------------------------------------------------------------------------- |
-| `token`           | Opaque token included in the magic link URL and the Enter Code screen URL                                |
+| `token`           | Opaque token included in the Enter Code screen URL                                                       |
 | `patient_id`      | Owning Patient; cascades on delete                                                                       |
 | `expires_at`      | Token validity deadline (20-minute window from issue)                                                    |
 | `used_at`         | When the token was successfully verified; `NULL` means unused                                            |
