@@ -4,8 +4,8 @@ import { useSearch } from "@tanstack/react-router";
 type ErrorCode = "invalid" | "expired" | "used" | "locked";
 
 const ERROR_MESSAGES: Record<ErrorCode, string> = {
-  invalid: "Incorrect code. Please try again.",
-  expired: "This code has expired.",
+  invalid: "That login code has expired, please request a new one.",
+  expired: "That login code has expired, please request a new one.",
   used: "This code has already been used.",
   locked: "Too many incorrect attempts. This code is locked.",
 };
