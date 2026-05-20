@@ -14,17 +14,19 @@ const d1Flags = isStaging
   ? ["--env", "staging", "--remote"]
   : ["--env", "staging", "--local"];
 
-const response = await fetch(`${baseUrl}/api/v1/login/silent`, {
+const response = await fetch(`${baseUrl}/api/v1/login`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ email: EMAIL }),
+  body: JSON.stringify({
+    email: EMAIL,
+    turnstileToken: "XXXX.DUMMY.TOKEN.XXXX",
+  }),
 });
 if (!response.ok) {
   const body = await response.text();
-  throw new Error(
-    `POST /api/v1/login/silent failed: ${response.status} ${body}`,
-  );
+  throw new Error(`POST /api/v1/login failed: ${response.status} ${body}`);
 }
+const { token } = await response.json();
 
 const output = execFileSync(
   "wrangler",
@@ -34,14 +36,13 @@ const output = execFileSync(
     "pillbug-staging",
     ...d1Flags,
     "--command",
-    "SELECT token, pin_hash FROM magic_link_tokens WHERE used_at IS NULL ORDER BY rowid DESC LIMIT 1",
+    `SELECT pin_hash FROM magic_link_tokens WHERE token = '${token}'`,
     "--json",
   ],
   { encoding: "utf8" },
 );
 
-const { token, pin_hash: pinHash } = JSON.parse(output)[0].results[0];
-console.log(`${baseUrl}/verify?token=${token}`);
+const { pin_hash: pinHash } = JSON.parse(output)[0].results[0];
 
 if (pinHash && process.env.PIN_SECRET) {
   const pin = await findPin(pinHash, process.env.PIN_SECRET);

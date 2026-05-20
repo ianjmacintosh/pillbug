@@ -2,6 +2,7 @@ import { getPlatformProxy } from "wrangler";
 import type { D1Database } from "@cloudflare/workers-types";
 import { expect, test, type Page } from "@playwright/test";
 import { hashEmail } from "../worker/email-crypto";
+import { setKnownPin, TURNSTILE_DUMMY_TOKEN, TEST_PIN } from "./helpers";
 import { PRESCRIPTIONS_PATIENT_EMAIL } from "./test-accounts";
 
 interface Env {
@@ -28,11 +29,15 @@ async function clearPrescriptions(): Promise<void> {
 }
 
 async function login(page: Page): Promise<void> {
-  const res = await page.request.post("/api/v1/login/silent", {
-    data: { email: PRESCRIPTIONS_PATIENT_EMAIL },
+  const res = await page.request.post("/api/v1/login", {
+    data: {
+      email: PRESCRIPTIONS_PATIENT_EMAIL,
+      turnstileToken: TURNSTILE_DUMMY_TOKEN,
+    },
   });
-  const { token, pin } = (await res.json()) as { token: string; pin: string };
-  await page.goto(`/enter-code?token=${token}&pin=${pin}`);
+  const { token } = (await res.json()) as { token: string };
+  await setKnownPin(token);
+  await page.goto(`/enter-code?token=${token}&pin=${TEST_PIN}`);
   await expect(page).toHaveURL("/");
   await page.goto("/prescriptions");
 }

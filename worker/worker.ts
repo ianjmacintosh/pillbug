@@ -1,5 +1,4 @@
 import {
-  generateLoginToken,
   registerPatient,
   sendLoginLink,
   verifyPin,
@@ -144,14 +143,6 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
         : makeResendEmailSender(env.RESEND_API_KEY, url.origin);
     const { token } = await registerPatient(email, repo, emailSender, hashPin);
     return new Response(JSON.stringify({ ok: true, token }), {
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  if (url.pathname === "/api/v1/login/silent" && request.method === "POST") {
-    const { email } = await request.json<{ email: string }>();
-    const { token, pin } = await generateLoginToken(email, repo, hashPin);
-    return new Response(JSON.stringify({ ok: true, token, pin }), {
       headers: { "Content-Type": "application/json" },
     });
   }
