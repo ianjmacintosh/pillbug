@@ -59,7 +59,7 @@ The Turnstile token is obtained from the widget rendered on the `/register` page
 
 ### `POST /api/v1/login`
 
-Sends a sign-in email with a 4-digit PIN to an existing Patient. If the email is not registered, returns a random (unstored) token with no email sent — the token returns `invalid` if submitted, preserving email enumeration protection.
+Sends a sign-in email with a 4-digit PIN to an existing Patient. If the email is not registered, stores a decoy token (no `patient_id`, no email sent) and returns its UUID — the token returns `invalid` if submitted, preserving email enumeration protection.
 
 **Request**
 
