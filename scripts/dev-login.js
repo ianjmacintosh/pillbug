@@ -2,6 +2,8 @@ import { execFileSync } from "child_process";
 
 // Keep in sync with ALICE_EMAIL in e2e/test-accounts.ts.
 const EMAIL = "test-user-alice@pillbug.ianjmacintosh.com";
+const TEST_PIN = "1234";
+
 const env = process.argv.includes("--env")
   ? process.argv[process.argv.indexOf("--env") + 1]
   : "local";
@@ -28,7 +30,12 @@ if (!response.ok) {
 }
 const { token } = await response.json();
 
-const output = execFileSync(
+if (!process.env.PIN_SECRET) {
+  throw new Error("PIN_SECRET must be set in your environment");
+}
+const pinHash = await hashPin(TEST_PIN, process.env.PIN_SECRET);
+
+execFileSync(
   "wrangler",
   [
     "d1",
@@ -36,25 +43,15 @@ const output = execFileSync(
     "pillbug-staging",
     ...d1Flags,
     "--command",
-    `SELECT pin_hash FROM magic_link_tokens WHERE token = '${token}'`,
-    "--json",
+    `UPDATE magic_link_tokens SET pin_hash = '${pinHash}' WHERE token = '${token}'`,
   ],
   { encoding: "utf8" },
 );
 
-const { pin_hash: pinHash } = JSON.parse(output)[0].results[0];
+console.log(`${baseUrl}/enter-code?token=${token}`);
+console.log(`PIN: ${TEST_PIN}`);
 
-if (pinHash && process.env.PIN_SECRET) {
-  const pin = await findPin(pinHash, process.env.PIN_SECRET);
-  if (pin) {
-    console.log(`${baseUrl}/enter-code?token=${token}`);
-    console.log(`PIN: ${pin}`);
-  }
-} else if (pinHash) {
-  console.log("(set PIN_SECRET in your environment to also resolve the PIN)");
-}
-
-async function findPin(targetHash, secret) {
+async function hashPin(pin, secret) {
   const keyMaterial = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
@@ -74,17 +71,12 @@ async function findPin(targetHash, secret) {
     false,
     ["sign"],
   );
-  for (let i = 0; i < 10000; i++) {
-    const pin = String(i).padStart(4, "0");
-    const sig = await crypto.subtle.sign(
-      "HMAC",
-      key,
-      new TextEncoder().encode(pin),
-    );
-    const hash = [...new Uint8Array(sig)]
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
-    if (hash === targetHash) return pin;
-  }
-  return null;
+  const sig = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(pin),
+  );
+  return [...new Uint8Array(sig)]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
