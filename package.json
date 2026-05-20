@@ -8,6 +8,7 @@
     "dev:wrangler": "wrangler dev --config wrangler.jsonc --env staging --ip 0.0.0.0",
     "dev:login": "node --env-file=.env scripts/dev-login.js",
     "db:migrate:local": "wrangler d1 migrations apply pillbug-staging --env staging --local",
+    "db:seed:local": "node scripts/seed-test-accounts.js",
     "db:reset:local": "ss -tlnp 2>/dev/null | grep -q :5173 && echo 'Stop the dev server before resetting the database.' && exit 1; rm -rf .wrangler/state/v3/d1 && npm run db:migrate:local",
     "dev:remote": "wrangler dev --env staging --remote",
     "deploy": "npm run deploy:production",
