@@ -50,6 +50,15 @@ export function makeD1AuthRepo(
         .run();
     },
 
+    async createDecoyToken(token, expiresAt) {
+      await db
+        .prepare(
+          "INSERT INTO magic_link_tokens (token, patient_id, expires_at, pin_hash) VALUES (?, NULL, ?, '')",
+        )
+        .bind(token, expiresAt)
+        .run();
+    },
+
     async findToken(token) {
       return db
         .prepare(
@@ -57,7 +66,7 @@ export function makeD1AuthRepo(
         )
         .bind(token)
         .first<{
-          patientId: string;
+          patientId: string | null;
           expiresAt: string;
           usedAt: string | null;
           failedAttempts: number;

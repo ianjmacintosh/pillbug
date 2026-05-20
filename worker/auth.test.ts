@@ -83,7 +83,7 @@ describe("sendLoginLink", () => {
     expect(result.token).toBe(email.sent[0].token);
   });
 
-  test("returns a random token for unregistered email without sending email", async () => {
+  test("returns a token for unregistered email without sending email", async () => {
     const repo = makeInMemoryRepo();
     const email = makeEmailSpy();
 
@@ -98,6 +98,27 @@ describe("sendLoginLink", () => {
     expect(result.ok).toBe(true);
     expect(typeof result.token).toBe("string");
     expect(result.token.length).toBeGreaterThan(0);
+    expect(await repo.findToken(result.token)).not.toBeNull();
+  });
+
+  test("decoy token for unregistered email returns invalid for any PIN", async () => {
+    const repo = makeInMemoryRepo();
+    const email = makeEmailSpy();
+
+    const result = await sendLoginLink(
+      "unknown@resend.dev",
+      repo,
+      email.sender,
+      identityHash,
+    );
+
+    const verification = await verifyPin(
+      result.token,
+      "1234",
+      repo,
+      identityHash,
+    );
+    expect(verification).toEqual({ error: "invalid" });
   });
 });
 

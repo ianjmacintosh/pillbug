@@ -14,7 +14,7 @@ export function makeInMemoryRepo(): AuthRepository {
   const tokens = new Map<
     string,
     {
-      patientId: string;
+      patientId: string | null;
       expiresAt: string;
       usedAt: string | null;
       pinHash: string;
@@ -49,6 +49,15 @@ export function makeInMemoryRepo(): AuthRepository {
         expiresAt,
         usedAt: null,
         pinHash,
+        failedAttempts: 0,
+      });
+    },
+    async createDecoyToken(token, expiresAt) {
+      tokens.set(token, {
+        patientId: null,
+        expiresAt,
+        usedAt: null,
+        pinHash: "",
         failedAttempts: 0,
       });
     },

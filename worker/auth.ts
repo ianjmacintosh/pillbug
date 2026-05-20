@@ -14,8 +14,9 @@ export interface AuthRepository {
     expiresAt: string,
     pinHash: string,
   ): Promise<void>;
+  createDecoyToken(token: string, expiresAt: string): Promise<void>;
   findToken(token: string): Promise<{
-    patientId: string;
+    patientId: string | null;
     expiresAt: string;
     usedAt: string | null;
     failedAttempts: number;
@@ -122,7 +123,10 @@ export async function sendLoginLink(
     await emailSender.sendLoginEmail(email, token, pin);
     return { ok: true, token };
   }
-  return { ok: true, token: generateId() };
+  const token = generateId();
+  const expiresAt = new Date(Date.now() + TOKEN_TTL_MS).toISOString();
+  await repo.createDecoyToken(token, expiresAt);
+  return { ok: true, token };
 }
 
 export async function verifyPin(
@@ -144,6 +148,7 @@ export async function verifyPin(
     await repo.incrementFailedAttempts(token);
     return { error: "invalid" };
   }
+  if (!record.patientId) return { error: "invalid" };
   const now = new Date().toISOString();
   await repo.markTokenUsed(token, now);
   await repo.updateLastLoginAt(record.patientId, now);
