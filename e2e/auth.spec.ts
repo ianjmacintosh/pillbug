@@ -189,7 +189,7 @@ test("login form submits via UI and navigates to /enter-code", async ({
   await expect(page).toHaveURL(/\/enter-code\?token=/);
 });
 
-test("login for unregistered email navigates to /enter-code with a token that returns expired", async ({
+test("login for unregistered email navigates to /enter-code with a token that returns incorrect code", async ({
   page,
 }) => {
   const unknownEmail = `delivered+unknown-${Date.now()}@resend.dev`;
@@ -202,12 +202,10 @@ test("login for unregistered email navigates to /enter-code with a token that re
 
   await expect(page).toHaveURL(/\/enter-code\?token=/);
 
-  // The token is fake and not stored — any PIN shows the expired message
+  // A decoy token is stored — any PIN attempt shows the incorrect code message
   await page.getByLabel(/4-digit code/i).fill("1234");
   await page.getByRole("button", { name: /verify/i }).click();
-  await expect(page.getByRole("alert")).toContainText(
-    /that login code has expired/i,
-  );
+  await expect(page.getByRole("alert")).toContainText(/incorrect code/i);
 });
 
 test("/register?challenge loads the registration form with the Turnstile interactive challenge", async ({
