@@ -8,7 +8,7 @@ Document new routes here before implementing them. This is a living contract —
 - All JSON responses include `Content-Type: application/json`
 - Errors always return `{ "error": "<code>" }` — never bare strings or HTML
 - Authentication uses an `HttpOnly; SameSite=Lax` session cookie named `session` (30-day TTL)
-- Token TTL: 20 minutes (magic link validity window)
+- Token TTL: 20 minutes (Verification Code validity window)
 
 ---
 
@@ -139,7 +139,7 @@ Returns the current session state. Used by the client to check auth on page load
 
 ### `POST /api/v1/login/silent`
 
-Creates a Patient account if the email is not registered, then generates a magic link token without sending an email. The token is written to the database and can be retrieved via `wrangler d1 execute` for use at `GET /api/v1/auth/verify`. Intended for local and staging developer workflows — see `npm run dev:login`.
+Creates a Patient account if the email is not registered, then generates a token without sending an email. The `dev-login` script patches the DB to set a known PIN (`1234`) and prints the `/enter-code?token=<uuid>` URL for use in a browser. Intended for local and staging developer workflows — see `npm run dev:login`.
 
 **Request**
 
