@@ -24,7 +24,7 @@ When adding or removing an env var or secret, update all of these together:
 
 1. `.env.EXAMPLE` — the canonical list of all vars and their local dev values
 2. The relevant `.github/workflows/` file — so CI stays in sync with local setup
-3. Both Cloudflare Workers environments (`pillbug` and `pillbug-staging`) — they must carry the same set of secret names; values may differ (e.g. staging uses Turnstile test keys)
+3. Both Cloudflare Workers environments (`production` and `staging`, per `wrangler.jsonc`) — they must carry the same set of secret names; values may differ (e.g. staging uses Turnstile test keys). Use `wrangler secret put SECRET_NAME --env production` and `wrangler secret put SECRET_NAME --env staging`.
 4. GitHub repo settings — add or remove the secret under Settings → Secrets and variables → Actions
 5. `docs/testing.md` — if the change involves test keys or test-only values
 6. Cloudflare build environment variables — for any `VITE_` prefixed variable, set it in the Cloudflare dashboard build settings for both environments (these are baked into the frontend bundle at build time, not available to the Worker at runtime)

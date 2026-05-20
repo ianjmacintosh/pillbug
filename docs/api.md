@@ -73,6 +73,39 @@ Sends a magic link to an existing Patient. If the email is not registered, retur
 
 ---
 
+### `POST /api/v1/auth/verify-pin`
+
+Verifies a PIN-based token. Single-use; tokens expire after 20 minutes. After 5 failed attempts the token is locked and cannot be retried.
+
+**Request**
+
+```json
+{ "token": "<uuid>", "pin": "1234" }
+```
+
+**Response — 200** (success)
+
+Sets `session` cookie (HttpOnly, SameSite=Lax, 30-day TTL).
+
+```json
+{ "ok": true }
+```
+
+**Response — 400** (failure)
+
+```json
+{ "error": "invalid" | "expired" | "used" | "locked" }
+```
+
+| Code      | Meaning                                     |
+| --------- | ------------------------------------------- |
+| `invalid` | Token not found, or PIN does not match      |
+| `expired` | Token past its 20-minute window             |
+| `used`    | Token already redeemed                      |
+| `locked`  | 5 or more failed PIN attempts on this token |
+
+---
+
 ### `GET /api/v1/auth/verify?token=<token>`
 
 Redeems a magic link token. Single-use; tokens expire after 20 minutes.

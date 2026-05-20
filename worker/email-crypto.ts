@@ -1,4 +1,4 @@
-async function deriveHmacKey(secret: string): Promise<CryptoKey> {
+async function deriveHmacKey(secret: string, info: string): Promise<CryptoKey> {
   const keyMaterial = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
@@ -11,7 +11,7 @@ async function deriveHmacKey(secret: string): Promise<CryptoKey> {
       name: "HKDF",
       hash: "SHA-256",
       salt: new Uint8Array(32),
-      info: new TextEncoder().encode("email-lookup"),
+      info: new TextEncoder().encode(info),
     },
     keyMaterial,
     { name: "HMAC", hash: "SHA-256" },
@@ -60,11 +60,21 @@ export async function hashEmail(
   email: string,
   secret: string,
 ): Promise<string> {
-  const key = await deriveHmacKey(secret);
+  const key = await deriveHmacKey(secret, "email-lookup");
   const signature = await crypto.subtle.sign(
     "HMAC",
     key,
     new TextEncoder().encode(email),
+  );
+  return toHex(signature);
+}
+
+export async function hashPin(pin: string, secret: string): Promise<string> {
+  const key = await deriveHmacKey(secret, "pin-verification");
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(pin),
   );
   return toHex(signature);
 }

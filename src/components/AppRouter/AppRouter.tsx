@@ -18,6 +18,7 @@ import Privacy from "../Privacy";
 import Register from "../Register";
 import Settings from "../Settings";
 import Terms from "../Terms";
+import EnterCode from "../EnterCode";
 import Verify from "../Verify";
 
 const rootRoute = createRootRoute({
@@ -141,6 +142,12 @@ const verifyRoute = createRoute({
   component: Verify,
 });
 
+const enterCodeRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: "/enter-code",
+  component: EnterCode,
+});
+
 const routeTree = rootRoute.addChildren([
   layoutRoute.addChildren([
     indexRoute,
@@ -154,6 +161,7 @@ const routeTree = rootRoute.addChildren([
     prescriptionsRoute,
     logoutRoute,
     verifyRoute,
+    enterCodeRoute,
   ]),
 ]);
 

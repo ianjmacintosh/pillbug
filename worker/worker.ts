@@ -3,10 +3,12 @@ import {
   registerPatient,
   sendLoginLink,
   verifyToken,
+  verifyPin,
   createSession,
   getSession,
   deleteSession,
 } from "./auth";
+import { hashPin as hashPinFn } from "./email-crypto";
 import { deleteStaleUnverifiedPatients } from "./cron";
 import { Resend } from "resend";
 import { makeD1AuthRepo } from "./d1-auth-repo";
@@ -33,6 +35,7 @@ interface Env {
   APP_URL: string;
   TURNSTILE_SECRET_KEY: string;
   EMAIL_SECRET: string;
+  PIN_SECRET: string;
   EMAIL_MOCK?: string;
 }
 
@@ -100,6 +103,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const secure = url.protocol === "https:";
   const repo = makeD1AuthRepo(env.DB, env.EMAIL_SECRET);
+  const hashPin = (pin: string) => hashPinFn(pin, env.PIN_SECRET);
   const prescriptionRepo = makeD1PrescriptionRepo(env.DB);
   const doseRepo = makeD1DoseRepo(env.DB);
 
@@ -137,7 +141,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
             sendLoginEmail: async () => {},
           }
         : makeResendEmailSender(env.RESEND_API_KEY, url.origin);
-    await registerPatient(email, repo, emailSender);
+    await registerPatient(email, repo, emailSender, hashPin);
     return new Response(JSON.stringify({ ok: true }), {
       headers: { "Content-Type": "application/json" },
     });
@@ -145,7 +149,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
 
   if (url.pathname === "/api/v1/login/silent" && request.method === "POST") {
     const { email } = await request.json<{ email: string }>();
-    await generateLoginToken(email, repo);
+    await generateLoginToken(email, repo, hashPin);
     return new Response(JSON.stringify({ ok: true }), {
       headers: { "Content-Type": "application/json" },
     });
@@ -173,9 +177,28 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
             sendLoginEmail: async () => {},
           }
         : makeResendEmailSender(env.RESEND_API_KEY, url.origin);
-    await sendLoginLink(email, repo, emailSender);
+    await sendLoginLink(email, repo, emailSender, hashPin);
     return new Response(JSON.stringify({ ok: true }), {
       headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (url.pathname === "/api/v1/auth/verify-pin" && request.method === "POST") {
+    const { token, pin } = await request.json<{ token: string; pin: string }>();
+    const result = await verifyPin(token, pin, repo, hashPin);
+    if ("error" in result) {
+      return new Response(JSON.stringify({ error: result.error }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const sessionId = await createSession(result.patientId, repo);
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Set-Cookie": sessionCookie(sessionId, secure),
+      },
     });
   }
 

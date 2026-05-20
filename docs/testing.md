@@ -47,13 +47,13 @@ The foreign key gap is the most dangerous for migrations. When FK enforcement is
 
 The E2E suite runs against a local Wrangler dev server with local SQLite. It does not run against the deployed staging or production Workers. This is intentional for speed and isolation, but it creates blind spots:
 
-| Scenario                                                                                               | Caught by CI? | How to catch it                                                |
-| ------------------------------------------------------------------------------------------------------ | ------------- | -------------------------------------------------------------- |
-| Missing `CLOUDFLARE_ENV` at build time → no D1 binding                                                 | No            | Manual registration smoke test on staging after deploy         |
-| Missing `VITE_TURNSTILE_SITE_KEY` at build time → broken Turnstile widget                              | No            | Manual registration smoke test on staging after deploy         |
-| Turnstile site key not authorized for deployed hostname (error 110200)                                 | No            | Manual registration smoke test on staging after deploy         |
-| Wrong `RESEND_API_KEY` / `EMAIL_SECRET` / `TURNSTILE_SECRET_KEY` / `CLOUDFLARE_ENV` on deployed Worker | No            | Manual registration smoke test on staging after deploy         |
-| Migration passes local SQLite but fails on remote D1 (FK enforcement)                                  | No            | Check Cloudflare preview environment health after PR is opened |
+| Scenario                                                                                                              | Caught by CI? | How to catch it                                                |
+| --------------------------------------------------------------------------------------------------------------------- | ------------- | -------------------------------------------------------------- |
+| Missing `CLOUDFLARE_ENV` at build time → no D1 binding                                                                | No            | Manual registration smoke test on staging after deploy         |
+| Missing `VITE_TURNSTILE_SITE_KEY` at build time → broken Turnstile widget                                             | No            | Manual registration smoke test on staging after deploy         |
+| Turnstile site key not authorized for deployed hostname (error 110200)                                                | No            | Manual registration smoke test on staging after deploy         |
+| Wrong `RESEND_API_KEY` / `EMAIL_SECRET` / `PIN_SECRET` / `TURNSTILE_SECRET_KEY` / `CLOUDFLARE_ENV` on deployed Worker | No            | Manual registration smoke test on staging after deploy         |
+| Migration passes local SQLite but fails on remote D1 (FK enforcement)                                                 | No            | Check Cloudflare preview environment health after PR is opened |
 
 **Recommended pre-production checklist:**
 
