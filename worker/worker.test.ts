@@ -438,7 +438,7 @@ describe("POST /api/v1/auth/verify-pin", () => {
     expect(response.headers.get("Set-Cookie")).toContain("session=");
   });
 
-  test("returns 400 with error:invalid for an unknown token", async () => {
+  test("returns 400 with error:expired for an unknown token", async () => {
     const response = await worker.fetch(
       new Request("http://localhost/api/v1/auth/verify-pin", {
         method: "POST",
@@ -449,7 +449,7 @@ describe("POST /api/v1/auth/verify-pin", () => {
     );
 
     expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ error: "invalid" });
+    expect(await response.json()).toEqual({ error: "expired" });
   });
 
   test("returns 400 with error:expired for an expired token", async () => {

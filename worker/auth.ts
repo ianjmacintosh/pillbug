@@ -135,7 +135,7 @@ export async function verifyPin(
   | { error: "invalid" | "expired" | "used" | "locked" }
 > {
   const record = await repo.findToken(token);
-  if (!record) return { error: "invalid" };
+  if (!record) return { error: "expired" };
   if (record.failedAttempts >= 5) return { error: "locked" };
   if (record.usedAt) return { error: "used" };
   if (new Date(record.expiresAt) < new Date()) return { error: "expired" };

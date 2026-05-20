@@ -30,17 +30,13 @@ describe("EnterCode error messages", () => {
     await userEvent.click(screen.getByRole("button", { name: /verify/i }));
   }
 
-  test("shows expired message when server returns invalid", async () => {
+  test("shows try-again message when server returns invalid", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify({ error: "invalid" }), { status: 400 }),
     );
     render(<EnterCode />);
     await submitPin("1234");
-    expect(
-      await screen.findByText(
-        /that login code has expired, please request a new one/i,
-      ),
-    ).toBeTruthy();
+    expect(await screen.findByText(/incorrect code/i)).toBeTruthy();
   });
 
   test("shows expired message when server returns expired", async () => {

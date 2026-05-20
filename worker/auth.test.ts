@@ -102,7 +102,7 @@ describe("sendLoginLink", () => {
 });
 
 describe("verifyPin", () => {
-  test("returns invalid for an unknown token", async () => {
+  test("returns expired for an unknown token", async () => {
     const repo = makeInMemoryRepo();
 
     const result = await verifyPin(
@@ -112,7 +112,7 @@ describe("verifyPin", () => {
       identityHash,
     );
 
-    expect(result).toEqual({ error: "invalid" });
+    expect(result).toEqual({ error: "expired" });
   });
 
   test("returns locked after 5 failed attempts", async () => {
