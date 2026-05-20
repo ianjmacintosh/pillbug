@@ -21,13 +21,21 @@ The person who takes medications and uses the app to manage their own schedule. 
 _Avoid_: User, account, client
 
 **Registration**:
-The form a new Patient submits to create their account: entering their email address and explicitly accepting the Terms of Service and Privacy Policy. Submitting the form creates an Unverified Patient record and sends a magic link. Registration is complete at form submission — Verification is a separate subsequent event. Registration is a distinct screen from Login — not a silent side-effect of first login. Unverified Patient records that are not Verified within 7 days are hard-deleted by a daily cron job; Patients are informed of this window at registration time.
+The form a new Patient submits to create their account: entering their email address and explicitly accepting the Terms of Service and Privacy Policy. Submitting the form creates an Unverified Patient record, sends a Verification Code and magic link by email, and redirects the Patient to the Enter Code screen. Registration is complete at form submission — Verification is a separate subsequent event. Registration is a distinct screen from Login — not a silent side-effect of first login. Unverified Patient records that are not Verified within 7 days are hard-deleted by a daily cron job; Patients are informed of this window at registration time.
 _Avoid_: Sign up, Onboarding (onboarding is a separate concept if it exists), Account creation
 _Privacy_: The registration endpoint returns `{ ok: true }` whether the email is new or already registered (silently sending a login link in the latter case). Per Privacy by Default: confirming whether an email is registered reveals that someone uses a medication-tracking app, which is sensitive in itself.
 
 **Verification**:
-The event that activates a Patient's account — their first magic link redemption, confirming they own the registered email address. Mechanically: `patients.last_login_at` transitions from `NULL` to a timestamp. A Patient who has registered but not yet verified is an **Unverified Patient**; they cannot use the app until Verification is complete. Subsequent magic link redemptions (Logins) update `last_login_at` but are not Verification events.
+The event that activates a Patient's account — their first successful Verification Code entry or magic link redemption, confirming they own the registered email address. Mechanically: `patients.last_login_at` transitions from `NULL` to a timestamp. A Patient who has registered but not yet verified is an **Unverified Patient**; they cannot use the app until Verification is complete. Subsequent code entries and magic link redemptions (Logins) update `last_login_at` but are not Verification events.
 _Avoid_: Email confirmation, Account activation, Email validation
+
+**Verification Code**:
+A 4-digit numeric code included in verification and login emails alongside the magic link. Displayed prominently in the email; the Patient enters it on the Enter Code screen to create a session on the device of their choosing, without clicking the magic link. Valid for the same 20-minute window as the associated token. Stored as a hash in `magic_link_tokens.pin_hash`. After 5 failed entries the code is permanently locked — the magic link in the email remains valid as a fallback. The Verification Code and magic link are two paths to the same outcome; using either one does not invalidate the other, but a successful redemption via magic link marks the token used, preventing further code entry.
+_Avoid_: PIN, OTP, One-time password
+
+**Enter Code Screen**:
+The screen shown to the Patient after submitting the Registration or Login form, at `/enter-code?token=<uuid>`. The Patient enters their Verification Code from the email to create a session on the current device. The token in the URL identifies which Verification Code to validate against. If the magic link is clicked on any device instead, the session is created immediately without code entry (auto-verify). After 5 failed entries the Verification Code is locked; the magic link remains usable as an escape hatch. Displays distinct messages for four token states: `invalid` (token not found), `expired` (20-minute window elapsed), `used` (already redeemed — Patient is likely logged in on another device), and `locked` (5 failed code entries).
+_Avoid_: Challenge screen, Verify screen, Check your email
 
 **Prescription**:
 A medication a clinician has directed the Patient to take on a schedule.
@@ -155,7 +163,7 @@ erDiagram
         TEXT id PK
     }
 
-    patients ||--o{ magic_link_tokens : "authenticates via"
+    patients |o--o{ magic_link_tokens : "authenticates via"
     patients ||--o{ sessions : "is active in"
     patients ||--o{ prescriptions : "manages"
     patients ||--o{ doses : "logs"
@@ -177,9 +185,11 @@ erDiagram
 
     magic_link_tokens {
         TEXT token PK
-        TEXT patient_id FK
+        TEXT patient_id FK "nullable"
         TEXT expires_at "NOT NULL"
         TEXT used_at "nullable"
+        TEXT pin_hash "NOT NULL"
+        INTEGER failed_attempts "NOT NULL"
     }
 
     sessions {
@@ -202,16 +212,18 @@ erDiagram
 | `email_encrypted`   | AES-GCM ciphertext of the email address — decrypted only for display                |
 | `terms_accepted_at` | When the Patient accepted the Terms of Service at Registration                      |
 | `created_at`        | When the Patient record was created                                                 |
-| `last_login_at`     | Most recent magic link redemption; `NULL` means the Patient is Unverified           |
+| `last_login_at`     | Most recent successful login; `NULL` means the Patient is Unverified                |
 
 **magic_link_tokens**
 
-| Column       | Description                                           |
-| ------------ | ----------------------------------------------------- |
-| `token`      | Opaque token included in the magic link URL           |
-| `patient_id` | Owning Patient; cascades on delete                    |
-| `expires_at` | Token validity deadline (20-minute window from issue) |
-| `used_at`    | When the token was redeemed; `NULL` means unused      |
+| Column            | Description                                                                                              |
+| ----------------- | -------------------------------------------------------------------------------------------------------- |
+| `token`           | Opaque token included in the magic link URL and the Enter Code screen URL                                |
+| `patient_id`      | Owning Patient; cascades on delete                                                                       |
+| `expires_at`      | Token validity deadline (20-minute window from issue)                                                    |
+| `used_at`         | When the token was redeemed via magic link; `NULL` means unused                                          |
+| `pin_hash`        | Hash of the 4-digit Verification Code; set at token creation                                             |
+| `failed_attempts` | Count of incorrect Verification Code submissions; the code is locked (returns `locked`) when this hits 5 |
 
 **sessions**
 

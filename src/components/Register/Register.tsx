@@ -39,7 +39,8 @@ function Register() {
     });
 
     if (res.ok) {
-      await navigate({ to: "/check-your-email" });
+      const { token } = (await res.json()) as { token: string };
+      await navigate({ to: "/enter-code", search: { token } });
     } else {
       setError("Something went wrong. Please try again.");
       setSubmitting(false);

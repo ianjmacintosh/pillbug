@@ -7,7 +7,6 @@ import {
   RouterProvider,
 } from "@tanstack/react-router";
 import App from "../App";
-import CheckYourEmail from "../CheckYourEmail";
 import FillSession from "../FillSession";
 import Layout from "../Layout";
 import Login from "../Login";
@@ -18,7 +17,7 @@ import Privacy from "../Privacy";
 import Register from "../Register";
 import Settings from "../Settings";
 import Terms from "../Terms";
-import Verify from "../Verify";
+import EnterCode from "../EnterCode";
 
 const rootRoute = createRootRoute({
   component: Outlet,
@@ -88,12 +87,6 @@ const loginRoute = createRoute({
   component: Login,
 });
 
-const checkYourEmailRoute = createRoute({
-  getParentRoute: () => layoutRoute,
-  path: "/check-your-email",
-  component: CheckYourEmail,
-});
-
 const termsRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/terms",
@@ -134,11 +127,10 @@ const logoutRoute = createRoute({
   component: Logout,
 });
 
-const verifyRoute = createRoute({
+const enterCodeRoute = createRoute({
   getParentRoute: () => layoutRoute,
-  path: "/verify",
-  beforeLoad: redirectIfAuthenticated,
-  component: Verify,
+  path: "/enter-code",
+  component: EnterCode,
 });
 
 const routeTree = rootRoute.addChildren([
@@ -146,14 +138,13 @@ const routeTree = rootRoute.addChildren([
     indexRoute,
     registerRoute,
     loginRoute,
-    checkYourEmailRoute,
     termsRoute,
     privacyRoute,
     settingsRoute,
     fillSessionRoute,
     prescriptionsRoute,
     logoutRoute,
-    verifyRoute,
+    enterCodeRoute,
   ]),
 ]);
 

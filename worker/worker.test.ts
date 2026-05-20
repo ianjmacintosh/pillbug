@@ -23,6 +23,7 @@ function makeEnv(
     APP_URL: "http://localhost",
     TURNSTILE_SECRET_KEY: "test-turnstile-secret",
     EMAIL_SECRET: "test-email-secret",
+    PIN_SECRET: "test-pin-secret",
   } as unknown as Parameters<typeof worker.fetch>[1];
 }
 
@@ -129,12 +130,14 @@ describe("session cookie", () => {
       makeRegisterRequest("https://pillbug.ianjmacintosh.com/api/v1/register"),
       env,
     );
-    const token = email.sent[0].token;
+    const { token, pin } = email.sent[0];
 
     const response = await worker.fetch(
-      new Request(
-        `https://pillbug.ianjmacintosh.com/api/v1/auth/verify?token=${token}`,
-      ),
+      new Request("https://pillbug.ianjmacintosh.com/api/v1/auth/verify-pin", {
+        method: "POST",
+        body: JSON.stringify({ token, pin }),
+        headers: { "Content-Type": "application/json" },
+      }),
       env,
     );
 
@@ -150,10 +153,14 @@ describe("session cookie", () => {
       makeRegisterRequest("http://localhost/api/v1/register"),
       env,
     );
-    const token = email.sent[0].token;
+    const { token, pin } = email.sent[0];
 
     const response = await worker.fetch(
-      new Request(`http://localhost/api/v1/auth/verify?token=${token}`),
+      new Request("http://localhost/api/v1/auth/verify-pin", {
+        method: "POST",
+        body: JSON.stringify({ token, pin }),
+        headers: { "Content-Type": "application/json" },
+      }),
       env,
     );
 
@@ -252,7 +259,7 @@ describe("unhandled exception handling", () => {
 });
 
 describe("POST /api/v1/register Turnstile validation", () => {
-  test("returns 200 when Turnstile token is valid", async () => {
+  test("returns 200 with token when Turnstile token is valid", async () => {
     vi.mocked(verifyTurnstileToken).mockResolvedValue(true);
 
     const response = await worker.fetch(
@@ -261,7 +268,9 @@ describe("POST /api/v1/register Turnstile validation", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true });
+    const body = (await response.json()) as { ok: boolean; token: string };
+    expect(body.ok).toBe(true);
+    expect(typeof body.token).toBe("string");
   });
 
   test("returns 403 when Turnstile token is invalid", async () => {
@@ -295,7 +304,7 @@ describe("POST /api/v1/register EMAIL_MOCK", () => {
 });
 
 describe("POST /api/v1/login Turnstile validation", () => {
-  test("returns 200 when Turnstile token is valid", async () => {
+  test("returns 200 with token when Turnstile token is valid", async () => {
     vi.mocked(verifyTurnstileToken).mockResolvedValue(true);
 
     const response = await worker.fetch(
@@ -304,7 +313,9 @@ describe("POST /api/v1/login Turnstile validation", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true });
+    const body = (await response.json()) as { ok: boolean; token: string };
+    expect(body.ok).toBe(true);
+    expect(typeof body.token).toBe("string");
   });
 
   test("returns 403 when Turnstile token is invalid", async () => {
@@ -391,6 +402,137 @@ describe("GET /api/v1/session", () => {
     expect(body.ok).toBe(true);
     expect(body.patientId).toBe("patient-1");
     expect(body.registrationDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+});
+
+describe("POST /api/v1/auth/verify-pin", () => {
+  let repo: ReturnType<typeof makeInMemoryRepo>;
+  let email: ReturnType<typeof makeEmailSpy>;
+
+  beforeEach(() => {
+    repo = makeInMemoryRepo();
+    email = makeEmailSpy();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(repo);
+    vi.mocked(makeResendEmailSender).mockReturnValue(email.sender);
+  });
+
+  test("returns 200 with ok:true and sets session cookie on correct PIN", async () => {
+    const env = makeEnv();
+    await worker.fetch(
+      makeRegisterRequest("http://localhost/api/v1/register"),
+      env,
+    );
+    const { token, pin } = email.sent[0];
+
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/auth/verify-pin", {
+        method: "POST",
+        body: JSON.stringify({ token, pin }),
+        headers: { "Content-Type": "application/json" },
+      }),
+      env,
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true });
+    expect(response.headers.get("Set-Cookie")).toContain("session=");
+  });
+
+  test("returns 400 with error:expired for an unknown token", async () => {
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/auth/verify-pin", {
+        method: "POST",
+        body: JSON.stringify({ token: "no-such-token", pin: "1234" }),
+        headers: { "Content-Type": "application/json" },
+      }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "expired" });
+  });
+
+  test("returns 400 with error:expired for an expired token", async () => {
+    const env = makeEnv();
+    await worker.fetch(
+      makeRegisterRequest("http://localhost/api/v1/register"),
+      env,
+    );
+    const { token, pin } = email.sent[0];
+
+    vi.setSystemTime(new Date(Date.now() + 21 * 60 * 1000));
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/auth/verify-pin", {
+        method: "POST",
+        body: JSON.stringify({ token, pin }),
+        headers: { "Content-Type": "application/json" },
+      }),
+      env,
+    );
+    vi.useRealTimers();
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "expired" });
+  });
+
+  test("returns 400 with error:used for an already-redeemed token", async () => {
+    const env = makeEnv();
+    await worker.fetch(
+      makeRegisterRequest("http://localhost/api/v1/register"),
+      env,
+    );
+    const { token, pin } = email.sent[0];
+    await worker.fetch(
+      new Request("http://localhost/api/v1/auth/verify-pin", {
+        method: "POST",
+        body: JSON.stringify({ token, pin }),
+        headers: { "Content-Type": "application/json" },
+      }),
+      env,
+    );
+
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/auth/verify-pin", {
+        method: "POST",
+        body: JSON.stringify({ token, pin }),
+        headers: { "Content-Type": "application/json" },
+      }),
+      env,
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "used" });
+  });
+
+  test("returns 400 with error:locked after 5 failed attempts", async () => {
+    const env = makeEnv();
+    await worker.fetch(
+      makeRegisterRequest("http://localhost/api/v1/register"),
+      env,
+    );
+    const { token } = email.sent[0];
+    for (let i = 0; i < 5; i++) {
+      await worker.fetch(
+        new Request("http://localhost/api/v1/auth/verify-pin", {
+          method: "POST",
+          body: JSON.stringify({ token, pin: "0000" }),
+          headers: { "Content-Type": "application/json" },
+        }),
+        env,
+      );
+    }
+
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/auth/verify-pin", {
+        method: "POST",
+        body: JSON.stringify({ token, pin: "0000" }),
+        headers: { "Content-Type": "application/json" },
+      }),
+      env,
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "locked" });
   });
 });
 

@@ -2,15 +2,16 @@ import { expect, test as setup } from "@playwright/test";
 import { getPlatformProxy } from "wrangler";
 import type { D1Database } from "@cloudflare/workers-types";
 import { hashEmail } from "../worker/email-crypto";
-import { getLatestToken } from "./helpers";
+import { setKnownPin, TURNSTILE_DUMMY_TOKEN, TEST_PIN } from "./helpers";
 import { ALICE_EMAIL, ALICE_AUTH_FILE } from "./test-accounts";
 
 setup("authenticate as Alice", async ({ page }) => {
-  await page.request.post("/api/v1/login/silent", {
-    data: { email: ALICE_EMAIL },
+  const res = await page.request.post("/api/v1/login", {
+    data: { email: ALICE_EMAIL, turnstileToken: TURNSTILE_DUMMY_TOKEN },
   });
-  const token = await getLatestToken(ALICE_EMAIL);
-  await page.goto(`/verify?token=${token}`);
+  const { token } = (await res.json()) as { token: string };
+  await setKnownPin(token);
+  await page.goto(`/enter-code?token=${token}&pin=${TEST_PIN}`);
   await expect(page).toHaveURL("/");
   await page.context().storageState({ path: ALICE_AUTH_FILE });
 

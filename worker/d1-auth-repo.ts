@@ -41,26 +41,46 @@ export function makeD1AuthRepo(
         .run();
     },
 
-    async createToken(token, patientId, expiresAt) {
+    async createToken(token, patientId, expiresAt, pinHash) {
       await db
         .prepare(
-          "INSERT INTO magic_link_tokens (token, patient_id, expires_at) VALUES (?, ?, ?)",
+          "INSERT INTO magic_link_tokens (token, patient_id, expires_at, pin_hash) VALUES (?, ?, ?, ?)",
         )
-        .bind(token, patientId, expiresAt)
+        .bind(token, patientId, expiresAt, pinHash)
+        .run();
+    },
+
+    async createDecoyToken(token, expiresAt) {
+      await db
+        .prepare(
+          "INSERT INTO magic_link_tokens (token, patient_id, expires_at, pin_hash) VALUES (?, NULL, ?, '')",
+        )
+        .bind(token, expiresAt)
         .run();
     },
 
     async findToken(token) {
       return db
         .prepare(
-          "SELECT patient_id as patientId, expires_at as expiresAt, used_at as usedAt FROM magic_link_tokens WHERE token = ?",
+          "SELECT patient_id as patientId, expires_at as expiresAt, used_at as usedAt, failed_attempts as failedAttempts, pin_hash as pinHash FROM magic_link_tokens WHERE token = ?",
         )
         .bind(token)
         .first<{
-          patientId: string;
+          patientId: string | null;
           expiresAt: string;
           usedAt: string | null;
+          failedAttempts: number;
+          pinHash: string;
         }>();
+    },
+
+    async incrementFailedAttempts(token) {
+      await db
+        .prepare(
+          "UPDATE magic_link_tokens SET failed_attempts = failed_attempts + 1 WHERE token = ?",
+        )
+        .bind(token)
+        .run();
     },
 
     async markTokenUsed(token, usedAt) {
@@ -114,6 +134,22 @@ export function makeD1AuthRepo(
       await db
         .prepare("DELETE FROM patients WHERE id = ?")
         .bind(patientId)
+        .run();
+    },
+    async deleteUnusedTokensForPatient(patientId) {
+      await db
+        .prepare(
+          "DELETE FROM magic_link_tokens WHERE patient_id = ? AND used_at IS NULL",
+        )
+        .bind(patientId)
+        .run();
+    },
+    async deleteExpiredAndUsedTokens(cutoff) {
+      await db
+        .prepare(
+          "DELETE FROM magic_link_tokens WHERE expires_at < ? OR used_at IS NOT NULL",
+        )
+        .bind(cutoff)
         .run();
     },
   };

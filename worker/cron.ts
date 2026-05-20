@@ -13,3 +13,10 @@ export async function deleteStaleUnverifiedPatients(
     await repo.deletePatient(id);
   }
 }
+
+export async function deleteExpiredTokens(
+  repo: AuthRepository,
+  now: string,
+): Promise<void> {
+  await repo.deleteExpiredAndUsedTokens(now);
+}
