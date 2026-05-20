@@ -35,7 +35,7 @@ function Register() {
     const res = await fetch("/api/v1/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, turnstileToken }),
+      body: JSON.stringify({ email: email.trim(), turnstileToken }),
     });
 
     if (res.ok) {
@@ -55,6 +55,7 @@ function Register() {
           Email
           <input
             type="email"
+            autoCorrect="on"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required

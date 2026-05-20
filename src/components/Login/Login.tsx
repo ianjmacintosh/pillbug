@@ -20,7 +20,7 @@ function Login() {
     const res = await fetch("/api/v1/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, turnstileToken }),
+      body: JSON.stringify({ email: email.trim(), turnstileToken }),
     });
 
     const { token } = (await res.json()) as { token: string };
@@ -35,6 +35,7 @@ function Login() {
           Email
           <input
             type="email"
+            autoCorrect="on"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required

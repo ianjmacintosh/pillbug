@@ -258,6 +258,28 @@ describe("unhandled exception handling", () => {
   });
 });
 
+describe("POST /api/v1/register email trimming", () => {
+  test("strips surrounding whitespace from email before storing", async () => {
+    const env = makeEnv();
+    const email = makeEmailSpy();
+    vi.mocked(makeResendEmailSender).mockReturnValue(email.sender);
+
+    await worker.fetch(
+      new Request("http://localhost/api/v1/register", {
+        method: "POST",
+        body: JSON.stringify({
+          email: "delivered@resend.dev ",
+          turnstileToken: "valid-token",
+        }),
+        headers: { "Content-Type": "application/json" },
+      }),
+      env,
+    );
+
+    expect(email.sent[0].to).toBe("delivered@resend.dev");
+  });
+});
+
 describe("POST /api/v1/register Turnstile validation", () => {
   test("returns 200 with token when Turnstile token is valid", async () => {
     vi.mocked(verifyTurnstileToken).mockResolvedValue(true);
@@ -300,6 +322,42 @@ describe("POST /api/v1/register EMAIL_MOCK", () => {
     );
 
     expect(makeResendEmailSender).not.toHaveBeenCalled();
+  });
+});
+
+describe("POST /api/v1/login email trimming", () => {
+  test("strips surrounding whitespace so a spaced email finds the existing account", async () => {
+    const env = makeEnv();
+    const repo = makeInMemoryRepo();
+    const email = makeEmailSpy();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(repo);
+    vi.mocked(makeResendEmailSender).mockReturnValue(email.sender);
+
+    await worker.fetch(
+      new Request("http://localhost/api/v1/register", {
+        method: "POST",
+        body: JSON.stringify({
+          email: "delivered@resend.dev",
+          turnstileToken: "valid-token",
+        }),
+        headers: { "Content-Type": "application/json" },
+      }),
+      env,
+    );
+    await worker.fetch(
+      new Request("http://localhost/api/v1/login", {
+        method: "POST",
+        body: JSON.stringify({
+          email: "delivered@resend.dev ",
+          turnstileToken: "valid-token",
+        }),
+        headers: { "Content-Type": "application/json" },
+      }),
+      env,
+    );
+
+    expect(email.sent[1].type).toBe("login");
+    expect(email.sent[1].to).toBe("delivered@resend.dev");
   });
 });
 
