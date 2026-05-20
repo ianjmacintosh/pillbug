@@ -31,7 +31,7 @@ Reports subsystem reachability. Always returns 200.
 
 ### `POST /api/v1/register`
 
-Creates a new Patient account and sends a magic link. If the email is already registered, silently sends a login link instead (email enumeration protection — the response is identical either way).
+Creates a new Patient account and sends a verification email with a 4-digit PIN. If the email is already registered, silently sends a verification email instead (email enumeration protection — the response is identical either way).
 
 **Request**
 
@@ -42,8 +42,10 @@ Creates a new Patient account and sends a magic link. If the email is already re
 **Response — 200**
 
 ```json
-{ "ok": true }
+{ "ok": true, "token": "<uuid>" }
 ```
+
+The client uses `token` to construct the `/enter-code?token=<uuid>` URL for the next step.
 
 **Response — 403** (Turnstile verification failed)
 
@@ -57,19 +59,21 @@ The Turnstile token is obtained from the widget rendered on the `/register` page
 
 ### `POST /api/v1/login`
 
-Sends a magic link to an existing Patient. If the email is not registered, returns `{ ok: true }` with no email sent (email enumeration protection).
+Sends a sign-in email with a 4-digit PIN to an existing Patient. If the email is not registered, returns a random (unstored) token with no email sent — the token returns `invalid` if submitted, preserving email enumeration protection.
 
 **Request**
 
 ```json
-{ "email": "patient@example.com" }
+{ "email": "patient@example.com", "turnstileToken": "..." }
 ```
 
 **Response — 200**
 
 ```json
-{ "ok": true }
+{ "ok": true, "token": "<uuid>" }
 ```
+
+The client uses `token` to construct the `/enter-code?token=<uuid>` URL for the next step.
 
 ---
 
@@ -103,24 +107,6 @@ Sets `session` cookie (HttpOnly, SameSite=Lax, 30-day TTL).
 | `expired` | Token past its 20-minute window             |
 | `used`    | Token already redeemed                      |
 | `locked`  | 5 or more failed PIN attempts on this token |
-
----
-
-### `GET /api/v1/auth/verify?token=<token>`
-
-Redeems a magic link token. Single-use; tokens expire after 20 minutes.
-
-**Response — success** (302)
-Redirects to `/`. Sets `session` cookie (HttpOnly, SameSite=Lax, 30-day TTL).
-
-**Response — failure** (302)
-Redirects to `/register?error=<code>` where `<code>` is one of:
-
-| Code      | Meaning                         |
-| --------- | ------------------------------- |
-| `invalid` | Token not found                 |
-| `used`    | Token already redeemed          |
-| `expired` | Token past its 20-minute window |
 
 ---
 

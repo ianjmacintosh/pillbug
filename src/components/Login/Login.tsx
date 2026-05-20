@@ -17,13 +17,14 @@ function Login() {
     e.preventDefault();
     setSubmitting(true);
 
-    await fetch("/api/v1/login", {
+    const res = await fetch("/api/v1/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, turnstileToken }),
     });
 
-    await navigate({ to: "/check-your-email" });
+    const { token } = (await res.json()) as { token: string };
+    await navigate({ to: "/enter-code", search: { token } });
   }
 
   return (

@@ -130,12 +130,14 @@ describe("session cookie", () => {
       makeRegisterRequest("https://pillbug.ianjmacintosh.com/api/v1/register"),
       env,
     );
-    const token = email.sent[0].token;
+    const { token, pin } = email.sent[0];
 
     const response = await worker.fetch(
-      new Request(
-        `https://pillbug.ianjmacintosh.com/api/v1/auth/verify?token=${token}`,
-      ),
+      new Request("https://pillbug.ianjmacintosh.com/api/v1/auth/verify-pin", {
+        method: "POST",
+        body: JSON.stringify({ token, pin }),
+        headers: { "Content-Type": "application/json" },
+      }),
       env,
     );
 
@@ -151,10 +153,14 @@ describe("session cookie", () => {
       makeRegisterRequest("http://localhost/api/v1/register"),
       env,
     );
-    const token = email.sent[0].token;
+    const { token, pin } = email.sent[0];
 
     const response = await worker.fetch(
-      new Request(`http://localhost/api/v1/auth/verify?token=${token}`),
+      new Request("http://localhost/api/v1/auth/verify-pin", {
+        method: "POST",
+        body: JSON.stringify({ token, pin }),
+        headers: { "Content-Type": "application/json" },
+      }),
       env,
     );
 
@@ -253,7 +259,7 @@ describe("unhandled exception handling", () => {
 });
 
 describe("POST /api/v1/register Turnstile validation", () => {
-  test("returns 200 when Turnstile token is valid", async () => {
+  test("returns 200 with token when Turnstile token is valid", async () => {
     vi.mocked(verifyTurnstileToken).mockResolvedValue(true);
 
     const response = await worker.fetch(
@@ -262,7 +268,9 @@ describe("POST /api/v1/register Turnstile validation", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true });
+    const body = (await response.json()) as { ok: boolean; token: string };
+    expect(body.ok).toBe(true);
+    expect(typeof body.token).toBe("string");
   });
 
   test("returns 403 when Turnstile token is invalid", async () => {
@@ -296,7 +304,7 @@ describe("POST /api/v1/register EMAIL_MOCK", () => {
 });
 
 describe("POST /api/v1/login Turnstile validation", () => {
-  test("returns 200 when Turnstile token is valid", async () => {
+  test("returns 200 with token when Turnstile token is valid", async () => {
     vi.mocked(verifyTurnstileToken).mockResolvedValue(true);
 
     const response = await worker.fetch(
@@ -305,7 +313,9 @@ describe("POST /api/v1/login Turnstile validation", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true });
+    const body = (await response.json()) as { ok: boolean; token: string };
+    expect(body.ok).toBe(true);
+    expect(typeof body.token).toBe("string");
   });
 
   test("returns 403 when Turnstile token is invalid", async () => {

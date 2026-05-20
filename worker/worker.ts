@@ -2,7 +2,6 @@ import {
   generateLoginToken,
   registerPatient,
   sendLoginLink,
-  verifyToken,
   verifyPin,
   createSession,
   getSession,
@@ -141,16 +140,16 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
             sendLoginEmail: async () => {},
           }
         : makeResendEmailSender(env.RESEND_API_KEY, url.origin);
-    await registerPatient(email, repo, emailSender, hashPin);
-    return new Response(JSON.stringify({ ok: true }), {
+    const { token } = await registerPatient(email, repo, emailSender, hashPin);
+    return new Response(JSON.stringify({ ok: true, token }), {
       headers: { "Content-Type": "application/json" },
     });
   }
 
   if (url.pathname === "/api/v1/login/silent" && request.method === "POST") {
     const { email } = await request.json<{ email: string }>();
-    await generateLoginToken(email, repo, hashPin);
-    return new Response(JSON.stringify({ ok: true }), {
+    const { token, pin } = await generateLoginToken(email, repo, hashPin);
+    return new Response(JSON.stringify({ ok: true, token, pin }), {
       headers: { "Content-Type": "application/json" },
     });
   }
@@ -177,8 +176,8 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
             sendLoginEmail: async () => {},
           }
         : makeResendEmailSender(env.RESEND_API_KEY, url.origin);
-    await sendLoginLink(email, repo, emailSender, hashPin);
-    return new Response(JSON.stringify({ ok: true }), {
+    const { token } = await sendLoginLink(email, repo, emailSender, hashPin);
+    return new Response(JSON.stringify({ ok: true, token }), {
       headers: { "Content-Type": "application/json" },
     });
   }
@@ -186,25 +185,6 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   if (url.pathname === "/api/v1/auth/verify-pin" && request.method === "POST") {
     const { token, pin } = await request.json<{ token: string; pin: string }>();
     const result = await verifyPin(token, pin, repo, hashPin);
-    if ("error" in result) {
-      return new Response(JSON.stringify({ error: result.error }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    const sessionId = await createSession(result.patientId, repo);
-    return new Response(JSON.stringify({ ok: true }), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Set-Cookie": sessionCookie(sessionId, secure),
-      },
-    });
-  }
-
-  if (url.pathname === "/api/v1/auth/verify" && request.method === "GET") {
-    const token = url.searchParams.get("token") ?? "";
-    const result = await verifyToken(token, repo);
     if ("error" in result) {
       return new Response(JSON.stringify({ error: result.error }), {
         status: 400,

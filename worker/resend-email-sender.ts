@@ -34,25 +34,27 @@ export function makeResendEmailSender(
   }
 
   return {
-    async sendVerificationEmail(to, token) {
-      const magicLink = `${appUrl}/verify?token=${token}`;
+    async sendVerificationEmail(to, token, pin) {
+      const fallbackLink = `${appUrl}/enter-code?token=${token}&pin=${pin}`;
       await send(
         to,
         "Verify your Pillbug account",
         renderTemplate(verificationTemplate, {
-          magic_link: magicLink,
+          pin,
+          fallback_link: fallbackLink,
           login_link: `${appUrl}/login?email=${encodeURIComponent(to)}`,
         }),
       );
     },
 
-    async sendLoginEmail(to, token) {
-      const magicLink = `${appUrl}/verify?token=${token}`;
+    async sendLoginEmail(to, token, pin) {
+      const fallbackLink = `${appUrl}/enter-code?token=${token}&pin=${pin}`;
       await send(
         to,
         "Your Pillbug sign-in link",
         renderTemplate(loginTemplate, {
-          magic_link: magicLink,
+          pin,
+          fallback_link: fallbackLink,
           login_link: `${appUrl}/login?email=${encodeURIComponent(to)}`,
         }),
       );

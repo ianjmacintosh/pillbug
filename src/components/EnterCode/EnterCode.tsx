@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearch } from "@tanstack/react-router";
 
 type ErrorCode = "invalid" | "expired" | "used" | "locked";
@@ -11,10 +11,34 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
 };
 
 function EnterCode() {
-  const { token } = useSearch({ strict: false }) as { token?: string };
-  const [pin, setPin] = useState("");
+  const { token, pin: urlPin } = useSearch({ strict: false }) as {
+    token?: string;
+    pin?: string;
+  };
+  const [pin, setPin] = useState(urlPin ?? "");
   const [error, setError] = useState<ErrorCode | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState(!!urlPin);
+  const autoSubmitted = useRef(false);
+
+  useEffect(() => {
+    if (!urlPin || autoSubmitted.current) return;
+    autoSubmitted.current = true;
+    void fetch("/api/v1/auth/verify-pin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, pin: urlPin }),
+    }).then(async (res) => {
+      if (res.ok) {
+        window.location.replace("/");
+        return;
+      }
+      const body = (await res.json()) as { error: ErrorCode };
+      setError(body.error);
+      setSubmitting(false);
+    });
+    // token and urlPin come from the URL on mount and never change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

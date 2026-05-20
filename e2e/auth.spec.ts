@@ -1,7 +1,6 @@
 import { getPlatformProxy } from "wrangler";
 import type { D1Database } from "@cloudflare/workers-types";
 import { expect, test } from "@playwright/test";
-import { getLatestToken } from "./helpers";
 
 // Cloudflare Turnstile dummy token produced by the always-passes test sitekey.
 // Only validates against the test secret key (1x0000000000000000000000000000000AA).
@@ -26,6 +25,14 @@ async function expireToken(token: string): Promise<void> {
   }
 }
 
+async function silentLogin(
+  email: string,
+  request: Parameters<Parameters<typeof test>[1]>[0]["request"],
+): Promise<{ token: string; pin: string }> {
+  const res = await request.post("/api/v1/login/silent", { data: { email } });
+  return res.json() as Promise<{ token: string; pin: string }>;
+}
+
 test.describe("POST /api/v1/register", () => {
   test("returns 200 for a new email", async ({ request }) => {
     const email = `delivered+e2e-${Date.now()}@resend.dev`;
@@ -47,69 +54,49 @@ test.describe("POST /api/v1/register", () => {
   });
 });
 
-test.describe("GET /api/v1/auth/verify", () => {
-  test("valid token creates a session and navigates to /", async ({
+test.describe("POST /api/v1/auth/verify-pin", () => {
+  test("correct PIN creates a session and navigates to /", async ({
     page,
     request,
   }) => {
-    const email = `delivered+verify-${Date.now()}@resend.dev`;
+    const email = `delivered+verify-pin-${Date.now()}@resend.dev`;
     await request.post("/api/v1/register", {
       data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
     });
-    const token = await getLatestToken(email);
+    const { token, pin } = await silentLogin(email, request);
 
-    await page.goto(`/verify?token=${token}`);
+    await page.goto(`/enter-code?token=${token}&pin=${pin}`);
 
     await expect(page).toHaveURL("/");
   });
 
-  test("invalid token shows error on the verify page", async ({ page }) => {
-    await page.goto("/verify?token=not-a-real-token");
+  test("invalid token shows error on the enter-code page", async ({ page }) => {
+    await page.goto("/enter-code?token=not-a-real-token&pin=1234");
 
-    await expect(page).toHaveURL("/verify?token=not-a-real-token");
-    await expect(
-      page.getByRole("heading", { name: /invalid or expired/i }),
-    ).toBeVisible();
+    await expect(page).toHaveURL("/enter-code?token=not-a-real-token&pin=1234");
+    await expect(page.getByRole("alert")).toBeVisible();
   });
 
-  test("unauthenticated user with used token sees error on the verify page", async ({
+  test("used token shows error on the enter-code page", async ({
     page,
     request,
   }) => {
-    const email = `delivered+verify-used-unauth-${Date.now()}@resend.dev`;
+    const email = `delivered+verify-used-${Date.now()}@resend.dev`;
     await request.post("/api/v1/register", {
       data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
     });
-    const token = await getLatestToken(email);
+    const { token, pin } = await silentLogin(email, request);
 
-    await request.get(`/api/v1/auth/verify?token=${token}`);
-    await page.goto(`/verify?token=${token}`);
-
-    await expect(page).toHaveURL(`/verify?token=${token}`);
-    await expect(
-      page.getByRole("heading", { name: /invalid or expired/i }),
-    ).toBeVisible();
-  });
-
-  test("authenticated user with used token is redirected to /", async ({
-    page,
-    request,
-  }) => {
-    const email = `delivered+verify-used-auth-${Date.now()}@resend.dev`;
-    await request.post("/api/v1/register", {
-      data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
-    });
-    const token = await getLatestToken(email);
-
-    await page.goto(`/verify?token=${token}`);
-    await expect(page).toHaveURL("/"); // wait for async verification + navigation to complete
-
-    await page.goto(`/verify?token=${token}`);
-
+    await page.goto(`/enter-code?token=${token}&pin=${pin}`);
     await expect(page).toHaveURL("/");
+
+    const res = await request.post("/api/v1/auth/verify-pin", {
+      data: { token, pin },
+    });
+    expect(((await res.json()) as { error: string }).error).toBe("used");
   });
 
-  test("expired token shows error on the verify page", async ({
+  test("expired token shows error on the enter-code page", async ({
     page,
     request,
   }) => {
@@ -117,19 +104,17 @@ test.describe("GET /api/v1/auth/verify", () => {
     await request.post("/api/v1/register", {
       data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
     });
-    const token = await getLatestToken(email);
+    const { token, pin } = await silentLogin(email, request);
     await expireToken(token);
 
-    await page.goto(`/verify?token=${token}`);
+    await page.goto(`/enter-code?token=${token}&pin=${pin}`);
 
-    await expect(page).toHaveURL(`/verify?token=${token}`);
-    await expect(
-      page.getByRole("heading", { name: /invalid or expired/i }),
-    ).toBeVisible();
+    await expect(page).toHaveURL(`/enter-code?token=${token}&pin=${pin}`);
+    await expect(page.getByRole("alert")).toBeVisible();
   });
 });
 
-test("registration form submits via UI and navigates to /check-your-email", async ({
+test("registration form submits via UI and navigates to /enter-code", async ({
   page,
 }) => {
   const email = `delivered+ui-register-${Date.now()}@resend.dev`;
@@ -144,7 +129,7 @@ test("registration form submits via UI and navigates to /check-your-email", asyn
   await expect(responseInput).toHaveValue(TURNSTILE_DUMMY_TOKEN);
 
   await page.getByRole("button", { name: /email me a login link/i }).click();
-  await expect(page).toHaveURL("/check-your-email");
+  await expect(page).toHaveURL(/\/enter-code\?token=/);
 });
 
 test("/register?challenge loads the registration form with the Turnstile interactive challenge", async ({
@@ -191,13 +176,6 @@ test("/login?email= pre-fills the email input", async ({ page }) => {
   );
 });
 
-test("/check-your-email renders the confirmation page", async ({ page }) => {
-  await page.goto("/check-your-email");
-  await expect(
-    page.getByRole("heading", { name: /you've got mail/i }),
-  ).toBeVisible();
-});
-
 test("/register links to /login", async ({ page }) => {
   await page.goto("/register");
   await page.getByRole("link", { name: /log in/i }).click();
@@ -218,8 +196,8 @@ test("logout button ends the session and redirects to /register", async ({
   await request.post("/api/v1/register", {
     data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
   });
-  const token = await getLatestToken(email);
-  await page.goto(`/verify?token=${token}`);
+  const { token, pin } = await silentLogin(email, request);
+  await page.goto(`/enter-code?token=${token}&pin=${pin}`);
   await expect(page).toHaveURL("/");
 
   await page.getByRole("button", { name: /log out/i }).click();

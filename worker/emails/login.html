@@ -2,24 +2,26 @@
 <html>
   <body>
     <h1>Log In to Your Pillbug Account</h1>
-    <p>
-      To log into your <a href="{{magic_link}}">Pillbug</a> account, click this
-      login link:
+    <p>Your sign-in code is:</p>
+    <p style="font-size: 2em; font-weight: bold; letter-spacing: 0.2em">
+      {{pin}}
     </p>
     <p>
-      <a href="{{magic_link}}">{{magic_link}}</a>
+      Enter this code on the sign-in screen to log in to your Pillbug account.
     </p>
+    <p>Your code will expire in 20 minutes.</p>
     <p>
-      Your link will expire in 20 minutes. To request a new login link, click
-      <a href="{{login_link}}">here</a>.
+      Can't enter the code?
+      <a href="{{fallback_link}}">Click here to sign in automatically</a>.
     </p>
+    <p>To request a new code, click <a href="{{login_link}}">here</a>.</p>
     <hr />
     <p>
       If you didn't request this email: don't worry, your account is still safe!
     </p>
     <p>
       The only way anyone can get into your Pillbug account is by using that
-      link.
+      code.
     </p>
   </body>
 </html>

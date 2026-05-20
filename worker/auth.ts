@@ -90,10 +90,10 @@ export async function generateLoginToken(
   email: string,
   repo: AuthRepository,
   hashPin: (pin: string) => Promise<string>,
-): Promise<{ token: string }> {
+): Promise<{ token: string; pin: string }> {
   const patientId = await findOrCreatePatient(email, repo);
-  const { token } = await createPatientToken(patientId, repo, hashPin);
-  return { token };
+  const { token, pin } = await createPatientToken(patientId, repo, hashPin);
+  return { token, pin };
 }
 
 export async function registerPatient(
@@ -101,11 +101,11 @@ export async function registerPatient(
   repo: AuthRepository,
   emailSender: EmailSender,
   hashPin: (pin: string) => Promise<string>,
-): Promise<{ ok: true }> {
+): Promise<{ ok: true; token: string }> {
   const patientId = await findOrCreatePatient(email, repo);
   const { token, pin } = await createPatientToken(patientId, repo, hashPin);
   await emailSender.sendVerificationEmail(email, token, pin);
-  return { ok: true };
+  return { ok: true, token };
 }
 
 export async function sendLoginLink(
@@ -113,13 +113,14 @@ export async function sendLoginLink(
   repo: AuthRepository,
   emailSender: EmailSender,
   hashPin: (pin: string) => Promise<string>,
-): Promise<{ ok: true }> {
+): Promise<{ ok: true; token: string }> {
   const patient = await repo.findPatientByEmail(email);
   if (patient) {
     const { token, pin } = await createPatientToken(patient.id, repo, hashPin);
     await emailSender.sendLoginEmail(email, token, pin);
+    return { ok: true, token };
   }
-  return { ok: true };
+  return { ok: true, token: generateId() };
 }
 
 export async function verifyPin(
@@ -141,23 +142,6 @@ export async function verifyPin(
     await repo.incrementFailedAttempts(token);
     return { error: "invalid" };
   }
-  const now = new Date().toISOString();
-  await repo.markTokenUsed(token, now);
-  await repo.updateLastLoginAt(record.patientId, now);
-  return { ok: true, patientId: record.patientId };
-}
-
-export async function verifyToken(
-  token: string,
-  repo: AuthRepository,
-): Promise<
-  { ok: true; patientId: string } | { error: "expired" | "used" | "invalid" }
-> {
-  const record = await repo.findToken(token);
-  if (!record) return { error: "invalid" };
-  if (record.usedAt) return { error: "used" };
-  if (new Date(record.expiresAt) < new Date()) return { error: "expired" };
-
   const now = new Date().toISOString();
   await repo.markTokenUsed(token, now);
   await repo.updateLastLoginAt(record.patientId, now);
