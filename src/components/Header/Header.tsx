@@ -13,6 +13,7 @@ function Header({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
       </a>
       {isAuthenticated && (
         <nav className="header-nav">
+          <a href="/">Home</a>
           <a href="/prescriptions">Prescriptions</a>
           <a href="/fill-session">Fill Session</a>
           <a href="/settings">Settings</a>

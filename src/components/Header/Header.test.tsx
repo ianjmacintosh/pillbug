@@ -19,6 +19,11 @@ describe("Header", () => {
     expect(screen.getByRole("link", { name: /settings/i })).toBeTruthy();
   });
 
+  test("shows home link when authenticated", () => {
+    render(<Header isAuthenticated />);
+    expect(screen.getByRole("link", { name: /^home$/i })).toBeTruthy();
+  });
+
   test("shows prescriptions link when authenticated", () => {
     render(<Header isAuthenticated />);
     expect(screen.getByRole("link", { name: /prescriptions/i })).toBeTruthy();

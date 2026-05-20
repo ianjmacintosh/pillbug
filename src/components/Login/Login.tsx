@@ -34,6 +34,7 @@ function Login() {
           Email
           <input
             type="email"
+            autoCorrect="on"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required

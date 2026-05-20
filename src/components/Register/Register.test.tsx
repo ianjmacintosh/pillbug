@@ -131,6 +131,12 @@ describe("Register", () => {
     expect(screen.getByRole("textbox", { name: /email/i })).toBeTruthy();
   });
 
+  test("email input has autoCorrect on to allow iOS text replacements", () => {
+    render(<Register />);
+    const input = screen.getByRole("textbox", { name: /email/i });
+    expect(input.getAttribute("autocorrect")).toBe("on");
+  });
+
   test("has no invite code input", () => {
     render(<Register />);
     expect(screen.queryByRole("textbox", { name: /invite code/i })).toBeNull();

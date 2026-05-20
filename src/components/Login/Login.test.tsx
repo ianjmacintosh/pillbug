@@ -36,6 +36,12 @@ describe("Login", () => {
     expect(screen.getByRole("textbox", { name: /email/i })).toBeTruthy();
   });
 
+  test("email input has autoCorrect on to allow iOS text replacements", () => {
+    render(<Login />);
+    const input = screen.getByRole("textbox", { name: /email/i });
+    expect(input.getAttribute("autocorrect")).toBe("on");
+  });
+
   test("has a Turnstile widget", () => {
     render(<Login />);
     expect(screen.getByRole("button", { name: /turnstile/i })).toBeTruthy();
