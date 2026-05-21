@@ -247,6 +247,22 @@ describe("Prescriptions", () => {
       expect(Array.from(pills).map((el) => el.textContent)).toEqual(abbrs);
     });
 
+    test("can add multiple dose time rows without confirming each first", async () => {
+      await openCreateForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /new dose time/i }),
+      );
+      await userEvent.click(
+        screen.getByRole("button", { name: /new dose time/i }),
+      );
+      await userEvent.click(
+        screen.getByRole("button", { name: /new dose time/i }),
+      );
+      expect(screen.getByLabelText(/time 1/i)).toBeTruthy();
+      expect(screen.getByLabelText(/time 2/i)).toBeTruthy();
+      expect(screen.getByLabelText(/time 3/i)).toBeTruthy();
+    });
+
     test("clicking '+ Add new dose time' adds a time input with a confirm button", async () => {
       await openCreateForm();
       expect(screen.queryByLabelText(/time 1/i)).toBeNull();
