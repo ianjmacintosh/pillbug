@@ -41,7 +41,7 @@ _Avoid_: Challenge screen, Verify screen, Check your email
 A medication a clinician has directed the Patient to take on a schedule.
 _Avoid_: Medication (too generic — doesn't imply a schedule or clinical directive), Task, Regimen Item
 
-Fields: drug name (free text with autocomplete), dosage (free text, e.g. "10mg"), schedule (see **Schedule**), start date (required), end date (optional), prescribing Doctor (optional), instructions (optional free text), status (Active, Completed, Paused, or Discontinued).
+Fields: drug name (free text with autocomplete), dosage (free text, e.g. "10 mg"), schedule (see **Schedule**), start date (required), end date (optional), prescribing Doctor (optional), instructions (optional free text), status (Active, Completed, Paused, or Discontinued).
 
 Status values: **Active** (generating Reminders), **Completed** (reached end date), **Paused** (temporarily suspended, expected to resume), **Discontinued** (stopped early, will not resume).
 
