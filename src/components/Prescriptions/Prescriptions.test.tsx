@@ -651,14 +651,23 @@ describe("Prescriptions", () => {
       expect(screen.queryByText(/included the unit/i)).toBeNull();
     });
 
-    test("warning is not shown when unit is (blank)", async () => {
+    test("warning appears even when unit is (blank) if quantity contains a known unit suffix", async () => {
       await openCreateForm();
       await userEvent.selectOptions(
         screen.getByRole("combobox", { name: /unit/i }),
         "",
       );
-      const dosageInput = screen.getByLabelText(/strength/i);
-      await userEvent.type(dosageInput, "20mg");
+      const strengthInput = screen.getByLabelText(/strength/i);
+      await userEvent.type(strengthInput, "20mg");
+      await userEvent.tab();
+
+      expect(screen.getByText(/included the unit/i)).toBeTruthy();
+    });
+
+    test("warning is not shown when quantity has no known unit suffix", async () => {
+      await openCreateForm();
+      const strengthInput = screen.getByLabelText(/strength/i);
+      await userEvent.type(strengthInput, "20");
       await userEvent.tab();
 
       expect(screen.queryByText(/included the unit/i)).toBeNull();
@@ -681,6 +690,63 @@ describe("Prescriptions", () => {
         (screen.getByLabelText(/strength/i) as HTMLInputElement).value,
       ).toBe("20");
       expect(screen.queryByText(/included the unit/i)).toBeNull();
+    });
+
+    test("autofix also updates the unit picker when it differs from the detected unit", async () => {
+      await openCreateForm();
+      await userEvent.selectOptions(
+        screen.getByRole("combobox", { name: /unit/i }),
+        "g",
+      );
+      const strengthInput = screen.getByLabelText(/strength/i);
+      await userEvent.type(strengthInput, "20mg");
+      await userEvent.tab();
+      expect(screen.getByText(/included the unit/i)).toBeTruthy();
+
+      await userEvent.click(screen.getByRole("button", { name: /^20 mg$/i }));
+
+      expect(
+        (screen.getByLabelText(/strength/i) as HTMLInputElement).value,
+      ).toBe("20");
+      expect(
+        (screen.getByRole("combobox", { name: /unit/i }) as HTMLSelectElement)
+          .value,
+      ).toBe("mg");
+      expect(screen.queryByText(/included the unit/i)).toBeNull();
+    });
+
+    test("autofix updates the unit picker when (blank) was selected", async () => {
+      await openCreateForm();
+      await userEvent.selectOptions(
+        screen.getByRole("combobox", { name: /unit/i }),
+        "",
+      );
+      const strengthInput = screen.getByLabelText(/strength/i);
+      await userEvent.type(strengthInput, "500mcg");
+      await userEvent.tab();
+
+      await userEvent.click(screen.getByRole("button", { name: /^500 mcg$/i }));
+
+      expect(
+        (screen.getByLabelText(/strength/i) as HTMLInputElement).value,
+      ).toBe("500");
+      expect(
+        (screen.getByRole("combobox", { name: /unit/i }) as HTMLSelectElement)
+          .value,
+      ).toBe("mcg");
+    });
+
+    test("changing the unit dropdown re-runs the check and shows the warning", async () => {
+      await openCreateForm();
+      const strengthInput = screen.getByLabelText(/strength/i);
+      await userEvent.type(strengthInput, "20mg");
+
+      await userEvent.selectOptions(
+        screen.getByRole("combobox", { name: /unit/i }),
+        "g",
+      );
+
+      expect(screen.getByText(/included the unit/i)).toBeTruthy();
     });
 
     test("warning does not block form submission", async () => {

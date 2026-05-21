@@ -43,6 +43,14 @@ const DAY_ABBRS: Record<DayOfWeek, string> = {
 const DOSAGE_UNITS = ["mg", "g", "mcg"] as const;
 type DosageUnit = (typeof DOSAGE_UNITS)[number];
 
+function detectUnitInQuantity(quantity: string): DosageUnit | null {
+  const sorted = ([...DOSAGE_UNITS] as string[]).sort(
+    (a, b) => b.length - a.length,
+  );
+  const found = sorted.find((u) => quantity.toLowerCase().endsWith(u));
+  return (found as DosageUnit) ?? null;
+}
+
 function parseDosage(
   raw: string,
 ): { quantity: string; unit: DosageUnit } | null {
@@ -95,8 +103,8 @@ function Prescriptions() {
   const [error, setError] = useState<string | null>(null);
   const [daysError, setDaysError] = useState(false);
   const [timesError, setTimesError] = useState(false);
-  const [dosageDuplicationWarning, setDosageDuplicationWarning] =
-    useState(false);
+  const [detectedDuplicateUnit, setDetectedDuplicateUnit] =
+    useState<DosageUnit | null>(null);
 
   async function handleReveal() {
     const res = await fetch("/api/v1/prescriptions");
@@ -127,7 +135,7 @@ function Prescriptions() {
     setError(null);
     setDaysError(false);
     setTimesError(false);
-    setDosageDuplicationWarning(false);
+    setDetectedDuplicateUnit(null);
   }
 
   function handleOpenForm() {
@@ -470,26 +478,24 @@ function Prescriptions() {
                 value={dosageQuantity}
                 onChange={(e) => {
                   setDosageQuantity(e.target.value);
-                  setDosageDuplicationWarning(false);
+                  setDetectedDuplicateUnit(null);
                 }}
                 onBlur={() => {
-                  if (
-                    dosageUnit !== "" &&
-                    dosageQuantity
-                      .toLowerCase()
-                      .endsWith(dosageUnit.toLowerCase())
-                  ) {
-                    setDosageDuplicationWarning(true);
-                  }
+                  setDetectedDuplicateUnit(
+                    detectUnitInQuantity(dosageQuantity),
+                  );
                 }}
                 required
               />
               <select
                 aria-label="Unit"
                 value={dosageUnit}
-                onChange={(e) =>
-                  setDosageUnit(e.target.value as DosageUnit | "")
-                }
+                onChange={(e) => {
+                  setDosageUnit(e.target.value as DosageUnit | "");
+                  setDetectedDuplicateUnit(
+                    detectUnitInQuantity(dosageQuantity),
+                  );
+                }}
               >
                 <option value="">(blank)</option>
                 <option value="mg">mg</option>
@@ -500,21 +506,24 @@ function Prescriptions() {
           )}
         </div>
       </div>
-      {dosageDuplicationWarning && (
+      {detectedDuplicateUnit !== null && (
         <p className="field-hint dosage-unit-warning">
           Looks like you included the unit in the strength number (&ldquo;
-          {dosageQuantity} {dosageUnit}&rdquo;) &mdash; Did you mean{" "}
+          {dosageUnit ? `${dosageQuantity} ${dosageUnit}` : dosageQuantity}
+          &rdquo;) &mdash; Did you mean{" "}
           <button
             type="button"
             className="dosage-fix-link"
             onClick={() => {
               setDosageQuantity(
-                dosageQuantity.slice(0, -dosageUnit.length).trim(),
+                dosageQuantity.slice(0, -detectedDuplicateUnit.length).trim(),
               );
-              setDosageDuplicationWarning(false);
+              setDosageUnit(detectedDuplicateUnit);
+              setDetectedDuplicateUnit(null);
             }}
           >
-            {dosageQuantity.slice(0, -dosageUnit.length).trim()} {dosageUnit}
+            {dosageQuantity.slice(0, -detectedDuplicateUnit.length).trim()}{" "}
+            {detectedDuplicateUnit}
           </button>
           ?
         </p>
