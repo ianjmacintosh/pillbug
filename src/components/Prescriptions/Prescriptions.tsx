@@ -326,6 +326,7 @@ function Prescriptions() {
               type="button"
               className="remove-time"
               aria-label="Remove"
+              disabled={doseTimes.length === 1}
               onClick={() => removeDoseTime(i)}
             >
               ×

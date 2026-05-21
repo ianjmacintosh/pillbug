@@ -269,11 +269,36 @@ describe("Prescriptions", () => {
       expect(screen.queryByRole("button", { name: /confirm/i })).toBeNull();
     });
 
+    test("Remove button is disabled when there is only one dose time", async () => {
+      await openCreateForm();
+      expect(
+        (screen.getByRole("button", { name: /remove/i }) as HTMLButtonElement)
+          .disabled,
+      ).toBe(true);
+    });
+
+    test("Remove button is enabled when a second dose time is added", async () => {
+      await openCreateForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /new dose time/i }),
+      );
+      const removeButtons = screen.getAllByRole("button", { name: /remove/i });
+      expect(
+        removeButtons.every((b) => !(b as HTMLButtonElement).disabled),
+      ).toBe(true);
+    });
+
     test("clicking Remove on a dose time removes that entry", async () => {
       await openCreateForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /new dose time/i }),
+      );
+      expect(screen.getByLabelText(/time 2/i)).toBeTruthy();
+      await userEvent.click(
+        screen.getAllByRole("button", { name: /remove/i })[1],
+      );
+      expect(screen.queryByLabelText(/time 2/i)).toBeNull();
       expect(screen.getByLabelText(/time 1/i)).toBeTruthy();
-      await userEvent.click(screen.getByRole("button", { name: /remove/i }));
-      expect(screen.queryByLabelText(/time 1/i)).toBeNull();
     });
 
     test("submitting with a day checked and a time set sends the correct schedule", async () => {
