@@ -38,11 +38,34 @@
 }
 
 .prescriptions .drug-info-row .dose-count-field {
-  flex: 0 0 5rem;
+  flex: 0 0 auto;
 }
 
 .prescriptions .drug-info-row .drug-name-field {
   flex: 3;
+}
+
+.prescriptions .drug-info-row .drug-dosage-field {
+  flex: 2;
+}
+
+.prescriptions .count-form-row {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.prescriptions .count-form-row input {
+  width: 4rem;
+  flex-shrink: 0;
+}
+
+.prescriptions .count-form-row select {
+  padding: 0.5rem 0.375rem;
+  border: 1px solid var(--gray-50);
+  border-radius: 4px;
+  font-size: 0.875rem;
+  background-color: #fff;
+  cursor: pointer;
 }
 
 .prescriptions .dosage-input-row {

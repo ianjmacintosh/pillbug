@@ -420,29 +420,25 @@ function Prescriptions() {
       <div className="drug-info-row">
         <div className="field dose-count-field">
           <label htmlFor={`${idPrefix}-doseCount`}>Count</label>
-          <input
-            id={`${idPrefix}-doseCount`}
-            type="number"
-            step="any"
-            min="0"
-            value={doseCount}
-            onChange={(e) => setDoseCount(e.target.value)}
-            required
-          />
-        </div>
-
-        <div className="field">
-          <label htmlFor={`${idPrefix}-doseForm`}>Form</label>
-          <select
-            id={`${idPrefix}-doseForm`}
-            value={doseForm}
-            onChange={(e) => setDoseForm(e.target.value)}
-          >
-            <option value="tablet">tablet</option>
-            <option value="capsule">capsule</option>
-            <option value="pill">pill</option>
-            <option value="other">other</option>
-          </select>
+          <div className="count-form-row">
+            <input
+              id={`${idPrefix}-doseCount`}
+              type="text"
+              value={doseCount}
+              onChange={(e) => setDoseCount(e.target.value)}
+              required
+            />
+            <select
+              aria-label="Form"
+              value={doseForm}
+              onChange={(e) => setDoseForm(e.target.value)}
+            >
+              <option value="tablet">tablet</option>
+              <option value="capsule">capsule</option>
+              <option value="pill">pill</option>
+              <option value="other">other</option>
+            </select>
+          </div>
         </div>
 
         <div className="field drug-name-field">
@@ -456,7 +452,7 @@ function Prescriptions() {
           />
         </div>
 
-        <div className="field">
+        <div className="field drug-dosage-field">
           <label htmlFor={`${idPrefix}-dosage`}>Dosage</label>
           {dosageFallback !== null ? (
             <input
@@ -467,27 +463,42 @@ function Prescriptions() {
               required
             />
           ) : (
-            <div className="dosage-input-row">
-              <input
-                id={`${idPrefix}-dosage`}
-                type="text"
-                value={dosageQuantity}
-                onChange={(e) => {
-                  setDosageQuantity(e.target.value);
-                  setDosageDuplicationWarning(false);
-                }}
-                onBlur={() => {
-                  if (
-                    dosageUnit !== "" &&
-                    dosageQuantity
-                      .toLowerCase()
-                      .endsWith(dosageUnit.toLowerCase())
-                  ) {
-                    setDosageDuplicationWarning(true);
+            <>
+              <div className="dosage-input-row">
+                <input
+                  id={`${idPrefix}-dosage`}
+                  type="text"
+                  value={dosageQuantity}
+                  onChange={(e) => {
+                    setDosageQuantity(e.target.value);
+                    setDosageDuplicationWarning(false);
+                  }}
+                  onBlur={() => {
+                    if (
+                      dosageUnit !== "" &&
+                      dosageQuantity
+                        .toLowerCase()
+                        .endsWith(dosageUnit.toLowerCase())
+                    ) {
+                      setDosageDuplicationWarning(true);
+                    }
+                  }}
+                  required
+                />
+                <select
+                  aria-label="Unit"
+                  value={dosageUnit}
+                  onChange={(e) =>
+                    setDosageUnit(e.target.value as DosageUnit | "")
                   }
-                }}
-                required
-              />
+                >
+                  <option value="">(blank)</option>
+                  <option value="mg">mg</option>
+                  <option value="g">g</option>
+                  <option value="mcg">mcg</option>
+                  <option value="ml">ml</option>
+                </select>
+              </div>
               {dosageDuplicationWarning && (
                 <p className="field-hint">
                   Looks like you included the unit — did you mean &ldquo;
@@ -495,20 +506,7 @@ function Prescriptions() {
                   {dosageUnit}&rdquo;?
                 </p>
               )}
-              <select
-                aria-label="Unit"
-                value={dosageUnit}
-                onChange={(e) =>
-                  setDosageUnit(e.target.value as DosageUnit | "")
-                }
-              >
-                <option value="">(blank)</option>
-                <option value="mg">mg</option>
-                <option value="g">g</option>
-                <option value="mcg">mcg</option>
-                <option value="ml">ml</option>
-              </select>
-            </div>
+            </>
           )}
         </div>
       </div>
