@@ -40,6 +40,19 @@ const DAY_ABBRS: Record<DayOfWeek, string> = {
   saturday: "Sat",
 };
 
+const DOSAGE_UNITS = ["mg", "g", "mcg", "ml"] as const;
+type DosageUnit = (typeof DOSAGE_UNITS)[number];
+
+function parseDosage(
+  raw: string,
+): { quantity: string; unit: DosageUnit } | null {
+  const i = raw.lastIndexOf(" ");
+  if (i === -1) return null;
+  const unit = raw.slice(i + 1);
+  if (!(DOSAGE_UNITS as readonly string[]).includes(unit)) return null;
+  return { quantity: raw.slice(0, i), unit: unit as DosageUnit };
+}
+
 interface Schedule {
   days: Partial<Record<DayOfWeek, string[]>>;
   timezoneMode: "local" | "fixed_utc";
@@ -65,8 +78,9 @@ function Prescriptions() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [drugName, setDrugName] = useState("");
-  const [dosage, setDosage] = useState("");
-  const [dosageUnit, setDosageUnit] = useState("");
+  const [dosageQuantity, setDosageQuantity] = useState("");
+  const [dosageUnit, setDosageUnit] = useState<DosageUnit | "">("");
+  const [dosageFallback, setDosageFallback] = useState<string | null>(null);
   const [startDate, setStartDate] = useState(() =>
     new Date().toISOString().slice(0, 10),
   );
@@ -94,8 +108,9 @@ function Prescriptions() {
 
   function clearFields() {
     setDrugName("");
-    setDosage("");
+    setDosageQuantity("");
     setDosageUnit("");
+    setDosageFallback(null);
     setStartDate(new Date().toISOString().slice(0, 10));
     setEndDate("");
     setInstructions("");
@@ -120,7 +135,16 @@ function Prescriptions() {
 
   function handleEdit(p: Prescription) {
     setDrugName(p.drugName);
-    setDosage(p.dosage);
+    const parsed = parseDosage(p.dosage);
+    if (parsed) {
+      setDosageQuantity(parsed.quantity);
+      setDosageUnit(parsed.unit);
+      setDosageFallback(null);
+    } else {
+      setDosageQuantity("");
+      setDosageUnit("");
+      setDosageFallback(p.dosage);
+    }
     setStartDate(p.startDate);
     setEndDate(p.endDate ?? "");
     setInstructions(p.instructions ?? "");
@@ -139,6 +163,12 @@ function Prescriptions() {
     setTimesError(false);
     setFormOpen(false);
     setEditingId(p.id);
+  }
+
+  function buildDosage(): string {
+    return dosageFallback !== null
+      ? dosageFallback
+      : `${dosageQuantity} ${dosageUnit}`;
   }
 
   function buildSchedule(): Schedule {
@@ -166,7 +196,7 @@ function Prescriptions() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         drugName,
-        dosage,
+        dosage: buildDosage(),
         schedule: buildSchedule(),
         startDate,
         endDate: endDate || null,
@@ -206,7 +236,7 @@ function Prescriptions() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         drugName,
-        dosage,
+        dosage: buildDosage(),
         schedule: buildSchedule(),
         startDate,
         endDate: endDate || null,
@@ -385,32 +415,39 @@ function Prescriptions() {
 
         <div className="field">
           <label htmlFor={`${idPrefix}-dosage`}>Dosage</label>
-          <div className="dosage-input-row">
+          {dosageFallback !== null ? (
             <input
               id={`${idPrefix}-dosage`}
               type="text"
-              value={dosage}
-              onChange={(e) => setDosage(e.target.value)}
+              value={dosageFallback}
+              onChange={(e) => setDosageFallback(e.target.value)}
               required
             />
-            <select
-              aria-label="Unit"
-              value={dosageUnit}
-              onChange={(e) => {
-                const unit = e.target.value;
-                if (unit) {
-                  setDosage((prev) => prev + unit);
-                  setDosageUnit("");
+          ) : (
+            <div className="dosage-input-row">
+              <input
+                id={`${idPrefix}-dosage`}
+                type="text"
+                value={dosageQuantity}
+                onChange={(e) => setDosageQuantity(e.target.value)}
+                required
+              />
+              <select
+                aria-label="Unit"
+                value={dosageUnit}
+                required
+                onChange={(e) =>
+                  setDosageUnit(e.target.value as DosageUnit | "")
                 }
-              }}
-            >
-              <option value="">(none)</option>
-              <option value="mg">mg</option>
-              <option value="mcg">mcg</option>
-              <option value="g">g</option>
-              <option value="ml">ml</option>
-            </select>
-          </div>
+              >
+                <option value="" disabled hidden />
+                <option value="mg">mg</option>
+                <option value="g">g</option>
+                <option value="mcg">mcg</option>
+                <option value="ml">ml</option>
+              </select>
+            </div>
+          )}
         </div>
       </div>
 
