@@ -219,3 +219,34 @@
   font-size: 0.875rem;
   margin-bottom: 0.75rem;
 }
+
+.prescriptions .dose-time-entry {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.prescriptions .dose-time-entry label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.prescriptions .dose-time-entry input[type="time"] {
+  width: auto;
+}
+
+.prescriptions .remove-time {
+  background: none;
+  border: none;
+  padding: 0 0.25rem;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: oklch(0.5 0 0);
+  cursor: pointer;
+  margin-bottom: 0.4rem;
+}
+
+.prescriptions .remove-time:hover {
+  color: oklch(0.3 0 0);
+}

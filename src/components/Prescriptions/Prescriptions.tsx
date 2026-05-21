@@ -322,8 +322,13 @@ function Prescriptions() {
                 onChange={(e) => updateDoseTime(i, e.target.value)}
               />
             </label>
-            <button type="button" onClick={() => removeDoseTime(i)}>
-              Remove
+            <button
+              type="button"
+              className="remove-time"
+              aria-label="Remove"
+              onClick={() => removeDoseTime(i)}
+            >
+              ×
             </button>
           </div>
         ))}
