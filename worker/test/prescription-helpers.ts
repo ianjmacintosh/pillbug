@@ -1,5 +1,10 @@
 import type { Prescription, PrescriptionRepository } from "../prescriptions";
 
+export const DEFAULT_PRESCRIPTION_FIELDS = {
+  doseCount: 1,
+  doseForm: "tablet",
+} as const;
+
 export function makeInMemoryPrescriptionRepo(): PrescriptionRepository {
   const prescriptions: Prescription[] = [];
   return {

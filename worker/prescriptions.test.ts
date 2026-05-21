@@ -86,6 +86,46 @@ describe("validateSchedule", () => {
 });
 
 describe("createPrescription", () => {
+  test("returns a prescription with doseCount and doseForm when provided", async () => {
+    const repo = makeInMemoryPrescriptionRepo();
+    const result = await createPrescription(
+      {
+        drugName: "Metformin",
+        dosage: "500mg",
+        schedule: { days: { monday: ["08:00"] }, timezoneMode: "local" },
+        startDate: "2024-01-01",
+        doseCount: 2,
+        doseForm: "capsule",
+      },
+      "patient-1",
+      repo,
+    );
+    expect("error" in result).toBe(false);
+    if (!("error" in result)) {
+      expect(result.doseCount).toBe(2);
+      expect(result.doseForm).toBe("capsule");
+    }
+  });
+
+  test("defaults doseCount to 1 and doseForm to tablet when not provided", async () => {
+    const repo = makeInMemoryPrescriptionRepo();
+    const result = await createPrescription(
+      {
+        drugName: "Metformin",
+        dosage: "500mg",
+        schedule: { days: { monday: ["08:00"] }, timezoneMode: "local" },
+        startDate: "2024-01-01",
+      },
+      "patient-1",
+      repo,
+    );
+    expect("error" in result).toBe(false);
+    if (!("error" in result)) {
+      expect(result.doseCount).toBe(1);
+      expect(result.doseForm).toBe("tablet");
+    }
+  });
+
   test("returns a prescription with a generated id and active status", async () => {
     const repo = makeInMemoryPrescriptionRepo();
     const result = await createPrescription(
@@ -127,6 +167,8 @@ describe("createPrescription", () => {
 const BASE_PRESCRIPTION: Prescription = {
   id: "rx-1",
   patientId: "patient-1",
+  doseCount: 1,
+  doseForm: "tablet",
   drugName: "Metformin",
   dosage: "500mg",
   schedule: { days: {}, timezoneMode: "local" },

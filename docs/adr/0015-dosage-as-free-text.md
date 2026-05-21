@@ -8,7 +8,9 @@ The trade-off accepted: any future feature that needs to compare or compute on d
 
 ## New vs. legacy dosage strings
 
-The Add Prescription form requires a unit selection — there is no "(none)" option. New prescriptions always produce a "quantity unit" string (e.g., "500 mg"). The Edit Prescription form detects whether the stored dosage matches the "quantity unit" format: if it does, it splits into the two-field picker; if not (e.g., "1 tablet", "two 20mg tablets"), it falls back to a plain-text input and preserves the original string on save. This asymmetry is intentional: new entries are nudged toward a consistent format, while existing free-text values are not destroyed by an edit.
+The Add Prescription form's unit picker has a `(blank)` option that stores the quantity with no unit appended — useful for brand-name drugs labeled only by name and count. When `(blank)` is selected, the submitted dosage is just the quantity string (e.g., "2" rather than "2 mg"). For all other selections, dosage is stored as "quantity unit" (e.g., "500 mg"). The Edit Prescription form detects whether the stored dosage matches the "quantity unit" format: if it does, it splits into the two-field picker; if not (e.g., "1 tablet", "two 20mg tablets"), it falls back to a plain-text input and preserves the original string on save. This asymmetry is intentional: new entries are nudged toward a consistent format, while existing free-text values are not destroyed by an edit.
+
+The form also shows an inline advisory hint when the Patient types a value ending in a known unit suffix (e.g., "20mg") while the unit picker already shows that unit — it suggests the intended format ("20 mg") but does not block submission.
 
 ## Considered Options
 

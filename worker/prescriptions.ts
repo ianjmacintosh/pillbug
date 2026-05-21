@@ -32,6 +32,8 @@ export type PrescriptionStatus =
 export interface Prescription {
   id: string;
   patientId: string;
+  doseCount: number;
+  doseForm: string;
   drugName: string;
   dosage: string;
   schedule: Schedule;
@@ -88,6 +90,8 @@ export function validateSchedule(schedule: unknown): { error: string } | null {
 
 export async function createPrescription(
   input: {
+    doseCount?: number;
+    doseForm?: string;
     drugName: string;
     dosage: string;
     schedule: Schedule;
@@ -106,6 +110,8 @@ export async function createPrescription(
   const prescription: Prescription = {
     id: crypto.randomUUID(),
     patientId,
+    doseCount: input.doseCount ?? 1,
+    doseForm: input.doseForm ?? "tablet",
     drugName: input.drugName,
     dosage: input.dosage,
     schedule: input.schedule,
@@ -123,6 +129,8 @@ export async function createPrescription(
 export function toPrescriptionResponse(p: Prescription) {
   return {
     id: p.id,
+    doseCount: p.doseCount,
+    doseForm: p.doseForm,
     drugName: p.drugName,
     dosage: p.dosage,
     schedule: p.schedule,

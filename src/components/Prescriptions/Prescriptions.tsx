@@ -60,6 +60,8 @@ interface Schedule {
 
 interface Prescription {
   id: string;
+  doseCount: number;
+  doseForm: string;
   drugName: string;
   dosage: string;
   schedule: Schedule;
@@ -77,6 +79,8 @@ function Prescriptions() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [doseCount, setDoseCount] = useState("1");
+  const [doseForm, setDoseForm] = useState("tablet");
   const [drugName, setDrugName] = useState("");
   const [dosageQuantity, setDosageQuantity] = useState("");
   const [dosageUnit, setDosageUnit] = useState<DosageUnit | "">("mg");
@@ -91,6 +95,8 @@ function Prescriptions() {
   const [error, setError] = useState<string | null>(null);
   const [daysError, setDaysError] = useState(false);
   const [timesError, setTimesError] = useState(false);
+  const [dosageDuplicationWarning, setDosageDuplicationWarning] =
+    useState(false);
 
   async function handleReveal() {
     const res = await fetch("/api/v1/prescriptions");
@@ -107,6 +113,8 @@ function Prescriptions() {
   }
 
   function clearFields() {
+    setDoseCount("1");
+    setDoseForm("tablet");
     setDrugName("");
     setDosageQuantity("");
     setDosageUnit("mg");
@@ -115,10 +123,11 @@ function Prescriptions() {
     setEndDate("");
     setInstructions("");
     setScheduledDays(new Set());
-    setDoseTimes([""]);
+    setDoseTimes(["09:00"]);
     setError(null);
     setDaysError(false);
     setTimesError(false);
+    setDosageDuplicationWarning(false);
   }
 
   function handleOpenForm() {
@@ -134,6 +143,8 @@ function Prescriptions() {
   }
 
   function handleEdit(p: Prescription) {
+    setDoseCount(String(p.doseCount ?? 1));
+    setDoseForm(p.doseForm ?? "tablet");
     setDrugName(p.drugName);
     const parsed = parseDosage(p.dosage);
     if (parsed) {
@@ -166,8 +177,9 @@ function Prescriptions() {
   }
 
   function buildDosage(): string {
-    return dosageFallback !== null
-      ? dosageFallback
+    if (dosageFallback !== null) return dosageFallback;
+    return dosageUnit === ""
+      ? dosageQuantity
       : `${dosageQuantity} ${dosageUnit}`;
   }
 
@@ -195,6 +207,8 @@ function Prescriptions() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        doseCount: parseFloat(doseCount) || 1,
+        doseForm,
         drugName,
         dosage: buildDosage(),
         schedule: buildSchedule(),
@@ -235,6 +249,8 @@ function Prescriptions() {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        doseCount: parseFloat(doseCount) || 1,
+        doseForm,
         drugName,
         dosage: buildDosage(),
         schedule: buildSchedule(),
@@ -286,7 +302,7 @@ function Prescriptions() {
   }
 
   function addDoseTime() {
-    setDoseTimes((prev) => [...prev, ""]);
+    setDoseTimes((prev) => [...prev, "09:00"]);
     setTimesError(false);
   }
 
@@ -401,6 +417,35 @@ function Prescriptions() {
         </div>
       </div>
 
+      <div className="dose-count-form-fields">
+        <div className="field">
+          <label htmlFor={`${idPrefix}-doseCount`}>Count</label>
+          <input
+            id={`${idPrefix}-doseCount`}
+            type="number"
+            step="any"
+            min="0"
+            value={doseCount}
+            onChange={(e) => setDoseCount(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="field">
+          <label htmlFor={`${idPrefix}-doseForm`}>Form</label>
+          <select
+            id={`${idPrefix}-doseForm`}
+            value={doseForm}
+            onChange={(e) => setDoseForm(e.target.value)}
+          >
+            <option value="tablet">tablet</option>
+            <option value="capsule">capsule</option>
+            <option value="pill">pill</option>
+            <option value="other">other</option>
+          </select>
+        </div>
+      </div>
+
       <div className="drug-dosage-fields">
         <div className="field">
           <label htmlFor={`${idPrefix}-drugName`}>Drug name</label>
@@ -429,18 +474,37 @@ function Prescriptions() {
                 id={`${idPrefix}-dosage`}
                 type="text"
                 value={dosageQuantity}
-                onChange={(e) => setDosageQuantity(e.target.value)}
+                onChange={(e) => {
+                  setDosageQuantity(e.target.value);
+                  setDosageDuplicationWarning(false);
+                }}
+                onBlur={() => {
+                  if (
+                    dosageUnit !== "" &&
+                    dosageQuantity
+                      .toLowerCase()
+                      .endsWith(dosageUnit.toLowerCase())
+                  ) {
+                    setDosageDuplicationWarning(true);
+                  }
+                }}
                 required
               />
+              {dosageDuplicationWarning && (
+                <p className="field-hint">
+                  Looks like you included the unit — did you mean &ldquo;
+                  {dosageQuantity.slice(0, -dosageUnit.length).trim()}{" "}
+                  {dosageUnit}&rdquo;?
+                </p>
+              )}
               <select
                 aria-label="Unit"
                 value={dosageUnit}
-                required
                 onChange={(e) =>
                   setDosageUnit(e.target.value as DosageUnit | "")
                 }
               >
-                <option value="" disabled hidden />
+                <option value="">(blank)</option>
                 <option value="mg">mg</option>
                 <option value="g">g</option>
                 <option value="mcg">mcg</option>
