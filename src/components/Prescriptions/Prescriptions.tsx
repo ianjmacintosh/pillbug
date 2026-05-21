@@ -131,8 +131,18 @@ function Prescriptions() {
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSubmitting(true);
     setError(null);
+
+    if (
+      scheduledDays.size === 0 ||
+      doseTimes.length === 0 ||
+      doseTimes.some((t) => t === "")
+    ) {
+      setError("Please select at least one day and one dose time.");
+      return;
+    }
+
+    setSubmitting(true);
 
     const res = await fetch("/api/v1/prescriptions", {
       method: "POST",
@@ -164,8 +174,18 @@ function Prescriptions() {
   async function handleSaveEdit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!editingId) return;
-    setSubmitting(true);
     setError(null);
+
+    if (
+      scheduledDays.size === 0 ||
+      doseTimes.length === 0 ||
+      doseTimes.some((t) => t === "")
+    ) {
+      setError("Please select at least one day and one dose time.");
+      return;
+    }
+
+    setSubmitting(true);
 
     const res = await fetch(`/api/v1/prescriptions/${editingId}`, {
       method: "PATCH",
