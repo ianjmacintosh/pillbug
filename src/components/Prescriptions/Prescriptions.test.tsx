@@ -186,6 +186,8 @@ describe("Prescriptions", () => {
       vi.spyOn(globalThis, "fetch");
       await openCreateFormWithMinimumFields();
       await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
+      const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
+      await userEvent.clear(timeInput);
       await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
       await userEvent.click(
