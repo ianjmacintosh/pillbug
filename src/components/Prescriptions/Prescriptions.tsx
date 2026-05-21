@@ -295,6 +295,7 @@ function Prescriptions() {
             <label key={day} className="day-pill">
               <input
                 type="checkbox"
+                className="visually-hidden"
                 checked={scheduledDays.has(day)}
                 onChange={() => toggleDay(day)}
                 aria-label={DAY_LABELS[day]}
