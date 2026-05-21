@@ -67,7 +67,9 @@ function Prescriptions() {
   const [drugName, setDrugName] = useState("");
   const [dosage, setDosage] = useState("");
   const [dosageUnit, setDosageUnit] = useState("");
-  const [startDate, setStartDate] = useState("");
+  const [startDate, setStartDate] = useState(() =>
+    new Date().toISOString().slice(0, 10),
+  );
   const [endDate, setEndDate] = useState("");
   const [instructions, setInstructions] = useState("");
   const [scheduledDays, setScheduledDays] = useState<Set<DayOfWeek>>(new Set());
@@ -94,7 +96,7 @@ function Prescriptions() {
     setDrugName("");
     setDosage("");
     setDosageUnit("");
-    setStartDate("");
+    setStartDate(new Date().toISOString().slice(0, 10));
     setEndDate("");
     setInstructions("");
     setScheduledDays(new Set());

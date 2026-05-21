@@ -31,7 +31,7 @@ describe("Prescriptions", () => {
       );
       await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
       await userEvent.type(screen.getByLabelText(/dosage/i), "100mg");
-      await userEvent.type(screen.getByLabelText(/start date/i), "2024-06-01");
+      // start date is pre-filled with today's date
     }
 
     test("create form: submitting with no days selected shows an error and does not call fetch", async () => {
@@ -310,7 +310,7 @@ describe("Prescriptions", () => {
       await openCreateForm();
       await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
       await userEvent.type(screen.getByLabelText(/dosage/i), "100mg");
-      await userEvent.type(screen.getByLabelText(/start date/i), "2024-06-01");
+      // start date is pre-filled with today's date
 
       await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
       const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
@@ -477,6 +477,14 @@ describe("Prescriptions", () => {
       );
     }
 
+    test("create form start date defaults to today", async () => {
+      await openCreateForm();
+      const today = new Date().toISOString().slice(0, 10);
+      expect(
+        (screen.getByLabelText(/start date/i) as HTMLInputElement).value,
+      ).toBe(today);
+    });
+
     test("end date field shows 'Leave blank for ongoing prescriptions' hint", async () => {
       await openCreateForm();
       expect(
@@ -543,7 +551,7 @@ describe("Prescriptions", () => {
         screen.getByRole("combobox", { name: /unit/i }),
         "mg",
       );
-      await userEvent.type(screen.getByLabelText(/start date/i), "2024-06-01");
+      // start date is pre-filled with today's date
       await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
       const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
       await userEvent.clear(timeInput);
