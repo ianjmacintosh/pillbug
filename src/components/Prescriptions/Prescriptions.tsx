@@ -281,8 +281,8 @@ function Prescriptions() {
             onClick={toggleAllDays}
           >
             {scheduledDays.size === WEEKDAYS.length
-              ? "Unselect all"
-              : "Select all"}
+              ? "(Unselect all)"
+              : "(Select all)"}
           </button>
         </legend>
         {daysError && (

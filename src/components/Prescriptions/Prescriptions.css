@@ -198,8 +198,7 @@
 .prescriptions .schedule-section legend {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
-  width: 100%;
+  gap: 0.35rem;
   font-family: system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
