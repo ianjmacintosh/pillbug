@@ -127,7 +127,7 @@
   background-color: oklch(0.95 0 0);
 }
 
-.prescriptions .schedule-section.schedule-error {
+.prescriptions .schedule-subsection-error {
   border: 1px solid oklch(0.6 0.15 25);
   border-radius: 4px;
   padding: 0.75rem;

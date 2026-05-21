@@ -62,7 +62,8 @@ function Prescriptions() {
   const [scheduledDays, setScheduledDays] = useState<Set<DayOfWeek>>(new Set());
   const [doseTimes, setDoseTimes] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [scheduleError, setScheduleError] = useState<string | null>(null);
+  const [daysError, setDaysError] = useState(false);
+  const [timesError, setTimesError] = useState(false);
 
   async function handleReveal() {
     const res = await fetch("/api/v1/prescriptions");
@@ -87,7 +88,8 @@ function Prescriptions() {
     setScheduledDays(new Set());
     setDoseTimes([]);
     setError(null);
-    setScheduleError(null);
+    setDaysError(false);
+    setTimesError(false);
   }
 
   function handleOpenForm() {
@@ -119,7 +121,8 @@ function Prescriptions() {
     setScheduledDays(days);
     setDoseTimes(Array.from(allTimes).sort());
     setError(null);
-    setScheduleError(null);
+    setDaysError(false);
+    setTimesError(false);
     setFormOpen(false);
     setEditingId(p.id);
   }
@@ -135,16 +138,12 @@ function Prescriptions() {
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    setScheduleError(null);
-
-    if (
-      scheduledDays.size === 0 ||
-      doseTimes.length === 0 ||
-      doseTimes.some((t) => t === "")
-    ) {
-      setScheduleError("Please select at least one day and one dose time.");
-      return;
-    }
+    const nextDaysError = scheduledDays.size === 0;
+    const nextTimesError =
+      doseTimes.length === 0 || doseTimes.some((t) => t === "");
+    setDaysError(nextDaysError);
+    setTimesError(nextTimesError);
+    if (nextDaysError || nextTimesError) return;
 
     setSubmitting(true);
 
@@ -179,16 +178,12 @@ function Prescriptions() {
     e.preventDefault();
     if (!editingId) return;
     setError(null);
-    setScheduleError(null);
-
-    if (
-      scheduledDays.size === 0 ||
-      doseTimes.length === 0 ||
-      doseTimes.some((t) => t === "")
-    ) {
-      setScheduleError("Please select at least one day and one dose time.");
-      return;
-    }
+    const nextDaysError = scheduledDays.size === 0;
+    const nextTimesError =
+      doseTimes.length === 0 || doseTimes.some((t) => t === "");
+    setDaysError(nextDaysError);
+    setTimesError(nextTimesError);
+    if (nextDaysError || nextTimesError) return;
 
     setSubmitting(true);
 
@@ -237,78 +232,89 @@ function Prescriptions() {
     if (next.has(day)) next.delete(day);
     else next.add(day);
     setScheduledDays(next);
-    setScheduleError(null);
+    setDaysError(false);
   }
 
   function toggleAllDays() {
     if (scheduledDays.size === WEEKDAYS.length) setScheduledDays(new Set());
     else setScheduledDays(new Set(WEEKDAYS));
-    setScheduleError(null);
+    setDaysError(false);
   }
 
   function addDoseTime() {
     setDoseTimes((prev) => [...prev, ""]);
-    setScheduleError(null);
+    setTimesError(false);
   }
 
   function updateDoseTime(index: number, value: string) {
     setDoseTimes((prev) => prev.map((t, i) => (i === index ? value : t)));
-    setScheduleError(null);
+    setTimesError(false);
   }
 
   function removeDoseTime(index: number) {
     setDoseTimes((prev) => prev.filter((_, i) => i !== index));
-    setScheduleError(null);
+    setTimesError(false);
   }
 
   const scheduleSection = (
-    <div
-      className={`schedule-section${scheduleError ? " schedule-error" : ""}`}
-    >
-      {scheduleError && (
-        <p role="alert" className="schedule-error-message">
-          {scheduleError}
-        </p>
-      )}
-      <table>
-        <thead>
-          <tr>
-            <th className="select-all-col">
-              <label htmlFor="select-all">Select All</label>
-            </th>
-            {WEEKDAYS.map((day) => (
-              <th key={day}>
-                <label htmlFor={`day-${day}`}>{DAY_LABELS[day]}</label>
+    <div className="schedule-section">
+      <div
+        className={
+          daysError
+            ? "schedule-days schedule-subsection-error"
+            : "schedule-days"
+        }
+      >
+        {daysError && (
+          <p role="alert" className="schedule-error-message">
+            Please select at least one day.
+          </p>
+        )}
+        <table>
+          <thead>
+            <tr>
+              <th className="select-all-col">
+                <label htmlFor="select-all">Select All</label>
               </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td className="select-all-col">
-              <input
-                id="select-all"
-                type="checkbox"
-                checked={scheduledDays.size === WEEKDAYS.length}
-                onChange={toggleAllDays}
-              />
-            </td>
-            {WEEKDAYS.map((day) => (
-              <td key={day}>
+              {WEEKDAYS.map((day) => (
+                <th key={day}>
+                  <label htmlFor={`day-${day}`}>{DAY_LABELS[day]}</label>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="select-all-col">
                 <input
-                  id={`day-${day}`}
+                  id="select-all"
                   type="checkbox"
-                  checked={scheduledDays.has(day)}
-                  onChange={() => toggleDay(day)}
+                  checked={scheduledDays.size === WEEKDAYS.length}
+                  onChange={toggleAllDays}
                 />
               </td>
-            ))}
-          </tr>
-        </tbody>
-      </table>
+              {WEEKDAYS.map((day) => (
+                <td key={day}>
+                  <input
+                    id={`day-${day}`}
+                    type="checkbox"
+                    checked={scheduledDays.has(day)}
+                    onChange={() => toggleDay(day)}
+                  />
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-      <fieldset>
+      <fieldset className={timesError ? "schedule-subsection-error" : ""}>
         <legend>Dose times</legend>
+        {timesError && (
+          <p role="alert" className="schedule-error-message">
+            Please add at least one dose time.
+          </p>
+        )}
         {doseTimes.map((time, i) => (
           <div key={i} className="dose-time-entry">
             <label>
