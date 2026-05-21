@@ -8,7 +8,7 @@ Document new routes here before implementing them. This is a living contract —
 - All JSON responses include `Content-Type: application/json`
 - Errors always return `{ "error": "<code>" }` — never bare strings or HTML
 - Authentication uses an `HttpOnly; SameSite=Lax` session cookie named `session` (30-day TTL)
-- Token TTL: 20 minutes (magic link validity window)
+- Token TTL: 20 minutes (Verification Code validity window)
 
 ---
 
@@ -59,7 +59,7 @@ The Turnstile token is obtained from the widget rendered on the `/register` page
 
 ### `POST /api/v1/login`
 
-Sends a sign-in email with a 4-digit PIN to an existing Patient. If the email is not registered, returns a random (unstored) token with no email sent — the token returns `invalid` if submitted, preserving email enumeration protection.
+Sends a sign-in email with a 4-digit PIN to an existing Patient. If the email is not registered, stores a decoy token (no `patient_id`, no email sent) and returns its UUID — the token returns `invalid` if submitted, preserving email enumeration protection.
 
 **Request**
 
@@ -101,12 +101,12 @@ Sets `session` cookie (HttpOnly, SameSite=Lax, 30-day TTL).
 { "error": "invalid" | "expired" | "used" | "locked" }
 ```
 
-| Code      | Meaning                                     |
-| --------- | ------------------------------------------- |
-| `invalid` | Token not found, or PIN does not match      |
-| `expired` | Token past its 20-minute window             |
-| `used`    | Token already redeemed                      |
-| `locked`  | 5 or more failed PIN attempts on this token |
+| Code      | Meaning                                      |
+| --------- | -------------------------------------------- |
+| `expired` | Token not found or past its 20-minute window |
+| `invalid` | Token exists but PIN does not match          |
+| `used`    | Token already redeemed                       |
+| `locked`  | 5 or more failed PIN attempts on this token  |
 
 ---
 
@@ -139,7 +139,7 @@ Returns the current session state. Used by the client to check auth on page load
 
 ### `POST /api/v1/login/silent`
 
-Creates a Patient account if the email is not registered, then generates a magic link token without sending an email. The token is written to the database and can be retrieved via `wrangler d1 execute` for use at `GET /api/v1/auth/verify`. Intended for local and staging developer workflows — see `npm run dev:login`.
+Creates a Patient account if the email is not registered, then generates a token without sending an email. The `dev-login` script patches the DB to set a known PIN (`1234`) and prints the `/enter-code?token=<uuid>` URL for use in a browser. Intended for local and staging developer workflows — see `npm run dev:login`.
 
 **Request**
 

@@ -12,9 +12,9 @@ All patient data (Prescriptions, Doses, Fill Sessions, Doctors, Schedules, Remin
 
 ## Email delivery — Resend
 
-Patient email addresses are shared with Resend (a third-party email delivery service) solely to send magic link login emails. Resend receives the recipient address and delivery metadata only — no medical content.
+Patient email addresses are shared with Resend (a third-party email delivery service) solely to send Verification Code login emails. Resend receives the recipient address and delivery metadata only — no medical content.
 
-**Disclosure required:** Resend is a named sub-processor. State the limited purpose (magic link login only) and that no medical content is transmitted to Resend.
+**Disclosure required:** Resend is a named sub-processor. State the limited purpose (Verification Code login only) and that no medical content is transmitted to Resend.
 
 ## Push notifications — Web Push API (self-hosted, VAPID)
 
