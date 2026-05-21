@@ -62,6 +62,7 @@ function Prescriptions() {
   const [scheduledDays, setScheduledDays] = useState<Set<DayOfWeek>>(new Set());
   const [doseTimes, setDoseTimes] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [scheduleError, setScheduleError] = useState<string | null>(null);
 
   async function handleReveal() {
     const res = await fetch("/api/v1/prescriptions");
@@ -86,6 +87,7 @@ function Prescriptions() {
     setScheduledDays(new Set());
     setDoseTimes([]);
     setError(null);
+    setScheduleError(null);
   }
 
   function handleOpenForm() {
@@ -117,6 +119,7 @@ function Prescriptions() {
     setScheduledDays(days);
     setDoseTimes(Array.from(allTimes).sort());
     setError(null);
+    setScheduleError(null);
     setFormOpen(false);
     setEditingId(p.id);
   }
@@ -132,13 +135,14 @@ function Prescriptions() {
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    setScheduleError(null);
 
     if (
       scheduledDays.size === 0 ||
       doseTimes.length === 0 ||
       doseTimes.some((t) => t === "")
     ) {
-      setError("Please select at least one day and one dose time.");
+      setScheduleError("Please select at least one day and one dose time.");
       return;
     }
 
@@ -175,13 +179,14 @@ function Prescriptions() {
     e.preventDefault();
     if (!editingId) return;
     setError(null);
+    setScheduleError(null);
 
     if (
       scheduledDays.size === 0 ||
       doseTimes.length === 0 ||
       doseTimes.some((t) => t === "")
     ) {
-      setError("Please select at least one day and one dose time.");
+      setScheduleError("Please select at least one day and one dose time.");
       return;
     }
 
@@ -232,27 +237,39 @@ function Prescriptions() {
     if (next.has(day)) next.delete(day);
     else next.add(day);
     setScheduledDays(next);
+    setScheduleError(null);
   }
 
   function toggleAllDays() {
     if (scheduledDays.size === WEEKDAYS.length) setScheduledDays(new Set());
     else setScheduledDays(new Set(WEEKDAYS));
+    setScheduleError(null);
   }
 
   function addDoseTime() {
     setDoseTimes((prev) => [...prev, ""]);
+    setScheduleError(null);
   }
 
   function updateDoseTime(index: number, value: string) {
     setDoseTimes((prev) => prev.map((t, i) => (i === index ? value : t)));
+    setScheduleError(null);
   }
 
   function removeDoseTime(index: number) {
     setDoseTimes((prev) => prev.filter((_, i) => i !== index));
+    setScheduleError(null);
   }
 
   const scheduleSection = (
-    <div className="schedule-section">
+    <div
+      className={`schedule-section${scheduleError ? " schedule-error" : ""}`}
+    >
+      {scheduleError && (
+        <p role="alert" className="schedule-error-message">
+          {scheduleError}
+        </p>
+      )}
       <table>
         <thead>
           <tr>
