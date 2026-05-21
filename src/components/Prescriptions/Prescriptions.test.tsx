@@ -223,10 +223,18 @@ describe("Prescriptions", () => {
       }
     });
 
-    test("create form renders a 'Select All' toggle checkbox", async () => {
+    test("create form renders a 'Select all' text link", async () => {
       await openCreateForm();
+      expect(screen.getByRole("button", { name: /select all/i })).toBeTruthy();
+    });
+
+    test("'Select all' link text changes to 'Unselect all' when all days are selected", async () => {
+      await openCreateForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /select all/i }),
+      );
       expect(
-        screen.getByRole("checkbox", { name: /select all/i }),
+        screen.getByRole("button", { name: /unselect all/i }),
       ).toBeTruthy();
     });
 

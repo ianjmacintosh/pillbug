@@ -270,24 +270,27 @@ function Prescriptions() {
     <div className="schedule-section">
       <fieldset
         className="schedule-days"
+        aria-label="Days"
         aria-invalid={daysError ? true : undefined}
       >
-        <legend>Days</legend>
+        <legend>
+          Days
+          <button
+            type="button"
+            className="toggle-all-link"
+            onClick={toggleAllDays}
+          >
+            {scheduledDays.size === WEEKDAYS.length
+              ? "Unselect all"
+              : "Select all"}
+          </button>
+        </legend>
         {daysError && (
           <p role="alert" className="schedule-error-message">
             Please select at least one day.
           </p>
         )}
         <div className="day-pills-row">
-          <label className="select-all-pill">
-            <input
-              type="checkbox"
-              checked={scheduledDays.size === WEEKDAYS.length}
-              onChange={toggleAllDays}
-              aria-label="Select All"
-            />
-            <span aria-hidden="true">All</span>
-          </label>
           {WEEKDAYS.map((day) => (
             <label key={day} className="day-pill">
               <input
