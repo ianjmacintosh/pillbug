@@ -117,7 +117,7 @@ test.describe("Prescription create", () => {
     await page.getByLabel(/drug name/i).fill("Metformin");
     await page.getByLabel("Dosage").fill("500mg");
     await page.getByLabel(/start date/i).fill("2024-01-01");
-    await page.getByRole("checkbox", { name: "Monday" }).click();
+    await page.getByRole("checkbox", { name: "Monday" }).locator("..").click();
     await page.getByLabel(/time 1/i).fill("08:00");
     await page.getByRole("button", { name: /save prescription/i }).click();
 
@@ -198,11 +198,12 @@ test.describe("Prescription create", () => {
 
     await page.getByRole("button", { name: /add prescription/i }).click();
     const monday = page.getByRole("checkbox", { name: "Monday" });
+    const mondayPill = monday.locator("..");
 
     await expect(monday).not.toBeChecked();
-    await monday.click();
+    await mondayPill.click();
     await expect(monday).toBeChecked();
-    await monday.click();
+    await mondayPill.click();
     await expect(monday).not.toBeChecked();
   });
 
@@ -234,7 +235,7 @@ test.describe("Prescription create", () => {
     await page.getByLabel(/drug name/i).fill("Aspirin");
     await page.getByLabel("Dosage").fill("100mg");
     await page.getByLabel(/start date/i).fill("2024-06-01");
-    await page.getByRole("checkbox", { name: "Monday" }).click();
+    await page.getByRole("checkbox", { name: "Monday" }).locator("..").click();
     // leave time 1 blank
 
     await page.getByRole("button", { name: /save prescription/i }).click();
@@ -253,8 +254,11 @@ test.describe("Prescription create", () => {
     await page.getByLabel(/drug name/i).fill("Lisinopril");
     await page.getByLabel("Dosage").fill("10mg");
     await page.getByLabel(/start date/i).fill("2024-03-01");
-    await page.getByRole("checkbox", { name: "Monday" }).click();
-    await page.getByRole("checkbox", { name: "Thursday" }).click();
+    await page.getByRole("checkbox", { name: "Monday" }).locator("..").click();
+    await page
+      .getByRole("checkbox", { name: "Thursday" })
+      .locator("..")
+      .click();
     await page.getByLabel(/time 1/i).fill("08:00");
     await page.getByRole("button", { name: /add new dose time/i }).click();
     await page.getByLabel(/time 2/i).fill("20:00");
