@@ -180,10 +180,18 @@
   outline-offset: 2px;
 }
 
-.prescriptions .schedule-days {
+.prescriptions .schedule-section fieldset {
   border: none;
   padding: 0;
   margin: 0;
+}
+
+.prescriptions .schedule-section legend {
+  font-family: system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0;
+  margin-bottom: 0.25rem;
 }
 
 .prescriptions .schedule-section fieldset[aria-invalid="true"] {
