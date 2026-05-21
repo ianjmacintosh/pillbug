@@ -27,13 +27,22 @@
   gap: 0.25rem;
 }
 
-.prescriptions .drug-dosage-fields {
+.prescriptions .drug-info-row {
   display: flex;
   gap: 1.25rem;
+  align-items: flex-start;
 }
 
-.prescriptions .drug-dosage-fields .field {
+.prescriptions .drug-info-row .field {
   flex: 1;
+}
+
+.prescriptions .drug-info-row .dose-count-field {
+  flex: 0 0 5rem;
+}
+
+.prescriptions .drug-info-row .drug-name-field {
+  flex: 3;
 }
 
 .prescriptions .dosage-input-row {
@@ -73,7 +82,7 @@
 
 @media (max-width: 480px) {
   .prescriptions .date-fields,
-  .prescriptions .drug-dosage-fields {
+  .prescriptions .drug-info-row {
     flex-direction: column;
   }
 }

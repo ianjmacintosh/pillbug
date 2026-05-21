@@ -417,8 +417,8 @@ function Prescriptions() {
         </div>
       </div>
 
-      <div className="dose-count-form-fields">
-        <div className="field">
+      <div className="drug-info-row">
+        <div className="field dose-count-field">
           <label htmlFor={`${idPrefix}-doseCount`}>Count</label>
           <input
             id={`${idPrefix}-doseCount`}
@@ -444,10 +444,8 @@ function Prescriptions() {
             <option value="other">other</option>
           </select>
         </div>
-      </div>
 
-      <div className="drug-dosage-fields">
-        <div className="field">
+        <div className="field drug-name-field">
           <label htmlFor={`${idPrefix}-drugName`}>Drug name</label>
           <input
             id={`${idPrefix}-drugName`}
