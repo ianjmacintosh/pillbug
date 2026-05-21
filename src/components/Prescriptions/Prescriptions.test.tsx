@@ -23,6 +23,183 @@ describe("Prescriptions", () => {
     expect(screen.getByRole("heading", { level: 1 })).toBeTruthy();
   });
 
+  describe("validation", () => {
+    async function openCreateFormWithMinimumFields() {
+      render(<Prescriptions />);
+      await userEvent.click(
+        screen.getByRole("button", { name: /add prescription/i }),
+      );
+      await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
+      await userEvent.type(screen.getByLabelText(/dosage/i), "100mg");
+      await userEvent.type(screen.getByLabelText(/start date/i), "2024-06-01");
+    }
+
+    test("create form: submitting with no days selected shows an error and does not call fetch", async () => {
+      const fetchSpy = vi.spyOn(globalThis, "fetch");
+      await openCreateFormWithMinimumFields();
+      await userEvent.click(
+        screen.getByRole("button", { name: /add dose time/i }),
+      );
+      const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
+      await userEvent.clear(timeInput);
+      await userEvent.type(timeInput, "08:00");
+
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      expect(screen.getByRole("alert")).toBeTruthy();
+      expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    test("create form: submitting with no dose times shows an error and does not call fetch", async () => {
+      const fetchSpy = vi.spyOn(globalThis, "fetch");
+      await openCreateFormWithMinimumFields();
+      await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
+
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      expect(screen.getByRole("alert")).toBeTruthy();
+      expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    test("create form: submitting with a blank dose time entry shows an error and does not call fetch", async () => {
+      const fetchSpy = vi.spyOn(globalThis, "fetch");
+      await openCreateFormWithMinimumFields();
+      await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /add dose time/i }),
+      );
+      // leave the time input blank
+
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      expect(screen.getByRole("alert")).toBeTruthy();
+      expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    test("edit form: submitting with no days selected shows an error and does not call PATCH", async () => {
+      const emptySchedulePrescription = {
+        ...SAMPLE_PRESCRIPTION,
+        schedule: { days: {}, timezoneMode: "local" as const },
+      };
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([emptySchedulePrescription]), {
+          status: 200,
+        }),
+      );
+      render(<Prescriptions />);
+      await userEvent.click(screen.getByRole("button", { name: /show all/i }));
+      await waitFor(() => screen.getByText("Metformin"));
+      await userEvent.click(screen.getByRole("button", { name: /edit/i }));
+
+      // no days selected, add a valid time
+      await userEvent.click(
+        screen.getByRole("button", { name: /add dose time/i }),
+      );
+      const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
+      await userEvent.clear(timeInput);
+      await userEvent.type(timeInput, "08:00");
+
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      expect(screen.getByRole("alert")).toBeTruthy();
+      expect(fetchSpy).toHaveBeenCalledTimes(1); // only the GET, no PATCH
+    });
+
+    test("edit form: submitting with no dose times shows an error and does not call PATCH", async () => {
+      const emptySchedulePrescription = {
+        ...SAMPLE_PRESCRIPTION,
+        schedule: { days: {}, timezoneMode: "local" as const },
+      };
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([emptySchedulePrescription]), {
+          status: 200,
+        }),
+      );
+      render(<Prescriptions />);
+      await userEvent.click(screen.getByRole("button", { name: /show all/i }));
+      await waitFor(() => screen.getByText("Metformin"));
+      await userEvent.click(screen.getByRole("button", { name: /edit/i }));
+
+      // select a day but add no times
+      await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
+
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      expect(screen.getByRole("alert")).toBeTruthy();
+      expect(fetchSpy).toHaveBeenCalledTimes(1); // only the GET, no PATCH
+    });
+
+    test("Days fieldset is marked aria-invalid when no days are selected on submit", async () => {
+      vi.spyOn(globalThis, "fetch");
+      await openCreateFormWithMinimumFields();
+      await userEvent.click(
+        screen.getByRole("button", { name: /add dose time/i }),
+      );
+      const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
+      await userEvent.clear(timeInput);
+      await userEvent.type(timeInput, "08:00");
+
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      expect(
+        screen
+          .getByRole("group", { name: /days/i })
+          .getAttribute("aria-invalid"),
+      ).toBe("true");
+    });
+
+    test("Days fieldset aria-invalid clears when a day is selected", async () => {
+      vi.spyOn(globalThis, "fetch");
+      await openCreateFormWithMinimumFields();
+      await userEvent.click(
+        screen.getByRole("button", { name: /add dose time/i }),
+      );
+      const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
+      await userEvent.clear(timeInput);
+      await userEvent.type(timeInput, "08:00");
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
+
+      expect(
+        screen
+          .getByRole("group", { name: /days/i })
+          .getAttribute("aria-invalid"),
+      ).toBeNull();
+    });
+
+    test("Dose times fieldset is marked aria-invalid when no times are added on submit", async () => {
+      vi.spyOn(globalThis, "fetch");
+      await openCreateFormWithMinimumFields();
+      await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
+
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      expect(
+        screen
+          .getByRole("group", { name: /dose times/i })
+          .getAttribute("aria-invalid"),
+      ).toBe("true");
+    });
+
+    test("Dose times fieldset aria-invalid clears when a dose time is added", async () => {
+      vi.spyOn(globalThis, "fetch");
+      await openCreateFormWithMinimumFields();
+      await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /add dose time/i }),
+      );
+
+      expect(
+        screen
+          .getByRole("group", { name: /dose times/i })
+          .getAttribute("aria-invalid"),
+      ).toBeNull();
+    });
+  });
+
   describe("schedule", () => {
     async function openCreateForm() {
       render(<Prescriptions />);

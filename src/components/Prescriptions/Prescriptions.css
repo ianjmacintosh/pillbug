@@ -126,3 +126,23 @@
 .prescriptions .schedule-section .select-all-col {
   background-color: oklch(0.95 0 0);
 }
+
+.prescriptions .schedule-days {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.prescriptions .schedule-section fieldset[aria-invalid="true"] {
+  border: 1px solid oklch(0.6 0.15 25);
+  border-radius: 4px;
+  padding: 0.75rem;
+  background-color: oklch(0.97 0.02 25);
+}
+
+.prescriptions .schedule-error-message {
+  color: oklch(0.4 0.15 25);
+  font-family: system-ui, sans-serif;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
