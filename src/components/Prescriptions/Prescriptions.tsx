@@ -30,6 +30,16 @@ const DAY_LABELS: Record<DayOfWeek, string> = {
   saturday: "Saturday",
 };
 
+const DAY_ABBRS: Record<DayOfWeek, string> = {
+  sunday: "Sun",
+  monday: "Mon",
+  tuesday: "Tue",
+  wednesday: "Wed",
+  thursday: "Thu",
+  friday: "Fri",
+  saturday: "Sat",
+};
+
 interface Schedule {
   days: Partial<Record<DayOfWeek, string[]>>;
   timezoneMode: "local" | "fixed_utc";
@@ -86,7 +96,7 @@ function Prescriptions() {
     setEndDate("");
     setInstructions("");
     setScheduledDays(new Set());
-    setDoseTimes([]);
+    setDoseTimes([""]);
     setError(null);
     setDaysError(false);
     setTimesError(false);
@@ -260,50 +270,40 @@ function Prescriptions() {
     <div className="schedule-section">
       <fieldset
         className="schedule-days"
+        aria-label="Days"
         aria-invalid={daysError ? true : undefined}
       >
-        <legend>Days</legend>
+        <legend>
+          Days
+          <button
+            type="button"
+            className="toggle-all-link"
+            onClick={toggleAllDays}
+          >
+            {scheduledDays.size === WEEKDAYS.length
+              ? "(Unselect all)"
+              : "(Select all)"}
+          </button>
+        </legend>
         {daysError && (
           <p role="alert" className="schedule-error-message">
             Please select at least one day.
           </p>
         )}
-        <table>
-          <thead>
-            <tr>
-              <th className="select-all-col">
-                <label htmlFor="select-all">Select All</label>
-              </th>
-              {WEEKDAYS.map((day) => (
-                <th key={day}>
-                  <label htmlFor={`day-${day}`}>{DAY_LABELS[day]}</label>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className="select-all-col">
-                <input
-                  id="select-all"
-                  type="checkbox"
-                  checked={scheduledDays.size === WEEKDAYS.length}
-                  onChange={toggleAllDays}
-                />
-              </td>
-              {WEEKDAYS.map((day) => (
-                <td key={day}>
-                  <input
-                    id={`day-${day}`}
-                    type="checkbox"
-                    checked={scheduledDays.has(day)}
-                    onChange={() => toggleDay(day)}
-                  />
-                </td>
-              ))}
-            </tr>
-          </tbody>
-        </table>
+        <div className="day-pills-row">
+          {WEEKDAYS.map((day) => (
+            <label key={day} className="day-pill">
+              <input
+                type="checkbox"
+                className="visually-hidden"
+                checked={scheduledDays.has(day)}
+                onChange={() => toggleDay(day)}
+                aria-label={DAY_LABELS[day]}
+              />
+              <span aria-hidden="true">{DAY_ABBRS[day]}</span>
+            </label>
+          ))}
+        </div>
       </fieldset>
 
       <fieldset aria-invalid={timesError ? true : undefined}>
@@ -323,13 +323,19 @@ function Prescriptions() {
                 onChange={(e) => updateDoseTime(i, e.target.value)}
               />
             </label>
-            <button type="button" onClick={() => removeDoseTime(i)}>
-              Remove
+            <button
+              type="button"
+              className="remove-time"
+              aria-label="Remove"
+              disabled={doseTimes.length === 1}
+              onClick={() => removeDoseTime(i)}
+            >
+              ×
             </button>
           </div>
         ))}
-        <button type="button" onClick={addDoseTime}>
-          Add dose time
+        <button type="button" className="add-dose-time" onClick={addDoseTime}>
+          + Add new dose time
         </button>
       </fieldset>
     </div>

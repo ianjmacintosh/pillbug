@@ -37,9 +37,6 @@ describe("Prescriptions", () => {
     test("create form: submitting with no days selected shows an error and does not call fetch", async () => {
       const fetchSpy = vi.spyOn(globalThis, "fetch");
       await openCreateFormWithMinimumFields();
-      await userEvent.click(
-        screen.getByRole("button", { name: /add dose time/i }),
-      );
       const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
       await userEvent.clear(timeInput);
       await userEvent.type(timeInput, "08:00");
@@ -66,7 +63,7 @@ describe("Prescriptions", () => {
       await openCreateFormWithMinimumFields();
       await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
       await userEvent.click(
-        screen.getByRole("button", { name: /add dose time/i }),
+        screen.getByRole("button", { name: /new dose time/i }),
       );
       // leave the time input blank
 
@@ -93,7 +90,7 @@ describe("Prescriptions", () => {
 
       // no days selected, add a valid time
       await userEvent.click(
-        screen.getByRole("button", { name: /add dose time/i }),
+        screen.getByRole("button", { name: /new dose time/i }),
       );
       const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
       await userEvent.clear(timeInput);
@@ -132,9 +129,6 @@ describe("Prescriptions", () => {
     test("Days fieldset is marked aria-invalid when no days are selected on submit", async () => {
       vi.spyOn(globalThis, "fetch");
       await openCreateFormWithMinimumFields();
-      await userEvent.click(
-        screen.getByRole("button", { name: /add dose time/i }),
-      );
       const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
       await userEvent.clear(timeInput);
       await userEvent.type(timeInput, "08:00");
@@ -151,9 +145,6 @@ describe("Prescriptions", () => {
     test("Days fieldset aria-invalid clears when a day is selected", async () => {
       vi.spyOn(globalThis, "fetch");
       await openCreateFormWithMinimumFields();
-      await userEvent.click(
-        screen.getByRole("button", { name: /add dose time/i }),
-      );
       const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
       await userEvent.clear(timeInput);
       await userEvent.type(timeInput, "08:00");
@@ -189,7 +180,7 @@ describe("Prescriptions", () => {
       await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
       await userEvent.click(
-        screen.getByRole("button", { name: /add dose time/i }),
+        screen.getByRole("button", { name: /new dose time/i }),
       );
 
       expect(
@@ -223,30 +214,91 @@ describe("Prescriptions", () => {
       }
     });
 
-    test("create form renders a 'Select All' toggle checkbox", async () => {
+    test("create form renders a 'Select all' text link", async () => {
       await openCreateForm();
+      expect(screen.getByRole("button", { name: /select all/i })).toBeTruthy();
+    });
+
+    test("'Select all' link text changes to 'Unselect all' when all days are selected", async () => {
+      await openCreateForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /select all/i }),
+      );
       expect(
-        screen.getByRole("checkbox", { name: /select all/i }),
+        screen.getByRole("button", { name: /unselect all/i }),
       ).toBeTruthy();
     });
 
-    test("clicking 'Add dose time' adds a time input", async () => {
+    test("create form shows three-letter day labels (Sun Mon Tue…)", async () => {
       await openCreateForm();
-      expect(screen.queryByLabelText(/time 1/i)).toBeNull();
+      const abbrs = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const pills = screen
+        .getByRole("group", { name: /days/i })
+        .querySelectorAll(".day-pill span");
+      expect(Array.from(pills).map((el) => el.textContent)).toEqual(abbrs);
+    });
+
+    test("create form shows a time input by default", async () => {
+      await openCreateForm();
+      expect(screen.getByLabelText(/time 1/i)).toBeTruthy();
+    });
+
+    test("can add multiple dose time rows without confirming each first", async () => {
+      await openCreateForm();
       await userEvent.click(
-        screen.getByRole("button", { name: /add dose time/i }),
+        screen.getByRole("button", { name: /new dose time/i }),
+      );
+      await userEvent.click(
+        screen.getByRole("button", { name: /new dose time/i }),
+      );
+      await userEvent.click(
+        screen.getByRole("button", { name: /new dose time/i }),
       );
       expect(screen.getByLabelText(/time 1/i)).toBeTruthy();
+      expect(screen.getByLabelText(/time 2/i)).toBeTruthy();
+      expect(screen.getByLabelText(/time 3/i)).toBeTruthy();
+    });
+
+    test("clicking '+ Add new dose time' adds another time input", async () => {
+      await openCreateForm();
+      expect(screen.queryByLabelText(/time 2/i)).toBeNull();
+      await userEvent.click(
+        screen.getByRole("button", { name: /new dose time/i }),
+      );
+      expect(screen.getByLabelText(/time 2/i)).toBeTruthy();
+      expect(screen.queryByRole("button", { name: /confirm/i })).toBeNull();
+    });
+
+    test("Remove button is disabled when there is only one dose time", async () => {
+      await openCreateForm();
+      expect(
+        (screen.getByRole("button", { name: /remove/i }) as HTMLButtonElement)
+          .disabled,
+      ).toBe(true);
+    });
+
+    test("Remove button is enabled when a second dose time is added", async () => {
+      await openCreateForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /new dose time/i }),
+      );
+      const removeButtons = screen.getAllByRole("button", { name: /remove/i });
+      expect(
+        removeButtons.every((b) => !(b as HTMLButtonElement).disabled),
+      ).toBe(true);
     });
 
     test("clicking Remove on a dose time removes that entry", async () => {
       await openCreateForm();
       await userEvent.click(
-        screen.getByRole("button", { name: /add dose time/i }),
+        screen.getByRole("button", { name: /new dose time/i }),
       );
+      expect(screen.getByLabelText(/time 2/i)).toBeTruthy();
+      await userEvent.click(
+        screen.getAllByRole("button", { name: /remove/i })[1],
+      );
+      expect(screen.queryByLabelText(/time 2/i)).toBeNull();
       expect(screen.getByLabelText(/time 1/i)).toBeTruthy();
-      await userEvent.click(screen.getByRole("button", { name: /remove/i }));
-      expect(screen.queryByLabelText(/time 1/i)).toBeNull();
     });
 
     test("submitting with a day checked and a time set sends the correct schedule", async () => {
@@ -261,9 +313,6 @@ describe("Prescriptions", () => {
       await userEvent.type(screen.getByLabelText(/start date/i), "2024-06-01");
 
       await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
-      await userEvent.click(
-        screen.getByRole("button", { name: /add dose time/i }),
-      );
       const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
       await userEvent.clear(timeInput);
       await userEvent.type(timeInput, "08:00");
@@ -365,7 +414,7 @@ describe("Prescriptions", () => {
         screen.getByRole("checkbox", { name: "Wednesday" }),
       );
       await userEvent.click(
-        screen.getByRole("button", { name: /add dose time/i }),
+        screen.getByRole("button", { name: /new dose time/i }),
       );
       const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
       await userEvent.clear(timeInput);
