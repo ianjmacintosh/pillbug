@@ -258,13 +258,11 @@ function Prescriptions() {
 
   const scheduleSection = (
     <div className="schedule-section">
-      <div
-        className={
-          daysError
-            ? "schedule-days schedule-subsection-error"
-            : "schedule-days"
-        }
+      <fieldset
+        className="schedule-days"
+        aria-invalid={daysError ? true : undefined}
       >
+        <legend>Days</legend>
         {daysError && (
           <p role="alert" className="schedule-error-message">
             Please select at least one day.
@@ -306,9 +304,9 @@ function Prescriptions() {
             </tr>
           </tbody>
         </table>
-      </div>
+      </fieldset>
 
-      <fieldset className={timesError ? "schedule-subsection-error" : ""}>
+      <fieldset aria-invalid={timesError ? true : undefined}>
         <legend>Dose times</legend>
         {timesError && (
           <p role="alert" className="schedule-error-message">

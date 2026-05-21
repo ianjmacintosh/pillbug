@@ -128,6 +128,76 @@ describe("Prescriptions", () => {
       expect(screen.getByRole("alert")).toBeTruthy();
       expect(fetchSpy).toHaveBeenCalledTimes(1); // only the GET, no PATCH
     });
+
+    test("Days fieldset is marked aria-invalid when no days are selected on submit", async () => {
+      vi.spyOn(globalThis, "fetch");
+      await openCreateFormWithMinimumFields();
+      await userEvent.click(
+        screen.getByRole("button", { name: /add dose time/i }),
+      );
+      const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
+      await userEvent.clear(timeInput);
+      await userEvent.type(timeInput, "08:00");
+
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      expect(
+        screen
+          .getByRole("group", { name: /days/i })
+          .getAttribute("aria-invalid"),
+      ).toBe("true");
+    });
+
+    test("Days fieldset aria-invalid clears when a day is selected", async () => {
+      vi.spyOn(globalThis, "fetch");
+      await openCreateFormWithMinimumFields();
+      await userEvent.click(
+        screen.getByRole("button", { name: /add dose time/i }),
+      );
+      const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
+      await userEvent.clear(timeInput);
+      await userEvent.type(timeInput, "08:00");
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
+
+      expect(
+        screen
+          .getByRole("group", { name: /days/i })
+          .getAttribute("aria-invalid"),
+      ).toBeNull();
+    });
+
+    test("Dose times fieldset is marked aria-invalid when no times are added on submit", async () => {
+      vi.spyOn(globalThis, "fetch");
+      await openCreateFormWithMinimumFields();
+      await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
+
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      expect(
+        screen
+          .getByRole("group", { name: /dose times/i })
+          .getAttribute("aria-invalid"),
+      ).toBe("true");
+    });
+
+    test("Dose times fieldset aria-invalid clears when a dose time is added", async () => {
+      vi.spyOn(globalThis, "fetch");
+      await openCreateFormWithMinimumFields();
+      await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /add dose time/i }),
+      );
+
+      expect(
+        screen
+          .getByRole("group", { name: /dose times/i })
+          .getAttribute("aria-invalid"),
+      ).toBeNull();
+    });
   });
 
   describe("schedule", () => {
