@@ -222,6 +222,8 @@ Creates a new Prescription for the authenticated Patient. Status defaults to `ac
 
 ```json
 {
+  "doseCount": 2,
+  "doseForm": "tablet",
   "drugName": "Metformin",
   "dosage": "500mg",
   "schedule": {
@@ -235,7 +237,7 @@ Creates a new Prescription for the authenticated Patient. Status defaults to `ac
 }
 ```
 
-Required: `drugName`, `dosage`, `schedule`, `startDate`. All other fields are optional.
+Required: `drugName`, `dosage`, `schedule`, `startDate`. All other fields are optional. `doseCount` defaults to `1`; `doseForm` defaults to `"tablet"` (accepted values: `tablet`, `capsule`, `pill`, `other`).
 
 **Response — 201**
 
@@ -284,6 +286,8 @@ Any subset of Prescription fields:
 
 ```json
 {
+  "doseCount": 2,
+  "doseForm": "capsule",
   "drugName": "Metformin HCL",
   "dosage": "1000mg",
   "status": "discontinued"

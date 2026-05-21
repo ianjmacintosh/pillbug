@@ -6,6 +6,8 @@ import type { Prescription } from "./prescriptions";
 const BASE_PRESCRIPTION: Prescription = {
   id: "rx-1",
   patientId: "patient-1",
+  doseCount: 1,
+  doseForm: "tablet",
   drugName: "Metformin",
   dosage: "500mg",
   schedule: {

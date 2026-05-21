@@ -68,6 +68,50 @@ describe("POST /api/v1/prescriptions", () => {
     expect(response.status).toBe(401);
   });
 
+  test("returns doseCount and doseForm in 201 response when provided", async () => {
+    const authRepo = makeInMemoryRepo();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(authRepo);
+    const { cookie } = await makeAuthenticatedSession(authRepo);
+
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/prescriptions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Cookie: cookie },
+        body: JSON.stringify({
+          ...VALID_PRESCRIPTION_BODY,
+          doseCount: 2,
+          doseForm: "capsule",
+        }),
+      }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(201);
+    const data = await response.json<Record<string, unknown>>();
+    expect(data.doseCount).toBe(2);
+    expect(data.doseForm).toBe("capsule");
+  });
+
+  test("returns doseCount=1 and doseForm=tablet when not provided in body", async () => {
+    const authRepo = makeInMemoryRepo();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(authRepo);
+    const { cookie } = await makeAuthenticatedSession(authRepo);
+
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/prescriptions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Cookie: cookie },
+        body: JSON.stringify(VALID_PRESCRIPTION_BODY),
+      }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(201);
+    const data = await response.json<Record<string, unknown>>();
+    expect(data.doseCount).toBe(1);
+    expect(data.doseForm).toBe("tablet");
+  });
+
   test("returns 201 with prescription object when authenticated with valid body", async () => {
     const authRepo = makeInMemoryRepo();
     vi.mocked(makeD1AuthRepo).mockReturnValue(authRepo);
@@ -148,6 +192,8 @@ describe("GET /api/v1/prescriptions", () => {
     await prescriptionRepo.createPrescription({
       id: crypto.randomUUID(),
       patientId: ownerId,
+      doseCount: 1,
+      doseForm: "tablet",
       drugName: "Mine",
       dosage: "10mg",
       schedule: { days: {}, timezoneMode: "local" },
@@ -161,6 +207,8 @@ describe("GET /api/v1/prescriptions", () => {
     await prescriptionRepo.createPrescription({
       id: crypto.randomUUID(),
       patientId: otherId,
+      doseCount: 1,
+      doseForm: "tablet",
       drugName: "NotMine",
       dosage: "20mg",
       schedule: { days: {}, timezoneMode: "local" },
@@ -215,6 +263,44 @@ describe("PATCH /api/v1/prescriptions/:prescriptionId", () => {
     expect(response.status).toBe(404);
   });
 
+  test("returns 200 with updated doseCount and doseForm when patched", async () => {
+    const authRepo = makeInMemoryRepo();
+    const prescriptionRepo = makeInMemoryPrescriptionRepo();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(authRepo);
+    vi.mocked(makeD1PrescriptionRepo).mockReturnValue(prescriptionRepo);
+
+    const { patientId, cookie } = await makeAuthenticatedSession(authRepo);
+    await prescriptionRepo.createPrescription({
+      id: "rx-1",
+      patientId,
+      doseCount: 1,
+      doseForm: "tablet",
+      drugName: "Metformin",
+      dosage: "500mg",
+      schedule: { days: {}, timezoneMode: "local" },
+      startDate: "2024-01-01",
+      endDate: null,
+      prescribingDoctor: null,
+      instructions: null,
+      status: "active",
+      createdAt: new Date().toISOString(),
+    });
+
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/prescriptions/rx-1", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Cookie: cookie },
+        body: JSON.stringify({ doseCount: 2, doseForm: "capsule" }),
+      }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    const data = await response.json<Record<string, unknown>>();
+    expect(data.doseCount).toBe(2);
+    expect(data.doseForm).toBe("capsule");
+  });
+
   test("returns 200 with updated prescription when valid partial body", async () => {
     const authRepo = makeInMemoryRepo();
     const prescriptionRepo = makeInMemoryPrescriptionRepo();
@@ -225,6 +311,8 @@ describe("PATCH /api/v1/prescriptions/:prescriptionId", () => {
     await prescriptionRepo.createPrescription({
       id: "rx-1",
       patientId,
+      doseCount: 1,
+      doseForm: "tablet",
       drugName: "Metformin",
       dosage: "500mg",
       schedule: { days: {}, timezoneMode: "local" },
@@ -289,6 +377,8 @@ describe("DELETE /api/v1/prescriptions/:prescriptionId", () => {
     await prescriptionRepo.createPrescription({
       id: "rx-1",
       patientId,
+      doseCount: 1,
+      doseForm: "tablet",
       drugName: "Metformin",
       dosage: "500mg",
       schedule: { days: {}, timezoneMode: "local" },

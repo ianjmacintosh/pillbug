@@ -41,7 +41,7 @@ _Avoid_: Challenge screen, Verify screen, Check your email
 A medication a clinician has directed the Patient to take on a schedule.
 _Avoid_: Medication (too generic — doesn't imply a schedule or clinical directive), Task, Regimen Item
 
-Fields: drug name (free text with autocomplete), dosage (free text, e.g. "10 mg"), schedule (see **Schedule**), start date (required), end date (optional), prescribing Doctor (optional), instructions (optional free text), status (Active, Completed, Paused, or Discontinued).
+Fields: count (number of physical units per dose, e.g. 2 for "take 2 tablets"; decimal to support half-tablet doses), form factor (physical unit type: tablet / capsule / pill / other), drug name (free text with autocomplete), dosage (free text, e.g. "10 mg"), schedule (see **Schedule**), start date (required), end date (optional), prescribing Doctor (optional), instructions (optional free text), status (Active, Completed, Paused, or Discontinued).
 
 Status values: **Active** (generating Reminders), **Completed** (reached end date), **Paused** (temporarily suspended, expected to resume), **Discontinued** (stopped early, will not resume).
 
@@ -241,6 +241,8 @@ erDiagram
     prescriptions {
         TEXT id PK
         TEXT patient_id FK
+        DECIMAL dose_count "NOT NULL, default 1"
+        TEXT dose_form "NOT NULL, default tablet"
         TEXT drug_name "NOT NULL"
         TEXT dosage "NOT NULL"
         TEXT schedule "NOT NULL, JSON"
@@ -253,19 +255,21 @@ erDiagram
     }
 ```
 
-| Column               | Description                                                                            |
-| -------------------- | -------------------------------------------------------------------------------------- |
-| `id`                 | UUID primary key                                                                       |
-| `patient_id`         | Owning Patient; cascades on delete                                                     |
-| `drug_name`          | Free-text drug name (e.g., "Metformin")                                                |
-| `dosage`             | Free-text prescribed amount (e.g., "500mg", "two 20mg tablets")                        |
-| `schedule`           | JSON map of day-of-week → `HH:MM` time list (e.g., `{ "monday": ["08:00", "20:00"] }`) |
-| `start_date`         | `YYYY-MM-DD` date from which Scheduled Doses begin generating                          |
-| `end_date`           | `YYYY-MM-DD` date after which no further Scheduled Doses generate; `NULL` = open-ended |
-| `prescribing_doctor` | Free-text doctor name; `NULL` if not provided                                          |
-| `instructions`       | Free-text Patient-facing directions (e.g., "Take with food"); `NULL` if not provided   |
-| `status`             | `active`, `completed`, `paused`, or `discontinued`; defaults to `active`               |
-| `created_at`         | When the Prescription record was created                                               |
+| Column               | Description                                                                                                                                  |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                 | UUID primary key                                                                                                                             |
+| `patient_id`         | Owning Patient; cascades on delete                                                                                                           |
+| `dose_count`         | Number of physical units (tablets/capsules) per dose (e.g., `2` for "take 2 tablets"); decimal to support half-tablet doses; defaults to `1` |
+| `dose_form`          | Physical form of the unit: `tablet`, `capsule`, `pill`, or `other`; defaults to `tablet`                                                     |
+| `drug_name`          | Free-text drug name (e.g., "Metformin")                                                                                                      |
+| `dosage`             | Free-text prescribed amount (e.g., "500mg", "two 20mg tablets")                                                                              |
+| `schedule`           | JSON map of day-of-week → `HH:MM` time list (e.g., `{ "monday": ["08:00", "20:00"] }`)                                                       |
+| `start_date`         | `YYYY-MM-DD` date from which Scheduled Doses begin generating                                                                                |
+| `end_date`           | `YYYY-MM-DD` date after which no further Scheduled Doses generate; `NULL` = open-ended                                                       |
+| `prescribing_doctor` | Free-text doctor name; `NULL` if not provided                                                                                                |
+| `instructions`       | Free-text Patient-facing directions (e.g., "Take with food"); `NULL` if not provided                                                         |
+| `status`             | `active`, `completed`, `paused`, or `discontinued`; defaults to `active`                                                                     |
+| `created_at`         | When the Prescription record was created                                                                                                     |
 
 ### Doses
 

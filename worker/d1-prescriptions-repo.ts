@@ -40,6 +40,8 @@ export function parseScheduleJson(raw: string): Schedule {
 type PrescriptionRow = {
   id: string;
   patient_id: string;
+  dose_count: number;
+  dose_form: string;
   drug_name: string;
   dosage: string;
   schedule: string;
@@ -55,6 +57,8 @@ function rowToPrescription(row: PrescriptionRow): Prescription {
   return {
     id: row.id,
     patientId: row.patient_id,
+    doseCount: row.dose_count,
+    doseForm: row.dose_form,
     drugName: row.drug_name,
     dosage: row.dosage,
     schedule: parseScheduleJson(row.schedule),
@@ -73,13 +77,15 @@ export function makeD1PrescriptionRepo(db: D1Database): PrescriptionRepository {
       await db
         .prepare(
           `INSERT INTO prescriptions
-            (id, patient_id, drug_name, dosage, schedule, start_date, end_date,
-             prescribing_doctor, instructions, status, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (id, patient_id, dose_count, dose_form, drug_name, dosage, schedule,
+             start_date, end_date, prescribing_doctor, instructions, status, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .bind(
           p.id,
           p.patientId,
+          p.doseCount,
+          p.doseForm,
           p.drugName,
           p.dosage,
           JSON.stringify(p.schedule),
@@ -97,8 +103,8 @@ export function makeD1PrescriptionRepo(db: D1Database): PrescriptionRepository {
       const placeholders = statusFilter.map(() => "?").join(", ");
       const result = await db
         .prepare(
-          `SELECT id, patient_id, drug_name, dosage, schedule, start_date,
-                  end_date, prescribing_doctor, instructions, status, created_at
+          `SELECT id, patient_id, dose_count, dose_form, drug_name, dosage, schedule,
+                  start_date, end_date, prescribing_doctor, instructions, status, created_at
            FROM prescriptions
            WHERE patient_id = ? AND status IN (${placeholders})`,
         )
@@ -110,8 +116,8 @@ export function makeD1PrescriptionRepo(db: D1Database): PrescriptionRepository {
     async getPrescription(id, patientId) {
       const result = await db
         .prepare(
-          `SELECT id, patient_id, drug_name, dosage, schedule, start_date,
-                  end_date, prescribing_doctor, instructions, status, created_at
+          `SELECT id, patient_id, dose_count, dose_form, drug_name, dosage, schedule,
+                  start_date, end_date, prescribing_doctor, instructions, status, created_at
            FROM prescriptions
            WHERE id = ? AND patient_id = ?`,
         )
@@ -122,6 +128,8 @@ export function makeD1PrescriptionRepo(db: D1Database): PrescriptionRepository {
 
     async updatePrescription(id, patientId, fields) {
       const columnMap: Record<string, string> = {
+        doseCount: "dose_count",
+        doseForm: "dose_form",
         drugName: "drug_name",
         dosage: "dosage",
         schedule: "schedule",

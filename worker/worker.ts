@@ -265,6 +265,8 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     }
     const result = await createPrescription(
       {
+        doseCount: body.doseCount != null ? Number(body.doseCount) : undefined,
+        doseForm: body.doseForm != null ? String(body.doseForm) : undefined,
         drugName: String(body.drugName),
         dosage: String(body.dosage),
         schedule: body.schedule as never,
@@ -332,6 +334,8 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     const body = await request.json<Record<string, unknown>>();
     const fields: Record<string, unknown> = {};
     const allowed = [
+      "doseCount",
+      "doseForm",
       "drugName",
       "dosage",
       "schedule",

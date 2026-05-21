@@ -115,7 +115,7 @@ test.describe("Prescription create", () => {
 
     await page.getByRole("button", { name: /add prescription/i }).click();
     await page.getByLabel(/drug name/i).fill("Metformin");
-    await page.getByLabel("Dosage").fill("500");
+    await page.getByLabel("Strength").fill("500");
     await page.getByRole("combobox", { name: /unit/i }).selectOption("mg");
     await page.getByLabel(/start date/i).fill("2024-01-01");
     await page.getByRole("checkbox", { name: "Monday" }).locator("..").click();
@@ -215,7 +215,7 @@ test.describe("Prescription create", () => {
 
     await page.getByRole("button", { name: /add prescription/i }).click();
     await page.getByLabel(/drug name/i).fill("Aspirin");
-    await page.getByLabel("Dosage").fill("100");
+    await page.getByLabel("Strength").fill("100");
     await page.getByRole("combobox", { name: /unit/i }).selectOption("mg");
     await page.getByLabel(/start date/i).fill("2024-06-01");
     await page.getByLabel(/time 1/i).fill("08:00");
@@ -235,11 +235,11 @@ test.describe("Prescription create", () => {
 
     await page.getByRole("button", { name: /add prescription/i }).click();
     await page.getByLabel(/drug name/i).fill("Aspirin");
-    await page.getByLabel("Dosage").fill("100");
+    await page.getByLabel("Strength").fill("100");
     await page.getByRole("combobox", { name: /unit/i }).selectOption("mg");
     await page.getByLabel(/start date/i).fill("2024-06-01");
     await page.getByRole("checkbox", { name: "Monday" }).locator("..").click();
-    // leave time 1 blank
+    await page.getByLabel(/time 1/i).clear();
 
     await page.getByRole("button", { name: /save prescription/i }).click();
 
@@ -255,7 +255,7 @@ test.describe("Prescription create", () => {
 
     await page.getByRole("button", { name: /add prescription/i }).click();
     await page.getByLabel(/drug name/i).fill("Lisinopril");
-    await page.getByLabel("Dosage").fill("10");
+    await page.getByLabel("Strength").fill("10");
     await page.getByRole("combobox", { name: /unit/i }).selectOption("mg");
     await page.getByLabel(/start date/i).fill("2024-03-01");
     await page.getByRole("checkbox", { name: "Monday" }).locator("..").click();
@@ -302,11 +302,11 @@ test.describe("Prescription edit", () => {
 
     await page.getByRole("button", { name: /edit/i }).click();
     await expect(page.getByLabel(/drug name/i)).toHaveValue("Metformin");
-    await expect(page.getByLabel("Dosage")).toHaveValue("500mg");
+    await expect(page.getByLabel("Strength")).toHaveValue("500mg");
     await expect(page.getByLabel(/start date/i)).toHaveValue("2024-01-01");
 
-    await page.getByLabel("Dosage").clear();
-    await page.getByLabel("Dosage").fill("1000mg");
+    await page.getByLabel("Strength").clear();
+    await page.getByLabel("Strength").fill("1000mg");
     await page.getByRole("button", { name: /save prescription/i }).click();
 
     await expect(page.getByRole("cell", { name: "1000mg" })).toBeVisible();
