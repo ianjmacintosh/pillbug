@@ -117,6 +117,9 @@ test.describe("Prescription create", () => {
     await page.getByLabel(/drug name/i).fill("Metformin");
     await page.getByLabel("Dosage").fill("500mg");
     await page.getByLabel(/start date/i).fill("2024-01-01");
+    await page.getByRole("checkbox", { name: "Monday" }).click();
+    await page.getByRole("button", { name: /add dose time/i }).click();
+    await page.getByLabel(/time 1/i).fill("08:00");
     await page.getByRole("button", { name: /save prescription/i }).click();
 
     await page.getByRole("button", { name: /show all prescriptions/i }).click();
