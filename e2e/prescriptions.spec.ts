@@ -193,6 +193,57 @@ test.describe("Prescription create", () => {
     }
   });
 
+  test("clicking a day pill checks and unchecks it", async ({ page }) => {
+    await login(page);
+
+    await page.getByRole("button", { name: /add prescription/i }).click();
+    const monday = page.getByRole("checkbox", { name: "Monday" });
+
+    await expect(monday).not.toBeChecked();
+    await monday.click();
+    await expect(monday).toBeChecked();
+    await monday.click();
+    await expect(monday).not.toBeChecked();
+  });
+
+  test("Days fieldset gets aria-invalid when submitted without a day selected", async ({
+    page,
+  }) => {
+    await login(page);
+
+    await page.getByRole("button", { name: /add prescription/i }).click();
+    await page.getByLabel(/drug name/i).fill("Aspirin");
+    await page.getByLabel("Dosage").fill("100mg");
+    await page.getByLabel(/start date/i).fill("2024-06-01");
+    await page.getByLabel(/time 1/i).fill("08:00");
+
+    await page.getByRole("button", { name: /save prescription/i }).click();
+
+    await expect(page.getByRole("group", { name: /days/i })).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
+  });
+
+  test("Dose times fieldset gets aria-invalid when submitted with a blank time", async ({
+    page,
+  }) => {
+    await login(page);
+
+    await page.getByRole("button", { name: /add prescription/i }).click();
+    await page.getByLabel(/drug name/i).fill("Aspirin");
+    await page.getByLabel("Dosage").fill("100mg");
+    await page.getByLabel(/start date/i).fill("2024-06-01");
+    await page.getByRole("checkbox", { name: "Monday" }).click();
+    // leave time 1 blank
+
+    await page.getByRole("button", { name: /save prescription/i }).click();
+
+    await expect(
+      page.getByRole("group", { name: /dose times/i }),
+    ).toHaveAttribute("aria-invalid", "true");
+  });
+
   test("creates prescription with multiple dose times on multiple days", async ({
     page,
   }) => {
