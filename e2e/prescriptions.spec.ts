@@ -115,7 +115,8 @@ test.describe("Prescription create", () => {
 
     await page.getByRole("button", { name: /add prescription/i }).click();
     await page.getByLabel(/drug name/i).fill("Metformin");
-    await page.getByLabel("Dosage").fill("500mg");
+    await page.getByLabel("Dosage").fill("500");
+    await page.getByRole("combobox", { name: /unit/i }).selectOption("mg");
     await page.getByLabel(/start date/i).fill("2024-01-01");
     await page.getByRole("checkbox", { name: "Monday" }).locator("..").click();
     await page.getByLabel(/time 1/i).fill("08:00");
@@ -123,7 +124,7 @@ test.describe("Prescription create", () => {
 
     await page.getByRole("button", { name: /show all prescriptions/i }).click();
     await expect(page.getByRole("cell", { name: "Metformin" })).toBeVisible();
-    await expect(page.getByRole("cell", { name: "500mg" })).toBeVisible();
+    await expect(page.getByRole("cell", { name: "500 mg" })).toBeVisible();
   });
 
   test("time input is shown by default without clicking add", async ({
@@ -214,7 +215,8 @@ test.describe("Prescription create", () => {
 
     await page.getByRole("button", { name: /add prescription/i }).click();
     await page.getByLabel(/drug name/i).fill("Aspirin");
-    await page.getByLabel("Dosage").fill("100mg");
+    await page.getByLabel("Dosage").fill("100");
+    await page.getByRole("combobox", { name: /unit/i }).selectOption("mg");
     await page.getByLabel(/start date/i).fill("2024-06-01");
     await page.getByLabel(/time 1/i).fill("08:00");
 
@@ -233,7 +235,8 @@ test.describe("Prescription create", () => {
 
     await page.getByRole("button", { name: /add prescription/i }).click();
     await page.getByLabel(/drug name/i).fill("Aspirin");
-    await page.getByLabel("Dosage").fill("100mg");
+    await page.getByLabel("Dosage").fill("100");
+    await page.getByRole("combobox", { name: /unit/i }).selectOption("mg");
     await page.getByLabel(/start date/i).fill("2024-06-01");
     await page.getByRole("checkbox", { name: "Monday" }).locator("..").click();
     // leave time 1 blank
@@ -252,7 +255,8 @@ test.describe("Prescription create", () => {
 
     await page.getByRole("button", { name: /add prescription/i }).click();
     await page.getByLabel(/drug name/i).fill("Lisinopril");
-    await page.getByLabel("Dosage").fill("10mg");
+    await page.getByLabel("Dosage").fill("10");
+    await page.getByRole("combobox", { name: /unit/i }).selectOption("mg");
     await page.getByLabel(/start date/i).fill("2024-03-01");
     await page.getByRole("checkbox", { name: "Monday" }).locator("..").click();
     await page

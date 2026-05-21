@@ -72,7 +72,8 @@
 }
 
 @media (max-width: 480px) {
-  .prescriptions .date-fields {
+  .prescriptions .date-fields,
+  .prescriptions .drug-dosage-fields {
     flex-direction: column;
   }
 }
