@@ -664,6 +664,25 @@ describe("Prescriptions", () => {
       expect(screen.queryByText(/included the unit/i)).toBeNull();
     });
 
+    test("clicking the suggested value auto-fixes the quantity and clears the warning", async () => {
+      await openCreateForm();
+      await userEvent.selectOptions(
+        screen.getByRole("combobox", { name: /unit/i }),
+        "mg",
+      );
+      const strengthInput = screen.getByLabelText(/strength/i);
+      await userEvent.type(strengthInput, "20mg");
+      await userEvent.tab();
+      expect(screen.getByText(/included the unit/i)).toBeTruthy();
+
+      await userEvent.click(screen.getByRole("button", { name: /^20 mg$/i }));
+
+      expect(
+        (screen.getByLabelText(/strength/i) as HTMLInputElement).value,
+      ).toBe("20");
+      expect(screen.queryByText(/included the unit/i)).toBeNull();
+    });
+
     test("warning does not block form submission", async () => {
       const fetchSpy = vi
         .spyOn(globalThis, "fetch")

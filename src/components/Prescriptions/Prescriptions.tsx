@@ -463,53 +463,63 @@ function Prescriptions() {
               required
             />
           ) : (
-            <>
-              <div className="dosage-input-row">
-                <input
-                  id={`${idPrefix}-dosage`}
-                  type="text"
-                  value={dosageQuantity}
-                  onChange={(e) => {
-                    setDosageQuantity(e.target.value);
-                    setDosageDuplicationWarning(false);
-                  }}
-                  onBlur={() => {
-                    if (
-                      dosageUnit !== "" &&
-                      dosageQuantity
-                        .toLowerCase()
-                        .endsWith(dosageUnit.toLowerCase())
-                    ) {
-                      setDosageDuplicationWarning(true);
-                    }
-                  }}
-                  required
-                />
-                <select
-                  aria-label="Unit"
-                  value={dosageUnit}
-                  onChange={(e) =>
-                    setDosageUnit(e.target.value as DosageUnit | "")
+            <div className="dosage-input-row">
+              <input
+                id={`${idPrefix}-dosage`}
+                type="text"
+                value={dosageQuantity}
+                onChange={(e) => {
+                  setDosageQuantity(e.target.value);
+                  setDosageDuplicationWarning(false);
+                }}
+                onBlur={() => {
+                  if (
+                    dosageUnit !== "" &&
+                    dosageQuantity
+                      .toLowerCase()
+                      .endsWith(dosageUnit.toLowerCase())
+                  ) {
+                    setDosageDuplicationWarning(true);
                   }
-                >
-                  <option value="">(blank)</option>
-                  <option value="mg">mg</option>
-                  <option value="g">g</option>
-                  <option value="mcg">mcg</option>
-                  <option value="ml">ml</option>
-                </select>
-              </div>
-              {dosageDuplicationWarning && (
-                <p className="field-hint">
-                  Looks like you included the unit — did you mean &ldquo;
-                  {dosageQuantity.slice(0, -dosageUnit.length).trim()}{" "}
-                  {dosageUnit}&rdquo;?
-                </p>
-              )}
-            </>
+                }}
+                required
+              />
+              <select
+                aria-label="Unit"
+                value={dosageUnit}
+                onChange={(e) =>
+                  setDosageUnit(e.target.value as DosageUnit | "")
+                }
+              >
+                <option value="">(blank)</option>
+                <option value="mg">mg</option>
+                <option value="g">g</option>
+                <option value="mcg">mcg</option>
+                <option value="ml">ml</option>
+              </select>
+            </div>
           )}
         </div>
       </div>
+      {dosageDuplicationWarning && (
+        <p className="field-hint dosage-unit-warning">
+          Looks like you included the unit in the strength number (&ldquo;
+          {dosageQuantity} {dosageUnit}&rdquo;) &mdash; Did you mean{" "}
+          <button
+            type="button"
+            className="dosage-fix-link"
+            onClick={() => {
+              setDosageQuantity(
+                dosageQuantity.slice(0, -dosageUnit.length).trim(),
+              );
+              setDosageDuplicationWarning(false);
+            }}
+          >
+            {dosageQuantity.slice(0, -dosageUnit.length).trim()} {dosageUnit}
+          </button>
+          ?
+        </p>
+      )}
 
       {scheduleSection}
 
