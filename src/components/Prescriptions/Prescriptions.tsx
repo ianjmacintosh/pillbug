@@ -31,13 +31,13 @@ const DAY_LABELS: Record<DayOfWeek, string> = {
 };
 
 const DAY_ABBRS: Record<DayOfWeek, string> = {
-  sunday: "S",
-  monday: "M",
-  tuesday: "T",
-  wednesday: "W",
-  thursday: "T",
-  friday: "F",
-  saturday: "S",
+  sunday: "Sun",
+  monday: "Mon",
+  tuesday: "Tue",
+  wednesday: "Wed",
+  thursday: "Thu",
+  friday: "Fri",
+  saturday: "Sat",
 };
 
 interface Schedule {

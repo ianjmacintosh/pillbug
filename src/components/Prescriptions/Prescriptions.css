@@ -106,18 +106,15 @@
 }
 
 .prescriptions .day-pills-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 0.25rem;
   padding-top: 0.25rem;
 }
 
 .prescriptions .day-pill,
 .prescriptions .select-all-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: flex;
   cursor: pointer;
 }
 
@@ -132,18 +129,18 @@
 
 .prescriptions .day-pill span,
 .prescriptions .select-all-pill span {
-  display: inline-flex;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.2rem;
-  min-width: 2.25rem;
-  height: 2.25rem;
-  padding: 0 0.5rem;
-  border-radius: 999px;
+  gap: 0.15rem;
+  padding: 0.4rem 0.125rem;
+  border-radius: 4px;
   border: 1px solid var(--gray-70, #999);
   background-color: oklch(0.97 0 0);
   color: oklch(0.3 0 0);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   user-select: none;
   box-shadow:
@@ -181,10 +178,6 @@
 .prescriptions .select-all-pill:has(input:focus-visible) span {
   outline: 2px solid oklch(0.45 0.15 250);
   outline-offset: 2px;
-}
-
-.prescriptions .select-all-pill {
-  margin-right: 0.25rem;
 }
 
 .prescriptions .schedule-days {

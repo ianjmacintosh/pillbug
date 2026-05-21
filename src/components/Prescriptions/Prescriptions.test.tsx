@@ -230,9 +230,9 @@ describe("Prescriptions", () => {
       ).toBeTruthy();
     });
 
-    test("create form shows abbreviated day labels (S M T W T F S)", async () => {
+    test("create form shows three-letter day labels (Sun Mon Tue…)", async () => {
       await openCreateForm();
-      const abbrs = ["S", "M", "T", "W", "T", "F", "S"];
+      const abbrs = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
       const pills = screen
         .getByRole("group", { name: /days/i })
         .querySelectorAll(".day-pill span");
