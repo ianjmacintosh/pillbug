@@ -38,7 +38,7 @@ describe("Prescriptions", () => {
       const fetchSpy = vi.spyOn(globalThis, "fetch");
       await openCreateFormWithMinimumFields();
       await userEvent.click(
-        screen.getByRole("button", { name: /add dose time/i }),
+        screen.getByRole("button", { name: /new dose time/i }),
       );
       const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
       await userEvent.clear(timeInput);
@@ -66,7 +66,7 @@ describe("Prescriptions", () => {
       await openCreateFormWithMinimumFields();
       await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
       await userEvent.click(
-        screen.getByRole("button", { name: /add dose time/i }),
+        screen.getByRole("button", { name: /new dose time/i }),
       );
       // leave the time input blank
 
@@ -93,7 +93,7 @@ describe("Prescriptions", () => {
 
       // no days selected, add a valid time
       await userEvent.click(
-        screen.getByRole("button", { name: /add dose time/i }),
+        screen.getByRole("button", { name: /new dose time/i }),
       );
       const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
       await userEvent.clear(timeInput);
@@ -133,7 +133,7 @@ describe("Prescriptions", () => {
       vi.spyOn(globalThis, "fetch");
       await openCreateFormWithMinimumFields();
       await userEvent.click(
-        screen.getByRole("button", { name: /add dose time/i }),
+        screen.getByRole("button", { name: /new dose time/i }),
       );
       const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
       await userEvent.clear(timeInput);
@@ -152,7 +152,7 @@ describe("Prescriptions", () => {
       vi.spyOn(globalThis, "fetch");
       await openCreateFormWithMinimumFields();
       await userEvent.click(
-        screen.getByRole("button", { name: /add dose time/i }),
+        screen.getByRole("button", { name: /new dose time/i }),
       );
       const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
       await userEvent.clear(timeInput);
@@ -189,7 +189,7 @@ describe("Prescriptions", () => {
       await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
       await userEvent.click(
-        screen.getByRole("button", { name: /add dose time/i }),
+        screen.getByRole("button", { name: /new dose time/i }),
       );
 
       expect(
@@ -247,19 +247,50 @@ describe("Prescriptions", () => {
       expect(Array.from(pills).map((el) => el.textContent)).toEqual(abbrs);
     });
 
-    test("clicking 'Add dose time' adds a time input", async () => {
+    test("clicking 'New dose time' adds a time input with a confirm button", async () => {
       await openCreateForm();
       expect(screen.queryByLabelText(/time 1/i)).toBeNull();
       await userEvent.click(
-        screen.getByRole("button", { name: /add dose time/i }),
+        screen.getByRole("button", { name: /new dose time/i }),
       );
       expect(screen.getByLabelText(/time 1/i)).toBeTruthy();
+      expect(screen.getByRole("button", { name: /confirm/i })).toBeTruthy();
+    });
+
+    test("confirm button is disabled until a time is entered", async () => {
+      await openCreateForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /new dose time/i }),
+      );
+      expect(
+        (screen.getByRole("button", { name: /confirm/i }) as HTMLButtonElement)
+          .disabled,
+      ).toBe(true);
+      const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
+      await userEvent.clear(timeInput);
+      await userEvent.type(timeInput, "08:00");
+      expect(
+        (screen.getByRole("button", { name: /confirm/i }) as HTMLButtonElement)
+          .disabled,
+      ).toBe(false);
+    });
+
+    test("confirming a dose time removes the confirm button", async () => {
+      await openCreateForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /new dose time/i }),
+      );
+      const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
+      await userEvent.clear(timeInput);
+      await userEvent.type(timeInput, "08:00");
+      await userEvent.click(screen.getByRole("button", { name: /confirm/i }));
+      expect(screen.queryByRole("button", { name: /confirm/i })).toBeNull();
     });
 
     test("clicking Remove on a dose time removes that entry", async () => {
       await openCreateForm();
       await userEvent.click(
-        screen.getByRole("button", { name: /add dose time/i }),
+        screen.getByRole("button", { name: /new dose time/i }),
       );
       expect(screen.getByLabelText(/time 1/i)).toBeTruthy();
       await userEvent.click(screen.getByRole("button", { name: /remove/i }));
@@ -279,7 +310,7 @@ describe("Prescriptions", () => {
 
       await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
       await userEvent.click(
-        screen.getByRole("button", { name: /add dose time/i }),
+        screen.getByRole("button", { name: /new dose time/i }),
       );
       const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
       await userEvent.clear(timeInput);
@@ -382,7 +413,7 @@ describe("Prescriptions", () => {
         screen.getByRole("checkbox", { name: "Wednesday" }),
       );
       await userEvent.click(
-        screen.getByRole("button", { name: /add dose time/i }),
+        screen.getByRole("button", { name: /new dose time/i }),
       );
       const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
       await userEvent.clear(timeInput);

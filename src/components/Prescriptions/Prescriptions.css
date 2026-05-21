@@ -222,8 +222,8 @@
 
 .prescriptions .dose-time-entry {
   display: flex;
-  align-items: flex-end;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.375rem;
 }
 
 .prescriptions .dose-time-entry label {
@@ -236,17 +236,33 @@
   width: auto;
 }
 
-.prescriptions .remove-time {
+.prescriptions .remove-time,
+.prescriptions .confirm-time {
   background: none;
   border: none;
   padding: 0 0.25rem;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   line-height: 1;
-  color: oklch(0.5 0 0);
   cursor: pointer;
-  margin-bottom: 0.4rem;
+}
+
+.prescriptions .remove-time {
+  color: oklch(0.55 0 0);
 }
 
 .prescriptions .remove-time:hover {
-  color: oklch(0.3 0 0);
+  color: oklch(0.25 0 0);
+}
+
+.prescriptions .confirm-time {
+  color: oklch(0.45 0.15 145);
+}
+
+.prescriptions .confirm-time:hover:not(:disabled) {
+  color: oklch(0.35 0.15 145);
+}
+
+.prescriptions .confirm-time:disabled {
+  color: oklch(0.75 0 0);
+  cursor: default;
 }

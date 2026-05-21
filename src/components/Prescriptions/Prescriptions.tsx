@@ -71,6 +71,7 @@ function Prescriptions() {
   const [instructions, setInstructions] = useState("");
   const [scheduledDays, setScheduledDays] = useState<Set<DayOfWeek>>(new Set());
   const [doseTimes, setDoseTimes] = useState<string[]>([]);
+  const [pendingDoseIndex, setPendingDoseIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [daysError, setDaysError] = useState(false);
   const [timesError, setTimesError] = useState(false);
@@ -252,8 +253,13 @@ function Prescriptions() {
   }
 
   function addDoseTime() {
+    setPendingDoseIndex(doseTimes.length);
     setDoseTimes((prev) => [...prev, ""]);
     setTimesError(false);
+  }
+
+  function confirmDoseTime() {
+    setPendingDoseIndex(null);
   }
 
   function updateDoseTime(index: number, value: string) {
@@ -263,6 +269,9 @@ function Prescriptions() {
 
   function removeDoseTime(index: number) {
     setDoseTimes((prev) => prev.filter((_, i) => i !== index));
+    if (pendingDoseIndex === index) setPendingDoseIndex(null);
+    else if (pendingDoseIndex !== null && index < pendingDoseIndex)
+      setPendingDoseIndex(pendingDoseIndex - 1);
     setTimesError(false);
   }
 
@@ -330,10 +339,25 @@ function Prescriptions() {
             >
               ×
             </button>
+            {pendingDoseIndex === i && (
+              <button
+                type="button"
+                className="confirm-time"
+                aria-label="Confirm"
+                disabled={!time}
+                onClick={confirmDoseTime}
+              >
+                ✓
+              </button>
+            )}
           </div>
         ))}
-        <button type="button" onClick={addDoseTime}>
-          Add dose time
+        <button
+          type="button"
+          disabled={pendingDoseIndex !== null}
+          onClick={addDoseTime}
+        >
+          New dose time
         </button>
       </fieldset>
     </div>
