@@ -247,7 +247,7 @@ describe("Prescriptions", () => {
       expect(Array.from(pills).map((el) => el.textContent)).toEqual(abbrs);
     });
 
-    test("clicking 'New dose time' adds a time input with a confirm button", async () => {
+    test("clicking '+ Add new dose time' adds a time input with a confirm button", async () => {
       await openCreateForm();
       expect(screen.queryByLabelText(/time 1/i)).toBeNull();
       await userEvent.click(

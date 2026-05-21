@@ -234,11 +234,15 @@
 
 .prescriptions .dose-time-entry input[type="time"] {
   width: auto;
+  box-sizing: border-box;
+  height: 2.5rem;
 }
 
 .prescriptions .remove-time,
 .prescriptions .confirm-time {
-  padding: 0.5rem 0.6rem;
+  box-sizing: border-box;
+  height: 2.5rem;
+  padding: 0 0.6rem;
   border-radius: 4px;
   font-size: 1rem;
   line-height: 1;
@@ -267,7 +271,12 @@
 }
 
 .prescriptions .confirm-time:disabled {
-  border-color: var(--gray-70, #999);
-  color: oklch(0.75 0 0);
-  cursor: default;
+  border-color: oklch(0.82 0 0);
+  color: oklch(0.65 0 0);
+  background-color: oklch(0.93 0 0);
+  cursor: not-allowed;
+}
+
+.prescriptions .add-dose-time {
+  margin-top: 0.75rem;
 }

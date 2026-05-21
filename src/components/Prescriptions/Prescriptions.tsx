@@ -354,10 +354,11 @@ function Prescriptions() {
         ))}
         <button
           type="button"
+          className="add-dose-time"
           disabled={pendingDoseIndex !== null}
           onClick={addDoseTime}
         >
-          New dose time
+          + Add new dose time
         </button>
       </fieldset>
     </div>
