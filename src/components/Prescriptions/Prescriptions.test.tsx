@@ -807,13 +807,13 @@ describe("Prescriptions", () => {
       );
     }
 
-    test("unit select has (blank), mg, g, mcg, ml options in that order", async () => {
+    test("unit select has (blank), mg, g, mcg options in that order", async () => {
       await openCreateForm();
       const unitSelect = screen.getByRole("combobox", {
         name: /unit/i,
       }) as HTMLSelectElement;
       const allOptions = Array.from(unitSelect.options).map((o) => o.value);
-      expect(allOptions).toEqual(["", "mg", "g", "mcg", "ml"]);
+      expect(allOptions).toEqual(["", "mg", "g", "mcg"]);
       const blankOption = Array.from(unitSelect.options).find(
         (o) => o.value === "",
       )!;

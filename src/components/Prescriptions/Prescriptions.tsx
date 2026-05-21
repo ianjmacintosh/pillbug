@@ -40,7 +40,7 @@ const DAY_ABBRS: Record<DayOfWeek, string> = {
   saturday: "Sat",
 };
 
-const DOSAGE_UNITS = ["mg", "g", "mcg", "ml"] as const;
+const DOSAGE_UNITS = ["mg", "g", "mcg"] as const;
 type DosageUnit = (typeof DOSAGE_UNITS)[number];
 
 function parseDosage(
@@ -495,7 +495,6 @@ function Prescriptions() {
                 <option value="mg">mg</option>
                 <option value="g">g</option>
                 <option value="mcg">mcg</option>
-                <option value="ml">ml</option>
               </select>
             </div>
           )}
