@@ -30,8 +30,12 @@ describe("Prescriptions", () => {
         screen.getByRole("button", { name: /add prescription/i }),
       );
       await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
-      await userEvent.type(screen.getByLabelText(/dosage/i), "100mg");
-      await userEvent.type(screen.getByLabelText(/start date/i), "2024-06-01");
+      await userEvent.type(screen.getByLabelText(/dosage/i), "100");
+      await userEvent.selectOptions(
+        screen.getByRole("combobox", { name: /unit/i }),
+        "mg",
+      );
+      // start date is pre-filled with today's date
     }
 
     test("create form: submitting with no days selected shows an error and does not call fetch", async () => {
@@ -309,8 +313,12 @@ describe("Prescriptions", () => {
         );
       await openCreateForm();
       await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
-      await userEvent.type(screen.getByLabelText(/dosage/i), "100mg");
-      await userEvent.type(screen.getByLabelText(/start date/i), "2024-06-01");
+      await userEvent.type(screen.getByLabelText(/dosage/i), "100");
+      await userEvent.selectOptions(
+        screen.getByRole("combobox", { name: /unit/i }),
+        "mg",
+      );
+      // start date is pre-filled with today's date
 
       await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
       const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
@@ -466,6 +474,163 @@ describe("Prescriptions", () => {
       await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
       expect(screen.queryByLabelText(/drug name/i)).toBeNull();
       expect(screen.getByText("Metformin")).toBeTruthy();
+    });
+  });
+
+  describe("form layout", () => {
+    async function openCreateForm() {
+      render(<Prescriptions />);
+      await userEvent.click(
+        screen.getByRole("button", { name: /add prescription/i }),
+      );
+    }
+
+    test("create form start date defaults to today", async () => {
+      await openCreateForm();
+      const today = new Date().toISOString().slice(0, 10);
+      expect(
+        (screen.getByLabelText(/start date/i) as HTMLInputElement).value,
+      ).toBe(today);
+    });
+
+    test("end date field shows 'Leave blank for ongoing prescriptions' hint", async () => {
+      await openCreateForm();
+      expect(
+        screen.getByText(/leave blank for ongoing prescriptions/i),
+      ).toBeTruthy();
+    });
+
+    test("start date field appears before drug name field in the form", async () => {
+      await openCreateForm();
+      const startDate = screen.getByLabelText(/start date/i);
+      const drugName = screen.getByLabelText(/drug name/i);
+      expect(
+        startDate.compareDocumentPosition(drugName) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    });
+  });
+
+  describe("dosage unit picker", () => {
+    async function openCreateForm() {
+      render(<Prescriptions />);
+      await userEvent.click(
+        screen.getByRole("button", { name: /add prescription/i }),
+      );
+    }
+
+    test("unit select has options mg, g, mcg, ml in that order — no '(none)' option", async () => {
+      await openCreateForm();
+      const unitSelect = screen.getByRole("combobox", {
+        name: /unit/i,
+      }) as HTMLSelectElement;
+      const enabledOptions = Array.from(unitSelect.options)
+        .filter((o) => !o.disabled)
+        .map((o) => o.value);
+      expect(enabledOptions).toEqual(["mg", "g", "mcg", "ml"]);
+    });
+
+    test("selecting a unit does not modify the quantity field text", async () => {
+      await openCreateForm();
+      await userEvent.type(screen.getByLabelText(/dosage/i), "500");
+      await userEvent.selectOptions(
+        screen.getByRole("combobox", { name: /unit/i }),
+        "mg",
+      );
+      expect((screen.getByLabelText(/dosage/i) as HTMLInputElement).value).toBe(
+        "500",
+      );
+    });
+
+    test("on submit, quantity and unit are concatenated with a space", async () => {
+      const fetchSpy = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(SAMPLE_PRESCRIPTION), { status: 201 }),
+        );
+      await openCreateForm();
+      await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
+      await userEvent.type(screen.getByLabelText(/dosage/i), "500");
+      await userEvent.selectOptions(
+        screen.getByRole("combobox", { name: /unit/i }),
+        "mg",
+      );
+      // start date is pre-filled with today's date
+      await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
+      const timeInput = screen.getByLabelText(/time 1/i) as HTMLInputElement;
+      await userEvent.clear(timeInput);
+      await userEvent.type(timeInput, "08:00");
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      const body = JSON.parse(
+        (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
+      );
+      expect(body.dosage).toBe("500 mg");
+    });
+
+    test("edit form pre-populates quantity and unit when dosage matches 'quantity unit' format", async () => {
+      const prescription = { ...SAMPLE_PRESCRIPTION, dosage: "500 mg" };
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([prescription]), { status: 200 }),
+      );
+      render(<Prescriptions />);
+      await userEvent.click(screen.getByRole("button", { name: /show all/i }));
+      await waitFor(() => screen.getByText("Metformin"));
+      await userEvent.click(screen.getByRole("button", { name: /edit/i }));
+
+      expect((screen.getByLabelText(/dosage/i) as HTMLInputElement).value).toBe(
+        "500",
+      );
+      expect(
+        (screen.getByRole("combobox", { name: /unit/i }) as HTMLSelectElement)
+          .value,
+      ).toBe("mg");
+    });
+
+    test("edit form shows plain text input (no unit picker) when dosage cannot be parsed", async () => {
+      const prescription = { ...SAMPLE_PRESCRIPTION, dosage: "two tablets" };
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([prescription]), { status: 200 }),
+      );
+      render(<Prescriptions />);
+      await userEvent.click(screen.getByRole("button", { name: /show all/i }));
+      await waitFor(() => screen.getByText("Metformin"));
+      await userEvent.click(screen.getByRole("button", { name: /edit/i }));
+
+      expect((screen.getByLabelText(/dosage/i) as HTMLInputElement).value).toBe(
+        "two tablets",
+      );
+      expect(screen.queryByRole("combobox", { name: /unit/i })).toBeNull();
+    });
+
+    test("submitting edit form with unparseable dosage sends the original string unchanged", async () => {
+      const prescription = {
+        ...SAMPLE_PRESCRIPTION,
+        dosage: "1 cup",
+        schedule: {
+          days: { monday: ["08:00"] },
+          timezoneMode: "local" as const,
+        },
+      };
+      const fetchSpy = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify([prescription]), { status: 200 }),
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(prescription), { status: 200 }),
+        );
+      render(<Prescriptions />);
+      await userEvent.click(screen.getByRole("button", { name: /show all/i }));
+      await waitFor(() => screen.getByText("Metformin"));
+      await userEvent.click(screen.getByRole("button", { name: /edit/i }));
+
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      const body = JSON.parse(
+        (fetchSpy.mock.calls[1][1] as RequestInit).body as string,
+      );
+      expect(body.dosage).toBe("1 cup");
     });
   });
 
