@@ -233,9 +233,10 @@
 }
 
 .prescriptions .dose-time-entry input[type="time"] {
-  width: auto;
+  width: 9rem;
   box-sizing: border-box;
   height: 2.5rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .prescriptions .remove-time {
