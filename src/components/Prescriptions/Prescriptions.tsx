@@ -66,6 +66,7 @@ function Prescriptions() {
   const [submitting, setSubmitting] = useState(false);
   const [drugName, setDrugName] = useState("");
   const [dosage, setDosage] = useState("");
+  const [dosageUnit, setDosageUnit] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -92,6 +93,7 @@ function Prescriptions() {
   function clearFields() {
     setDrugName("");
     setDosage("");
+    setDosageUnit("");
     setStartDate("");
     setEndDate("");
     setInstructions("");
@@ -343,28 +345,6 @@ function Prescriptions() {
 
   const prescriptionFields = (idPrefix: string) => (
     <>
-      <div className="field">
-        <label htmlFor={`${idPrefix}-drugName`}>Drug name</label>
-        <input
-          id={`${idPrefix}-drugName`}
-          type="text"
-          value={drugName}
-          onChange={(e) => setDrugName(e.target.value)}
-          required
-        />
-      </div>
-
-      <div className="field">
-        <label htmlFor={`${idPrefix}-dosage`}>Dosage</label>
-        <input
-          id={`${idPrefix}-dosage`}
-          type="text"
-          value={dosage}
-          onChange={(e) => setDosage(e.target.value)}
-          required
-        />
-      </div>
-
       <div className="date-fields">
         <div className="field">
           <label htmlFor={`${idPrefix}-startDate`}>Start date</label>
@@ -385,8 +365,54 @@ function Prescriptions() {
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
           />
+          <p className="field-hint">Leave blank for ongoing prescriptions.</p>
         </div>
       </div>
+
+      <div className="drug-dosage-fields">
+        <div className="field">
+          <label htmlFor={`${idPrefix}-drugName`}>Drug name</label>
+          <input
+            id={`${idPrefix}-drugName`}
+            type="text"
+            value={drugName}
+            onChange={(e) => setDrugName(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="field">
+          <label htmlFor={`${idPrefix}-dosage`}>Dosage</label>
+          <div className="dosage-input-row">
+            <input
+              id={`${idPrefix}-dosage`}
+              type="text"
+              value={dosage}
+              onChange={(e) => setDosage(e.target.value)}
+              required
+            />
+            <select
+              aria-label="Unit"
+              value={dosageUnit}
+              onChange={(e) => {
+                const unit = e.target.value;
+                if (unit) {
+                  setDosage((prev) => prev + unit);
+                  setDosageUnit("");
+                }
+              }}
+            >
+              <option value="">(none)</option>
+              <option value="mg">mg</option>
+              <option value="mcg">mcg</option>
+              <option value="g">g</option>
+              <option value="ml">ml</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {scheduleSection}
 
       <div className="field">
         <label htmlFor={`${idPrefix}-instructions`}>
@@ -399,8 +425,6 @@ function Prescriptions() {
           onChange={(e) => setInstructions(e.target.value)}
         />
       </div>
-
-      {scheduleSection}
     </>
   );
 
