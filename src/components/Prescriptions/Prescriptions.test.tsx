@@ -602,6 +602,36 @@ describe("Prescriptions", () => {
       );
       expect(screen.queryByRole("combobox", { name: /unit/i })).toBeNull();
     });
+
+    test("submitting edit form with unparseable dosage sends the original string unchanged", async () => {
+      const prescription = {
+        ...SAMPLE_PRESCRIPTION,
+        dosage: "1 cup",
+        schedule: {
+          days: { monday: ["08:00"] },
+          timezoneMode: "local" as const,
+        },
+      };
+      const fetchSpy = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify([prescription]), { status: 200 }),
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(prescription), { status: 200 }),
+        );
+      render(<Prescriptions />);
+      await userEvent.click(screen.getByRole("button", { name: /show all/i }));
+      await waitFor(() => screen.getByText("Metformin"));
+      await userEvent.click(screen.getByRole("button", { name: /edit/i }));
+
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      const body = JSON.parse(
+        (fetchSpy.mock.calls[1][1] as RequestInit).body as string,
+      );
+      expect(body.dosage).toBe("1 cup");
+    });
   });
 
   describe("delete", () => {

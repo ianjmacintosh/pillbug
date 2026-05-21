@@ -79,7 +79,7 @@ function Prescriptions() {
   const [submitting, setSubmitting] = useState(false);
   const [drugName, setDrugName] = useState("");
   const [dosageQuantity, setDosageQuantity] = useState("");
-  const [dosageUnit, setDosageUnit] = useState<DosageUnit | "">("");
+  const [dosageUnit, setDosageUnit] = useState<DosageUnit | "">("mg");
   const [dosageFallback, setDosageFallback] = useState<string | null>(null);
   const [startDate, setStartDate] = useState(() =>
     new Date().toISOString().slice(0, 10),
@@ -109,7 +109,7 @@ function Prescriptions() {
   function clearFields() {
     setDrugName("");
     setDosageQuantity("");
-    setDosageUnit("");
+    setDosageUnit("mg");
     setDosageFallback(null);
     setStartDate(new Date().toISOString().slice(0, 10));
     setEndDate("");
