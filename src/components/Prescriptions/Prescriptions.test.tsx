@@ -30,7 +30,7 @@ describe("Prescriptions", () => {
         screen.getByRole("button", { name: /add prescription/i }),
       );
       await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
-      await userEvent.type(screen.getByLabelText(/dosage/i), "100");
+      await userEvent.type(screen.getByLabelText(/strength/i), "100");
       await userEvent.selectOptions(
         screen.getByRole("combobox", { name: /unit/i }),
         "mg",
@@ -320,7 +320,7 @@ describe("Prescriptions", () => {
         );
       await openCreateForm();
       await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
-      await userEvent.type(screen.getByLabelText(/dosage/i), "100");
+      await userEvent.type(screen.getByLabelText(/strength/i), "100");
       await userEvent.selectOptions(
         screen.getByRole("combobox", { name: /unit/i }),
         "mg",
@@ -357,9 +357,9 @@ describe("Prescriptions", () => {
       expect(
         (screen.getByLabelText(/drug name/i) as HTMLInputElement).value,
       ).toBe("Metformin");
-      expect((screen.getByLabelText(/dosage/i) as HTMLInputElement).value).toBe(
-        "500mg",
-      );
+      expect(
+        (screen.getByLabelText(/strength/i) as HTMLInputElement).value,
+      ).toBe("500mg");
       expect(
         (screen.getByLabelText(/start date/i) as HTMLInputElement).value,
       ).toBe("2024-01-01");
@@ -462,7 +462,7 @@ describe("Prescriptions", () => {
       await waitFor(() => screen.getByText("Metformin"));
       await userEvent.click(screen.getByRole("button", { name: /edit/i }));
 
-      const dosageInput = screen.getByLabelText(/dosage/i);
+      const dosageInput = screen.getByLabelText(/strength/i);
       await userEvent.clear(dosageInput);
       await userEvent.type(dosageInput, "1000mg");
       await userEvent.click(screen.getByRole("button", { name: /save/i }));
@@ -614,7 +614,7 @@ describe("Prescriptions", () => {
         screen.getByRole("combobox", { name: /unit/i }),
         "mg",
       );
-      const dosageInput = screen.getByLabelText(/dosage/i);
+      const dosageInput = screen.getByLabelText(/strength/i);
       await userEvent.type(dosageInput, "20mg");
       await userEvent.tab();
 
@@ -627,7 +627,7 @@ describe("Prescriptions", () => {
         screen.getByRole("combobox", { name: /unit/i }),
         "mg",
       );
-      const dosageInput = screen.getByLabelText(/dosage/i);
+      const dosageInput = screen.getByLabelText(/strength/i);
       await userEvent.type(dosageInput, "20");
       await userEvent.tab();
 
@@ -640,7 +640,7 @@ describe("Prescriptions", () => {
         screen.getByRole("combobox", { name: /unit/i }),
         "mg",
       );
-      const dosageInput = screen.getByLabelText(/dosage/i);
+      const dosageInput = screen.getByLabelText(/strength/i);
       await userEvent.type(dosageInput, "20mg");
       await userEvent.tab();
       expect(screen.getByText(/included the unit/i)).toBeTruthy();
@@ -657,7 +657,7 @@ describe("Prescriptions", () => {
         screen.getByRole("combobox", { name: /unit/i }),
         "",
       );
-      const dosageInput = screen.getByLabelText(/dosage/i);
+      const dosageInput = screen.getByLabelText(/strength/i);
       await userEvent.type(dosageInput, "20mg");
       await userEvent.tab();
 
@@ -675,7 +675,7 @@ describe("Prescriptions", () => {
         screen.getByRole("combobox", { name: /unit/i }),
         "mg",
       );
-      const dosageInput = screen.getByLabelText(/dosage/i);
+      const dosageInput = screen.getByLabelText(/strength/i);
       await userEvent.type(dosageInput, "20mg");
       await userEvent.tab();
       await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
@@ -737,7 +737,7 @@ describe("Prescriptions", () => {
         );
       await openCreateForm();
       await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
-      await userEvent.type(screen.getByLabelText(/dosage/i), "100");
+      await userEvent.type(screen.getByLabelText(/strength/i), "100");
       await userEvent.selectOptions(
         screen.getByRole("combobox", { name: /unit/i }),
         "mg",
@@ -761,7 +761,7 @@ describe("Prescriptions", () => {
         );
       await openCreateForm();
       await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
-      await userEvent.type(screen.getByLabelText(/dosage/i), "100");
+      await userEvent.type(screen.getByLabelText(/strength/i), "100");
       await userEvent.selectOptions(
         screen.getByRole("combobox", { name: /unit/i }),
         "mg",
@@ -804,14 +804,14 @@ describe("Prescriptions", () => {
 
     test("selecting a unit does not modify the quantity field text", async () => {
       await openCreateForm();
-      await userEvent.type(screen.getByLabelText(/dosage/i), "500");
+      await userEvent.type(screen.getByLabelText(/strength/i), "500");
       await userEvent.selectOptions(
         screen.getByRole("combobox", { name: /unit/i }),
         "mg",
       );
-      expect((screen.getByLabelText(/dosage/i) as HTMLInputElement).value).toBe(
-        "500",
-      );
+      expect(
+        (screen.getByLabelText(/strength/i) as HTMLInputElement).value,
+      ).toBe("500");
     });
 
     test("on submit with (blank) unit, dosage is just the quantity with no trailing space or unit", async () => {
@@ -822,7 +822,7 @@ describe("Prescriptions", () => {
         );
       await openCreateForm();
       await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
-      await userEvent.type(screen.getByLabelText(/dosage/i), "100");
+      await userEvent.type(screen.getByLabelText(/strength/i), "100");
       await userEvent.selectOptions(
         screen.getByRole("combobox", { name: /unit/i }),
         "",
@@ -847,7 +847,7 @@ describe("Prescriptions", () => {
         );
       await openCreateForm();
       await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
-      await userEvent.type(screen.getByLabelText(/dosage/i), "500");
+      await userEvent.type(screen.getByLabelText(/strength/i), "500");
       await userEvent.selectOptions(
         screen.getByRole("combobox", { name: /unit/i }),
         "mg",
@@ -875,9 +875,9 @@ describe("Prescriptions", () => {
       await waitFor(() => screen.getByText("Metformin"));
       await userEvent.click(screen.getByRole("button", { name: /edit/i }));
 
-      expect((screen.getByLabelText(/dosage/i) as HTMLInputElement).value).toBe(
-        "500",
-      );
+      expect(
+        (screen.getByLabelText(/strength/i) as HTMLInputElement).value,
+      ).toBe("500");
       expect(
         (screen.getByRole("combobox", { name: /unit/i }) as HTMLSelectElement)
           .value,
@@ -894,9 +894,9 @@ describe("Prescriptions", () => {
       await waitFor(() => screen.getByText("Metformin"));
       await userEvent.click(screen.getByRole("button", { name: /edit/i }));
 
-      expect((screen.getByLabelText(/dosage/i) as HTMLInputElement).value).toBe(
-        "two tablets",
-      );
+      expect(
+        (screen.getByLabelText(/strength/i) as HTMLInputElement).value,
+      ).toBe("two tablets");
       expect(screen.queryByRole("combobox", { name: /unit/i })).toBeNull();
     });
 

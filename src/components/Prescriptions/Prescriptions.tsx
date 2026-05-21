@@ -453,7 +453,7 @@ function Prescriptions() {
         </div>
 
         <div className="field drug-dosage-field">
-          <label htmlFor={`${idPrefix}-dosage`}>Dosage</label>
+          <label htmlFor={`${idPrefix}-dosage`}>Strength</label>
           {dosageFallback !== null ? (
             <input
               id={`${idPrefix}-dosage`}
@@ -586,7 +586,7 @@ function Prescriptions() {
                   <th>Start Date</th>
                   <th>End Date</th>
                   <th>Drug Name</th>
-                  <th>Dosage</th>
+                  <th>Strength</th>
                   <th>Actions</th>
                 </tr>
               </thead>
