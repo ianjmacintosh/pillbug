@@ -156,6 +156,14 @@
   background-color: oklch(0.45 0.15 250);
   border-color: oklch(0.45 0.15 250);
   color: #fff;
+  gap: 0.2rem;
+}
+
+.prescriptions .day-pill:has(input:checked) span::before,
+.prescriptions .select-all-pill:has(input:checked) span::before {
+  content: "✓";
+  font-size: 0.75rem;
+  line-height: 1;
 }
 
 .prescriptions .day-pill:has(input:focus-visible) span,
