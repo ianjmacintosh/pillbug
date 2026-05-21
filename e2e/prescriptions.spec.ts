@@ -118,13 +118,113 @@ test.describe("Prescription create", () => {
     await page.getByLabel("Dosage").fill("500mg");
     await page.getByLabel(/start date/i).fill("2024-01-01");
     await page.getByRole("checkbox", { name: "Monday" }).click();
-    await page.getByRole("button", { name: /add dose time/i }).click();
     await page.getByLabel(/time 1/i).fill("08:00");
     await page.getByRole("button", { name: /save prescription/i }).click();
 
     await page.getByRole("button", { name: /show all prescriptions/i }).click();
     await expect(page.getByRole("cell", { name: "Metformin" })).toBeVisible();
     await expect(page.getByRole("cell", { name: "500mg" })).toBeVisible();
+  });
+
+  test("time input is shown by default without clicking add", async ({
+    page,
+  }) => {
+    await login(page);
+
+    await page.getByRole("button", { name: /add prescription/i }).click();
+
+    await expect(page.getByLabel(/time 1/i)).toBeVisible();
+  });
+
+  test("Remove button is disabled when only one dose time is shown", async ({
+    page,
+  }) => {
+    await login(page);
+
+    await page.getByRole("button", { name: /add prescription/i }).click();
+
+    await expect(page.getByRole("button", { name: /remove/i })).toBeDisabled();
+  });
+
+  test("Remove button is enabled after a second dose time is added", async ({
+    page,
+  }) => {
+    await login(page);
+
+    await page.getByRole("button", { name: /add prescription/i }).click();
+    await page.getByRole("button", { name: /add new dose time/i }).click();
+
+    const removeButtons = page.getByRole("button", { name: /remove/i });
+    await expect(removeButtons.nth(0)).toBeEnabled();
+    await expect(removeButtons.nth(1)).toBeEnabled();
+  });
+
+  test("Select all checks every day; Unselect all clears them", async ({
+    page,
+  }) => {
+    await login(page);
+
+    await page.getByRole("button", { name: /add prescription/i }).click();
+
+    await page.getByRole("button", { name: /select all/i }).click();
+    for (const day of [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ]) {
+      await expect(page.getByRole("checkbox", { name: day })).toBeChecked();
+    }
+
+    await page.getByRole("button", { name: /unselect all/i }).click();
+    for (const day of [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ]) {
+      await expect(page.getByRole("checkbox", { name: day })).not.toBeChecked();
+    }
+  });
+
+  test("creates prescription with multiple dose times on multiple days", async ({
+    page,
+  }) => {
+    await login(page);
+
+    await page.getByRole("button", { name: /add prescription/i }).click();
+    await page.getByLabel(/drug name/i).fill("Lisinopril");
+    await page.getByLabel("Dosage").fill("10mg");
+    await page.getByLabel(/start date/i).fill("2024-03-01");
+    await page.getByRole("checkbox", { name: "Monday" }).click();
+    await page.getByRole("checkbox", { name: "Thursday" }).click();
+    await page.getByLabel(/time 1/i).fill("08:00");
+    await page.getByRole("button", { name: /add new dose time/i }).click();
+    await page.getByLabel(/time 2/i).fill("20:00");
+    await page.getByRole("button", { name: /save prescription/i }).click();
+
+    // verify the prescription was saved by opening edit and checking schedule
+    await page.getByRole("button", { name: /show all prescriptions/i }).click();
+    await expect(page.getByRole("cell", { name: "Lisinopril" })).toBeVisible();
+    await page.getByRole("button", { name: /edit/i }).click();
+    await expect(page.getByRole("checkbox", { name: "Monday" })).toBeChecked();
+    await expect(
+      page.getByRole("checkbox", { name: "Thursday" }),
+    ).toBeChecked();
+    await expect(
+      page.getByRole("checkbox", { name: "Tuesday" }),
+    ).not.toBeChecked();
+    const times = [
+      await page.getByLabel(/time 1/i).inputValue(),
+      await page.getByLabel(/time 2/i).inputValue(),
+    ].sort();
+    expect(times).toEqual(["08:00", "20:00"]);
   });
 });
 
