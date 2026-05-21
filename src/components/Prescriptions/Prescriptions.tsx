@@ -30,6 +30,16 @@ const DAY_LABELS: Record<DayOfWeek, string> = {
   saturday: "Saturday",
 };
 
+const DAY_ABBRS: Record<DayOfWeek, string> = {
+  sunday: "S",
+  monday: "M",
+  tuesday: "T",
+  wednesday: "W",
+  thursday: "T",
+  friday: "F",
+  saturday: "S",
+};
+
 interface Schedule {
   days: Partial<Record<DayOfWeek, string[]>>;
   timezoneMode: "local" | "fixed_utc";
@@ -268,42 +278,28 @@ function Prescriptions() {
             Please select at least one day.
           </p>
         )}
-        <table>
-          <thead>
-            <tr>
-              <th className="select-all-col">
-                <label htmlFor="select-all">Select All</label>
-              </th>
-              {WEEKDAYS.map((day) => (
-                <th key={day}>
-                  <label htmlFor={`day-${day}`}>{DAY_LABELS[day]}</label>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className="select-all-col">
-                <input
-                  id="select-all"
-                  type="checkbox"
-                  checked={scheduledDays.size === WEEKDAYS.length}
-                  onChange={toggleAllDays}
-                />
-              </td>
-              {WEEKDAYS.map((day) => (
-                <td key={day}>
-                  <input
-                    id={`day-${day}`}
-                    type="checkbox"
-                    checked={scheduledDays.has(day)}
-                    onChange={() => toggleDay(day)}
-                  />
-                </td>
-              ))}
-            </tr>
-          </tbody>
-        </table>
+        <div className="day-pills-row">
+          <label className="select-all-pill">
+            <input
+              type="checkbox"
+              checked={scheduledDays.size === WEEKDAYS.length}
+              onChange={toggleAllDays}
+              aria-label="Select All"
+            />
+            <span aria-hidden="true">All</span>
+          </label>
+          {WEEKDAYS.map((day) => (
+            <label key={day} className="day-pill">
+              <input
+                type="checkbox"
+                checked={scheduledDays.has(day)}
+                onChange={() => toggleDay(day)}
+                aria-label={DAY_LABELS[day]}
+              />
+              <span aria-hidden="true">{DAY_ABBRS[day]}</span>
+            </label>
+          ))}
+        </div>
       </fieldset>
 
       <fieldset aria-invalid={timesError ? true : undefined}>

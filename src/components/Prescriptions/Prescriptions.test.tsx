@@ -230,6 +230,15 @@ describe("Prescriptions", () => {
       ).toBeTruthy();
     });
 
+    test("create form shows abbreviated day labels (S M T W T F S)", async () => {
+      await openCreateForm();
+      const abbrs = ["S", "M", "T", "W", "T", "F", "S"];
+      const pills = screen
+        .getByRole("group", { name: /days/i })
+        .querySelectorAll(".day-pill span");
+      expect(Array.from(pills).map((el) => el.textContent)).toEqual(abbrs);
+    });
+
     test("clicking 'Add dose time' adds a time input", async () => {
       await openCreateForm();
       expect(screen.queryByLabelText(/time 1/i)).toBeNull();
