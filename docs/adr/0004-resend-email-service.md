@@ -1,6 +1,6 @@
 # Resend for transactional email
 
-Pillbug uses Resend to deliver magic link emails. End-of-course Prescription notifications are delivered via Web Push (see ADR 0005), keeping all health-sensitive content off Resend's servers.
+Pillbug uses Resend to deliver Verification Code login emails. End-of-course Prescription notifications are delivered via Web Push (see ADR 0005), keeping all health-sensitive content off Resend's servers.
 
 Resend was chosen over SendGrid/Postmark for its lighter onboarding, cleaner API, and generous free tier (3,000 emails/month). It integrates directly with Cloudflare Workers via HTTP. The only patient data Resend receives is the recipient email address and delivery metadata — no medical content whatsoever.
 

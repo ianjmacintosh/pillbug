@@ -34,7 +34,7 @@ A 4-digit numeric code included in verification and login emails. Displayed prom
 _Avoid_: PIN, OTP, One-time password
 
 **Enter Code Screen**:
-The screen shown to the Patient after submitting the Registration or Login form, at `/enter-code?token=<uuid>`. The Patient enters their Verification Code from the email to create a session on the current device. The token in the URL identifies which Verification Code to validate against. The email also includes a pre-filled link that lands here with the code in the URL and auto-submits on arrival. After 5 failed entries the Verification Code is locked for that token — the in-email link is also blocked, since it carries the same code in the URL and resolves through the same endpoint. A locked Patient must request a new code from `/login`. Displays distinct messages for four token states: `invalid` (token not found), `expired` (20-minute window elapsed), `used` (already redeemed — Patient is likely logged in on another device), and `locked` (5 failed code entries).
+The screen shown to the Patient after submitting the Registration or Login form, at `/enter-code?token=<uuid>`. The Patient enters their Verification Code from the email to create a session on the current device. The token in the URL identifies which Verification Code to validate against. The email also includes a pre-filled link that lands here with the code in the URL and auto-submits on arrival. After 5 failed entries the Verification Code is locked for that token — the in-email link is also blocked, since it carries the same code in the URL and resolves through the same endpoint. A locked Patient must request a new code from `/login`. Displays distinct messages for four token states: `expired` (token not found or past the 20-minute window), `invalid` (token exists but the Verification Code doesn't match), `used` (already redeemed — Patient is likely logged in on another device), and `locked` (5 failed code entries).
 _Avoid_: Challenge screen, Verify screen, Check your email
 
 **Prescription**:
@@ -199,7 +199,7 @@ erDiagram
         TEXT expires_at "NOT NULL"
     }
 
-    patients ||--o{ magic_link_tokens : "authenticates via"
+    patients |o--o{ magic_link_tokens : "authenticates via"
     patients ||--o{ sessions : "is active in"
 ```
 

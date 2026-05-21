@@ -101,12 +101,12 @@ Sets `session` cookie (HttpOnly, SameSite=Lax, 30-day TTL).
 { "error": "invalid" | "expired" | "used" | "locked" }
 ```
 
-| Code      | Meaning                                     |
-| --------- | ------------------------------------------- |
-| `invalid` | Token not found, or PIN does not match      |
-| `expired` | Token past its 20-minute window             |
-| `used`    | Token already redeemed                      |
-| `locked`  | 5 or more failed PIN attempts on this token |
+| Code      | Meaning                                      |
+| --------- | -------------------------------------------- |
+| `expired` | Token not found or past its 20-minute window |
+| `invalid` | Token exists but PIN does not match          |
+| `used`    | Token already redeemed                       |
+| `locked`  | 5 or more failed PIN attempts on this token  |
 
 ---
 
