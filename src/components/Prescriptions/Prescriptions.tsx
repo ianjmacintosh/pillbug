@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./Prescriptions.css";
 
 type DayOfWeek =
@@ -81,10 +81,9 @@ interface Prescription {
 }
 
 function Prescriptions() {
-  const [revealed, setRevealed] = useState(false);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [mobilePanel, setMobilePanel] = useState<"list" | "form">("list");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [doseCount, setDoseCount] = useState("1");
@@ -106,20 +105,6 @@ function Prescriptions() {
   const [detectedDuplicateUnit, setDetectedDuplicateUnit] =
     useState<DosageUnit | null>(null);
 
-  async function handleReveal() {
-    const res = await fetch("/api/v1/prescriptions");
-    if (res.ok) {
-      const data = (await res.json()) as Prescription[];
-      setPrescriptions(data);
-      setRevealed(true);
-    }
-  }
-
-  function handleHide() {
-    setPrescriptions([]);
-    setRevealed(false);
-  }
-
   function clearFields() {
     setDoseCount("1");
     setDoseForm("tablet");
@@ -138,19 +123,7 @@ function Prescriptions() {
     setDetectedDuplicateUnit(null);
   }
 
-  function handleOpenForm() {
-    clearFields();
-    setEditingId(null);
-    setFormOpen(true);
-  }
-
-  function handleCancel() {
-    clearFields();
-    setFormOpen(false);
-    setEditingId(null);
-  }
-
-  function handleEdit(p: Prescription) {
+  function loadEditFields(p: Prescription) {
     setDoseCount(String(p.doseCount ?? 1));
     setDoseForm(p.doseForm ?? "tablet");
     setDrugName(p.drugName);
@@ -180,8 +153,37 @@ function Prescriptions() {
     setError(null);
     setDaysError(false);
     setTimesError(false);
-    setFormOpen(false);
-    setEditingId(p.id);
+  }
+
+  useEffect(() => {
+    fetch("/api/v1/prescriptions")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: Prescription[]) => {
+        setPrescriptions(data);
+        if (data.length > 0) {
+          loadEditFields(data[0]);
+          setSelectedId(data[0].id);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  function handleClickAdd() {
+    clearFields();
+    setSelectedId(null);
+    setMobilePanel("form");
+  }
+
+  function handleCancel() {
+    clearFields();
+    setSelectedId(null);
+    setMobilePanel("list");
+  }
+
+  function handleSelectPrescription(p: Prescription) {
+    loadEditFields(p);
+    setSelectedId(p.id);
+    setMobilePanel("form");
   }
 
   function buildDosage(): string {
@@ -228,10 +230,9 @@ function Prescriptions() {
 
     if (res.ok) {
       const created = (await res.json()) as Prescription;
-      if (revealed) {
-        setPrescriptions((prev) => [created, ...prev]);
-      }
-      handleCancel();
+      setPrescriptions((prev) => [...prev, created]);
+      loadEditFields(created);
+      setSelectedId(created.id);
     } else {
       const data = (await res.json()) as { error: string };
       setError(data.error);
@@ -242,7 +243,7 @@ function Prescriptions() {
 
   async function handleSaveEdit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!editingId) return;
+    if (!selectedId) return;
     setError(null);
     const nextDaysError = scheduledDays.size === 0;
     const nextTimesError =
@@ -253,7 +254,7 @@ function Prescriptions() {
 
     setSubmitting(true);
 
-    const res = await fetch(`/api/v1/prescriptions/${editingId}`, {
+    const res = await fetch(`/api/v1/prescriptions/${selectedId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -271,7 +272,7 @@ function Prescriptions() {
     if (res.ok) {
       const updated = (await res.json()) as Prescription;
       setPrescriptions((prev) =>
-        prev.map((p) => (p.id === editingId ? updated : p)),
+        prev.map((p) => (p.id === selectedId ? updated : p)),
       );
       handleCancel();
     } else {
@@ -289,6 +290,10 @@ function Prescriptions() {
     });
     if (res.ok) {
       setPrescriptions((prev) => prev.filter((p) => p.id !== deletingId));
+      if (selectedId === deletingId) {
+        clearFields();
+        setSelectedId(null);
+      }
       setDeletingId(null);
     }
   }
@@ -546,148 +551,78 @@ function Prescriptions() {
   );
 
   return (
-    <main className="prescriptions">
-      <h1>Prescriptions</h1>
+    <main className={`prescriptions prescriptions--mobile-${mobilePanel}`}>
+      <div className="prescriptions-layout">
+        <div className="prescriptions-list-panel">
+          <h1>Prescriptions ({prescriptions.length})</h1>
 
-      <section>
-        <h2>Your prescriptions</h2>
-        {!revealed ? (
+          {deletingId && deletingPrescription && (
+            <div role="dialog" aria-modal="true">
+              <p>
+                This will permanently delete{" "}
+                <strong>{deletingPrescription.drugName}</strong> and all
+                associated Dose history. This action is permanent and cannot be
+                undone.
+              </p>
+              <div className="form-actions">
+                <button
+                  type="button"
+                  onClick={handleConfirmDelete}
+                  className="button-danger"
+                >
+                  Yes, delete
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeletingId(null)}
+                  className="button-secondary"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
+          <ul className="prescription-list">
+            {prescriptions.map((p) => (
+              <li
+                key={p.id}
+                className={`prescription-item${selectedId === p.id ? " prescription-item--selected" : ""}`}
+              >
+                <button
+                  type="button"
+                  className="prescription-item__name"
+                  onClick={() => handleSelectPrescription(p)}
+                >
+                  {p.drugName}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeletingId(p.id)}
+                  className="button-danger button-sm"
+                >
+                  Delete
+                </button>
+              </li>
+            ))}
+          </ul>
+
           <button
             type="button"
-            onClick={handleReveal}
-            className="button-secondary"
+            onClick={handleClickAdd}
+            className="button-primary"
           >
-            Show all prescriptions
+            Add Prescription
           </button>
-        ) : prescriptions.length === 0 ? (
-          <>
-            <p>No active prescriptions.</p>
-            <button
-              type="button"
-              onClick={handleHide}
-              className="button-secondary"
-            >
-              Hide
-            </button>
-          </>
-        ) : (
-          <>
-            {deletingId && deletingPrescription && (
-              <div role="dialog" aria-modal="true">
-                <p>
-                  This will permanently delete{" "}
-                  <strong>{deletingPrescription.drugName}</strong> and all
-                  associated Dose history. This action is permanent and cannot
-                  be undone.
-                </p>
-                <div className="form-actions">
-                  <button
-                    type="button"
-                    onClick={handleConfirmDelete}
-                    className="button-danger"
-                  >
-                    Yes, delete
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDeletingId(null)}
-                    className="button-secondary"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-            <table className="prescription-list">
-              <thead>
-                <tr>
-                  <th>Start Date</th>
-                  <th>End Date</th>
-                  <th>Drug Name</th>
-                  <th>Strength</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {prescriptions.map((p) => (
-                  <tr key={p.id}>
-                    <td>{p.startDate}</td>
-                    <td>{p.endDate ?? "—"}</td>
-                    <td>{p.drugName}</td>
-                    <td>{p.dosage}</td>
-                    <td>
-                      <button
-                        type="button"
-                        onClick={() => handleEdit(p)}
-                        className="button-secondary button-sm"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeletingId(p.id)}
-                        className="button-danger button-sm"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <button
-              type="button"
-              onClick={handleHide}
-              className="button-secondary"
-            >
-              Hide
-            </button>
-          </>
-        )}
-      </section>
+        </div>
 
-      {editingId && (
-        <section>
-          <h2>Edit prescription</h2>
-          <form onSubmit={handleSaveEdit}>
-            {error && <p role="alert">{error}</p>}
-            {prescriptionFields("edit")}
-            <div className="form-actions">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="button-primary"
-              >
-                {submitting ? "Saving…" : "Save prescription"}
-              </button>
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="button-secondary"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </section>
-      )}
-
-      {!editingId && (
-        <section>
-          {!formOpen ? (
-            <button
-              type="button"
-              onClick={handleOpenForm}
-              className="button-primary"
-            >
-              Add prescription
-            </button>
-          ) : (
-            <>
-              <h2>Add prescription</h2>
-              <form onSubmit={handleCreate}>
+        <div className="prescriptions-form-panel">
+          {selectedId ? (
+            <section>
+              <h2>Edit prescription</h2>
+              <form onSubmit={handleSaveEdit}>
                 {error && <p role="alert">{error}</p>}
-                {prescriptionFields("create")}
+                {prescriptionFields("edit")}
                 <div className="form-actions">
                   <button
                     type="submit"
@@ -705,10 +640,27 @@ function Prescriptions() {
                   </button>
                 </div>
               </form>
-            </>
+            </section>
+          ) : (
+            <section>
+              <h2>Add prescription</h2>
+              <form onSubmit={handleCreate}>
+                {error && <p role="alert">{error}</p>}
+                {prescriptionFields("create")}
+                <div className="form-actions">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="button-primary"
+                  >
+                    {submitting ? "Saving…" : "Save prescription"}
+                  </button>
+                </div>
+              </form>
+            </section>
           )}
-        </section>
-      )}
+        </div>
+      </div>
     </main>
   );
 }
