@@ -69,10 +69,8 @@ describe("App", () => {
       new Response(JSON.stringify([dose]), { status: 200 }),
     );
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
     await waitFor(() => {
-      expect(screen.getByText("2 tablet ×")).toBeTruthy();
-      expect(screen.getByText("Metformin 500 mg")).toBeTruthy();
+      expect(screen.getByText("2 tablet × Metformin 500 mg")).toBeTruthy();
     });
   });
 
@@ -99,7 +97,6 @@ describe("App", () => {
       }),
     );
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
     await waitFor(() => {
       const times = screen
         .getAllByRole("heading", { level: 3 })
@@ -123,7 +120,6 @@ describe("App", () => {
       new Response(JSON.stringify([morningDose, eveningDose]), { status: 200 }),
     );
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
     await waitFor(() => {
       expect(screen.getByText("8:00 AM")).toBeTruthy();
       expect(screen.getByText("8:00 PM")).toBeTruthy();
@@ -159,7 +155,6 @@ describe("App", () => {
         new Response(JSON.stringify(createdDose), { status: 201 }),
       );
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
     await waitFor(() => screen.getAllByRole("checkbox"));
 
     const [firstCheckbox] = screen.getAllByRole(
@@ -190,7 +185,6 @@ describe("App", () => {
       new Response(JSON.stringify([dose1, dose2]), { status: 200 }),
     );
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
     await waitFor(() => {
       expect(screen.getAllByRole("checkbox")).toHaveLength(2);
     });
@@ -212,7 +206,6 @@ describe("App", () => {
       new Response(JSON.stringify([dose1, dose2]), { status: 200 }),
     );
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
     await waitFor(() => {
       expect(screen.getByText(/Metformin/)).toBeTruthy();
       expect(screen.getByText(/Lisinopril/)).toBeTruthy();
@@ -235,50 +228,39 @@ describe("App", () => {
       new Response(JSON.stringify([dose1, dose2]), { status: 200 }),
     );
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
     await waitFor(() => {
       expect(screen.getAllByText("8:00 AM")).toHaveLength(1);
     });
   });
 
-  test("shows nothing by default except a reveal button", () => {
-    render(<App today={TODAY} />);
-    expect(screen.getByRole("button", { name: /show doses/i })).toBeTruthy();
-    expect(screen.queryByRole("list")).toBeNull();
-  });
-
-  test("fetches scheduled doses for the current week on reveal", async () => {
+  test("fetches scheduled doses for the current week on mount", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
       new Response(JSON.stringify([MONDAY_DOSE]), { status: 200 }),
     );
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
-    await waitFor(() => screen.getByText("Monday"));
+    await waitFor(() => screen.getByText("1 tablet × Metformin 500mg"));
 
     const [url] = vi.mocked(globalThis.fetch).mock.calls[0] as [string];
     expect(url).toContain("start=2024-03-11");
     expect(url).toContain("end=2024-03-17");
   });
 
-  test("shows all seven day headings after reveal", async () => {
+  test("shows all seven day headings", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
       new Response(JSON.stringify([]), { status: 200 }),
     );
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
-    await waitFor(() => {
-      for (const day of [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday",
-      ]) {
-        expect(screen.getByText(day)).toBeTruthy();
-      }
-    });
+    for (const day of [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ]) {
+      expect(screen.getByText(day)).toBeTruthy();
+    }
   });
 
   test("marks today's heading with aria-current", async () => {
@@ -286,11 +268,8 @@ describe("App", () => {
       new Response(JSON.stringify([]), { status: 200 }),
     );
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
-    await waitFor(() => {
-      const todayHeading = screen.getByText("Wednesday");
-      expect(todayHeading.closest("[aria-current='date']")).toBeTruthy();
-    });
+    const todayHeading = screen.getByText("Wednesday");
+    expect(todayHeading.closest("[aria-current='date']")).toBeTruthy();
   });
 
   test("shows empty state when no scheduled doses exist", async () => {
@@ -298,7 +277,6 @@ describe("App", () => {
       new Response(JSON.stringify([]), { status: 200 }),
     );
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
     await waitFor(() => {
       expect(screen.getByText(/no doses scheduled/i)).toBeTruthy();
     });
@@ -309,7 +287,6 @@ describe("App", () => {
       new Response(JSON.stringify([MONDAY_DOSE, FRIDAY_DOSE]), { status: 200 }),
     );
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
     await waitFor(() => {
       const checkboxes = screen.getAllByRole("checkbox");
       const disabled = checkboxes.filter(
@@ -324,7 +301,6 @@ describe("App", () => {
       new Response(JSON.stringify([MONDAY_DOSE_RESOLVED]), { status: 200 }),
     );
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
     await waitFor(() => {
       expect(screen.getByRole("checkbox", { checked: true })).toBeTruthy();
     });
@@ -348,7 +324,6 @@ describe("App", () => {
         new Response(JSON.stringify(createdDose), { status: 201 }),
       );
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
     await waitFor(() => screen.getByRole("checkbox"));
 
     await userEvent.click(screen.getByRole("checkbox"));
@@ -382,7 +357,6 @@ describe("App", () => {
         new Response(JSON.stringify({ ok: true }), { status: 200 }),
       );
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
     await waitFor(() => screen.getByRole("checkbox", { checked: true }));
 
     await userEvent.click(screen.getByRole("checkbox", { checked: true }));
@@ -408,37 +382,19 @@ describe("App", () => {
       new Response(JSON.stringify([FRIDAY_DOSE]), { status: 200 }),
     );
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
     await waitFor(() => {
       const cb = screen.getByRole("checkbox") as HTMLInputElement;
       expect(cb.disabled).toBe(true);
     });
   });
 
-  test("hides the list and shows reveal button again on clicking Hide", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify([MONDAY_DOSE]), { status: 200 }),
-    );
-    render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
-    await waitFor(() => screen.getByRole("button", { name: /hide/i }));
-    await userEvent.click(screen.getByRole("button", { name: /hide/i }));
-    expect(screen.queryByRole("list")).toBeNull();
-    expect(screen.getByRole("button", { name: /show doses/i })).toBeTruthy();
-  });
-
-  test("shows a Previous week button after reveal", async () => {
+  test("Previous week button is always visible", async () => {
     mockRegistrationDate = REGISTRATION_DATE;
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
       new Response(JSON.stringify([]), { status: 200 }),
     );
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
-    await waitFor(() => {
-      expect(
-        screen.getByRole("button", { name: /previous week/i }),
-      ).toBeTruthy();
-    });
+    expect(screen.getByRole("button", { name: /previous week/i })).toBeTruthy();
   });
 
   test("clicking Previous week fetches doses for the prior week", async () => {
@@ -447,8 +403,9 @@ describe("App", () => {
       .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }));
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
-    await waitFor(() => screen.getByRole("button", { name: /previous week/i }));
+    await waitFor(() =>
+      expect(vi.mocked(globalThis.fetch).mock.calls).toHaveLength(1),
+    );
 
     await userEvent.click(
       screen.getByRole("button", { name: /previous week/i }),
@@ -470,13 +427,10 @@ describe("App", () => {
       new Response(JSON.stringify([]), { status: 200 }),
     );
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
-    await waitFor(() => {
-      const btn = screen.getByRole("button", {
-        name: /previous week/i,
-      }) as HTMLButtonElement;
-      expect(btn.disabled).toBe(true);
-    });
+    const btn = screen.getByRole("button", {
+      name: /previous week/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
   });
 
   test("Next week button is disabled when viewing the current week", async () => {
@@ -485,13 +439,10 @@ describe("App", () => {
       new Response(JSON.stringify([]), { status: 200 }),
     );
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
-    await waitFor(() => {
-      const btn = screen.getByRole("button", {
-        name: /next week/i,
-      }) as HTMLButtonElement;
-      expect(btn.disabled).toBe(true);
-    });
+    const btn = screen.getByRole("button", {
+      name: /next week/i,
+    }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
   });
 
   test("clicking Next week fetches the following week's doses", async () => {
@@ -501,8 +452,9 @@ describe("App", () => {
       .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }));
     render(<App today={TODAY} />);
-    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
-    await waitFor(() => screen.getByRole("button", { name: /previous week/i }));
+    await waitFor(() =>
+      expect(vi.mocked(globalThis.fetch).mock.calls).toHaveLength(1),
+    );
 
     await userEvent.click(
       screen.getByRole("button", { name: /previous week/i }),

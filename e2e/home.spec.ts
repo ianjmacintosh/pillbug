@@ -44,9 +44,8 @@ async function login(page: Page): Promise<void> {
 test.describe("Home screen week navigation", () => {
   test.use({ storageState: ALICE_AUTH_FILE });
 
-  test("Previous week button is enabled after reveal", async ({ page }) => {
+  test("Previous week button is enabled", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: /show doses/i }).click();
     await expect(
       page.getByRole("button", { name: /previous week/i }),
     ).toBeEnabled();
@@ -54,7 +53,6 @@ test.describe("Home screen week navigation", () => {
 
   test("Next week button is disabled on the current week", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: /show doses/i }).click();
     await expect(
       page.getByRole("button", { name: /next week/i }),
     ).toBeDisabled();
@@ -64,7 +62,6 @@ test.describe("Home screen week navigation", () => {
     page,
   }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: /show doses/i }).click();
 
     await page.getByRole("button", { name: /previous week/i }).click();
     await expect(
@@ -96,10 +93,8 @@ test.describe("Home screen doses", () => {
       },
     });
     await page.goto("/");
-    await page.getByRole("button", { name: /show doses/i }).click();
 
-    await expect(page.getByText("2 tablet ×")).toBeVisible();
-    await expect(page.getByText("Metformin 500 mg")).toBeVisible();
+    await expect(page.getByText("2 tablet × Metformin 500 mg")).toBeVisible();
   });
 
   test("two prescriptions at the same time are grouped under one time header", async ({
@@ -127,7 +122,6 @@ test.describe("Home screen doses", () => {
       },
     });
     await page.goto("/");
-    await page.getByRole("button", { name: /show doses/i }).click();
 
     const mondaySection = page.locator("section").filter({
       has: page.getByRole("heading", { level: 2, name: "Monday" }),
@@ -162,7 +156,6 @@ test.describe("Home screen doses", () => {
       },
     });
     await page.goto("/");
-    await page.getByRole("button", { name: /show doses/i }).click();
 
     const mondaySection = page.locator("section").filter({
       has: page.getByRole("heading", { level: 2, name: "Monday" }),
