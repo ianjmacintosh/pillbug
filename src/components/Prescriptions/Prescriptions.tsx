@@ -274,7 +274,7 @@ function Prescriptions() {
       setPrescriptions((prev) =>
         prev.map((p) => (p.id === selectedId ? updated : p)),
       );
-      handleCancel();
+      loadEditFields(updated);
     } else {
       const data = (await res.json()) as { error: string };
       setError(data.error);
@@ -552,36 +552,42 @@ function Prescriptions() {
 
   return (
     <main className={`prescriptions prescriptions--mobile-${mobilePanel}`}>
+      {deletingId && deletingPrescription && (
+        <div
+          className="prescriptions-delete-overlay"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="prescriptions-delete-dialog">
+            <p>
+              This will permanently delete{" "}
+              <strong>{deletingPrescription.drugName}</strong> and all
+              associated Dose history. This action is permanent and cannot be
+              undone.
+            </p>
+            <div className="form-actions">
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="button-danger"
+              >
+                Yes, delete
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeletingId(null)}
+                className="button-secondary"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="prescriptions-layout">
         <div className="prescriptions-list-panel">
           <h1>Prescriptions ({prescriptions.length})</h1>
-
-          {deletingId && deletingPrescription && (
-            <div role="dialog" aria-modal="true">
-              <p>
-                This will permanently delete{" "}
-                <strong>{deletingPrescription.drugName}</strong> and all
-                associated Dose history. This action is permanent and cannot be
-                undone.
-              </p>
-              <div className="form-actions">
-                <button
-                  type="button"
-                  onClick={handleConfirmDelete}
-                  className="button-danger"
-                >
-                  Yes, delete
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDeletingId(null)}
-                  className="button-secondary"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
 
           <ul className="prescription-list">
             {prescriptions.map((p) => (
@@ -599,7 +605,8 @@ function Prescriptions() {
                 <button
                   type="button"
                   onClick={() => setDeletingId(p.id)}
-                  className="button-danger button-sm"
+                  className="prescription-item__delete button-danger button-sm"
+                  aria-label={`Delete ${p.drugName}`}
                 >
                   Delete
                 </button>
@@ -610,13 +617,20 @@ function Prescriptions() {
           <button
             type="button"
             onClick={handleClickAdd}
-            className="button-primary"
+            className="button-secondary button-sm"
           >
-            Add Prescription
+            + Add Prescription
           </button>
         </div>
 
         <div className="prescriptions-form-panel">
+          <button
+            type="button"
+            className="prescriptions-back-btn"
+            onClick={() => setMobilePanel("list")}
+          >
+            ← Back to list
+          </button>
           {selectedId ? (
             <section>
               <h2>Edit prescription</h2>

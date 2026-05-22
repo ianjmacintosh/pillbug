@@ -72,9 +72,7 @@ describe("Prescriptions", () => {
       render(<Prescriptions />);
       await waitFor(() => screen.getByText("Lisinopril"));
 
-      await userEvent.click(
-        screen.getByRole("button", { name: /lisinopril/i }),
-      );
+      await userEvent.click(screen.getByRole("button", { name: "Lisinopril" }));
 
       expect(
         (screen.getByLabelText(/drug name/i) as HTMLInputElement).value,
@@ -240,9 +238,7 @@ describe("Prescriptions", () => {
       render(<Prescriptions />);
       await waitFor(() => screen.getByText("Lisinopril"));
 
-      await userEvent.click(
-        screen.getByRole("button", { name: /lisinopril/i }),
-      );
+      await userEvent.click(screen.getByRole("button", { name: "Lisinopril" }));
 
       const main = document.querySelector("main");
       expect(main?.className).toContain("prescriptions--mobile-form");
@@ -682,7 +678,7 @@ describe("Prescriptions", () => {
       expect(body.schedule.days.monday).toBeUndefined();
     });
 
-    test("submitting edit form calls PATCH and closes the form", async () => {
+    test("submitting edit form calls PATCH and keeps edit form open with updated data", async () => {
       const fetchSpy = vi
         .spyOn(globalThis, "fetch")
         .mockResolvedValueOnce(
@@ -690,7 +686,10 @@ describe("Prescriptions", () => {
         )
         .mockResolvedValueOnce(
           new Response(
-            JSON.stringify({ ...SAMPLE_PRESCRIPTION, dosage: "1000mg" }),
+            JSON.stringify({
+              ...SAMPLE_PRESCRIPTION,
+              drugName: "Metformin XR",
+            }),
             { status: 200 },
           ),
         );
@@ -698,9 +697,9 @@ describe("Prescriptions", () => {
       render(<Prescriptions />);
       await waitFor(() => screen.getByText("Metformin"));
 
-      const dosageInput = screen.getByLabelText(/strength/i);
-      await userEvent.clear(dosageInput);
-      await userEvent.type(dosageInput, "1000mg");
+      const drugNameInput = screen.getByLabelText(/drug name/i);
+      await userEvent.clear(drugNameInput);
+      await userEvent.type(drugNameInput, "Metformin XR");
       await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
       expect(fetchSpy).toHaveBeenCalledWith(
@@ -710,7 +709,10 @@ describe("Prescriptions", () => {
       await waitFor(() =>
         expect(
           (screen.getByLabelText(/drug name/i) as HTMLInputElement).value,
-        ).toBe(""),
+        ).toBe("Metformin XR"),
+      );
+      expect(screen.getByRole("heading", { level: 2 }).textContent).toMatch(
+        /edit prescription/i,
       );
     });
 
@@ -1258,6 +1260,43 @@ describe("Prescriptions", () => {
         (fetchSpy.mock.calls[1][1] as RequestInit).body as string,
       );
       expect(body.dosage).toBe("1 cup");
+    });
+  });
+
+  describe("mobile navigation", () => {
+    test("form panel contains a back-to-list button", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
+      );
+      render(<Prescriptions />);
+      await waitFor(() => screen.getByText("Metformin"));
+      expect(
+        screen.getByRole("button", { name: /back to list/i }),
+      ).toBeTruthy();
+    });
+
+    test("clicking the back-to-list button sets mobile panel to list", async () => {
+      const rx2 = {
+        ...SAMPLE_PRESCRIPTION,
+        id: "rx-2",
+        drugName: "Lisinopril",
+      };
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([SAMPLE_PRESCRIPTION, rx2]), {
+          status: 200,
+        }),
+      );
+      render(<Prescriptions />);
+      await waitFor(() => screen.getByText("Lisinopril"));
+
+      await userEvent.click(screen.getByRole("button", { name: "Lisinopril" }));
+      const main = document.querySelector("main");
+      expect(main?.className).toContain("prescriptions--mobile-form");
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /back to list/i }),
+      );
+      expect(main?.className).toContain("prescriptions--mobile-list");
     });
   });
 
