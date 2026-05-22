@@ -75,6 +75,38 @@ describe("App", () => {
     });
   });
 
+  test("time groups within a day are sorted chronologically", async () => {
+    const morningDose = {
+      ...MONDAY_DOSE,
+      prescriptionId: "rx-1",
+      scheduledAt: "2024-03-11T09:00:00Z",
+    };
+    const nightDose = {
+      ...MONDAY_DOSE,
+      prescriptionId: "rx-2",
+      scheduledAt: "2024-03-11T21:00:00Z",
+    };
+    const eveningDose = {
+      ...MONDAY_DOSE,
+      prescriptionId: "rx-3",
+      scheduledAt: "2024-03-11T20:00:00Z",
+    };
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      // Intentionally out of order: 9am, 9pm, 8pm
+      new Response(JSON.stringify([morningDose, nightDose, eveningDose]), {
+        status: 200,
+      }),
+    );
+    render(<App today={TODAY} />);
+    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
+    await waitFor(() => {
+      const times = screen
+        .getAllByRole("heading", { level: 3 })
+        .map((h) => h.textContent);
+      expect(times).toEqual(["9:00 AM", "8:00 PM", "9:00 PM"]);
+    });
+  });
+
   test("two doses at different times each get their own time header", async () => {
     const morningDose = {
       ...MONDAY_DOSE,

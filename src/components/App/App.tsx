@@ -153,7 +153,9 @@ function App({
             const dayDoses = dosesByDate.get(date) ?? [];
 
             const timeGroups = new Map<string, ScheduledDose[]>();
-            for (const dose of dayDoses) {
+            for (const dose of [...dayDoses].sort((a, b) =>
+              a.scheduledAt.localeCompare(b.scheduledAt),
+            )) {
               const time = formatTime(dose.scheduledAt);
               if (!timeGroups.has(time)) timeGroups.set(time, []);
               timeGroups.get(time)!.push(dose);
