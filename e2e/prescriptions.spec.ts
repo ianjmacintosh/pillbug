@@ -68,10 +68,11 @@ test.describe("Prescription list — on mount", () => {
   test("prescriptions load automatically without any button click", async ({
     page,
   }) => {
+    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
-    await login(page);
+    await page.goto("/prescriptions");
 
     await expect(page.getByRole("button", { name: "Metformin" })).toBeVisible();
   });
@@ -79,10 +80,11 @@ test.describe("Prescription list — on mount", () => {
   test("first prescription is auto-selected and its edit form is shown", async ({
     page,
   }) => {
+    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
-    await login(page);
+    await page.goto("/prescriptions");
 
     await expect(page.getByRole("heading", { level: 2 })).toHaveText(
       /edit prescription/i,
@@ -91,13 +93,14 @@ test.describe("Prescription list — on mount", () => {
   });
 
   test("heading shows prescription count", async ({ page }) => {
+    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
     await page.request.post("/api/v1/prescriptions", {
       data: { ...BASE_PRESCRIPTION, drugName: "Lisinopril" },
     });
-    await login(page);
+    await page.goto("/prescriptions");
 
     await expect(page.getByRole("heading", { level: 1 })).toContainText("(2)");
   });
@@ -105,13 +108,14 @@ test.describe("Prescription list — on mount", () => {
   test("clicking a prescription in the list loads its edit form", async ({
     page,
   }) => {
+    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
     await page.request.post("/api/v1/prescriptions", {
       data: { ...BASE_PRESCRIPTION, drugName: "Lisinopril" },
     });
-    await login(page);
+    await page.goto("/prescriptions");
 
     await page.getByRole("button", { name: "Lisinopril" }).click();
 
@@ -166,10 +170,11 @@ test.describe("Prescription create", () => {
   test("clicking '+ Add Prescription' switches to the add form with empty fields", async ({
     page,
   }) => {
+    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
-    await login(page);
+    await page.goto("/prescriptions");
 
     await expect(page.getByRole("heading", { level: 2 })).toHaveText(
       /edit prescription/i,
@@ -282,10 +287,11 @@ test.describe("Prescription edit", () => {
   test("edit form pre-populates fields from the selected prescription", async ({
     page,
   }) => {
+    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
-    await login(page);
+    await page.goto("/prescriptions");
 
     await expect(page.getByLabel(/drug name/i)).toHaveValue("Metformin");
     await expect(page.getByLabel("Strength")).toHaveValue("500");
@@ -298,10 +304,11 @@ test.describe("Prescription edit", () => {
   test("saving an edit keeps the edit form open with updated values", async ({
     page,
   }) => {
+    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
-    await login(page);
+    await page.goto("/prescriptions");
 
     await page.getByLabel(/drug name/i).fill("Metformin XR");
     await page.getByRole("button", { name: /save prescription/i }).click();
@@ -316,10 +323,11 @@ test.describe("Prescription edit", () => {
   });
 
   test("cancel returns to the add form with empty fields", async ({ page }) => {
+    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
-    await login(page);
+    await page.goto("/prescriptions");
 
     await page.getByRole("button", { name: /cancel/i }).click();
 
@@ -331,6 +339,7 @@ test.describe("Prescription edit", () => {
   });
 
   test("edit form pre-populates scheduled days and times", async ({ page }) => {
+    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: {
         ...BASE_PRESCRIPTION,
@@ -340,7 +349,7 @@ test.describe("Prescription edit", () => {
         },
       },
     });
-    await login(page);
+    await page.goto("/prescriptions");
 
     await expect(page.getByRole("checkbox", { name: "Monday" })).toBeChecked();
     await expect(page.getByRole("checkbox", { name: "Friday" })).toBeChecked();
@@ -359,10 +368,11 @@ test.describe("Prescription delete", () => {
   test("delete button has an accessible label that includes the drug name", async ({
     page,
   }) => {
+    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
-    await login(page);
+    await page.goto("/prescriptions");
 
     await expect(
       page.getByRole("button", { name: /delete metformin/i }),
@@ -372,10 +382,11 @@ test.describe("Prescription delete", () => {
   test("clicking Delete shows a modal overlay with permanence and dose history warnings", async ({
     page,
   }) => {
+    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
-    await login(page);
+    await page.goto("/prescriptions");
 
     await page.getByRole("button", { name: /delete metformin/i }).click();
 
@@ -388,10 +399,11 @@ test.describe("Prescription delete", () => {
   test("confirming delete removes the prescription from the list", async ({
     page,
   }) => {
+    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
-    await login(page);
+    await page.goto("/prescriptions");
 
     await page.getByRole("button", { name: /delete metformin/i }).click();
     await page.getByRole("button", { name: /yes, delete/i }).click();
@@ -405,10 +417,11 @@ test.describe("Prescription delete", () => {
   test("cancelling delete closes the dialog and keeps the prescription", async ({
     page,
   }) => {
+    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
-    await login(page);
+    await page.goto("/prescriptions");
 
     await page.getByRole("button", { name: /delete metformin/i }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
@@ -429,10 +442,11 @@ test.describe("Mobile navigation", () => {
   test("clicking a prescription switches to the form panel", async ({
     page,
   }) => {
+    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
-    await login(page);
+    await page.goto("/prescriptions");
 
     const listPanel = page.locator(".prescriptions-list-panel");
     const formPanel = page.locator(".prescriptions-form-panel");
@@ -447,10 +461,11 @@ test.describe("Mobile navigation", () => {
   });
 
   test("back button returns to the list panel", async ({ page }) => {
+    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
-    await login(page);
+    await page.goto("/prescriptions");
 
     await page.getByRole("button", { name: "Metformin" }).click();
     await expect(page.locator(".prescriptions-form-panel")).toBeVisible();
