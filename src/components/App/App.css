@@ -23,7 +23,7 @@
   margin: 0.5rem 0 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1.25rem;
 }
 
 .home ul li label {
@@ -36,7 +36,13 @@
   flex-shrink: 0;
 }
 
-.home ul li label .dose-time {
+.home .dose-time {
   font-variant-numeric: tabular-nums;
-  min-width: 3.5rem;
+  margin: 0 0 0.25rem;
+}
+
+.home ul ul {
+  padding-inline-start: 1.5rem;
+  margin-block-start: 0;
+  gap: 0.5rem;
 }

@@ -12,7 +12,7 @@ import { Resend } from "resend";
 import { makeD1AuthRepo } from "./d1-auth-repo";
 import { makeD1PrescriptionRepo } from "./d1-prescriptions-repo";
 import { checkHealth } from "./health";
-import { makeResendEmailSender } from "./resend-email-sender";
+import { makeEmailSender } from "./email-sender";
 import { verifyTurnstileToken } from "./turnstile";
 import {
   createPrescription,
@@ -134,13 +134,11 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
         { status: 403, headers: { "Content-Type": "application/json" } },
       );
     }
-    const emailSender =
-      env.EMAIL_MOCK === "true"
-        ? {
-            sendVerificationEmail: async () => {},
-            sendLoginEmail: async () => {},
-          }
-        : makeResendEmailSender(env.RESEND_API_KEY, url.origin);
+    const emailSender = makeEmailSender(
+      env.EMAIL_MOCK,
+      env.RESEND_API_KEY,
+      url.origin,
+    );
     const { token } = await registerPatient(
       email.trim(),
       repo,
@@ -167,13 +165,11 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
         { status: 403, headers: { "Content-Type": "application/json" } },
       );
     }
-    const emailSender =
-      env.EMAIL_MOCK === "true"
-        ? {
-            sendVerificationEmail: async () => {},
-            sendLoginEmail: async () => {},
-          }
-        : makeResendEmailSender(env.RESEND_API_KEY, url.origin);
+    const emailSender = makeEmailSender(
+      env.EMAIL_MOCK,
+      env.RESEND_API_KEY,
+      url.origin,
+    );
     const { token } = await sendLoginLink(
       email.trim(),
       repo,

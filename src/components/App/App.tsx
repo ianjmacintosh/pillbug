@@ -1,5 +1,5 @@
 import { getRouteApi } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { weekBoundaries } from "../../../shared/week-boundaries";
 import "./App.css";
 
@@ -7,6 +7,8 @@ interface ScheduledDose {
   prescriptionId: string;
   drugName: string;
   dosage: string;
+  doseCount: number;
+  doseForm: string;
   scheduledAt: string;
   actionable: boolean;
   resolvedDose: { id: string; status: "taken" } | null;
@@ -64,7 +66,6 @@ function App({
 }) {
   const { registrationDate } = Route.useLoaderData();
   const { monday: currentWeekMonday } = weekBoundaries(today);
-  const [revealed, setRevealed] = useState(false);
   const [doses, setDoses] = useState<ScheduledDose[]>([]);
   const [displayedMonday, setDisplayedMonday] = useState(currentWeekMonday);
 
@@ -79,42 +80,21 @@ function App({
   const atFloor = floor !== null && displayedMonday <= floor;
   const atCeiling = displayedMonday >= currentWeekMonday;
 
-  async function fetchDoses(weekMonday: string) {
-    const weekSunday = addDays(weekMonday, 6);
-    const res = await fetch(
-      `/api/v1/scheduled-doses?start=${weekMonday}&end=${weekSunday}`,
-    );
-    if (res.ok) {
-      setDoses((await res.json()) as ScheduledDose[]);
-    }
+  useEffect(() => {
+    const weekSunday = addDays(displayedMonday, 6);
+    fetch(`/api/v1/scheduled-doses?start=${displayedMonday}&end=${weekSunday}`)
+      .then(async (res) => {
+        if (res.ok) setDoses((await res.json()) as ScheduledDose[]);
+      })
+      .catch(() => {});
+  }, [displayedMonday]);
+
+  function handlePreviousWeek() {
+    setDisplayedMonday(addDays(displayedMonday, -7));
   }
 
-  async function handleReveal() {
-    const res = await fetch(
-      `/api/v1/scheduled-doses?start=${displayedMonday}&end=${sunday}`,
-    );
-    if (res.ok) {
-      setDoses((await res.json()) as ScheduledDose[]);
-      setRevealed(true);
-    }
-  }
-
-  async function handlePreviousWeek() {
-    const prevMonday = addDays(displayedMonday, -7);
-    setDisplayedMonday(prevMonday);
-    await fetchDoses(prevMonday);
-  }
-
-  async function handleNextWeek() {
-    const nextMonday = addDays(displayedMonday, 7);
-    setDisplayedMonday(nextMonday);
-    await fetchDoses(nextMonday);
-  }
-
-  function handleHide() {
-    setDoses([]);
-    setRevealed(false);
-    setDisplayedMonday(currentWeekMonday);
+  function handleNextWeek() {
+    setDisplayedMonday(addDays(displayedMonday, 7));
   }
 
   const dosesByDate = new Map<string, ScheduledDose[]>();
@@ -133,130 +113,132 @@ function App({
         {formatShortDate(displayedMonday)}–{formatShortDate(sunday)}
       </h2>
 
-      {!revealed ? (
+      {!hasAnyDoses && <p>No doses scheduled for this week.</p>}
+
+      {weekDates.map((date, i) => {
+        const dayName = WEEK_DAY_NAMES[i];
+        const isToday = date === today;
+        const dayDoses = dosesByDate.get(date) ?? [];
+
+        const timeGroups = new Map<string, ScheduledDose[]>();
+        for (const dose of [...dayDoses].sort((a, b) =>
+          a.scheduledAt.localeCompare(b.scheduledAt),
+        )) {
+          const time = formatTime(dose.scheduledAt);
+          if (!timeGroups.has(time)) timeGroups.set(time, []);
+          timeGroups.get(time)!.push(dose);
+        }
+
+        return (
+          <section key={date} aria-current={isToday ? "date" : undefined}>
+            <h2>{dayName}</h2>
+            <time dateTime={date}>{formatDate(date)}</time>
+            {dayDoses.length > 0 && (
+              <ul>
+                {Array.from(timeGroups.entries()).map(
+                  ([time, dosesForTime]) => (
+                    <li key={time}>
+                      <h3 className="dose-time">{time}</h3>
+                      <ul>
+                        {dosesForTime.map((dose) => {
+                          const checked = dose.resolvedDose !== null;
+
+                          async function handleToggle() {
+                            if (dose.resolvedDose) {
+                              const res = await fetch(
+                                `/api/v1/doses/${dose.resolvedDose.id}`,
+                                { method: "DELETE" },
+                              );
+                              if (res.ok) {
+                                setDoses((prev) =>
+                                  prev.map((d) =>
+                                    d.prescriptionId === dose.prescriptionId &&
+                                    d.scheduledAt === dose.scheduledAt
+                                      ? { ...d, resolvedDose: null }
+                                      : d,
+                                  ),
+                                );
+                              }
+                            } else {
+                              const res = await fetch("/api/v1/doses", {
+                                method: "POST",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                  prescriptionId: dose.prescriptionId,
+                                  scheduledAt: dose.scheduledAt,
+                                  status: "taken",
+                                }),
+                              });
+                              if (res.ok) {
+                                const created = (await res.json()) as {
+                                  id: string;
+                                };
+                                setDoses((prev) =>
+                                  prev.map((d) =>
+                                    d.prescriptionId === dose.prescriptionId &&
+                                    d.scheduledAt === dose.scheduledAt
+                                      ? {
+                                          ...d,
+                                          resolvedDose: {
+                                            id: created.id,
+                                            status: "taken" as const,
+                                          },
+                                        }
+                                      : d,
+                                  ),
+                                );
+                              }
+                            }
+                          }
+
+                          return (
+                            <li key={dose.prescriptionId}>
+                              <label>
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  disabled={!dose.actionable}
+                                  onChange={handleToggle}
+                                />
+                                <span>
+                                  {dose.doseCount} {dose.doseForm} ×{" "}
+                                  {dose.drugName} {dose.dosage}
+                                </span>
+                              </label>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </li>
+                  ),
+                )}
+              </ul>
+            )}
+          </section>
+        );
+      })}
+
+      <div className="week-nav">
         <button
           type="button"
-          onClick={handleReveal}
+          onClick={handlePreviousWeek}
+          disabled={atFloor}
           className="button-secondary"
         >
-          Show doses
+          Previous week
         </button>
-      ) : (
-        <>
-          {!hasAnyDoses && <p>No doses scheduled for this week.</p>}
 
-          {weekDates.map((date, i) => {
-            const dayName = WEEK_DAY_NAMES[i];
-            const isToday = date === today;
-            const dayDoses = dosesByDate.get(date) ?? [];
-
-            return (
-              <section key={date} aria-current={isToday ? "date" : undefined}>
-                <h2>{dayName}</h2>
-                <time dateTime={date}>{formatDate(date)}</time>
-                {dayDoses.length > 0 && (
-                  <ul>
-                    {dayDoses.map((dose) => {
-                      const time = formatTime(dose.scheduledAt);
-                      const checked = dose.resolvedDose !== null;
-
-                      async function handleToggle() {
-                        if (dose.resolvedDose) {
-                          const res = await fetch(
-                            `/api/v1/doses/${dose.resolvedDose.id}`,
-                            { method: "DELETE" },
-                          );
-                          if (res.ok) {
-                            setDoses((prev) =>
-                              prev.map((d) =>
-                                d.scheduledAt === dose.scheduledAt
-                                  ? { ...d, resolvedDose: null }
-                                  : d,
-                              ),
-                            );
-                          }
-                        } else {
-                          const res = await fetch("/api/v1/doses", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              prescriptionId: dose.prescriptionId,
-                              scheduledAt: dose.scheduledAt,
-                              status: "taken",
-                            }),
-                          });
-                          if (res.ok) {
-                            const created = (await res.json()) as {
-                              id: string;
-                            };
-                            setDoses((prev) =>
-                              prev.map((d) =>
-                                d.scheduledAt === dose.scheduledAt
-                                  ? {
-                                      ...d,
-                                      resolvedDose: {
-                                        id: created.id,
-                                        status: "taken" as const,
-                                      },
-                                    }
-                                  : d,
-                              ),
-                            );
-                          }
-                        }
-                      }
-
-                      return (
-                        <li key={dose.scheduledAt}>
-                          <label>
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              disabled={!dose.actionable}
-                              onChange={handleToggle}
-                            />
-                            <span className="dose-time">{time}</span>
-                            <span className="dose-dosage">{dose.dosage}</span>
-                            <span className="dose-drug">{dose.drugName}</span>
-                          </label>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </section>
-            );
-          })}
-
-          <div className="week-nav">
-            <button
-              type="button"
-              onClick={handlePreviousWeek}
-              disabled={atFloor}
-              className="button-secondary"
-            >
-              Previous week
-            </button>
-
-            <button
-              type="button"
-              onClick={handleNextWeek}
-              disabled={atCeiling}
-              className="button-secondary"
-            >
-              Next week
-            </button>
-
-            <button
-              type="button"
-              onClick={handleHide}
-              className="button-secondary"
-            >
-              Hide
-            </button>
-          </div>
-        </>
-      )}
+        <button
+          type="button"
+          onClick={handleNextWeek}
+          disabled={atCeiling}
+          className="button-secondary"
+        >
+          Next week
+        </button>
+      </div>
     </main>
   );
 }
