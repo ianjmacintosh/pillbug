@@ -236,8 +236,10 @@ function App({
                                       disabled={!dose.actionable}
                                       onChange={handleToggle}
                                     />
-                                    <span>
-                                      {dose.doseCount} {dose.doseForm} ×{" "}
+                                    <span className="dose-prefix">
+                                      {dose.doseCount} {dose.doseForm} ×
+                                    </span>
+                                    <span className="dose-name">
                                       {dose.drugName} {dose.dosage}
                                     </span>
                                   </label>

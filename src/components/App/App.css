@@ -23,7 +23,7 @@
   margin: 0.5rem 0 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1.25rem;
 }
 
 .home ul li label {
@@ -44,4 +44,10 @@
 .home ul ul {
   padding-inline-start: 1.5rem;
   margin-block-start: 0;
+  gap: 0.5rem;
+}
+
+.home .dose-prefix {
+  min-width: 7rem;
+  flex-shrink: 0;
 }

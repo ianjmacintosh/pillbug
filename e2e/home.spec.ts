@@ -98,7 +98,8 @@ test.describe("Home screen doses", () => {
     await page.goto("/");
     await page.getByRole("button", { name: /show doses/i }).click();
 
-    await expect(page.getByText("2 tablet × Metformin 500 mg")).toBeVisible();
+    await expect(page.getByText("2 tablet ×")).toBeVisible();
+    await expect(page.getByText("Metformin 500 mg")).toBeVisible();
   });
 
   test("two prescriptions at the same time are grouped under one time header", async ({

@@ -71,7 +71,8 @@ describe("App", () => {
     render(<App today={TODAY} />);
     await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
     await waitFor(() => {
-      expect(screen.getByText("2 tablet × Metformin 500 mg")).toBeTruthy();
+      expect(screen.getByText("2 tablet ×")).toBeTruthy();
+      expect(screen.getByText("Metformin 500 mg")).toBeTruthy();
     });
   });
 
