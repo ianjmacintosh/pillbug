@@ -39,134 +39,202 @@ async function login(page: Page): Promise<void> {
   await setKnownPin(token);
   await page.goto(`/enter-code?token=${token}&pin=${TEST_PIN}`);
   await expect(page).toHaveURL("/");
-  await page.goto("/prescriptions");
 }
 
 const BASE_PRESCRIPTION = {
   drugName: "Metformin",
-  dosage: "500mg",
+  dosage: "500 mg",
   schedule: { days: { monday: ["08:00"] }, timezoneMode: "local" },
   startDate: "2024-01-01",
+  doseCount: 1,
+  doseForm: "tablet",
 };
 
 test.beforeEach(async () => {
   await clearPrescriptions();
 });
 
-test.describe("Prescription list", () => {
-  test("list is hidden by default and shows empty state when patient has no prescriptions", async ({
-    page,
-  }) => {
+test.describe("Prescription list — on mount", () => {
+  test("empty state: add form is shown and list is empty", async ({ page }) => {
     await login(page);
-
-    await expect(
-      page.getByRole("button", { name: /show all prescriptions/i }),
-    ).toBeVisible();
-    await expect(page.getByRole("table")).not.toBeAttached();
-
-    await page.getByRole("button", { name: /show all prescriptions/i }).click();
-    await expect(page.getByText(/no active prescriptions/i)).toBeVisible();
-  });
-
-  test("Hide button collapses the list", async ({ page }) => {
-    await login(page);
-
-    await page.request.post("/api/v1/prescriptions", {
-      data: BASE_PRESCRIPTION,
-    });
-
-    await page.getByRole("button", { name: /show all prescriptions/i }).click();
-    await expect(page.getByRole("cell", { name: "Metformin" })).toBeVisible();
-
-    await page.getByRole("button", { name: /hide/i }).click();
-    await expect(page.getByRole("table")).not.toBeAttached();
-    await expect(
-      page.getByRole("button", { name: /show all prescriptions/i }),
-    ).toBeVisible();
-  });
-
-  test("list resets to hidden after navigating away and back", async ({
-    page,
-  }) => {
-    await login(page);
-
-    await page.request.post("/api/v1/prescriptions", {
-      data: BASE_PRESCRIPTION,
-    });
-
-    await page.getByRole("button", { name: /show all prescriptions/i }).click();
-    await expect(page.getByRole("cell", { name: "Metformin" })).toBeVisible();
-
-    await page.goto("/settings");
     await page.goto("/prescriptions");
 
-    await expect(page.getByRole("table")).not.toBeAttached();
+    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
+      /add prescription/i,
+    );
+    await expect(page.getByRole("list")).toBeEmpty();
+  });
+
+  test("prescriptions load automatically without any button click", async ({
+    page,
+  }) => {
+    await login(page);
+    await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    await page.goto("/prescriptions");
+
     await expect(
-      page.getByRole("button", { name: /show all prescriptions/i }),
+      page.getByRole("button", { name: "Metformin", exact: true }),
     ).toBeVisible();
+  });
+
+  test("first prescription is auto-selected and its edit form is shown", async ({
+    page,
+  }) => {
+    await login(page);
+    await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    await page.goto("/prescriptions");
+
+    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
+      /edit prescription/i,
+    );
+    await expect(page.getByLabel(/drug name/i)).toHaveValue("Metformin");
+  });
+
+  test("heading shows prescription count", async ({ page }) => {
+    await login(page);
+    await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    await page.request.post("/api/v1/prescriptions", {
+      data: { ...BASE_PRESCRIPTION, drugName: "Lisinopril" },
+    });
+    await page.goto("/prescriptions");
+
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("(2)");
+  });
+
+  test("clicking a prescription in the list loads its edit form", async ({
+    page,
+  }) => {
+    await login(page);
+    await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    await page.request.post("/api/v1/prescriptions", {
+      data: { ...BASE_PRESCRIPTION, drugName: "Lisinopril" },
+    });
+    await page.goto("/prescriptions");
+
+    await page.getByRole("button", { name: "Lisinopril", exact: true }).click();
+
+    await expect(page.getByLabel(/drug name/i)).toHaveValue("Lisinopril");
+    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
+      /edit prescription/i,
+    );
   });
 });
 
 test.describe("Prescription create", () => {
-  test("add prescription form creates prescription and it appears in list", async ({
-    page,
-  }) => {
-    await login(page);
-
-    await page.getByRole("button", { name: /add prescription/i }).click();
-    await page.getByLabel(/drug name/i).fill("Metformin");
-    await page.getByLabel("Strength").fill("500");
+  async function fillAndSave(page: Page) {
+    await page.getByLabel(/drug name/i).fill("Aspirin");
+    await page.getByLabel("Strength").fill("100");
     await page.getByRole("combobox", { name: /unit/i }).selectOption("mg");
-    await page.getByLabel(/start date/i).fill("2024-01-01");
+    await page.getByLabel(/start date/i).fill("2024-06-01");
     await page.getByRole("checkbox", { name: "Monday" }).locator("..").click();
     await page.getByLabel(/time 1/i).fill("08:00");
     await page.getByRole("button", { name: /save prescription/i }).click();
+  }
 
-    await page.getByRole("button", { name: /show all prescriptions/i }).click();
-    await expect(page.getByRole("cell", { name: "Metformin" })).toBeVisible();
-    await expect(page.getByRole("cell", { name: "500 mg" })).toBeVisible();
-  });
-
-  test("time input is shown by default without clicking add", async ({
+  test("add prescription form creates prescription and it appears in the list", async ({
     page,
   }) => {
     await login(page);
+    await page.goto("/prescriptions");
+    await fillAndSave(page);
 
-    await page.getByRole("button", { name: /add prescription/i }).click();
-
-    await expect(page.getByLabel(/time 1/i)).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Aspirin", exact: true }),
+    ).toBeVisible();
   });
 
-  test("Remove button is disabled when only one dose time is shown", async ({
+  test("after create, edit form is shown with the new prescription", async ({
     page,
   }) => {
     await login(page);
+    await page.goto("/prescriptions");
+    await fillAndSave(page);
 
-    await page.getByRole("button", { name: /add prescription/i }).click();
-
-    await expect(page.getByRole("button", { name: /remove/i })).toBeDisabled();
+    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
+      /edit prescription/i,
+    );
+    await expect(page.getByLabel(/drug name/i)).toHaveValue("Aspirin");
   });
 
-  test("Remove button is enabled after a second dose time is added", async ({
+  test("count in heading increments after create", async ({ page }) => {
+    await login(page);
+    await page.goto("/prescriptions");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("(0)");
+
+    await fillAndSave(page);
+
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("(1)");
+  });
+
+  test("clicking '+ Add Prescription' switches to the add form with empty fields", async ({
     page,
   }) => {
     await login(page);
+    await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    await page.goto("/prescriptions");
 
+    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
+      /edit prescription/i,
+    );
     await page.getByRole("button", { name: /add prescription/i }).click();
-    await page.getByRole("button", { name: /add new dose time/i }).click();
 
-    const removeButtons = page.getByRole("button", { name: /remove/i });
-    await expect(removeButtons.nth(0)).toBeEnabled();
-    await expect(removeButtons.nth(1)).toBeEnabled();
+    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
+      /add prescription/i,
+    );
+    await expect(page.getByLabel(/drug name/i)).toHaveValue("");
+  });
+
+  test("Days fieldset gets aria-invalid when submitted without a day selected", async ({
+    page,
+  }) => {
+    await login(page);
+    await page.goto("/prescriptions");
+    await page.getByLabel(/drug name/i).fill("Aspirin");
+    await page.getByLabel("Strength").fill("100");
+    await page.getByLabel(/start date/i).fill("2024-06-01");
+    await page.getByLabel(/time 1/i).fill("08:00");
+
+    await page.getByRole("button", { name: /save prescription/i }).click();
+
+    await expect(page.getByRole("group", { name: /days/i })).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
+  });
+
+  test("Dose times fieldset gets aria-invalid when submitted with a blank time", async ({
+    page,
+  }) => {
+    await login(page);
+    await page.goto("/prescriptions");
+    await page.getByLabel(/drug name/i).fill("Aspirin");
+    await page.getByLabel("Strength").fill("100");
+    await page.getByLabel(/start date/i).fill("2024-06-01");
+    await page.getByRole("checkbox", { name: "Monday" }).locator("..").click();
+    await page.getByLabel(/time 1/i).clear();
+
+    await page.getByRole("button", { name: /save prescription/i }).click();
+
+    await expect(
+      page.getByRole("group", { name: /dose times/i }),
+    ).toHaveAttribute("aria-invalid", "true");
   });
 
   test("Select all checks every day; Unselect all clears them", async ({
     page,
   }) => {
     await login(page);
-
-    await page.getByRole("button", { name: /add prescription/i }).click();
-
+    await page.goto("/prescriptions");
     await page.getByRole("button", { name: /select all/i }).click();
     for (const day of [
       "Sunday",
@@ -196,8 +264,7 @@ test.describe("Prescription create", () => {
 
   test("clicking a day pill checks and unchecks it", async ({ page }) => {
     await login(page);
-
-    await page.getByRole("button", { name: /add prescription/i }).click();
+    await page.goto("/prescriptions");
     const monday = page.getByRole("checkbox", { name: "Monday" });
     const mondayPill = monday.locator("..");
 
@@ -208,74 +275,102 @@ test.describe("Prescription create", () => {
     await expect(monday).not.toBeChecked();
   });
 
-  test("Days fieldset gets aria-invalid when submitted without a day selected", async ({
+  test("Remove button is disabled when only one dose time is shown", async ({
     page,
   }) => {
     await login(page);
-
-    await page.getByRole("button", { name: /add prescription/i }).click();
-    await page.getByLabel(/drug name/i).fill("Aspirin");
-    await page.getByLabel("Strength").fill("100");
-    await page.getByRole("combobox", { name: /unit/i }).selectOption("mg");
-    await page.getByLabel(/start date/i).fill("2024-06-01");
-    await page.getByLabel(/time 1/i).fill("08:00");
-
-    await page.getByRole("button", { name: /save prescription/i }).click();
-
-    await expect(page.getByRole("group", { name: /days/i })).toHaveAttribute(
-      "aria-invalid",
-      "true",
-    );
+    await page.goto("/prescriptions");
+    await expect(page.getByRole("button", { name: /remove/i })).toBeDisabled();
   });
 
-  test("Dose times fieldset gets aria-invalid when submitted with a blank time", async ({
+  test("Remove button is enabled after a second dose time is added", async ({
     page,
   }) => {
     await login(page);
-
-    await page.getByRole("button", { name: /add prescription/i }).click();
-    await page.getByLabel(/drug name/i).fill("Aspirin");
-    await page.getByLabel("Strength").fill("100");
-    await page.getByRole("combobox", { name: /unit/i }).selectOption("mg");
-    await page.getByLabel(/start date/i).fill("2024-06-01");
-    await page.getByRole("checkbox", { name: "Monday" }).locator("..").click();
-    await page.getByLabel(/time 1/i).clear();
-
-    await page.getByRole("button", { name: /save prescription/i }).click();
-
-    await expect(
-      page.getByRole("group", { name: /dose times/i }),
-    ).toHaveAttribute("aria-invalid", "true");
-  });
-
-  test("creates prescription with multiple dose times on multiple days", async ({
-    page,
-  }) => {
-    await login(page);
-
-    await page.getByRole("button", { name: /add prescription/i }).click();
-    await page.getByLabel(/drug name/i).fill("Lisinopril");
-    await page.getByLabel("Strength").fill("10");
-    await page.getByRole("combobox", { name: /unit/i }).selectOption("mg");
-    await page.getByLabel(/start date/i).fill("2024-03-01");
-    await page.getByRole("checkbox", { name: "Monday" }).locator("..").click();
-    await page
-      .getByRole("checkbox", { name: "Thursday" })
-      .locator("..")
-      .click();
-    await page.getByLabel(/time 1/i).fill("08:00");
+    await page.goto("/prescriptions");
     await page.getByRole("button", { name: /add new dose time/i }).click();
-    await page.getByLabel(/time 2/i).fill("20:00");
+
+    const removeButtons = page.getByRole("button", { name: /remove/i });
+    await expect(removeButtons.nth(0)).toBeEnabled();
+    await expect(removeButtons.nth(1)).toBeEnabled();
+  });
+});
+
+test.describe("Prescription edit", () => {
+  test("edit form pre-populates fields from the selected prescription", async ({
+    page,
+  }) => {
+    await login(page);
+    await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    await page.goto("/prescriptions");
+
+    await expect(page.getByLabel(/drug name/i)).toHaveValue("Metformin");
+    await expect(page.getByLabel("Strength")).toHaveValue("500");
+    await expect(page.getByRole("combobox", { name: /unit/i })).toHaveValue(
+      "mg",
+    );
+    await expect(page.getByLabel(/start date/i)).toHaveValue("2024-01-01");
+  });
+
+  test("saving an edit keeps the edit form open with updated values", async ({
+    page,
+  }) => {
+    await login(page);
+    await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    await page.goto("/prescriptions");
+    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
+      /edit prescription/i,
+    );
+
+    await page.getByLabel(/drug name/i).fill("Metformin XR");
     await page.getByRole("button", { name: /save prescription/i }).click();
 
-    // verify the prescription was saved by opening edit and checking schedule
-    await page.getByRole("button", { name: /show all prescriptions/i }).click();
-    await expect(page.getByRole("cell", { name: "Lisinopril" })).toBeVisible();
-    await page.getByRole("button", { name: /edit/i }).click();
-    await expect(page.getByRole("checkbox", { name: "Monday" })).toBeChecked();
+    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
+      /edit prescription/i,
+    );
+    await expect(page.getByLabel(/drug name/i)).toHaveValue("Metformin XR");
     await expect(
-      page.getByRole("checkbox", { name: "Thursday" }),
-    ).toBeChecked();
+      page.getByRole("button", { name: "Metformin XR", exact: true }),
+    ).toBeVisible();
+  });
+
+  test("cancel returns to the add form with empty fields", async ({ page }) => {
+    await login(page);
+    await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    await page.goto("/prescriptions");
+
+    await page.getByRole("button", { name: /cancel/i }).click();
+
+    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
+      /add prescription/i,
+    );
+    await expect(page.getByLabel(/drug name/i)).toHaveValue("");
+    await expect(
+      page.getByRole("button", { name: "Metformin", exact: true }),
+    ).toBeVisible();
+  });
+
+  test("edit form pre-populates scheduled days and times", async ({ page }) => {
+    await login(page);
+    await page.request.post("/api/v1/prescriptions", {
+      data: {
+        ...BASE_PRESCRIPTION,
+        schedule: {
+          days: { monday: ["08:00"], friday: ["08:00", "20:00"] },
+          timezoneMode: "local",
+        },
+      },
+    });
+    await page.goto("/prescriptions");
+
+    await expect(page.getByRole("checkbox", { name: "Monday" })).toBeChecked();
+    await expect(page.getByRole("checkbox", { name: "Friday" })).toBeChecked();
     await expect(
       page.getByRole("checkbox", { name: "Tuesday" }),
     ).not.toBeChecked();
@@ -287,88 +382,117 @@ test.describe("Prescription create", () => {
   });
 });
 
-test.describe("Prescription edit", () => {
-  test("edit form pre-populates fields and updates prescription on save", async ({
+test.describe("Prescription delete", () => {
+  test("delete button has an accessible label that includes the drug name", async ({
     page,
   }) => {
     await login(page);
-
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
+    await page.goto("/prescriptions");
 
-    await page.getByRole("button", { name: /show all prescriptions/i }).click();
-    await expect(page.getByRole("cell", { name: "Metformin" })).toBeVisible();
-
-    await page.getByRole("button", { name: /edit/i }).click();
-    await expect(page.getByLabel(/drug name/i)).toHaveValue("Metformin");
-    await expect(page.getByLabel("Strength")).toHaveValue("500mg");
-    await expect(page.getByLabel(/start date/i)).toHaveValue("2024-01-01");
-
-    await page.getByLabel("Strength").clear();
-    await page.getByLabel("Strength").fill("1000mg");
-    await page.getByRole("button", { name: /save prescription/i }).click();
-
-    await expect(page.getByRole("cell", { name: "1000mg" })).toBeVisible();
-    await expect(page.getByLabel(/drug name/i)).not.toBeAttached();
+    await expect(
+      page.getByRole("button", { name: /delete metformin/i }),
+    ).toBeAttached();
   });
 
-  test("cancel closes edit form without modifying the prescription", async ({
+  test("clicking Delete shows a modal overlay with permanence and dose history warnings", async ({
     page,
   }) => {
     await login(page);
-
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
+    await page.goto("/prescriptions");
 
-    await page.getByRole("button", { name: /show all prescriptions/i }).click();
-    await page.getByRole("button", { name: /edit/i }).click();
-    await page.getByRole("button", { name: /cancel/i }).click();
+    await page.getByRole("button", { name: /delete metformin/i }).click();
 
-    await expect(page.getByLabel(/drug name/i)).not.toBeAttached();
-    await expect(page.getByRole("cell", { name: "Metformin" })).toBeVisible();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText(/permanent/i)).toBeVisible();
+    await expect(dialog.getByText(/dose history/i)).toBeVisible();
+  });
+
+  test("confirming delete removes the prescription from the list", async ({
+    page,
+  }) => {
+    await login(page);
+    await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    await page.goto("/prescriptions");
+
+    await page.getByRole("button", { name: /delete metformin/i }).click();
+    await page.getByRole("button", { name: /yes, delete/i }).click();
+
+    await expect(
+      page.getByRole("button", { name: "Metformin", exact: true }),
+    ).not.toBeAttached();
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("(0)");
+  });
+
+  test("cancelling delete closes the dialog and keeps the prescription", async ({
+    page,
+  }) => {
+    await login(page);
+    await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    await page.goto("/prescriptions");
+
+    await page.getByRole("button", { name: /delete metformin/i }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: /cancel/i })
+      .click();
+
+    await expect(page.getByRole("dialog")).not.toBeAttached();
+    await expect(
+      page.getByRole("button", { name: "Metformin", exact: true }),
+    ).toBeVisible();
   });
 });
 
-test.describe("Prescription delete", () => {
-  test("confirmation dialog warns about permanence and dose history; confirm removes prescription", async ({
+test.describe("Mobile navigation", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test("clicking a prescription switches to the form panel", async ({
     page,
   }) => {
     await login(page);
-
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
+    await page.goto("/prescriptions");
 
-    await page.getByRole("button", { name: /show all prescriptions/i }).click();
-    await expect(page.getByRole("cell", { name: "Metformin" })).toBeVisible();
+    const listPanel = page.locator(".prescriptions-list-panel");
+    const formPanel = page.locator(".prescriptions-form-panel");
 
-    await page.getByRole("button", { name: /delete/i }).click();
-    await expect(page.getByText(/permanent/i)).toBeVisible();
-    await expect(page.getByText(/dose history/i)).toBeVisible();
+    await expect(listPanel).toBeVisible();
+    await expect(formPanel).not.toBeVisible();
 
-    await page.getByRole("button", { name: /yes, delete/i }).click();
-    await expect(
-      page.getByRole("cell", { name: "Metformin" }),
-    ).not.toBeAttached();
+    await page.getByRole("button", { name: "Metformin", exact: true }).click();
+
+    await expect(formPanel).toBeVisible();
+    await expect(listPanel).not.toBeVisible();
   });
 
-  test("cancel closes delete confirmation without removing prescription", async ({
-    page,
-  }) => {
+  test("back button returns to the list panel", async ({ page }) => {
     await login(page);
-
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
+    await page.goto("/prescriptions");
 
-    await page.getByRole("button", { name: /show all prescriptions/i }).click();
-    await page.getByRole("button", { name: /delete/i }).click();
-    await expect(page.getByText(/permanent/i)).toBeVisible();
+    await page.getByRole("button", { name: "Metformin", exact: true }).click();
+    await expect(page.locator(".prescriptions-form-panel")).toBeVisible();
 
-    await page.getByRole("button", { name: /cancel/i }).click();
-    await expect(page.getByText(/permanent/i)).not.toBeVisible();
-    await expect(page.getByRole("cell", { name: "Metformin" })).toBeVisible();
+    await page.getByRole("button", { name: /back to list/i }).click();
+
+    await expect(page.locator(".prescriptions-list-panel")).toBeVisible();
+    await expect(page.locator(".prescriptions-form-panel")).not.toBeVisible();
   });
 });

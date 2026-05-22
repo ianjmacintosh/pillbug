@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import Prescriptions from "./Prescriptions";
@@ -21,6 +21,240 @@ describe("Prescriptions", () => {
   test("renders a heading", () => {
     render(<Prescriptions />);
     expect(screen.getByRole("heading", { level: 1 })).toBeTruthy();
+  });
+
+  describe("on mount", () => {
+    test("prescriptions load automatically without any button click", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
+      );
+      render(<Prescriptions />);
+      await waitFor(() => screen.getByText("Metformin"));
+    });
+
+    test("first prescription is auto-selected and its edit form is shown", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
+      );
+      render(<Prescriptions />);
+      await waitFor(() => screen.getByText("Metformin"));
+      expect(screen.getByRole("heading", { level: 2 }).textContent).toMatch(
+        /edit prescription/i,
+      );
+      expect(
+        (screen.getByLabelText(/drug name/i) as HTMLInputElement).value,
+      ).toBe("Metformin");
+    });
+
+    test("empty state: add form is shown when no prescriptions exist", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([]), { status: 200 }),
+      );
+      render(<Prescriptions />);
+      await waitFor(() =>
+        expect(screen.getByRole("heading", { level: 2 }).textContent).toMatch(
+          /add prescription/i,
+        ),
+      );
+    });
+
+    test("clicking a prescription in the list loads its edit form", async () => {
+      const rx2 = {
+        ...SAMPLE_PRESCRIPTION,
+        id: "rx-2",
+        drugName: "Lisinopril",
+      };
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([SAMPLE_PRESCRIPTION, rx2]), {
+          status: 200,
+        }),
+      );
+      render(<Prescriptions />);
+      await waitFor(() => screen.getByText("Lisinopril"));
+
+      await userEvent.click(screen.getByRole("button", { name: "Lisinopril" }));
+
+      expect(
+        (screen.getByLabelText(/drug name/i) as HTMLInputElement).value,
+      ).toBe("Lisinopril");
+    });
+
+    test("clicking Add Prescription shows add form and clears selection", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
+      );
+      render(<Prescriptions />);
+      await waitFor(() => screen.getByText("Metformin"));
+      // first item is selected, edit form shown
+      expect(screen.getByRole("heading", { level: 2 }).textContent).toMatch(
+        /edit prescription/i,
+      );
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /add prescription/i }),
+      );
+
+      expect(screen.getByRole("heading", { level: 2 }).textContent).toMatch(
+        /add prescription/i,
+      );
+      expect(
+        (screen.getByLabelText(/drug name/i) as HTMLInputElement).value,
+      ).toBe("");
+    });
+
+    test("new prescription appears at the bottom of the list after add", async () => {
+      const newRx = {
+        ...SAMPLE_PRESCRIPTION,
+        id: "rx-2",
+        drugName: "Lisinopril",
+      };
+      vi.spyOn(globalThis, "fetch")
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(newRx), { status: 201 }),
+        );
+      render(<Prescriptions />);
+      await waitFor(() => screen.getByText("Metformin"));
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /add prescription/i }),
+      );
+      await userEvent.type(screen.getByLabelText(/drug name/i), "Lisinopril");
+      await userEvent.type(screen.getByLabelText(/strength/i), "10");
+      await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      await waitFor(() => screen.getByText("Lisinopril"));
+      const items = screen
+        .getByRole("list")
+        .querySelectorAll(".prescription-item__name");
+      expect(items[0].textContent).toBe("Metformin");
+      expect(items[1].textContent).toBe("Lisinopril");
+    });
+
+    test("count in heading updates after add", async () => {
+      const newRx = {
+        ...SAMPLE_PRESCRIPTION,
+        id: "rx-2",
+        drugName: "Lisinopril",
+      };
+      vi.spyOn(globalThis, "fetch")
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(newRx), { status: 201 }),
+        );
+      render(<Prescriptions />);
+      await waitFor(() => screen.getByText("Metformin"));
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /add prescription/i }),
+      );
+      await userEvent.type(screen.getByLabelText(/drug name/i), "Lisinopril");
+      await userEvent.type(screen.getByLabelText(/strength/i), "10");
+      await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      await waitFor(() =>
+        expect(screen.getByRole("heading", { level: 1 }).textContent).toContain(
+          "(2)",
+        ),
+      );
+    });
+
+    test("count in heading updates after delete", async () => {
+      vi.spyOn(globalThis, "fetch")
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ ok: true }), { status: 200 }),
+        );
+      render(<Prescriptions />);
+      await waitFor(() => screen.getByText("Metformin"));
+
+      await userEvent.click(screen.getByRole("button", { name: /delete/i }));
+      await userEvent.click(
+        within(screen.getByRole("dialog")).getByRole("button", {
+          name: /yes, delete/i,
+        }),
+      );
+
+      await waitFor(() =>
+        expect(screen.getByRole("heading", { level: 1 }).textContent).toContain(
+          "(0)",
+        ),
+      );
+    });
+
+    test("after add, new prescription is auto-selected and edit form shown", async () => {
+      const newRx = {
+        ...SAMPLE_PRESCRIPTION,
+        id: "rx-2",
+        drugName: "Lisinopril",
+      };
+      vi.spyOn(globalThis, "fetch")
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(newRx), { status: 201 }),
+        );
+      render(<Prescriptions />);
+      await waitFor(() => screen.getByText("Metformin"));
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /add prescription/i }),
+      );
+      await userEvent.type(screen.getByLabelText(/drug name/i), "Lisinopril");
+      await userEvent.type(screen.getByLabelText(/strength/i), "10");
+      await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      await waitFor(() =>
+        expect(
+          (screen.getByLabelText(/drug name/i) as HTMLInputElement).value,
+        ).toBe("Lisinopril"),
+      );
+      expect(screen.getByRole("heading", { level: 2 }).textContent).toMatch(
+        /edit prescription/i,
+      );
+    });
+
+    test("clicking a prescription sets mobile active panel to form", async () => {
+      const rx2 = {
+        ...SAMPLE_PRESCRIPTION,
+        id: "rx-2",
+        drugName: "Lisinopril",
+      };
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([SAMPLE_PRESCRIPTION, rx2]), {
+          status: 200,
+        }),
+      );
+      render(<Prescriptions />);
+      await waitFor(() => screen.getByText("Lisinopril"));
+
+      await userEvent.click(screen.getByRole("button", { name: "Lisinopril" }));
+
+      const main = document.querySelector("main");
+      expect(main?.className).toContain("prescriptions--mobile-form");
+    });
+
+    test("heading shows prescription count", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
+      );
+      render(<Prescriptions />);
+      await waitFor(() =>
+        expect(screen.getByRole("heading", { level: 1 }).textContent).toContain(
+          "(1)",
+        ),
+      );
+    });
   });
 
   describe("validation", () => {
@@ -48,7 +282,7 @@ describe("Prescriptions", () => {
       await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
       expect(screen.getByRole("alert")).toBeTruthy();
-      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(fetchSpy).toHaveBeenCalledTimes(1); // only the mount GET, no POST
     });
 
     test("create form: submitting with a blank dose time entry shows an error and does not call fetch", async () => {
@@ -61,7 +295,7 @@ describe("Prescriptions", () => {
       await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
       expect(screen.getByRole("alert")).toBeTruthy();
-      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(fetchSpy).toHaveBeenCalledTimes(1); // only the mount GET, no POST
     });
 
     test("create form: submitting with a second blank dose time entry shows an error and does not call fetch", async () => {
@@ -77,7 +311,7 @@ describe("Prescriptions", () => {
       await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
       expect(screen.getByRole("alert")).toBeTruthy();
-      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(fetchSpy).toHaveBeenCalledTimes(1); // only the mount GET, no POST
     });
 
     test("edit form: submitting with no days selected shows an error and does not call PATCH", async () => {
@@ -91,9 +325,8 @@ describe("Prescriptions", () => {
         }),
       );
       render(<Prescriptions />);
-      await userEvent.click(screen.getByRole("button", { name: /show all/i }));
       await waitFor(() => screen.getByText("Metformin"));
-      await userEvent.click(screen.getByRole("button", { name: /edit/i }));
+      // first prescription is auto-selected; edit form is already shown
 
       // no days selected, add a valid time
       await userEvent.click(
@@ -120,9 +353,8 @@ describe("Prescriptions", () => {
         }),
       );
       render(<Prescriptions />);
-      await userEvent.click(screen.getByRole("button", { name: /show all/i }));
       await waitFor(() => screen.getByText("Metformin"));
-      await userEvent.click(screen.getByRole("button", { name: /edit/i }));
+      // first prescription is auto-selected; edit form is already shown
 
       // select a day but add no times
       await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
@@ -316,7 +548,10 @@ describe("Prescriptions", () => {
       const fetchSpy = vi
         .spyOn(globalThis, "fetch")
         .mockResolvedValueOnce(
-          new Response(JSON.stringify(SAMPLE_PRESCRIPTION), { status: 201 }),
+          new Response(JSON.stringify([]), { status: 200 }), // mount GET
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(SAMPLE_PRESCRIPTION), { status: 201 }), // POST
         );
       await openCreateForm();
       await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
@@ -335,25 +570,26 @@ describe("Prescriptions", () => {
       await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
       const body = JSON.parse(
-        (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
+        (fetchSpy.mock.calls[1][1] as RequestInit).body as string, // calls[1] = POST
       );
       expect(body.schedule.days.monday).toEqual(["08:00"]);
     });
   });
 
   describe("edit", () => {
-    async function revealAndClickEdit(prescription = SAMPLE_PRESCRIPTION) {
+    async function mountWithPrescriptionSelected(
+      prescription = SAMPLE_PRESCRIPTION,
+    ) {
       vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
         new Response(JSON.stringify([prescription]), { status: 200 }),
       );
       render(<Prescriptions />);
-      await userEvent.click(screen.getByRole("button", { name: /show all/i }));
       await waitFor(() => screen.getByText(prescription.drugName));
-      await userEvent.click(screen.getByRole("button", { name: /edit/i }));
+      // first prescription is auto-selected; edit form is already populated
     }
 
-    test("edit button opens form pre-populated with prescription data", async () => {
-      await revealAndClickEdit();
+    test("edit form opens pre-populated with first prescription's data on load", async () => {
+      await mountWithPrescriptionSelected();
       expect(
         (screen.getByLabelText(/drug name/i) as HTMLInputElement).value,
       ).toBe("Metformin");
@@ -373,7 +609,7 @@ describe("Prescriptions", () => {
           timezoneMode: "local" as const,
         },
       };
-      await revealAndClickEdit(withSchedule);
+      await mountWithPrescriptionSelected(withSchedule);
 
       expect(
         (screen.getByRole("checkbox", { name: "Monday" }) as HTMLInputElement)
@@ -421,9 +657,7 @@ describe("Prescriptions", () => {
         );
 
       render(<Prescriptions />);
-      await userEvent.click(screen.getByRole("button", { name: /show all/i }));
       await waitFor(() => screen.getByText("Metformin"));
-      await userEvent.click(screen.getByRole("button", { name: /edit/i }));
 
       await userEvent.click(
         screen.getByRole("checkbox", { name: "Wednesday" }),
@@ -444,7 +678,7 @@ describe("Prescriptions", () => {
       expect(body.schedule.days.monday).toBeUndefined();
     });
 
-    test("submitting edit form calls PATCH and closes the form", async () => {
+    test("submitting edit form calls PATCH and keeps edit form open with updated data", async () => {
       const fetchSpy = vi
         .spyOn(globalThis, "fetch")
         .mockResolvedValueOnce(
@@ -452,19 +686,20 @@ describe("Prescriptions", () => {
         )
         .mockResolvedValueOnce(
           new Response(
-            JSON.stringify({ ...SAMPLE_PRESCRIPTION, dosage: "1000mg" }),
+            JSON.stringify({
+              ...SAMPLE_PRESCRIPTION,
+              drugName: "Metformin XR",
+            }),
             { status: 200 },
           ),
         );
 
       render(<Prescriptions />);
-      await userEvent.click(screen.getByRole("button", { name: /show all/i }));
       await waitFor(() => screen.getByText("Metformin"));
-      await userEvent.click(screen.getByRole("button", { name: /edit/i }));
 
-      const dosageInput = screen.getByLabelText(/strength/i);
-      await userEvent.clear(dosageInput);
-      await userEvent.type(dosageInput, "1000mg");
+      const drugNameInput = screen.getByLabelText(/drug name/i);
+      await userEvent.clear(drugNameInput);
+      await userEvent.type(drugNameInput, "Metformin XR");
       await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
       expect(fetchSpy).toHaveBeenCalledWith(
@@ -472,7 +707,12 @@ describe("Prescriptions", () => {
         expect.objectContaining({ method: "PATCH" }),
       );
       await waitFor(() =>
-        expect(screen.queryByLabelText(/drug name/i)).toBeNull(),
+        expect(
+          (screen.getByLabelText(/drug name/i) as HTMLInputElement).value,
+        ).toBe("Metformin XR"),
+      );
+      expect(screen.getByRole("heading", { level: 2 }).textContent).toMatch(
+        /edit prescription/i,
       );
     });
 
@@ -486,9 +726,7 @@ describe("Prescriptions", () => {
         new Response(JSON.stringify([prescription]), { status: 200 }),
       );
       render(<Prescriptions />);
-      await userEvent.click(screen.getByRole("button", { name: /show all/i }));
       await waitFor(() => screen.getByText("Metformin"));
-      await userEvent.click(screen.getByRole("button", { name: /edit/i }));
 
       expect((screen.getByLabelText(/count/i) as HTMLInputElement).value).toBe(
         "2",
@@ -531,9 +769,7 @@ describe("Prescriptions", () => {
         );
 
       render(<Prescriptions />);
-      await userEvent.click(screen.getByRole("button", { name: /show all/i }));
       await waitFor(() => screen.getByText("Metformin"));
-      await userEvent.click(screen.getByRole("button", { name: /edit/i }));
 
       const countInput = screen.getByLabelText(/count/i);
       await userEvent.clear(countInput);
@@ -551,10 +787,12 @@ describe("Prescriptions", () => {
       expect(body.doseForm).toBe("capsule");
     });
 
-    test("cancel closes the edit form without changes", async () => {
-      await revealAndClickEdit();
+    test("cancel returns to add form with empty fields", async () => {
+      await mountWithPrescriptionSelected();
       await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(screen.queryByLabelText(/drug name/i)).toBeNull();
+      expect(
+        (screen.getByLabelText(/drug name/i) as HTMLInputElement).value,
+      ).toBe("");
       expect(screen.getByText("Metformin")).toBeTruthy();
     });
   });
@@ -753,7 +991,10 @@ describe("Prescriptions", () => {
       const fetchSpy = vi
         .spyOn(globalThis, "fetch")
         .mockResolvedValueOnce(
-          new Response(JSON.stringify(SAMPLE_PRESCRIPTION), { status: 201 }),
+          new Response(JSON.stringify([]), { status: 200 }), // mount GET
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(SAMPLE_PRESCRIPTION), { status: 201 }), // POST
         );
       await openCreateForm();
       await userEvent.selectOptions(
@@ -818,7 +1059,10 @@ describe("Prescriptions", () => {
       const fetchSpy = vi
         .spyOn(globalThis, "fetch")
         .mockResolvedValueOnce(
-          new Response(JSON.stringify(SAMPLE_PRESCRIPTION), { status: 201 }),
+          new Response(JSON.stringify([]), { status: 200 }), // mount GET
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(SAMPLE_PRESCRIPTION), { status: 201 }), // POST
         );
       await openCreateForm();
       await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
@@ -832,7 +1076,7 @@ describe("Prescriptions", () => {
       await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
       const body = JSON.parse(
-        (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
+        (fetchSpy.mock.calls[1][1] as RequestInit).body as string, // calls[1] = POST
       );
       expect(body.doseCount).toBe(1);
       expect(body.doseForm).toBe("tablet");
@@ -842,7 +1086,10 @@ describe("Prescriptions", () => {
       const fetchSpy = vi
         .spyOn(globalThis, "fetch")
         .mockResolvedValueOnce(
-          new Response(JSON.stringify(SAMPLE_PRESCRIPTION), { status: 201 }),
+          new Response(JSON.stringify([]), { status: 200 }), // mount GET
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(SAMPLE_PRESCRIPTION), { status: 201 }), // POST
         );
       await openCreateForm();
       await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
@@ -859,7 +1106,7 @@ describe("Prescriptions", () => {
       await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
       const body = JSON.parse(
-        (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
+        (fetchSpy.mock.calls[1][1] as RequestInit).body as string, // calls[1] = POST
       );
       expect(body.doseCount).toBe(0.5);
     });
@@ -903,7 +1150,10 @@ describe("Prescriptions", () => {
       const fetchSpy = vi
         .spyOn(globalThis, "fetch")
         .mockResolvedValueOnce(
-          new Response(JSON.stringify(SAMPLE_PRESCRIPTION), { status: 201 }),
+          new Response(JSON.stringify([]), { status: 200 }), // mount GET
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(SAMPLE_PRESCRIPTION), { status: 201 }), // POST
         );
       await openCreateForm();
       await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
@@ -919,7 +1169,7 @@ describe("Prescriptions", () => {
       await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
       const body = JSON.parse(
-        (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
+        (fetchSpy.mock.calls[1][1] as RequestInit).body as string, // calls[1] = POST
       );
       expect(body.dosage).toBe("100");
     });
@@ -928,7 +1178,10 @@ describe("Prescriptions", () => {
       const fetchSpy = vi
         .spyOn(globalThis, "fetch")
         .mockResolvedValueOnce(
-          new Response(JSON.stringify(SAMPLE_PRESCRIPTION), { status: 201 }),
+          new Response(JSON.stringify([]), { status: 200 }), // mount GET
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(SAMPLE_PRESCRIPTION), { status: 201 }), // POST
         );
       await openCreateForm();
       await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
@@ -945,7 +1198,7 @@ describe("Prescriptions", () => {
       await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
       const body = JSON.parse(
-        (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
+        (fetchSpy.mock.calls[1][1] as RequestInit).body as string, // calls[1] = POST
       );
       expect(body.dosage).toBe("500 mg");
     });
@@ -956,9 +1209,7 @@ describe("Prescriptions", () => {
         new Response(JSON.stringify([prescription]), { status: 200 }),
       );
       render(<Prescriptions />);
-      await userEvent.click(screen.getByRole("button", { name: /show all/i }));
       await waitFor(() => screen.getByText("Metformin"));
-      await userEvent.click(screen.getByRole("button", { name: /edit/i }));
 
       expect(
         (screen.getByLabelText(/strength/i) as HTMLInputElement).value,
@@ -975,9 +1226,7 @@ describe("Prescriptions", () => {
         new Response(JSON.stringify([prescription]), { status: 200 }),
       );
       render(<Prescriptions />);
-      await userEvent.click(screen.getByRole("button", { name: /show all/i }));
       await waitFor(() => screen.getByText("Metformin"));
-      await userEvent.click(screen.getByRole("button", { name: /edit/i }));
 
       expect(
         (screen.getByLabelText(/strength/i) as HTMLInputElement).value,
@@ -1003,9 +1252,7 @@ describe("Prescriptions", () => {
           new Response(JSON.stringify(prescription), { status: 200 }),
         );
       render(<Prescriptions />);
-      await userEvent.click(screen.getByRole("button", { name: /show all/i }));
       await waitFor(() => screen.getByText("Metformin"));
-      await userEvent.click(screen.getByRole("button", { name: /edit/i }));
 
       await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
@@ -1016,19 +1263,55 @@ describe("Prescriptions", () => {
     });
   });
 
-  describe("delete", () => {
-    async function revealAndClickDelete() {
+  describe("mobile navigation", () => {
+    test("form panel contains a back-to-list button", async () => {
       vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
         new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
       );
       render(<Prescriptions />);
-      await userEvent.click(screen.getByRole("button", { name: /show all/i }));
+      await waitFor(() => screen.getByText("Metformin"));
+      expect(
+        screen.getByRole("button", { name: /back to list/i }),
+      ).toBeTruthy();
+    });
+
+    test("clicking the back-to-list button sets mobile panel to list", async () => {
+      const rx2 = {
+        ...SAMPLE_PRESCRIPTION,
+        id: "rx-2",
+        drugName: "Lisinopril",
+      };
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([SAMPLE_PRESCRIPTION, rx2]), {
+          status: 200,
+        }),
+      );
+      render(<Prescriptions />);
+      await waitFor(() => screen.getByText("Lisinopril"));
+
+      await userEvent.click(screen.getByRole("button", { name: "Lisinopril" }));
+      const main = document.querySelector("main");
+      expect(main?.className).toContain("prescriptions--mobile-form");
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /back to list/i }),
+      );
+      expect(main?.className).toContain("prescriptions--mobile-list");
+    });
+  });
+
+  describe("delete", () => {
+    async function mountAndClickDelete() {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
+      );
+      render(<Prescriptions />);
       await waitFor(() => screen.getByText("Metformin"));
       await userEvent.click(screen.getByRole("button", { name: /delete/i }));
     }
 
     test("delete button shows confirmation with permanence warning", async () => {
-      await revealAndClickDelete();
+      await mountAndClickDelete();
       expect(screen.getByText(/permanent/i)).toBeTruthy();
       expect(screen.getByText(/dose history/i)).toBeTruthy();
     });
@@ -1044,7 +1327,6 @@ describe("Prescriptions", () => {
         );
 
       render(<Prescriptions />);
-      await userEvent.click(screen.getByRole("button", { name: /show all/i }));
       await waitFor(() => screen.getByText("Metformin"));
       await userEvent.click(screen.getByRole("button", { name: /delete/i }));
       await userEvent.click(
@@ -1059,8 +1341,11 @@ describe("Prescriptions", () => {
     });
 
     test("cancelling delete closes confirmation without deletion", async () => {
-      await revealAndClickDelete();
-      await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
+      await mountAndClickDelete();
+      const dialog = screen.getByRole("dialog");
+      await userEvent.click(
+        within(dialog).getByRole("button", { name: /cancel/i }),
+      );
       expect(screen.queryByText(/permanent/i)).toBeNull();
       expect(screen.getByText("Metformin")).toBeTruthy();
     });
