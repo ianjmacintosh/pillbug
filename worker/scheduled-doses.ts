@@ -5,6 +5,8 @@ export interface ScheduledDose {
   prescriptionId: string;
   drugName: string;
   dosage: string;
+  doseCount: number;
+  doseForm: string;
   scheduledAt: string;
   actionable: boolean;
   resolvedDose: { id: string; status: DoseStatus } | null;
@@ -53,6 +55,8 @@ export function scheduledDoses(
           prescriptionId: rx.id,
           drugName: rx.drugName,
           dosage: rx.dosage,
+          doseCount: rx.doseCount,
+          doseForm: rx.doseForm,
           scheduledAt,
           actionable,
           resolvedDose: match ? { id: match.id, status: match.status } : null,

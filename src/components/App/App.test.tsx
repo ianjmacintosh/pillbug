@@ -25,6 +25,8 @@ const MONDAY_DOSE = {
   prescriptionId: "rx-1",
   drugName: "Metformin",
   dosage: "500mg",
+  doseCount: 1,
+  doseForm: "tablet",
   scheduledAt: "2024-03-11T08:00:00Z",
   actionable: true,
   resolvedDose: null,
@@ -39,6 +41,8 @@ const FRIDAY_DOSE = {
   prescriptionId: "rx-1",
   drugName: "Metformin",
   dosage: "500mg",
+  doseCount: 1,
+  doseForm: "tablet",
   scheduledAt: "2024-03-15T08:00:00Z",
   actionable: false,
   resolvedDose: null,
@@ -50,6 +54,160 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe("App", () => {
+  test("renders dose label as 'N doseForm × drugName dosage'", async () => {
+    const dose = {
+      prescriptionId: "rx-1",
+      drugName: "Metformin",
+      dosage: "500 mg",
+      doseCount: 2,
+      doseForm: "tablet",
+      scheduledAt: "2024-03-11T08:00:00Z",
+      actionable: true,
+      resolvedDose: null,
+    };
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify([dose]), { status: 200 }),
+    );
+    render(<App today={TODAY} />);
+    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
+    await waitFor(() => {
+      expect(screen.getByText("2 tablet × Metformin 500 mg")).toBeTruthy();
+    });
+  });
+
+  test("two doses at different times each get their own time header", async () => {
+    const morningDose = {
+      ...MONDAY_DOSE,
+      prescriptionId: "rx-1",
+      scheduledAt: "2024-03-11T08:00:00Z",
+    };
+    const eveningDose = {
+      ...MONDAY_DOSE,
+      prescriptionId: "rx-2",
+      scheduledAt: "2024-03-11T20:00:00Z",
+    };
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify([morningDose, eveningDose]), { status: 200 }),
+    );
+    render(<App today={TODAY} />);
+    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
+    await waitFor(() => {
+      expect(screen.getByText("8:00 AM")).toBeTruthy();
+      expect(screen.getByText("8:00 PM")).toBeTruthy();
+    });
+  });
+
+  test("checking one dose in a shared time slot does not check the other", async () => {
+    const dose1 = {
+      ...MONDAY_DOSE,
+      prescriptionId: "rx-1",
+      drugName: "Metformin",
+    };
+    const dose2 = {
+      ...MONDAY_DOSE,
+      prescriptionId: "rx-2",
+      drugName: "Lisinopril",
+      doseForm: "capsule",
+    };
+    const createdDose = {
+      id: "dose-new",
+      patientId: "patient-1",
+      prescriptionId: "rx-1",
+      scheduledAt: "2024-03-11T08:00:00Z",
+      status: "taken",
+      loggedAt: "2024-03-11T09:00:00.000Z",
+      createdAt: "2024-03-11T09:00:00.000Z",
+    };
+    vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify([dose1, dose2]), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(createdDose), { status: 201 }),
+      );
+    render(<App today={TODAY} />);
+    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
+    await waitFor(() => screen.getAllByRole("checkbox"));
+
+    const [firstCheckbox] = screen.getAllByRole(
+      "checkbox",
+    ) as HTMLInputElement[];
+    await userEvent.click(firstCheckbox);
+
+    await waitFor(() => {
+      const [cb1, cb2] = screen.getAllByRole("checkbox") as HTMLInputElement[];
+      expect(cb1.checked).toBe(true);
+      expect(cb2.checked).toBe(false);
+    });
+  });
+
+  test("two doses at the same time each get their own checkbox", async () => {
+    const dose1 = {
+      ...MONDAY_DOSE,
+      prescriptionId: "rx-1",
+      drugName: "Metformin",
+    };
+    const dose2 = {
+      ...MONDAY_DOSE,
+      prescriptionId: "rx-2",
+      drugName: "Lisinopril",
+      doseForm: "capsule",
+    };
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify([dose1, dose2]), { status: 200 }),
+    );
+    render(<App today={TODAY} />);
+    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
+    await waitFor(() => {
+      expect(screen.getAllByRole("checkbox")).toHaveLength(2);
+    });
+  });
+
+  test("both drug labels appear under a shared time header", async () => {
+    const dose1 = {
+      ...MONDAY_DOSE,
+      prescriptionId: "rx-1",
+      drugName: "Metformin",
+    };
+    const dose2 = {
+      ...MONDAY_DOSE,
+      prescriptionId: "rx-2",
+      drugName: "Lisinopril",
+      doseForm: "capsule",
+    };
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify([dose1, dose2]), { status: 200 }),
+    );
+    render(<App today={TODAY} />);
+    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/Metformin/)).toBeTruthy();
+      expect(screen.getByText(/Lisinopril/)).toBeTruthy();
+    });
+  });
+
+  test("when two doses share the same scheduled time, the time appears once", async () => {
+    const dose1 = {
+      ...MONDAY_DOSE,
+      prescriptionId: "rx-1",
+      drugName: "Metformin",
+    };
+    const dose2 = {
+      ...MONDAY_DOSE,
+      prescriptionId: "rx-2",
+      drugName: "Lisinopril",
+      doseForm: "capsule",
+    };
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify([dose1, dose2]), { status: 200 }),
+    );
+    render(<App today={TODAY} />);
+    await userEvent.click(screen.getByRole("button", { name: /show doses/i }));
+    await waitFor(() => {
+      expect(screen.getAllByText("8:00 AM")).toHaveLength(1);
+    });
+  });
+
   test("shows nothing by default except a reveal button", () => {
     render(<App today={TODAY} />);
     expect(screen.getByRole("button", { name: /show doses/i })).toBeTruthy();

@@ -7,6 +7,8 @@ interface ScheduledDose {
   prescriptionId: string;
   drugName: string;
   dosage: string;
+  doseCount: number;
+  doseForm: string;
   scheduledAt: string;
   actionable: boolean;
   resolvedDose: { id: string; status: "taken" } | null;
@@ -150,78 +152,100 @@ function App({
             const isToday = date === today;
             const dayDoses = dosesByDate.get(date) ?? [];
 
+            const timeGroups = new Map<string, ScheduledDose[]>();
+            for (const dose of dayDoses) {
+              const time = formatTime(dose.scheduledAt);
+              if (!timeGroups.has(time)) timeGroups.set(time, []);
+              timeGroups.get(time)!.push(dose);
+            }
+
             return (
               <section key={date} aria-current={isToday ? "date" : undefined}>
                 <h2>{dayName}</h2>
                 <time dateTime={date}>{formatDate(date)}</time>
                 {dayDoses.length > 0 && (
                   <ul>
-                    {dayDoses.map((dose) => {
-                      const time = formatTime(dose.scheduledAt);
-                      const checked = dose.resolvedDose !== null;
+                    {Array.from(timeGroups.entries()).map(
+                      ([time, dosesForTime]) => (
+                        <li key={time}>
+                          <span className="dose-time">{time}</span>
+                          <ul>
+                            {dosesForTime.map((dose) => {
+                              const checked = dose.resolvedDose !== null;
 
-                      async function handleToggle() {
-                        if (dose.resolvedDose) {
-                          const res = await fetch(
-                            `/api/v1/doses/${dose.resolvedDose.id}`,
-                            { method: "DELETE" },
-                          );
-                          if (res.ok) {
-                            setDoses((prev) =>
-                              prev.map((d) =>
-                                d.scheduledAt === dose.scheduledAt
-                                  ? { ...d, resolvedDose: null }
-                                  : d,
-                              ),
-                            );
-                          }
-                        } else {
-                          const res = await fetch("/api/v1/doses", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              prescriptionId: dose.prescriptionId,
-                              scheduledAt: dose.scheduledAt,
-                              status: "taken",
-                            }),
-                          });
-                          if (res.ok) {
-                            const created = (await res.json()) as {
-                              id: string;
-                            };
-                            setDoses((prev) =>
-                              prev.map((d) =>
-                                d.scheduledAt === dose.scheduledAt
-                                  ? {
-                                      ...d,
-                                      resolvedDose: {
-                                        id: created.id,
-                                        status: "taken" as const,
-                                      },
-                                    }
-                                  : d,
-                              ),
-                            );
-                          }
-                        }
-                      }
+                              async function handleToggle() {
+                                if (dose.resolvedDose) {
+                                  const res = await fetch(
+                                    `/api/v1/doses/${dose.resolvedDose.id}`,
+                                    { method: "DELETE" },
+                                  );
+                                  if (res.ok) {
+                                    setDoses((prev) =>
+                                      prev.map((d) =>
+                                        d.prescriptionId ===
+                                          dose.prescriptionId &&
+                                        d.scheduledAt === dose.scheduledAt
+                                          ? { ...d, resolvedDose: null }
+                                          : d,
+                                      ),
+                                    );
+                                  }
+                                } else {
+                                  const res = await fetch("/api/v1/doses", {
+                                    method: "POST",
+                                    headers: {
+                                      "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify({
+                                      prescriptionId: dose.prescriptionId,
+                                      scheduledAt: dose.scheduledAt,
+                                      status: "taken",
+                                    }),
+                                  });
+                                  if (res.ok) {
+                                    const created = (await res.json()) as {
+                                      id: string;
+                                    };
+                                    setDoses((prev) =>
+                                      prev.map((d) =>
+                                        d.prescriptionId ===
+                                          dose.prescriptionId &&
+                                        d.scheduledAt === dose.scheduledAt
+                                          ? {
+                                              ...d,
+                                              resolvedDose: {
+                                                id: created.id,
+                                                status: "taken" as const,
+                                              },
+                                            }
+                                          : d,
+                                      ),
+                                    );
+                                  }
+                                }
+                              }
 
-                      return (
-                        <li key={dose.scheduledAt}>
-                          <label>
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              disabled={!dose.actionable}
-                              onChange={handleToggle}
-                            />
-                            <span className="dose-time">{time}</span>
-                            <span className="dose-dosage">{dose.dosage}</span>
-                            <span className="dose-drug">{dose.drugName}</span>
-                          </label>
+                              return (
+                                <li key={dose.prescriptionId}>
+                                  <label>
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      disabled={!dose.actionable}
+                                      onChange={handleToggle}
+                                    />
+                                    <span>
+                                      {dose.doseCount} {dose.doseForm} ×{" "}
+                                      {dose.drugName} {dose.dosage}
+                                    </span>
+                                  </label>
+                                </li>
+                              );
+                            })}
+                          </ul>
                         </li>
-                      );
-                    })}
+                      ),
+                    )}
                   </ul>
                 )}
               </section>
