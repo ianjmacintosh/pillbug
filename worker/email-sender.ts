@@ -15,10 +15,7 @@ function renderTemplate(
   );
 }
 
-export function makeResendEmailSender(
-  apiKey: string,
-  appUrl: string,
-): EmailSender {
+function makeResendEmailSender(apiKey: string, appUrl: string): EmailSender {
   const resend = new Resend(apiKey);
 
   async function send(to: string, subject: string, html: string) {
@@ -60,4 +57,18 @@ export function makeResendEmailSender(
       );
     },
   };
+}
+
+export function makeEmailSender(
+  emailMock: string | undefined,
+  apiKey: string | undefined,
+  origin: string,
+): EmailSender {
+  if (emailMock === "true" || !apiKey) {
+    return {
+      sendVerificationEmail: async () => {},
+      sendLoginEmail: async () => {},
+    };
+  }
+  return makeResendEmailSender(apiKey, origin);
 }

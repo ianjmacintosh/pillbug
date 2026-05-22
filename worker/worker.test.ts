@@ -2,14 +2,14 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import worker from "./worker";
 import { Resend } from "resend";
 import { makeD1AuthRepo } from "./d1-auth-repo";
-import { makeResendEmailSender } from "./resend-email-sender";
+import { makeEmailSender } from "./email-sender";
 import { makeEmailSpy, makeInMemoryRepo } from "./test/auth-helpers";
 import { verifyTurnstileToken } from "./turnstile";
 import { checkHealth } from "./health";
 
 vi.mock("resend", () => ({ Resend: vi.fn() }));
 vi.mock("./d1-auth-repo", () => ({ makeD1AuthRepo: vi.fn() }));
-vi.mock("./resend-email-sender", () => ({ makeResendEmailSender: vi.fn() }));
+vi.mock("./email-sender", () => ({ makeEmailSender: vi.fn() }));
 vi.mock("./health", () => ({ checkHealth: vi.fn() }));
 vi.mock("./turnstile", () => ({ verifyTurnstileToken: vi.fn() }));
 
@@ -51,7 +51,7 @@ function makeLoginRequest(url: string) {
 
 beforeEach(() => {
   vi.mocked(makeD1AuthRepo).mockReturnValue(makeInMemoryRepo());
-  vi.mocked(makeResendEmailSender).mockReturnValue(makeEmailSpy().sender);
+  vi.mocked(makeEmailSender).mockReturnValue(makeEmailSpy().sender);
   vi.mocked(verifyTurnstileToken).mockResolvedValue(true);
 });
 
@@ -121,7 +121,7 @@ describe("session cookie", () => {
     repo = makeInMemoryRepo();
     email = makeEmailSpy();
     vi.mocked(makeD1AuthRepo).mockReturnValue(repo);
-    vi.mocked(makeResendEmailSender).mockReturnValue(email.sender);
+    vi.mocked(makeEmailSender).mockReturnValue(email.sender);
   });
 
   test("includes Secure, HttpOnly, and SameSite=Lax on HTTPS", async () => {
@@ -183,15 +183,15 @@ describe("Resend lazy initialization", () => {
     expect(Resend).not.toHaveBeenCalled();
   });
 
-  test("makeResendEmailSender is not called on POST /api/v1/logout", async () => {
-    vi.mocked(makeResendEmailSender).mockClear();
+  test("makeEmailSender is not called on POST /api/v1/logout", async () => {
+    vi.mocked(makeEmailSender).mockClear();
 
     await worker.fetch(
       new Request("http://localhost/api/v1/logout", { method: "POST" }),
       makeEnv(),
     );
 
-    expect(makeResendEmailSender).not.toHaveBeenCalled();
+    expect(makeEmailSender).not.toHaveBeenCalled();
   });
 
   test("Resend is not constructed on GET /api/v1/auth/verify", async () => {
@@ -205,15 +205,15 @@ describe("Resend lazy initialization", () => {
     expect(Resend).not.toHaveBeenCalled();
   });
 
-  test("makeResendEmailSender is not called on GET /api/v1/auth/verify", async () => {
-    vi.mocked(makeResendEmailSender).mockClear();
+  test("makeEmailSender is not called on GET /api/v1/auth/verify", async () => {
+    vi.mocked(makeEmailSender).mockClear();
 
     await worker.fetch(
       new Request("http://localhost/api/v1/auth/verify?token=bad"),
       makeEnv(),
     );
 
-    expect(makeResendEmailSender).not.toHaveBeenCalled();
+    expect(makeEmailSender).not.toHaveBeenCalled();
   });
 });
 
@@ -262,7 +262,7 @@ describe("POST /api/v1/register email trimming", () => {
   test("strips surrounding whitespace from email before storing", async () => {
     const env = makeEnv();
     const email = makeEmailSpy();
-    vi.mocked(makeResendEmailSender).mockReturnValue(email.sender);
+    vi.mocked(makeEmailSender).mockReturnValue(email.sender);
 
     await worker.fetch(
       new Request("http://localhost/api/v1/register", {
@@ -308,30 +308,13 @@ describe("POST /api/v1/register Turnstile validation", () => {
   });
 });
 
-describe("POST /api/v1/register EMAIL_MOCK", () => {
-  test("does not call makeResendEmailSender when EMAIL_MOCK is true", async () => {
-    vi.mocked(makeResendEmailSender).mockClear();
-
-    const env = {
-      ...makeEnv(),
-      EMAIL_MOCK: "true",
-    } as unknown as Parameters<typeof worker.fetch>[1];
-    await worker.fetch(
-      makeRegisterRequest("http://localhost/api/v1/register"),
-      env,
-    );
-
-    expect(makeResendEmailSender).not.toHaveBeenCalled();
-  });
-});
-
 describe("POST /api/v1/login email trimming", () => {
   test("strips surrounding whitespace so a spaced email finds the existing account", async () => {
     const env = makeEnv();
     const repo = makeInMemoryRepo();
     const email = makeEmailSpy();
     vi.mocked(makeD1AuthRepo).mockReturnValue(repo);
-    vi.mocked(makeResendEmailSender).mockReturnValue(email.sender);
+    vi.mocked(makeEmailSender).mockReturnValue(email.sender);
 
     await worker.fetch(
       new Request("http://localhost/api/v1/register", {
@@ -386,20 +369,6 @@ describe("POST /api/v1/login Turnstile validation", () => {
 
     expect(response.status).toBe(403);
     expect(await response.json()).toEqual({ error: "invalid_turnstile_token" });
-  });
-});
-
-describe("POST /api/v1/login EMAIL_MOCK", () => {
-  test("does not call makeResendEmailSender when EMAIL_MOCK is true", async () => {
-    vi.mocked(makeResendEmailSender).mockClear();
-
-    const env = {
-      ...makeEnv(),
-      EMAIL_MOCK: "true",
-    } as unknown as Parameters<typeof worker.fetch>[1];
-    await worker.fetch(makeLoginRequest("http://localhost/api/v1/login"), env);
-
-    expect(makeResendEmailSender).not.toHaveBeenCalled();
   });
 });
 
@@ -471,7 +440,7 @@ describe("POST /api/v1/auth/verify-pin", () => {
     repo = makeInMemoryRepo();
     email = makeEmailSpy();
     vi.mocked(makeD1AuthRepo).mockReturnValue(repo);
-    vi.mocked(makeResendEmailSender).mockReturnValue(email.sender);
+    vi.mocked(makeEmailSender).mockReturnValue(email.sender);
   });
 
   test("returns 200 with ok:true and sets session cookie on correct PIN", async () => {
