@@ -168,7 +168,7 @@ function App({
                     {Array.from(timeGroups.entries()).map(
                       ([time, dosesForTime]) => (
                         <li key={time}>
-                          <span className="dose-time">{time}</span>
+                          <h3 className="dose-time">{time}</h3>
                           <ul>
                             {dosesForTime.map((dose) => {
                               const checked = dose.resolvedDose !== null;
