@@ -39,7 +39,6 @@ async function login(page: Page): Promise<void> {
   await setKnownPin(token);
   await page.goto(`/enter-code?token=${token}&pin=${TEST_PIN}`);
   await expect(page).toHaveURL("/");
-  await page.goto("/prescriptions");
 }
 
 const BASE_PRESCRIPTION = {
@@ -58,6 +57,7 @@ test.beforeEach(async () => {
 test.describe("Prescription list — on mount", () => {
   test("empty state: add form is shown and list is empty", async ({ page }) => {
     await login(page);
+    await page.goto("/prescriptions");
 
     await expect(page.getByRole("heading", { level: 2 })).toHaveText(
       /add prescription/i,
@@ -143,6 +143,7 @@ test.describe("Prescription create", () => {
     page,
   }) => {
     await login(page);
+    await page.goto("/prescriptions");
     await fillAndSave(page);
 
     await expect(
@@ -154,6 +155,7 @@ test.describe("Prescription create", () => {
     page,
   }) => {
     await login(page);
+    await page.goto("/prescriptions");
     await fillAndSave(page);
 
     await expect(page.getByRole("heading", { level: 2 })).toHaveText(
@@ -164,6 +166,7 @@ test.describe("Prescription create", () => {
 
   test("count in heading increments after create", async ({ page }) => {
     await login(page);
+    await page.goto("/prescriptions");
     await expect(page.getByRole("heading", { level: 1 })).toContainText("(0)");
 
     await fillAndSave(page);
@@ -195,6 +198,7 @@ test.describe("Prescription create", () => {
     page,
   }) => {
     await login(page);
+    await page.goto("/prescriptions");
     await page.getByLabel(/drug name/i).fill("Aspirin");
     await page.getByLabel("Strength").fill("100");
     await page.getByLabel(/start date/i).fill("2024-06-01");
@@ -212,6 +216,7 @@ test.describe("Prescription create", () => {
     page,
   }) => {
     await login(page);
+    await page.goto("/prescriptions");
     await page.getByLabel(/drug name/i).fill("Aspirin");
     await page.getByLabel("Strength").fill("100");
     await page.getByLabel(/start date/i).fill("2024-06-01");
@@ -229,6 +234,7 @@ test.describe("Prescription create", () => {
     page,
   }) => {
     await login(page);
+    await page.goto("/prescriptions");
     await page.getByRole("button", { name: /select all/i }).click();
     for (const day of [
       "Sunday",
@@ -258,6 +264,7 @@ test.describe("Prescription create", () => {
 
   test("clicking a day pill checks and unchecks it", async ({ page }) => {
     await login(page);
+    await page.goto("/prescriptions");
     const monday = page.getByRole("checkbox", { name: "Monday" });
     const mondayPill = monday.locator("..");
 
@@ -272,6 +279,7 @@ test.describe("Prescription create", () => {
     page,
   }) => {
     await login(page);
+    await page.goto("/prescriptions");
     await expect(page.getByRole("button", { name: /remove/i })).toBeDisabled();
   });
 
@@ -279,6 +287,7 @@ test.describe("Prescription create", () => {
     page,
   }) => {
     await login(page);
+    await page.goto("/prescriptions");
     await page.getByRole("button", { name: /add new dose time/i }).click();
 
     const removeButtons = page.getByRole("button", { name: /remove/i });
@@ -313,6 +322,9 @@ test.describe("Prescription edit", () => {
       data: BASE_PRESCRIPTION,
     });
     await page.goto("/prescriptions");
+    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
+      /edit prescription/i,
+    );
 
     await page.getByLabel(/drug name/i).fill("Metformin XR");
     await page.getByRole("button", { name: /save prescription/i }).click();

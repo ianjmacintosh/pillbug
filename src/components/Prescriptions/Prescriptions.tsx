@@ -98,7 +98,7 @@ function Prescriptions() {
   const [endDate, setEndDate] = useState("");
   const [instructions, setInstructions] = useState("");
   const [scheduledDays, setScheduledDays] = useState<Set<DayOfWeek>>(new Set());
-  const [doseTimes, setDoseTimes] = useState<string[]>([]);
+  const [doseTimes, setDoseTimes] = useState<string[]>(["09:00"]);
   const [error, setError] = useState<string | null>(null);
   const [daysError, setDaysError] = useState(false);
   const [timesError, setTimesError] = useState(false);
