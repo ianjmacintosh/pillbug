@@ -74,7 +74,9 @@ test.describe("Prescription list — on mount", () => {
     });
     await page.goto("/prescriptions");
 
-    await expect(page.getByRole("button", { name: "Metformin" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Metformin", exact: true }),
+    ).toBeVisible();
   });
 
   test("first prescription is auto-selected and its edit form is shown", async ({
@@ -117,7 +119,7 @@ test.describe("Prescription list — on mount", () => {
     });
     await page.goto("/prescriptions");
 
-    await page.getByRole("button", { name: "Lisinopril" }).click();
+    await page.getByRole("button", { name: "Lisinopril", exact: true }).click();
 
     await expect(page.getByLabel(/drug name/i)).toHaveValue("Lisinopril");
     await expect(page.getByRole("heading", { level: 2 })).toHaveText(
@@ -143,7 +145,9 @@ test.describe("Prescription create", () => {
     await login(page);
     await fillAndSave(page);
 
-    await expect(page.getByRole("button", { name: "Aspirin" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Aspirin", exact: true }),
+    ).toBeVisible();
   });
 
   test("after create, edit form is shown with the new prescription", async ({
@@ -318,7 +322,7 @@ test.describe("Prescription edit", () => {
     );
     await expect(page.getByLabel(/drug name/i)).toHaveValue("Metformin XR");
     await expect(
-      page.getByRole("button", { name: "Metformin XR" }),
+      page.getByRole("button", { name: "Metformin XR", exact: true }),
     ).toBeVisible();
   });
 
@@ -335,7 +339,9 @@ test.describe("Prescription edit", () => {
       /add prescription/i,
     );
     await expect(page.getByLabel(/drug name/i)).toHaveValue("");
-    await expect(page.getByRole("button", { name: "Metformin" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Metformin", exact: true }),
+    ).toBeVisible();
   });
 
   test("edit form pre-populates scheduled days and times", async ({ page }) => {
@@ -409,7 +415,7 @@ test.describe("Prescription delete", () => {
     await page.getByRole("button", { name: /yes, delete/i }).click();
 
     await expect(
-      page.getByRole("button", { name: "Metformin" }),
+      page.getByRole("button", { name: "Metformin", exact: true }),
     ).not.toBeAttached();
     await expect(page.getByRole("heading", { level: 1 })).toContainText("(0)");
   });
@@ -432,7 +438,9 @@ test.describe("Prescription delete", () => {
       .click();
 
     await expect(page.getByRole("dialog")).not.toBeAttached();
-    await expect(page.getByRole("button", { name: "Metformin" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Metformin", exact: true }),
+    ).toBeVisible();
   });
 });
 
@@ -454,7 +462,7 @@ test.describe("Mobile navigation", () => {
     await expect(listPanel).toBeVisible();
     await expect(formPanel).not.toBeVisible();
 
-    await page.getByRole("button", { name: "Metformin" }).click();
+    await page.getByRole("button", { name: "Metformin", exact: true }).click();
 
     await expect(formPanel).toBeVisible();
     await expect(listPanel).not.toBeVisible();
@@ -467,7 +475,7 @@ test.describe("Mobile navigation", () => {
     });
     await page.goto("/prescriptions");
 
-    await page.getByRole("button", { name: "Metformin" }).click();
+    await page.getByRole("button", { name: "Metformin", exact: true }).click();
     await expect(page.locator(".prescriptions-form-panel")).toBeVisible();
 
     await page.getByRole("button", { name: /back to list/i }).click();
