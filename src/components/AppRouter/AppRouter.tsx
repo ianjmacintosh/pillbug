@@ -18,6 +18,9 @@ import Register from "../Register";
 import Settings from "../Settings";
 import Terms from "../Terms";
 import EnterCode from "../EnterCode";
+import PrescriptionDetail, {
+  type Prescription as PrescriptionDetailData,
+} from "../PrescriptionDetail";
 
 const rootRoute = createRootRoute({
   component: Outlet,
@@ -120,6 +123,125 @@ const prescriptionsRoute = createRoute({
   component: Prescriptions,
 });
 
+const DEMO_PRESCRIPTIONS: Record<string, PrescriptionDetailData> = {
+  // Daily, two dose times, no end date
+  daily: {
+    id: "daily",
+    drugName: "Metformin",
+    dosage: "500 mg",
+    doseForm: "tablet",
+    schedule: {
+      days: {
+        sunday: [
+          { time: "09:00", quantity: 2 },
+          { time: "21:00", quantity: 1 },
+        ],
+        monday: [
+          { time: "09:00", quantity: 2 },
+          { time: "21:00", quantity: 1 },
+        ],
+        tuesday: [
+          { time: "09:00", quantity: 2 },
+          { time: "21:00", quantity: 1 },
+        ],
+        wednesday: [
+          { time: "09:00", quantity: 2 },
+          { time: "21:00", quantity: 1 },
+        ],
+        thursday: [
+          { time: "09:00", quantity: 2 },
+          { time: "21:00", quantity: 1 },
+        ],
+        friday: [
+          { time: "09:00", quantity: 2 },
+          { time: "21:00", quantity: 1 },
+        ],
+        saturday: [
+          { time: "09:00", quantity: 2 },
+          { time: "21:00", quantity: 1 },
+        ],
+      },
+      timezoneMode: "local" as const,
+    },
+    startDate: "2024-01-15",
+    endDate: null,
+    prescribingDoctor: "Dr. Smith",
+    instructions: "Take with food",
+    status: "active",
+  },
+  // Weekdays vs weekend: two routines with different slots
+  split: {
+    id: "split",
+    drugName: "Lisinopril",
+    dosage: "10 mg",
+    doseForm: "tablet",
+    schedule: {
+      days: {
+        monday: [{ time: "08:00", quantity: 1 }],
+        tuesday: [{ time: "08:00", quantity: 1 }],
+        wednesday: [{ time: "08:00", quantity: 1 }],
+        thursday: [{ time: "08:00", quantity: 1 }],
+        friday: [{ time: "08:00", quantity: 1 }],
+        saturday: [{ time: "10:00", quantity: 1 }],
+        sunday: [{ time: "10:00", quantity: 1 }],
+      },
+      timezoneMode: "local" as const,
+    },
+    startDate: "2023-06-01",
+    endDate: "2026-06-01",
+    prescribingDoctor: null,
+    instructions: null,
+    status: "active",
+  },
+  // Three-times-a-week, single dose time, with end date
+  mwf: {
+    id: "mwf",
+    drugName: "Alendronate",
+    dosage: "70 mg",
+    doseForm: "tablet",
+    schedule: {
+      days: {
+        monday: [{ time: "07:00", quantity: 1 }],
+        wednesday: [{ time: "07:00", quantity: 1 }],
+        friday: [{ time: "07:00", quantity: 1 }],
+      },
+      timezoneMode: "local" as const,
+    },
+    startDate: "2025-03-10",
+    endDate: "2025-09-10",
+    prescribingDoctor: "Dr. Patel",
+    instructions: "Take on an empty stomach with a full glass of water",
+    status: "active",
+  },
+  // Single day, single slot — minimal schedule
+  single: {
+    id: "single",
+    drugName: "Zolpidem",
+    dosage: "5 mg",
+    doseForm: "tablet",
+    schedule: {
+      days: {
+        sunday: [{ time: "22:00", quantity: 1 }],
+      },
+      timezoneMode: "local" as const,
+    },
+    startDate: "2025-11-01",
+    endDate: null,
+    prescribingDoctor: "Dr. Lee",
+    instructions: null,
+    status: "active",
+  },
+};
+
+const prescriptionDetailRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: "/prescriptions/$id",
+  beforeLoad: requireAuth,
+  loader: ({ params }) =>
+    DEMO_PRESCRIPTIONS[params.id] ?? DEMO_PRESCRIPTIONS["daily"],
+  component: PrescriptionDetail,
+});
+
 const logoutRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/logout",
@@ -143,6 +265,7 @@ const routeTree = rootRoute.addChildren([
     settingsRoute,
     fillSessionRoute,
     prescriptionsRoute,
+    prescriptionDetailRoute,
     logoutRoute,
     enterCodeRoute,
   ]),
