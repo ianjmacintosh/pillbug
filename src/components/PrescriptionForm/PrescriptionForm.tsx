@@ -63,18 +63,16 @@ function parseDosage(
   return { quantity: raw.slice(0, i), unit: unit as DosageUnit };
 }
 
-interface Schedule {
-  days: Partial<Record<DayOfWeek, string[]>>;
-  timezoneMode: "local" | "fixed_utc";
-}
-
 export interface PrescriptionFormData {
   id: string;
   doseCount: number;
   doseForm: string;
   drugName: string;
   dosage: string;
-  schedule: Schedule;
+  schedule: {
+    days: Partial<Record<DayOfWeek, string[]>>;
+    timezoneMode: "local" | "fixed_utc";
+  };
   startDate: string;
   endDate: string | null;
   prescribingDoctor: string | null;
@@ -82,26 +80,31 @@ export interface PrescriptionFormData {
   status: string;
 }
 
-interface Routine {
+interface DosingSchedule {
   days: Set<DayOfWeek>;
   times: string[];
+  quantity: string;
   daysError: boolean;
   timesError: boolean;
 }
 
-function initRoutines(prescription?: PrescriptionFormData): Routine[] {
+function initSchedules(prescription?: PrescriptionFormData): DosingSchedule[] {
+  const defaultQuantity =
+    prescription?.doseCount != null ? String(prescription.doseCount) : "1";
+
   if (!prescription) {
     return [
       {
         days: new Set(),
         times: ["09:00"],
+        quantity: "1",
         daysError: false,
         timesError: false,
       },
     ];
   }
 
-  const bySignature = new Map<string, Routine>();
+  const bySignature = new Map<string, DosingSchedule>();
   for (const [day, times] of Object.entries(prescription.schedule.days)) {
     if (!times || times.length === 0) continue;
     const sig = JSON.stringify([...times].sort());
@@ -109,6 +112,7 @@ function initRoutines(prescription?: PrescriptionFormData): Routine[] {
       bySignature.set(sig, {
         days: new Set(),
         times: [...times].sort(),
+        quantity: defaultQuantity,
         daysError: false,
         timesError: false,
       });
@@ -116,16 +120,21 @@ function initRoutines(prescription?: PrescriptionFormData): Routine[] {
     bySignature.get(sig)!.days.add(day as DayOfWeek);
   }
 
-  const routines = Array.from(bySignature.values());
-  return routines.length > 0
-    ? routines
-    : [{ days: new Set(), times: [], daysError: false, timesError: false }];
+  const schedules = Array.from(bySignature.values());
+  return schedules.length > 0
+    ? schedules
+    : [
+        {
+          days: new Set(),
+          times: [],
+          quantity: defaultQuantity,
+          daysError: false,
+          timesError: false,
+        },
+      ];
 }
 
 function usePrescriptionForm(prescription?: PrescriptionFormData) {
-  const [doseCount, setDoseCount] = useState(() =>
-    prescription ? String(prescription.doseCount ?? 1) : "1",
-  );
   const [doseForm, setDoseForm] = useState(() =>
     prescription ? (prescription.doseForm ?? "tablet") : "tablet",
   );
@@ -157,8 +166,8 @@ function usePrescriptionForm(prescription?: PrescriptionFormData) {
   const [instructions, setInstructions] = useState(() =>
     prescription ? (prescription.instructions ?? "") : "",
   );
-  const [routines, setRoutines] = useState<Routine[]>(() =>
-    initRoutines(prescription),
+  const [schedules, setSchedules] = useState<DosingSchedule[]>(() =>
+    initSchedules(prescription),
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -172,109 +181,112 @@ function usePrescriptionForm(prescription?: PrescriptionFormData) {
       : `${dosageQuantity} ${dosageUnit}`;
   }
 
-  function buildSchedule(): Schedule {
-    const days: Partial<Record<DayOfWeek, string[]>> = {};
-    for (const routine of routines) {
-      for (const day of routine.days) {
-        days[day] = [...routine.times];
+  function buildSchedule() {
+    const days: Partial<
+      Record<DayOfWeek, { time: string; quantity: number }[]>
+    > = {};
+    for (const schedule of schedules) {
+      const qty = parseFloat(schedule.quantity) || 1;
+      for (const day of schedule.days) {
+        days[day] = schedule.times.map((time) => ({ time, quantity: qty }));
       }
     }
-    return { days, timezoneMode: "local" };
+    return { days, timezoneMode: "local" as const };
   }
 
   function validateSchedule(): boolean {
-    const nextRoutines = routines.map((routine) => ({
-      ...routine,
-      daysError: routine.days.size === 0,
-      timesError:
-        routine.times.length === 0 || routine.times.some((t) => t === ""),
+    const next = schedules.map((s) => ({
+      ...s,
+      daysError: s.days.size === 0,
+      timesError: s.times.length === 0 || s.times.some((t) => t === ""),
     }));
-    setRoutines(nextRoutines);
-    return nextRoutines.every((r) => !r.daysError && !r.timesError);
+    setSchedules(next);
+    return next.every((s) => !s.daysError && !s.timesError);
   }
 
-  function addRoutine() {
-    setRoutines((prev) => [
+  function addSchedule() {
+    setSchedules((prev) => [
       ...prev,
       {
         days: new Set(),
         times: ["09:00"],
+        quantity: "1",
         daysError: false,
         timesError: false,
       },
     ]);
   }
 
-  function removeRoutine(index: number) {
-    setRoutines((prev) => prev.filter((_, i) => i !== index));
+  function removeSchedule(index: number) {
+    setSchedules((prev) => prev.filter((_, i) => i !== index));
   }
 
-  function toggleDay(routineIndex: number, day: DayOfWeek) {
-    setRoutines((prev) =>
-      prev.map((routine, i) => {
-        if (i === routineIndex) {
-          const next = new Set(routine.days);
+  function toggleDay(scheduleIndex: number, day: DayOfWeek) {
+    setSchedules((prev) =>
+      prev.map((s, i) => {
+        if (i === scheduleIndex) {
+          const next = new Set(s.days);
           if (next.has(day)) next.delete(day);
           else next.add(day);
-          return { ...routine, days: next, daysError: false };
+          return { ...s, days: next, daysError: false };
         }
-        // Enforce day exclusivity across routines
-        const next = new Set(routine.days);
+        // Enforce day exclusivity across dosing schedules
+        const next = new Set(s.days);
         next.delete(day);
-        return { ...routine, days: next };
+        return { ...s, days: next };
       }),
     );
   }
 
-  function addDoseTime(routineIndex: number) {
-    setRoutines((prev) =>
-      prev.map((routine, i) =>
-        i === routineIndex
-          ? {
-              ...routine,
-              times: [...routine.times, "09:00"],
-              timesError: false,
-            }
-          : routine,
+  function addDoseTime(scheduleIndex: number) {
+    setSchedules((prev) =>
+      prev.map((s, i) =>
+        i === scheduleIndex
+          ? { ...s, times: [...s.times, "09:00"], timesError: false }
+          : s,
       ),
     );
   }
 
   function updateDoseTime(
-    routineIndex: number,
+    scheduleIndex: number,
     timeIndex: number,
     value: string,
   ) {
-    setRoutines((prev) =>
-      prev.map((routine, i) =>
-        i === routineIndex
+    setSchedules((prev) =>
+      prev.map((s, i) =>
+        i === scheduleIndex
           ? {
-              ...routine,
-              times: routine.times.map((t, j) => (j === timeIndex ? value : t)),
+              ...s,
+              times: s.times.map((t, j) => (j === timeIndex ? value : t)),
               timesError: false,
             }
-          : routine,
+          : s,
       ),
     );
   }
 
-  function removeDoseTime(routineIndex: number, timeIndex: number) {
-    setRoutines((prev) =>
-      prev.map((routine, i) =>
-        i === routineIndex
+  function removeDoseTime(scheduleIndex: number, timeIndex: number) {
+    setSchedules((prev) =>
+      prev.map((s, i) =>
+        i === scheduleIndex
           ? {
-              ...routine,
-              times: routine.times.filter((_, j) => j !== timeIndex),
+              ...s,
+              times: s.times.filter((_, j) => j !== timeIndex),
               timesError: false,
             }
-          : routine,
+          : s,
       ),
+    );
+  }
+
+  function updateDoseAmount(scheduleIndex: number, value: string) {
+    setSchedules((prev) =>
+      prev.map((s, i) => (i === scheduleIndex ? { ...s, quantity: value } : s)),
     );
   }
 
   return {
-    doseCount,
-    setDoseCount,
     doseForm,
     setDoseForm,
     drugName,
@@ -291,7 +303,7 @@ function usePrescriptionForm(prescription?: PrescriptionFormData) {
     setEndDate,
     instructions,
     setInstructions,
-    routines,
+    schedules,
     submitting,
     setSubmitting,
     error,
@@ -301,19 +313,18 @@ function usePrescriptionForm(prescription?: PrescriptionFormData) {
     buildDosage,
     buildSchedule,
     validateSchedule,
-    addRoutine,
-    removeRoutine,
+    addSchedule,
+    removeSchedule,
     toggleDay,
     addDoseTime,
     updateDoseTime,
     removeDoseTime,
+    updateDoseAmount,
   };
 }
 
 interface FormFieldsProps {
   idPrefix: string;
-  doseCount: string;
-  setDoseCount: (v: string) => void;
   doseForm: string;
   setDoseForm: (v: string) => void;
   drugName: string;
@@ -330,25 +341,24 @@ interface FormFieldsProps {
   setEndDate: (v: string) => void;
   instructions: string;
   setInstructions: (v: string) => void;
-  routines: Routine[];
+  schedules: DosingSchedule[];
   detectedDuplicateUnit: DosageUnit | null;
   setDetectedDuplicateUnit: (v: DosageUnit | null) => void;
-  addRoutine: () => void;
-  removeRoutine: (index: number) => void;
-  toggleDay: (routineIndex: number, day: DayOfWeek) => void;
-  addDoseTime: (routineIndex: number) => void;
+  addSchedule: () => void;
+  removeSchedule: (index: number) => void;
+  toggleDay: (scheduleIndex: number, day: DayOfWeek) => void;
+  addDoseTime: (scheduleIndex: number) => void;
   updateDoseTime: (
-    routineIndex: number,
+    scheduleIndex: number,
     timeIndex: number,
     value: string,
   ) => void;
-  removeDoseTime: (routineIndex: number, timeIndex: number) => void;
+  removeDoseTime: (scheduleIndex: number, timeIndex: number) => void;
+  updateDoseAmount: (scheduleIndex: number, value: string) => void;
 }
 
 function FormFields({
   idPrefix,
-  doseCount,
-  setDoseCount,
   doseForm,
   setDoseForm,
   drugName,
@@ -365,15 +375,16 @@ function FormFields({
   setEndDate,
   instructions,
   setInstructions,
-  routines,
+  schedules,
   detectedDuplicateUnit,
   setDetectedDuplicateUnit,
-  addRoutine,
-  removeRoutine,
+  addSchedule,
+  removeSchedule,
   toggleDay,
   addDoseTime,
   updateDoseTime,
   removeDoseTime,
+  updateDoseAmount,
 }: FormFieldsProps) {
   return (
     <>
@@ -464,28 +475,19 @@ function FormFields({
         </dd>
 
         <dt>
-          <label htmlFor={`${idPrefix}-doseCount`}>Count</label>
+          <label htmlFor={`${idPrefix}-doseForm`}>Form</label>
         </dt>
         <dd>
-          <div className="count-form-row">
-            <input
-              id={`${idPrefix}-doseCount`}
-              type="text"
-              value={doseCount}
-              onChange={(e) => setDoseCount(e.target.value)}
-              required
-            />
-            <select
-              aria-label="Form"
-              value={doseForm}
-              onChange={(e) => setDoseForm(e.target.value)}
-            >
-              <option value="tablet">tablet</option>
-              <option value="capsule">capsule</option>
-              <option value="pill">pill</option>
-              <option value="other">other</option>
-            </select>
-          </div>
+          <select
+            id={`${idPrefix}-doseForm`}
+            value={doseForm}
+            onChange={(e) => setDoseForm(e.target.value)}
+          >
+            <option value="tablet">tablet</option>
+            <option value="capsule">capsule</option>
+            <option value="pill">pill</option>
+            <option value="other">other</option>
+          </select>
         </dd>
       </dl>
 
@@ -516,30 +518,30 @@ function FormFields({
         </div>
 
         <div className="routine-list">
-          {routines.map((routine, routineIndex) => (
-            <div key={routineIndex} className="routine-block">
+          {schedules.map((schedule, scheduleIndex) => (
+            <div key={scheduleIndex} className="routine-block">
               <div className="routine-block-header">
                 <span className="routine-block-label">
-                  Routine {routineIndex + 1}
+                  Dosing Schedule {scheduleIndex + 1}
                 </span>
                 <button
                   type="button"
                   className="routine-remove-btn button-secondary button-sm"
-                  aria-label="Remove routine"
-                  disabled={routines.length === 1}
-                  onClick={() => removeRoutine(routineIndex)}
+                  aria-label="Remove dosing schedule"
+                  disabled={schedules.length === 1}
+                  onClick={() => removeSchedule(scheduleIndex)}
                 >
-                  Remove routine
+                  Remove dosing schedule
                 </button>
               </div>
 
               <fieldset
                 className="schedule-days"
                 aria-label="Days"
-                aria-invalid={routine.daysError ? true : undefined}
+                aria-invalid={schedule.daysError ? true : undefined}
               >
                 <legend>Days</legend>
-                {routine.daysError && (
+                {schedule.daysError && (
                   <p role="alert" className="schedule-error-message">
                     Please select at least one day.
                   </p>
@@ -550,8 +552,8 @@ function FormFields({
                       <input
                         type="checkbox"
                         className="visually-hidden"
-                        checked={routine.days.has(day)}
-                        onChange={() => toggleDay(routineIndex, day)}
+                        checked={schedule.days.has(day)}
+                        onChange={() => toggleDay(scheduleIndex, day)}
                         aria-label={DAY_LABELS[day]}
                       />
                       <span aria-hidden="true">{DAY_ABBRS[day]}</span>
@@ -560,14 +562,14 @@ function FormFields({
                 </div>
               </fieldset>
 
-              <fieldset aria-invalid={routine.timesError ? true : undefined}>
+              <fieldset aria-invalid={schedule.timesError ? true : undefined}>
                 <legend>Dose times</legend>
-                {routine.timesError && (
+                {schedule.timesError && (
                   <p role="alert" className="schedule-error-message">
                     Please add at least one dose time.
                   </p>
                 )}
-                {routine.times.map((time, timeIndex) => (
+                {schedule.times.map((time, timeIndex) => (
                   <div key={timeIndex} className="dose-time-entry">
                     <label>
                       Time {timeIndex + 1}
@@ -576,7 +578,7 @@ function FormFields({
                         value={time}
                         onChange={(e) =>
                           updateDoseTime(
-                            routineIndex,
+                            scheduleIndex,
                             timeIndex,
                             e.target.value,
                           )
@@ -587,8 +589,8 @@ function FormFields({
                       type="button"
                       className="remove-time"
                       aria-label="Remove time"
-                      disabled={routine.times.length === 1}
-                      onClick={() => removeDoseTime(routineIndex, timeIndex)}
+                      disabled={schedule.times.length === 1}
+                      onClick={() => removeDoseTime(scheduleIndex, timeIndex)}
                     >
                       ×
                     </button>
@@ -597,20 +599,39 @@ function FormFields({
                 <button
                   type="button"
                   className="add-dose-time"
-                  onClick={() => addDoseTime(routineIndex)}
+                  onClick={() => addDoseTime(scheduleIndex)}
                 >
                   + Add new dose time
                 </button>
               </fieldset>
+
+              <div className="dose-amount-row">
+                <label htmlFor={`${idPrefix}-doseAmount-${scheduleIndex}`}>
+                  Dose amount
+                </label>
+                <div className="dose-amount-input-group">
+                  <input
+                    id={`${idPrefix}-doseAmount-${scheduleIndex}`}
+                    type="text"
+                    inputMode="decimal"
+                    value={schedule.quantity}
+                    onChange={(e) =>
+                      updateDoseAmount(scheduleIndex, e.target.value)
+                    }
+                    className="dose-amount-input"
+                  />
+                  <span className="dose-amount-unit">{doseForm}</span>
+                </div>
+              </div>
             </div>
           ))}
 
           <button
             type="button"
             className="button-secondary button-sm"
-            onClick={addRoutine}
+            onClick={addSchedule}
           >
-            + Add routine
+            + Add dosing schedule
           </button>
         </div>
       </section>
@@ -643,7 +664,6 @@ export function NewPrescriptionForm() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        doseCount: parseFloat(form.doseCount) || 1,
         doseForm: form.doseForm,
         drugName: form.drugName,
         dosage: form.buildDosage(),
@@ -707,7 +727,6 @@ export function EditPrescriptionForm() {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        doseCount: parseFloat(form.doseCount) || 1,
         doseForm: form.doseForm,
         drugName: form.drugName,
         dosage: form.buildDosage(),

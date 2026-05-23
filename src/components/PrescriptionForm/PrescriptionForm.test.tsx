@@ -116,14 +116,7 @@ describe("NewPrescriptionForm", () => {
     });
   });
 
-  describe("dose count and form factor", () => {
-    test("count field is present and defaults to 1", async () => {
-      await renderNewForm();
-      const countInput = screen.getByLabelText(/count/i) as HTMLInputElement;
-      expect(countInput).toBeTruthy();
-      expect(countInput.value).toBe("1");
-    });
-
+  describe("form factor", () => {
     test("form factor dropdown is present and defaults to tablet", async () => {
       await renderNewForm();
       const formFactorSelect = screen.getByRole("combobox", {
@@ -141,17 +134,7 @@ describe("NewPrescriptionForm", () => {
       expect(options).toEqual(["tablet", "capsule", "pill", "other"]);
     });
 
-    test("drug name field appears before count field", async () => {
-      await renderNewForm();
-      const drugName = screen.getByLabelText(/drug name/i);
-      const countInput = screen.getByLabelText(/count/i);
-      expect(
-        drugName.compareDocumentPosition(countInput) &
-          Node.DOCUMENT_POSITION_FOLLOWING,
-      ).toBeTruthy();
-    });
-
-    test("create POST sends doseCount and doseForm", async () => {
+    test("create POST sends doseForm", async () => {
       const fetchSpy = vi
         .spyOn(globalThis, "fetch")
         .mockResolvedValueOnce(
@@ -171,11 +154,36 @@ describe("NewPrescriptionForm", () => {
       const body = JSON.parse(
         (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
       );
-      expect(body.doseCount).toBe(1);
       expect(body.doseForm).toBe("tablet");
+      expect(body.doseCount).toBeUndefined();
+    });
+  });
+
+  describe("dose amount", () => {
+    test("dosing schedule block has a dose amount input defaulting to 1", async () => {
+      await renderNewForm();
+      expect(
+        (screen.getByLabelText(/dose amount/i) as HTMLInputElement).value,
+      ).toBe("1");
     });
 
-    test("count accepts decimal input and sends it as a number", async () => {
+    test("dose amount input shows the current form type as its unit", async () => {
+      await renderNewForm();
+      const doseAmountInput = screen.getByLabelText(/dose amount/i);
+      expect(
+        doseAmountInput.closest(".dose-amount-row")?.textContent,
+      ).toContain("tablet");
+
+      await userEvent.selectOptions(
+        screen.getByRole("combobox", { name: /form/i }),
+        "capsule",
+      );
+      expect(
+        doseAmountInput.closest(".dose-amount-row")?.textContent,
+      ).toContain("capsule");
+    });
+
+    test("schedule slots include the dose amount as quantity", async () => {
       const fetchSpy = vi
         .spyOn(globalThis, "fetch")
         .mockResolvedValueOnce(
@@ -189,16 +197,16 @@ describe("NewPrescriptionForm", () => {
         "mg",
       );
       await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
-      const countInput = screen.getByLabelText(/count/i);
-      await userEvent.clear(countInput);
-      await userEvent.type(countInput, "0.5");
+      const doseAmountInput = screen.getByLabelText(/dose amount/i);
+      await userEvent.clear(doseAmountInput);
+      await userEvent.type(doseAmountInput, "2");
 
       await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
       const body = JSON.parse(
         (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
       );
-      expect(body.doseCount).toBe(0.5);
+      expect(body.schedule.days.monday[0].quantity).toBe(2);
     });
   });
 
@@ -562,7 +570,9 @@ describe("NewPrescriptionForm", () => {
       const body = JSON.parse(
         (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
       );
-      expect(body.schedule.days.monday).toEqual(["08:00"]);
+      expect(body.schedule.days.monday).toEqual([
+        { time: "08:00", quantity: 1 },
+      ]);
     });
   });
 
@@ -694,41 +704,41 @@ describe("NewPrescriptionForm", () => {
     });
   });
 
-  describe("routines", () => {
-    test("'Remove routine' button is disabled when only one routine exists", async () => {
+  describe("dosing schedules", () => {
+    test("'Remove dosing schedule' button is disabled when only one dosing schedule exists", async () => {
       await renderNewForm();
       expect(
         (
           screen.getByRole("button", {
-            name: /remove routine/i,
+            name: /remove dosing schedule/i,
           }) as HTMLButtonElement
         ).disabled,
       ).toBe(true);
     });
 
-    test("'+ Add routine' adds a second routine block", async () => {
+    test("'+ Add dosing schedule' adds a second dosing schedule block", async () => {
       await renderNewForm();
       expect(screen.getAllByRole("group", { name: /days/i })).toHaveLength(1);
       await userEvent.click(
-        screen.getByRole("button", { name: /add routine/i }),
+        screen.getByRole("button", { name: /add dosing schedule/i }),
       );
       expect(screen.getAllByRole("group", { name: /days/i })).toHaveLength(2);
     });
 
-    test("clicking 'Remove routine' removes that routine", async () => {
+    test("clicking 'Remove dosing schedule' removes that dosing schedule", async () => {
       await renderNewForm();
       await userEvent.click(
-        screen.getByRole("button", { name: /add routine/i }),
+        screen.getByRole("button", { name: /add dosing schedule/i }),
       );
       expect(screen.getAllByRole("group", { name: /days/i })).toHaveLength(2);
       const removeButtons = screen.getAllByRole("button", {
-        name: /remove routine/i,
+        name: /remove dosing schedule/i,
       });
       await userEvent.click(removeButtons[1]);
       expect(screen.getAllByRole("group", { name: /days/i })).toHaveLength(1);
     });
 
-    test("submitting with two routines sends both days in the correct schedule", async () => {
+    test("submitting with two dosing schedules sends both days in the correct schedule", async () => {
       const fetchSpy = vi
         .spyOn(globalThis, "fetch")
         .mockResolvedValueOnce(
@@ -743,33 +753,37 @@ describe("NewPrescriptionForm", () => {
         "mg",
       );
 
-      // Routine 1: Monday at default 09:00
+      // Dosing schedule 1: Monday at default 09:00
       await userEvent.click(
         screen.getAllByRole("checkbox", { name: "Monday" })[0],
       );
 
-      // Add routine 2
+      // Add dosing schedule 2
       await userEvent.click(
-        screen.getByRole("button", { name: /add routine/i }),
+        screen.getByRole("button", { name: /add dosing schedule/i }),
       );
 
-      // Routine 2: Friday at 08:00
+      // Dosing schedule 2: Friday at 08:00
       await userEvent.click(
         screen.getAllByRole("checkbox", { name: "Friday" })[1],
       );
-      const routine2Time = screen.getAllByLabelText(
+      const schedule2Time = screen.getAllByLabelText(
         /time 1/i,
       )[1] as HTMLInputElement;
-      await userEvent.clear(routine2Time);
-      await userEvent.type(routine2Time, "08:00");
+      await userEvent.clear(schedule2Time);
+      await userEvent.type(schedule2Time, "08:00");
 
       await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
       const body = JSON.parse(
         (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
       );
-      expect(body.schedule.days.monday).toEqual(["09:00"]);
-      expect(body.schedule.days.friday).toEqual(["08:00"]);
+      expect(body.schedule.days.monday).toEqual([
+        { time: "09:00", quantity: 1 },
+      ]);
+      expect(body.schedule.days.friday).toEqual([
+        { time: "08:00", quantity: 1 },
+      ]);
     });
   });
 });
@@ -797,13 +811,10 @@ describe("EditPrescriptionForm", () => {
     ).toBe("2024-01-01");
   });
 
-  test("pre-populates doseCount and doseForm from loader", async () => {
-    const prescription = { ...SAMPLE, doseCount: 2, doseForm: "capsule" };
+  test("pre-populates doseForm from loader", async () => {
+    const prescription = { ...SAMPLE, doseForm: "capsule" };
     await renderEditForm(prescription);
 
-    expect((screen.getByLabelText(/count/i) as HTMLInputElement).value).toBe(
-      "2",
-    );
     expect(
       (
         screen.getByRole("combobox", {
@@ -811,6 +822,14 @@ describe("EditPrescriptionForm", () => {
         }) as HTMLSelectElement
       ).value,
     ).toBe("capsule");
+  });
+
+  test("pre-populates dose amount from doseCount in loader", async () => {
+    const prescription = { ...SAMPLE, doseCount: 2 };
+    await renderEditForm(prescription);
+    expect(
+      (screen.getByLabelText(/dose amount/i) as HTMLInputElement).value,
+    ).toBe("2");
   });
 
   test("pre-populates scheduled days and times from loader", async () => {
@@ -952,7 +971,9 @@ describe("EditPrescriptionForm", () => {
     const body = JSON.parse(
       (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
     );
-    expect(body.schedule.days.wednesday).toContain("20:00");
+    expect(body.schedule.days.wednesday).toEqual([
+      { time: "20:00", quantity: 1 },
+    ]);
     expect(body.schedule.days.monday).toBeUndefined();
   });
 
@@ -993,29 +1014,20 @@ describe("EditPrescriptionForm", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  test("edit PATCH sends doseCount and doseForm", async () => {
+  test("edit PATCH sends doseForm", async () => {
     const prescription = {
       ...SAMPLE,
-      doseCount: 1,
       doseForm: "tablet",
       schedule: { days: { monday: ["08:00"] }, timezoneMode: "local" as const },
     };
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(
-        JSON.stringify({
-          ...prescription,
-          doseCount: 2,
-          doseForm: "capsule",
-        }),
-        { status: 200 },
-      ),
+      new Response(JSON.stringify({ ...prescription, doseForm: "capsule" }), {
+        status: 200,
+      }),
     );
 
     await renderEditForm(prescription);
 
-    const countInput = screen.getByLabelText(/count/i);
-    await userEvent.clear(countInput);
-    await userEvent.type(countInput, "2");
     await userEvent.selectOptions(
       screen.getByRole("combobox", { name: /form/i }),
       "capsule",
@@ -1025,7 +1037,7 @@ describe("EditPrescriptionForm", () => {
     const body = JSON.parse(
       (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
     );
-    expect(body.doseCount).toBe(2);
     expect(body.doseForm).toBe("capsule");
+    expect(body.doseCount).toBeUndefined();
   });
 });
