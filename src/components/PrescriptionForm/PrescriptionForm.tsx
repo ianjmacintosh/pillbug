@@ -80,10 +80,14 @@ export interface PrescriptionFormData {
   status: string;
 }
 
+interface TimeSlot {
+  time: string;
+  quantity: string;
+}
+
 interface DosingSchedule {
   days: Set<DayOfWeek>;
-  times: string[];
-  quantity: string;
+  times: TimeSlot[];
   daysError: boolean;
   timesError: boolean;
 }
@@ -96,8 +100,7 @@ function initSchedules(prescription?: PrescriptionFormData): DosingSchedule[] {
     return [
       {
         days: new Set(),
-        times: ["09:00"],
-        quantity: "1",
+        times: [{ time: "09:00", quantity: "1" }],
         daysError: false,
         timesError: false,
       },
@@ -111,8 +114,9 @@ function initSchedules(prescription?: PrescriptionFormData): DosingSchedule[] {
     if (!bySignature.has(sig)) {
       bySignature.set(sig, {
         days: new Set(),
-        times: [...times].sort(),
-        quantity: defaultQuantity,
+        times: [...times]
+          .sort()
+          .map((t) => ({ time: t, quantity: defaultQuantity })),
         daysError: false,
         timesError: false,
       });
@@ -127,7 +131,6 @@ function initSchedules(prescription?: PrescriptionFormData): DosingSchedule[] {
         {
           days: new Set(),
           times: [],
-          quantity: defaultQuantity,
           daysError: false,
           timesError: false,
         },
@@ -186,9 +189,11 @@ function usePrescriptionForm(prescription?: PrescriptionFormData) {
       Record<DayOfWeek, { time: string; quantity: number }[]>
     > = {};
     for (const schedule of schedules) {
-      const qty = parseFloat(schedule.quantity) || 1;
       for (const day of schedule.days) {
-        days[day] = schedule.times.map((time) => ({ time, quantity: qty }));
+        days[day] = schedule.times.map((slot) => ({
+          time: slot.time,
+          quantity: parseFloat(slot.quantity) || 1,
+        }));
       }
     }
     return { days, timezoneMode: "local" as const };
@@ -198,7 +203,8 @@ function usePrescriptionForm(prescription?: PrescriptionFormData) {
     const next = schedules.map((s) => ({
       ...s,
       daysError: s.days.size === 0,
-      timesError: s.times.length === 0 || s.times.some((t) => t === ""),
+      timesError:
+        s.times.length === 0 || s.times.some((slot) => slot.time === ""),
     }));
     setSchedules(next);
     return next.every((s) => !s.daysError && !s.timesError);
@@ -209,8 +215,7 @@ function usePrescriptionForm(prescription?: PrescriptionFormData) {
       ...prev,
       {
         days: new Set(),
-        times: ["09:00"],
-        quantity: "1",
+        times: [{ time: "09:00", quantity: "1" }],
         daysError: false,
         timesError: false,
       },
@@ -242,7 +247,11 @@ function usePrescriptionForm(prescription?: PrescriptionFormData) {
     setSchedules((prev) =>
       prev.map((s, i) =>
         i === scheduleIndex
-          ? { ...s, times: [...s.times, "09:00"], timesError: false }
+          ? {
+              ...s,
+              times: [...s.times, { time: "09:00", quantity: "1" }],
+              timesError: false,
+            }
           : s,
       ),
     );
@@ -258,8 +267,29 @@ function usePrescriptionForm(prescription?: PrescriptionFormData) {
         i === scheduleIndex
           ? {
               ...s,
-              times: s.times.map((t, j) => (j === timeIndex ? value : t)),
+              times: s.times.map((slot, j) =>
+                j === timeIndex ? { ...slot, time: value } : slot,
+              ),
               timesError: false,
+            }
+          : s,
+      ),
+    );
+  }
+
+  function updateSlotQuantity(
+    scheduleIndex: number,
+    timeIndex: number,
+    value: string,
+  ) {
+    setSchedules((prev) =>
+      prev.map((s, i) =>
+        i === scheduleIndex
+          ? {
+              ...s,
+              times: s.times.map((slot, j) =>
+                j === timeIndex ? { ...slot, quantity: value } : slot,
+              ),
             }
           : s,
       ),
@@ -277,12 +307,6 @@ function usePrescriptionForm(prescription?: PrescriptionFormData) {
             }
           : s,
       ),
-    );
-  }
-
-  function updateDoseAmount(scheduleIndex: number, value: string) {
-    setSchedules((prev) =>
-      prev.map((s, i) => (i === scheduleIndex ? { ...s, quantity: value } : s)),
     );
   }
 
@@ -318,8 +342,8 @@ function usePrescriptionForm(prescription?: PrescriptionFormData) {
     toggleDay,
     addDoseTime,
     updateDoseTime,
+    updateSlotQuantity,
     removeDoseTime,
-    updateDoseAmount,
   };
 }
 
@@ -353,8 +377,12 @@ interface FormFieldsProps {
     timeIndex: number,
     value: string,
   ) => void;
+  updateSlotQuantity: (
+    scheduleIndex: number,
+    timeIndex: number,
+    value: string,
+  ) => void;
   removeDoseTime: (scheduleIndex: number, timeIndex: number) => void;
-  updateDoseAmount: (scheduleIndex: number, value: string) => void;
 }
 
 function FormFields({
@@ -383,8 +411,8 @@ function FormFields({
   toggleDay,
   addDoseTime,
   updateDoseTime,
+  updateSlotQuantity,
   removeDoseTime,
-  updateDoseAmount,
 }: FormFieldsProps) {
   return (
     <>
@@ -569,13 +597,38 @@ function FormFields({
                     Please add at least one dose time.
                   </p>
                 )}
-                {schedule.times.map((time, timeIndex) => (
-                  <div key={timeIndex} className="dose-time-entry">
-                    <label>
-                      Time {timeIndex + 1}
+                <div className="dose-times-table">
+                  {schedule.times.length > 0 && (
+                    <div className="dose-times-header" aria-hidden="true">
+                      <span>Qty</span>
+                      <span>Form</span>
+                      <span>Time</span>
+                      <span />
+                    </div>
+                  )}
+                  {schedule.times.map((slot, timeIndex) => (
+                    <div key={timeIndex} className="dose-time-entry">
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        aria-label={`Quantity ${timeIndex + 1}`}
+                        value={slot.quantity}
+                        onChange={(e) =>
+                          updateSlotQuantity(
+                            scheduleIndex,
+                            timeIndex,
+                            e.target.value,
+                          )
+                        }
+                        className="dose-time-qty-input"
+                      />
+                      <span className="dose-time-form-label" aria-hidden="true">
+                        {doseForm}
+                      </span>
                       <input
                         type="time"
-                        value={time}
+                        aria-label={`Time ${timeIndex + 1}`}
+                        value={slot.time}
                         onChange={(e) =>
                           updateDoseTime(
                             scheduleIndex,
@@ -584,45 +637,26 @@ function FormFields({
                           )
                         }
                       />
-                    </label>
-                    <button
-                      type="button"
-                      className="remove-time"
-                      aria-label="Remove time"
-                      disabled={schedule.times.length === 1}
-                      onClick={() => removeDoseTime(scheduleIndex, timeIndex)}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  className="add-dose-time"
-                  onClick={() => addDoseTime(scheduleIndex)}
-                >
-                  + Add new dose time
-                </button>
-              </fieldset>
-
-              <div className="dose-amount-row">
-                <label htmlFor={`${idPrefix}-doseAmount-${scheduleIndex}`}>
-                  Dose amount
-                </label>
-                <div className="dose-amount-input-group">
-                  <input
-                    id={`${idPrefix}-doseAmount-${scheduleIndex}`}
-                    type="text"
-                    inputMode="decimal"
-                    value={schedule.quantity}
-                    onChange={(e) =>
-                      updateDoseAmount(scheduleIndex, e.target.value)
-                    }
-                    className="dose-amount-input"
-                  />
-                  <span className="dose-amount-unit">{doseForm}</span>
+                      <button
+                        type="button"
+                        className="remove-time"
+                        aria-label="Remove time"
+                        disabled={schedule.times.length === 1}
+                        onClick={() => removeDoseTime(scheduleIndex, timeIndex)}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className="add-dose-time"
+                    onClick={() => addDoseTime(scheduleIndex)}
+                  >
+                    + Add new dose time
+                  </button>
                 </div>
-              </div>
+              </fieldset>
             </div>
           ))}
 

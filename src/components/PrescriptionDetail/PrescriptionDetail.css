@@ -70,3 +70,25 @@
 .prescription-detail-routine + .prescription-detail-routine {
   margin-top: 1.5rem;
 }
+
+.dose-times-table {
+  display: grid;
+  grid-template-columns: 4.5rem max-content 1fr 2rem;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+}
+
+.dose-times-header,
+.dose-times-table .dose-time-entry {
+  display: contents;
+}
+
+.dose-times-header > span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #667085;
+}
+
+.dose-times-table > .add-dose-time {
+  grid-column: 1 / -1;
+}

@@ -160,30 +160,30 @@ describe("NewPrescriptionForm", () => {
   });
 
   describe("dose amount", () => {
-    test("dosing schedule block has a dose amount input defaulting to 1", async () => {
+    test("each dose time slot has a quantity input defaulting to 1", async () => {
       await renderNewForm();
       expect(
-        (screen.getByLabelText(/dose amount/i) as HTMLInputElement).value,
+        (screen.getByLabelText(/quantity 1/i) as HTMLInputElement).value,
       ).toBe("1");
     });
 
-    test("dose amount input shows the current form type as its unit", async () => {
+    test("each dose time slot shows the current form type as its unit label", async () => {
       await renderNewForm();
-      const doseAmountInput = screen.getByLabelText(/dose amount/i);
-      expect(
-        doseAmountInput.closest(".dose-amount-row")?.textContent,
-      ).toContain("tablet");
+      const qtyInput = screen.getByLabelText(/quantity 1/i);
+      expect(qtyInput.closest(".dose-time-entry")?.textContent).toContain(
+        "tablet",
+      );
 
       await userEvent.selectOptions(
         screen.getByRole("combobox", { name: /form/i }),
         "capsule",
       );
-      expect(
-        doseAmountInput.closest(".dose-amount-row")?.textContent,
-      ).toContain("capsule");
+      expect(qtyInput.closest(".dose-time-entry")?.textContent).toContain(
+        "capsule",
+      );
     });
 
-    test("schedule slots include the dose amount as quantity", async () => {
+    test("schedule slots include the slot quantity as quantity", async () => {
       const fetchSpy = vi
         .spyOn(globalThis, "fetch")
         .mockResolvedValueOnce(
@@ -197,9 +197,9 @@ describe("NewPrescriptionForm", () => {
         "mg",
       );
       await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
-      const doseAmountInput = screen.getByLabelText(/dose amount/i);
-      await userEvent.clear(doseAmountInput);
-      await userEvent.type(doseAmountInput, "2");
+      const qtyInput = screen.getByLabelText(/quantity 1/i);
+      await userEvent.clear(qtyInput);
+      await userEvent.type(qtyInput, "2");
 
       await userEvent.click(screen.getByRole("button", { name: /save/i }));
 
@@ -824,11 +824,11 @@ describe("EditPrescriptionForm", () => {
     ).toBe("capsule");
   });
 
-  test("pre-populates dose amount from doseCount in loader", async () => {
+  test("pre-populates slot quantity from doseCount in loader", async () => {
     const prescription = { ...SAMPLE, doseCount: 2 };
     await renderEditForm(prescription);
     expect(
-      (screen.getByLabelText(/dose amount/i) as HTMLInputElement).value,
+      (screen.getByLabelText(/quantity 1/i) as HTMLInputElement).value,
     ).toBe("2");
   });
 
