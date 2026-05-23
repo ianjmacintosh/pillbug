@@ -82,24 +82,44 @@ export interface PrescriptionFormData {
   status: string;
 }
 
-function initScheduledDays(
-  prescription?: PrescriptionFormData,
-): Set<DayOfWeek> {
-  if (!prescription) return new Set();
-  const days = new Set<DayOfWeek>();
-  for (const [day, times] of Object.entries(prescription.schedule.days)) {
-    if (times && times.length > 0) days.add(day as DayOfWeek);
-  }
-  return days;
+interface Routine {
+  days: Set<DayOfWeek>;
+  times: string[];
+  daysError: boolean;
+  timesError: boolean;
 }
 
-function initDoseTimes(prescription?: PrescriptionFormData): string[] {
-  if (!prescription) return ["09:00"];
-  const allTimes = new Set<string>();
-  for (const times of Object.values(prescription.schedule.days)) {
-    if (times) times.forEach((t) => allTimes.add(t));
+function initRoutines(prescription?: PrescriptionFormData): Routine[] {
+  if (!prescription) {
+    return [
+      {
+        days: new Set(),
+        times: ["09:00"],
+        daysError: false,
+        timesError: false,
+      },
+    ];
   }
-  return Array.from(allTimes).sort();
+
+  const bySignature = new Map<string, Routine>();
+  for (const [day, times] of Object.entries(prescription.schedule.days)) {
+    if (!times || times.length === 0) continue;
+    const sig = JSON.stringify([...times].sort());
+    if (!bySignature.has(sig)) {
+      bySignature.set(sig, {
+        days: new Set(),
+        times: [...times].sort(),
+        daysError: false,
+        timesError: false,
+      });
+    }
+    bySignature.get(sig)!.days.add(day as DayOfWeek);
+  }
+
+  const routines = Array.from(bySignature.values());
+  return routines.length > 0
+    ? routines
+    : [{ days: new Set(), times: [], daysError: false, timesError: false }];
 }
 
 function usePrescriptionForm(prescription?: PrescriptionFormData) {
@@ -137,16 +157,11 @@ function usePrescriptionForm(prescription?: PrescriptionFormData) {
   const [instructions, setInstructions] = useState(() =>
     prescription ? (prescription.instructions ?? "") : "",
   );
-  const [scheduledDays, setScheduledDays] = useState<Set<DayOfWeek>>(() =>
-    initScheduledDays(prescription),
-  );
-  const [doseTimes, setDoseTimes] = useState<string[]>(() =>
-    initDoseTimes(prescription),
+  const [routines, setRoutines] = useState<Routine[]>(() =>
+    initRoutines(prescription),
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [daysError, setDaysError] = useState(false);
-  const [timesError, setTimesError] = useState(false);
   const [detectedDuplicateUnit, setDetectedDuplicateUnit] =
     useState<DosageUnit | null>(null);
 
@@ -159,48 +174,102 @@ function usePrescriptionForm(prescription?: PrescriptionFormData) {
 
   function buildSchedule(): Schedule {
     const days: Partial<Record<DayOfWeek, string[]>> = {};
-    for (const day of WEEKDAYS) {
-      if (scheduledDays.has(day)) days[day] = [...doseTimes];
+    for (const routine of routines) {
+      for (const day of routine.days) {
+        days[day] = [...routine.times];
+      }
     }
     return { days, timezoneMode: "local" };
   }
 
   function validateSchedule(): boolean {
-    const nextDaysError = scheduledDays.size === 0;
-    const nextTimesError =
-      doseTimes.length === 0 || doseTimes.some((t) => t === "");
-    setDaysError(nextDaysError);
-    setTimesError(nextTimesError);
-    return !nextDaysError && !nextTimesError;
+    const nextRoutines = routines.map((routine) => ({
+      ...routine,
+      daysError: routine.days.size === 0,
+      timesError:
+        routine.times.length === 0 || routine.times.some((t) => t === ""),
+    }));
+    setRoutines(nextRoutines);
+    return nextRoutines.every((r) => !r.daysError && !r.timesError);
   }
 
-  function toggleDay(day: DayOfWeek) {
-    const next = new Set(scheduledDays);
-    if (next.has(day)) next.delete(day);
-    else next.add(day);
-    setScheduledDays(next);
-    setDaysError(false);
+  function addRoutine() {
+    setRoutines((prev) => [
+      ...prev,
+      {
+        days: new Set(),
+        times: ["09:00"],
+        daysError: false,
+        timesError: false,
+      },
+    ]);
   }
 
-  function toggleAllDays() {
-    if (scheduledDays.size === WEEKDAYS.length) setScheduledDays(new Set());
-    else setScheduledDays(new Set(WEEKDAYS));
-    setDaysError(false);
+  function removeRoutine(index: number) {
+    setRoutines((prev) => prev.filter((_, i) => i !== index));
   }
 
-  function addDoseTime() {
-    setDoseTimes((prev) => [...prev, "09:00"]);
-    setTimesError(false);
+  function toggleDay(routineIndex: number, day: DayOfWeek) {
+    setRoutines((prev) =>
+      prev.map((routine, i) => {
+        if (i === routineIndex) {
+          const next = new Set(routine.days);
+          if (next.has(day)) next.delete(day);
+          else next.add(day);
+          return { ...routine, days: next, daysError: false };
+        }
+        // Enforce day exclusivity across routines
+        const next = new Set(routine.days);
+        next.delete(day);
+        return { ...routine, days: next };
+      }),
+    );
   }
 
-  function updateDoseTime(index: number, value: string) {
-    setDoseTimes((prev) => prev.map((t, i) => (i === index ? value : t)));
-    setTimesError(false);
+  function addDoseTime(routineIndex: number) {
+    setRoutines((prev) =>
+      prev.map((routine, i) =>
+        i === routineIndex
+          ? {
+              ...routine,
+              times: [...routine.times, "09:00"],
+              timesError: false,
+            }
+          : routine,
+      ),
+    );
   }
 
-  function removeDoseTime(index: number) {
-    setDoseTimes((prev) => prev.filter((_, i) => i !== index));
-    setTimesError(false);
+  function updateDoseTime(
+    routineIndex: number,
+    timeIndex: number,
+    value: string,
+  ) {
+    setRoutines((prev) =>
+      prev.map((routine, i) =>
+        i === routineIndex
+          ? {
+              ...routine,
+              times: routine.times.map((t, j) => (j === timeIndex ? value : t)),
+              timesError: false,
+            }
+          : routine,
+      ),
+    );
+  }
+
+  function removeDoseTime(routineIndex: number, timeIndex: number) {
+    setRoutines((prev) =>
+      prev.map((routine, i) =>
+        i === routineIndex
+          ? {
+              ...routine,
+              times: routine.times.filter((_, j) => j !== timeIndex),
+              timesError: false,
+            }
+          : routine,
+      ),
+    );
   }
 
   return {
@@ -222,21 +291,19 @@ function usePrescriptionForm(prescription?: PrescriptionFormData) {
     setEndDate,
     instructions,
     setInstructions,
-    scheduledDays,
-    doseTimes,
+    routines,
     submitting,
     setSubmitting,
     error,
     setError,
-    daysError,
-    timesError,
     detectedDuplicateUnit,
     setDetectedDuplicateUnit,
     buildDosage,
     buildSchedule,
     validateSchedule,
+    addRoutine,
+    removeRoutine,
     toggleDay,
-    toggleAllDays,
     addDoseTime,
     updateDoseTime,
     removeDoseTime,
@@ -263,17 +330,19 @@ interface FormFieldsProps {
   setEndDate: (v: string) => void;
   instructions: string;
   setInstructions: (v: string) => void;
-  scheduledDays: Set<DayOfWeek>;
-  doseTimes: string[];
-  daysError: boolean;
-  timesError: boolean;
+  routines: Routine[];
   detectedDuplicateUnit: DosageUnit | null;
   setDetectedDuplicateUnit: (v: DosageUnit | null) => void;
-  toggleDay: (day: DayOfWeek) => void;
-  toggleAllDays: () => void;
-  addDoseTime: () => void;
-  updateDoseTime: (index: number, value: string) => void;
-  removeDoseTime: (index: number) => void;
+  addRoutine: () => void;
+  removeRoutine: (index: number) => void;
+  toggleDay: (routineIndex: number, day: DayOfWeek) => void;
+  addDoseTime: (routineIndex: number) => void;
+  updateDoseTime: (
+    routineIndex: number,
+    timeIndex: number,
+    value: string,
+  ) => void;
+  removeDoseTime: (routineIndex: number, timeIndex: number) => void;
 }
 
 function FormFields({
@@ -296,14 +365,12 @@ function FormFields({
   setEndDate,
   instructions,
   setInstructions,
-  scheduledDays,
-  doseTimes,
-  daysError,
-  timesError,
+  routines,
   detectedDuplicateUnit,
   setDetectedDuplicateUnit,
+  addRoutine,
+  removeRoutine,
   toggleDay,
-  toggleAllDays,
   addDoseTime,
   updateDoseTime,
   removeDoseTime,
@@ -450,81 +517,98 @@ function FormFields({
 
       <section className="prescription-detail-schedule">
         <h3>Schedule</h3>
-        <div className="schedule-section">
-          <fieldset
-            className="schedule-days"
-            aria-label="Days"
-            aria-invalid={daysError ? true : undefined}
-          >
-            <legend>
-              Days
+        <div className="routine-list">
+          {routines.map((routine, routineIndex) => (
+            <div key={routineIndex} className="routine-block">
               <button
                 type="button"
-                className="toggle-all-link"
-                onClick={toggleAllDays}
+                className="routine-remove-btn button-secondary button-sm"
+                aria-label="Remove routine"
+                disabled={routines.length === 1}
+                onClick={() => removeRoutine(routineIndex)}
               >
-                {scheduledDays.size === WEEKDAYS.length
-                  ? "(Unselect all)"
-                  : "(Select all)"}
+                Remove routine
               </button>
-            </legend>
-            {daysError && (
-              <p role="alert" className="schedule-error-message">
-                Please select at least one day.
-              </p>
-            )}
-            <div className="day-pills-row">
-              {WEEKDAYS.map((day) => (
-                <label key={day} className="day-pill">
-                  <input
-                    type="checkbox"
-                    className="visually-hidden"
-                    checked={scheduledDays.has(day)}
-                    onChange={() => toggleDay(day)}
-                    aria-label={DAY_LABELS[day]}
-                  />
-                  <span aria-hidden="true">{DAY_ABBRS[day]}</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
 
-          <fieldset aria-invalid={timesError ? true : undefined}>
-            <legend>Dose times</legend>
-            {timesError && (
-              <p role="alert" className="schedule-error-message">
-                Please add at least one dose time.
-              </p>
-            )}
-            {doseTimes.map((time, i) => (
-              <div key={i} className="dose-time-entry">
-                <label>
-                  Time {i + 1}
-                  <input
-                    type="time"
-                    value={time}
-                    onChange={(e) => updateDoseTime(i, e.target.value)}
-                  />
-                </label>
+              <fieldset
+                className="schedule-days"
+                aria-label="Days"
+                aria-invalid={routine.daysError ? true : undefined}
+              >
+                <legend>Days</legend>
+                {routine.daysError && (
+                  <p role="alert" className="schedule-error-message">
+                    Please select at least one day.
+                  </p>
+                )}
+                <div className="day-pills-row">
+                  {WEEKDAYS.map((day) => (
+                    <label key={day} className="day-pill">
+                      <input
+                        type="checkbox"
+                        className="visually-hidden"
+                        checked={routine.days.has(day)}
+                        onChange={() => toggleDay(routineIndex, day)}
+                        aria-label={DAY_LABELS[day]}
+                      />
+                      <span aria-hidden="true">{DAY_ABBRS[day]}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+
+              <fieldset aria-invalid={routine.timesError ? true : undefined}>
+                <legend>Dose times</legend>
+                {routine.timesError && (
+                  <p role="alert" className="schedule-error-message">
+                    Please add at least one dose time.
+                  </p>
+                )}
+                {routine.times.map((time, timeIndex) => (
+                  <div key={timeIndex} className="dose-time-entry">
+                    <label>
+                      Time {timeIndex + 1}
+                      <input
+                        type="time"
+                        value={time}
+                        onChange={(e) =>
+                          updateDoseTime(
+                            routineIndex,
+                            timeIndex,
+                            e.target.value,
+                          )
+                        }
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className="remove-time"
+                      aria-label="Remove time"
+                      disabled={routine.times.length === 1}
+                      onClick={() => removeDoseTime(routineIndex, timeIndex)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
                 <button
                   type="button"
-                  className="remove-time"
-                  aria-label="Remove"
-                  disabled={doseTimes.length === 1}
-                  onClick={() => removeDoseTime(i)}
+                  className="add-dose-time"
+                  onClick={() => addDoseTime(routineIndex)}
                 >
-                  ×
+                  + Add new dose time
                 </button>
-              </div>
-            ))}
-            <button
-              type="button"
-              className="add-dose-time"
-              onClick={addDoseTime}
-            >
-              + Add new dose time
-            </button>
-          </fieldset>
+              </fieldset>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            className="button-secondary button-sm"
+            onClick={addRoutine}
+          >
+            + Add routine
+          </button>
         </div>
       </section>
 

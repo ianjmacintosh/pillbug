@@ -461,21 +461,6 @@ describe("NewPrescriptionForm", () => {
       }
     });
 
-    test("create form renders a 'Select all' text link", async () => {
-      await renderNewForm();
-      expect(screen.getByRole("button", { name: /select all/i })).toBeTruthy();
-    });
-
-    test("'Select all' link text changes to 'Unselect all' when all days are selected", async () => {
-      await renderNewForm();
-      await userEvent.click(
-        screen.getByRole("button", { name: /select all/i }),
-      );
-      expect(
-        screen.getByRole("button", { name: /unselect all/i }),
-      ).toBeTruthy();
-    });
-
     test("create form shows three-letter day labels (Sun Mon Tue…)", async () => {
       await renderNewForm();
       const abbrs = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -519,8 +504,11 @@ describe("NewPrescriptionForm", () => {
     test("Remove button is disabled when there is only one dose time", async () => {
       await renderNewForm();
       expect(
-        (screen.getByRole("button", { name: /remove/i }) as HTMLButtonElement)
-          .disabled,
+        (
+          screen.getByRole("button", {
+            name: /remove time/i,
+          }) as HTMLButtonElement
+        ).disabled,
       ).toBe(true);
     });
 
@@ -529,7 +517,9 @@ describe("NewPrescriptionForm", () => {
       await userEvent.click(
         screen.getByRole("button", { name: /new dose time/i }),
       );
-      const removeButtons = screen.getAllByRole("button", { name: /remove/i });
+      const removeButtons = screen.getAllByRole("button", {
+        name: /remove time/i,
+      });
       expect(
         removeButtons.every((b) => !(b as HTMLButtonElement).disabled),
       ).toBe(true);
@@ -542,7 +532,7 @@ describe("NewPrescriptionForm", () => {
       );
       expect(screen.getByLabelText(/time 2/i)).toBeTruthy();
       await userEvent.click(
-        screen.getAllByRole("button", { name: /remove/i })[1],
+        screen.getAllByRole("button", { name: /remove time/i })[1],
       );
       expect(screen.queryByLabelText(/time 2/i)).toBeNull();
       expect(screen.getByLabelText(/time 1/i)).toBeTruthy();
@@ -703,6 +693,85 @@ describe("NewPrescriptionForm", () => {
       ).toBeNull();
     });
   });
+
+  describe("routines", () => {
+    test("'Remove routine' button is disabled when only one routine exists", async () => {
+      await renderNewForm();
+      expect(
+        (
+          screen.getByRole("button", {
+            name: /remove routine/i,
+          }) as HTMLButtonElement
+        ).disabled,
+      ).toBe(true);
+    });
+
+    test("'+ Add routine' adds a second routine block", async () => {
+      await renderNewForm();
+      expect(screen.getAllByRole("group", { name: /days/i })).toHaveLength(1);
+      await userEvent.click(
+        screen.getByRole("button", { name: /add routine/i }),
+      );
+      expect(screen.getAllByRole("group", { name: /days/i })).toHaveLength(2);
+    });
+
+    test("clicking 'Remove routine' removes that routine", async () => {
+      await renderNewForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /add routine/i }),
+      );
+      expect(screen.getAllByRole("group", { name: /days/i })).toHaveLength(2);
+      const removeButtons = screen.getAllByRole("button", {
+        name: /remove routine/i,
+      });
+      await userEvent.click(removeButtons[1]);
+      expect(screen.getAllByRole("group", { name: /days/i })).toHaveLength(1);
+    });
+
+    test("submitting with two routines sends both days in the correct schedule", async () => {
+      const fetchSpy = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(SAMPLE), { status: 201 }),
+        );
+      await renderNewForm();
+
+      await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
+      await userEvent.type(screen.getByLabelText(/strength/i), "100");
+      await userEvent.selectOptions(
+        screen.getByRole("combobox", { name: /unit/i }),
+        "mg",
+      );
+
+      // Routine 1: Monday at default 09:00
+      await userEvent.click(
+        screen.getAllByRole("checkbox", { name: "Monday" })[0],
+      );
+
+      // Add routine 2
+      await userEvent.click(
+        screen.getByRole("button", { name: /add routine/i }),
+      );
+
+      // Routine 2: Friday at 08:00
+      await userEvent.click(
+        screen.getAllByRole("checkbox", { name: "Friday" })[1],
+      );
+      const routine2Time = screen.getAllByLabelText(
+        /time 1/i,
+      )[1] as HTMLInputElement;
+      await userEvent.clear(routine2Time);
+      await userEvent.type(routine2Time, "08:00");
+
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      const body = JSON.parse(
+        (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
+      );
+      expect(body.schedule.days.monday).toEqual(["09:00"]);
+      expect(body.schedule.days.friday).toEqual(["08:00"]);
+    });
+  });
 });
 
 describe("EditPrescriptionForm", () => {
@@ -748,7 +817,10 @@ describe("EditPrescriptionForm", () => {
     const prescription = {
       ...SAMPLE,
       schedule: {
-        days: { monday: ["08:00"], friday: ["08:00", "20:00"] },
+        days: {
+          monday: ["08:00", "20:00"],
+          wednesday: ["08:00", "20:00"],
+        },
         timezoneMode: "local" as const,
       },
     };
@@ -759,7 +831,7 @@ describe("EditPrescriptionForm", () => {
         .checked,
     ).toBe(true);
     expect(
-      (screen.getByRole("checkbox", { name: "Friday" }) as HTMLInputElement)
+      (screen.getByRole("checkbox", { name: "Wednesday" }) as HTMLInputElement)
         .checked,
     ).toBe(true);
     expect(
@@ -767,11 +839,12 @@ describe("EditPrescriptionForm", () => {
         .checked,
     ).toBe(false);
 
-    const timeInput1 = screen.getByLabelText(/time 1/i) as HTMLInputElement;
-    const timeInput2 = screen.getByLabelText(/time 2/i) as HTMLInputElement;
-    const timeValues = [timeInput1.value, timeInput2.value].sort();
-    expect(timeValues).toContain("08:00");
-    expect(timeValues).toContain("20:00");
+    expect((screen.getByLabelText(/time 1/i) as HTMLInputElement).value).toBe(
+      "08:00",
+    );
+    expect((screen.getByLabelText(/time 2/i) as HTMLInputElement).value).toBe(
+      "20:00",
+    );
   });
 
   test("pre-populates quantity and unit when dosage matches 'quantity unit' format", async () => {
@@ -927,18 +1000,16 @@ describe("EditPrescriptionForm", () => {
       doseForm: "tablet",
       schedule: { days: { monday: ["08:00"] }, timezoneMode: "local" as const },
     };
-    const fetchSpy = vi
-      .spyOn(globalThis, "fetch")
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            ...prescription,
-            doseCount: 2,
-            doseForm: "capsule",
-          }),
-          { status: 200 },
-        ),
-      );
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          ...prescription,
+          doseCount: 2,
+          doseForm: "capsule",
+        }),
+        { status: 200 },
+      ),
+    );
 
     await renderEditForm(prescription);
 
