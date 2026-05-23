@@ -674,7 +674,7 @@ describe("NewPrescriptionForm", () => {
 
       expect(
         screen
-          .getByRole("group", { name: /dose times/i })
+          .getByRole("group", { name: /days and times/i })
           .getAttribute("aria-invalid"),
       ).toBe("true");
     });
@@ -694,7 +694,7 @@ describe("NewPrescriptionForm", () => {
 
       expect(
         screen
-          .getByRole("group", { name: /dose times/i })
+          .getByRole("group", { name: /days and times/i })
           .getAttribute("aria-invalid"),
       ).toBeNull();
     });

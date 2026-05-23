@@ -559,10 +559,11 @@ function FormFields({
 
               <fieldset
                 className="schedule-days"
-                aria-label="Days"
-                aria-invalid={schedule.daysError ? true : undefined}
+                aria-invalid={
+                  schedule.daysError || schedule.timesError ? true : undefined
+                }
               >
-                <legend>Days</legend>
+                <legend>Days and Times</legend>
                 {schedule.daysError && (
                   <p role="alert" className="schedule-error-message">
                     Please select at least one day.
@@ -582,10 +583,6 @@ function FormFields({
                     </label>
                   ))}
                 </div>
-              </fieldset>
-
-              <fieldset aria-invalid={schedule.timesError ? true : undefined}>
-                <legend>Dose times</legend>
                 {schedule.timesError && (
                   <p role="alert" className="schedule-error-message">
                     Please add at least one dose time.
