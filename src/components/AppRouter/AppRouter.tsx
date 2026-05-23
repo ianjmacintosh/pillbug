@@ -21,6 +21,10 @@ import EnterCode from "../EnterCode";
 import PrescriptionDetail, {
   type Prescription as PrescriptionDetailData,
 } from "../PrescriptionDetail";
+import {
+  EditPrescriptionForm,
+  NewPrescriptionForm,
+} from "../PrescriptionForm/PrescriptionForm";
 
 const rootRoute = createRootRoute({
   component: Outlet,
@@ -233,6 +237,13 @@ const DEMO_PRESCRIPTIONS: Record<string, PrescriptionDetailData> = {
   },
 };
 
+const prescriptionNewRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: "/prescriptions/new",
+  beforeLoad: requireAuth,
+  component: NewPrescriptionForm,
+});
+
 const prescriptionDetailRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/prescriptions/$id",
@@ -240,6 +251,15 @@ const prescriptionDetailRoute = createRoute({
   loader: ({ params }) =>
     DEMO_PRESCRIPTIONS[params.id] ?? DEMO_PRESCRIPTIONS["daily"],
   component: PrescriptionDetail,
+});
+
+const prescriptionEditRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: "/prescriptions/$id/edit",
+  beforeLoad: requireAuth,
+  loader: ({ params }) =>
+    DEMO_PRESCRIPTIONS[params.id] ?? DEMO_PRESCRIPTIONS["daily"],
+  component: EditPrescriptionForm,
 });
 
 const logoutRoute = createRoute({
@@ -265,7 +285,9 @@ const routeTree = rootRoute.addChildren([
     settingsRoute,
     fillSessionRoute,
     prescriptionsRoute,
+    prescriptionNewRoute,
     prescriptionDetailRoute,
+    prescriptionEditRoute,
     logoutRoute,
     enterCodeRoute,
   ]),
