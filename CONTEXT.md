@@ -41,21 +41,23 @@ _Avoid_: Challenge screen, Verify screen, Check your email
 A medication a clinician has directed the Patient to take on a schedule.
 _Avoid_: Medication (too generic — doesn't imply a schedule or clinical directive), Task, Regimen Item
 
-Fields: count (number of physical units per dose, e.g. 2 for "take 2 tablets"; decimal to support half-tablet doses), form factor (physical unit type: tablet / capsule / pill / other), drug name (free text with autocomplete), dosage (free text, e.g. "10 mg"), schedule (see **Schedule**), start date (required), end date (optional), prescribing Doctor (optional), instructions (optional free text), status (Active, Completed, Paused, or Discontinued).
-
-The count and form factor fields are entered before drug name and dosage so that a Patient establishing "2 tablets of 10 mg Metformin" sets the count and form first, then the per-unit strength — preventing the common error of mentally totalling to 20 mg before entering the per-unit value.
+Fields: form factor (physical unit type: tablet / capsule / pill / other), drug name (free text with autocomplete), dosage (free text, e.g. "10 mg"), schedule (see **Schedule** — per-slot quantity lives here, not at the Prescription level), start date (required), end date (optional), prescribing Doctor (optional), instructions (optional free text), status (Active, Completed, Paused, or Discontinued).
 
 Status values: **Active** (generating Reminders), **Completed** (reached end date), **Paused** (temporarily suspended, expected to resume), **Discontinued** (stopped early, will not resume).
 
 A Prescription can be hard-deleted. Deletion is permanent and cascades to all associated Dose history.
 
+**Prescription Detail**:
+The read-only view of a single Prescription's information, accessible at `/prescriptions/:id`. Shows the drug name, strength, duration, form factor, and a summarized Schedule (dose times and per-slot quantities). Provides the entry point for editing (navigates to `/prescriptions/:id/edit`) and deleting a Prescription. Reached from the Prescription list (`/prescriptions`) and from the "View Details" link on each Scheduled Dose row in the Scheduled Dose List.
+_Avoid_: Prescription view, Prescription summary, Prescription page
+
 **Schedule**:
-The set of clock-based times at which a Patient should take a Prescription, on specified days of the week.
+The set of clock-based times and per-slot quantities at which a Patient should take a Prescription, on specified days of the week.
 _Avoid_: Recurrence, Timetable, Frequency
 
-Fields: days (a map of day-of-week → list of HH:MM times for that day).
+Fields: days (a map of day-of-week → list of dose-slot objects for that day).
 
-Stored as JSON in the `schedule` column. Each day is keyed independently (e.g. `{ "monday": ["08:00"], "friday": ["08:00", "20:00"] }`), supporting different times per day.
+Stored as JSON in the `schedule` column. Each day is keyed independently and maps to a list of objects with `time` (HH:MM) and `quantity` (number of physical units for that slot). Example: `{ "monday": [{ "time": "08:00", "quantity": 2 }], "friday": [{ "time": "08:00", "quantity": 1 }, { "time": "20:00", "quantity": 2 }] }`. Supporting different times and quantities per day.
 
 **Doctor**:
 A healthcare provider optionally associated with one or more Prescriptions. Private to each Patient. Required field: name. Optional fields: phone, address, email.
@@ -117,7 +119,7 @@ A public form on Pillbug for constructing a Prescription Suggestion URL. Accessi
 _Avoid_: Rx tool, Link builder, Prescription creator
 
 **Scheduled Dose List (Week View)**:
-The Patient's home screen: a checklist of all Scheduled Doses for the current calendar week (Monday–Sunday), grouped under a heading per day. Shows Active Prescriptions only. Future Scheduled Doses (days not yet reached) are visible but not actionable — no pre-logging. Past unresolved Scheduled Doses remain actionable; the Patient can still log them retroactively. The Patient can navigate backward week-by-week to the Monday of the week containing their Registration date; forward navigation is blocked. Checking a Scheduled Dose's checkbox records a taken Dose at the actual current time; unchecking removes the Dose record. A Dose logged via Reminder resolution also resolves the corresponding Scheduled Dose here.
+The Patient's home screen: a checklist of all Scheduled Doses for the current calendar week (Monday–Sunday), grouped under a heading per day. Shows Active Prescriptions only. Future Scheduled Doses (days not yet reached) are visible but not actionable — no pre-logging. Past unresolved Scheduled Doses remain actionable; the Patient can still log them retroactively. The Patient can navigate backward week-by-week to the Monday of the week containing their Registration date; forward navigation is blocked. Checking a Scheduled Dose's checkbox records a taken Dose at the actual current time; unchecking removes the Dose record. A Dose logged via Reminder resolution also resolves the corresponding Scheduled Dose here. Each Scheduled Dose row includes a "View Details" link navigating to the Prescription Detail for the corresponding Prescription.
 _Avoid_: Home, Weekly view, Dose schedule, Medication checklist
 
 **Adherence Record**:
@@ -243,7 +245,6 @@ erDiagram
     prescriptions {
         TEXT id PK
         TEXT patient_id FK
-        DECIMAL dose_count "NOT NULL, default 1"
         TEXT dose_form "NOT NULL, default tablet"
         TEXT drug_name "NOT NULL"
         TEXT dosage "NOT NULL"
@@ -257,21 +258,20 @@ erDiagram
     }
 ```
 
-| Column               | Description                                                                                                                                  |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`                 | UUID primary key                                                                                                                             |
-| `patient_id`         | Owning Patient; cascades on delete                                                                                                           |
-| `dose_count`         | Number of physical units (tablets/capsules) per dose (e.g., `2` for "take 2 tablets"); decimal to support half-tablet doses; defaults to `1` |
-| `dose_form`          | Physical form of the unit: `tablet`, `capsule`, `pill`, or `other`; defaults to `tablet`                                                     |
-| `drug_name`          | Free-text drug name (e.g., "Metformin")                                                                                                      |
-| `dosage`             | Free-text prescribed amount (e.g., "500mg", "two 20mg tablets")                                                                              |
-| `schedule`           | JSON map of day-of-week → `HH:MM` time list (e.g., `{ "monday": ["08:00", "20:00"] }`)                                                       |
-| `start_date`         | `YYYY-MM-DD` date from which Scheduled Doses begin generating                                                                                |
-| `end_date`           | `YYYY-MM-DD` date after which no further Scheduled Doses generate; `NULL` = open-ended                                                       |
-| `prescribing_doctor` | Free-text doctor name; `NULL` if not provided                                                                                                |
-| `instructions`       | Free-text Patient-facing directions (e.g., "Take with food"); `NULL` if not provided                                                         |
-| `status`             | `active`, `completed`, `paused`, or `discontinued`; defaults to `active`                                                                     |
-| `created_at`         | When the Prescription record was created                                                                                                     |
+| Column               | Description                                                                                                                                                                                                              |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `id`                 | UUID primary key                                                                                                                                                                                                         |
+| `patient_id`         | Owning Patient; cascades on delete                                                                                                                                                                                       |
+| `dose_form`          | Physical form of the unit: `tablet`, `capsule`, `pill`, or `other`; defaults to `tablet`                                                                                                                                 |
+| `drug_name`          | Free-text drug name (e.g., "Metformin")                                                                                                                                                                                  |
+| `dosage`             | Free-text prescribed amount (e.g., "500mg", "two 20mg tablets")                                                                                                                                                          |
+| `schedule`           | JSON map of day-of-week → list of `{ time: HH:MM, quantity: number }` objects (e.g., `{ "monday": [{ "time": "08:00", "quantity": 2 }] }`); per-slot quantity replaces the former prescription-level `dose_count` column |
+| `start_date`         | `YYYY-MM-DD` date from which Scheduled Doses begin generating                                                                                                                                                            |
+| `end_date`           | `YYYY-MM-DD` date after which no further Scheduled Doses generate; `NULL` = open-ended                                                                                                                                   |
+| `prescribing_doctor` | Free-text doctor name; `NULL` if not provided                                                                                                                                                                            |
+| `instructions`       | Free-text Patient-facing directions (e.g., "Take with food"); `NULL` if not provided                                                                                                                                     |
+| `status`             | `active`, `completed`, `paused`, or `discontinued`; defaults to `active`                                                                                                                                                 |
+| `created_at`         | When the Prescription record was created                                                                                                                                                                                 |
 
 ### Doses
 

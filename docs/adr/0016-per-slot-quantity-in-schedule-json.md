@@ -1,0 +1,3 @@
+# Per-slot quantity in schedule JSON, replacing prescription-level dose_count
+
+The prescription-level `dose_count` column stored a single quantity for all dose times on all days. This couldn't express schedules where the Patient takes a different number of units at different times (e.g., 2 tablets at 9am and 1 tablet at 9pm). We moved quantity into the schedule JSON, making each slot an object `{ time: HH:MM, quantity: number }` instead of a plain time string. The `dose_count` column is dropped from the `prescriptions` table; a migration seeds each existing slot with the former `dose_count` value. Form factor (tablet/capsule/pill) remains at the prescription level because a drug only ever comes in one physical form.
