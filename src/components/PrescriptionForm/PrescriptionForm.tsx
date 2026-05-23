@@ -416,11 +416,9 @@ function FormFields({
 }: FormFieldsProps) {
   return (
     <>
-      <dl className="prescription-detail-meta">
-        <dt>
+      <div className="drug-info-row">
+        <div className="field drug-name-field">
           <label htmlFor={`${idPrefix}-drugName`}>Drug name</label>
-        </dt>
-        <dd>
           <input
             id={`${idPrefix}-drugName`}
             type="text"
@@ -428,12 +426,10 @@ function FormFields({
             onChange={(e) => setDrugName(e.target.value)}
             required
           />
-        </dd>
+        </div>
 
-        <dt>
+        <div className="field">
           <label htmlFor={`${idPrefix}-dosage`}>Strength</label>
-        </dt>
-        <dd>
           {dosageFallback !== null ? (
             <input
               id={`${idPrefix}-dosage`}
@@ -500,12 +496,10 @@ function FormFields({
               ?
             </p>
           )}
-        </dd>
+        </div>
 
-        <dt>
+        <div className="field drug-form-field">
           <label htmlFor={`${idPrefix}-doseForm`}>Form</label>
-        </dt>
-        <dd>
           <select
             id={`${idPrefix}-doseForm`}
             value={doseForm}
@@ -516,8 +510,8 @@ function FormFields({
             <option value="pill">pill</option>
             <option value="other">other</option>
           </select>
-        </dd>
-      </dl>
+        </div>
+      </div>
 
       <section className="prescription-detail-schedule">
         <h3>Schedule</h3>

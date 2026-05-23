@@ -152,7 +152,15 @@
 }
 
 .prescriptions .drug-info-row .drug-name-field {
-  flex: 1;
+  flex: 2;
+}
+
+.prescriptions .drug-info-row .drug-form-field {
+  flex: 0 0 auto;
+}
+
+.prescriptions .drug-info-row .drug-form-field select {
+  width: 100%;
 }
 
 .prescriptions .drug-info-row .drug-dosage-field {
