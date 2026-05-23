@@ -597,65 +597,75 @@ function FormFields({
                     Please add at least one dose time.
                   </p>
                 )}
-                <div className="dose-times-table">
-                  {schedule.times.length > 0 && (
-                    <div className="dose-times-header" aria-hidden="true">
-                      <span>Qty</span>
-                      <span>Form</span>
-                      <span>Time</span>
-                      <span />
-                    </div>
-                  )}
-                  {schedule.times.map((slot, timeIndex) => (
-                    <div key={timeIndex} className="dose-time-entry">
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        aria-label={`Quantity ${timeIndex + 1}`}
-                        value={slot.quantity}
-                        onChange={(e) =>
-                          updateSlotQuantity(
-                            scheduleIndex,
-                            timeIndex,
-                            e.target.value,
-                          )
-                        }
-                        className="dose-time-qty-input"
-                      />
-                      <span className="dose-time-form-label" aria-hidden="true">
-                        {doseForm}
-                      </span>
-                      <input
-                        type="time"
-                        aria-label={`Time ${timeIndex + 1}`}
-                        value={slot.time}
-                        onChange={(e) =>
-                          updateDoseTime(
-                            scheduleIndex,
-                            timeIndex,
-                            e.target.value,
-                          )
-                        }
-                      />
-                      <button
-                        type="button"
-                        className="remove-time"
-                        aria-label="Remove time"
-                        disabled={schedule.times.length === 1}
-                        onClick={() => removeDoseTime(scheduleIndex, timeIndex)}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    className="add-dose-time"
-                    onClick={() => addDoseTime(scheduleIndex)}
-                  >
-                    + Add new dose time
-                  </button>
-                </div>
+                <table className="prescription-list">
+                  <thead>
+                    <tr>
+                      <th scope="col">Qty</th>
+                      <th scope="col">Form</th>
+                      <th scope="col">Time</th>
+                      <th scope="col">
+                        <span className="visually-hidden">Remove</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {schedule.times.map((slot, timeIndex) => (
+                      <tr key={timeIndex}>
+                        <td>
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            aria-label={`Quantity ${timeIndex + 1}`}
+                            value={slot.quantity}
+                            onChange={(e) =>
+                              updateSlotQuantity(
+                                scheduleIndex,
+                                timeIndex,
+                                e.target.value,
+                              )
+                            }
+                            className="dose-time-qty-input"
+                          />
+                        </td>
+                        <td>{doseForm}</td>
+                        <td>
+                          <input
+                            type="time"
+                            aria-label={`Time ${timeIndex + 1}`}
+                            value={slot.time}
+                            onChange={(e) =>
+                              updateDoseTime(
+                                scheduleIndex,
+                                timeIndex,
+                                e.target.value,
+                              )
+                            }
+                          />
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            className="remove-time"
+                            aria-label="Remove time"
+                            disabled={schedule.times.length === 1}
+                            onClick={() =>
+                              removeDoseTime(scheduleIndex, timeIndex)
+                            }
+                          >
+                            ×
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <button
+                  type="button"
+                  className="add-dose-time"
+                  onClick={() => addDoseTime(scheduleIndex)}
+                >
+                  + Add new dose time
+                </button>
               </fieldset>
             </div>
           ))}

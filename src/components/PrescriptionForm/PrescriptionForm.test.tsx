@@ -170,17 +170,13 @@ describe("NewPrescriptionForm", () => {
     test("each dose time slot shows the current form type as its unit label", async () => {
       await renderNewForm();
       const qtyInput = screen.getByLabelText(/quantity 1/i);
-      expect(qtyInput.closest(".dose-time-entry")?.textContent).toContain(
-        "tablet",
-      );
+      expect(qtyInput.closest("tr")?.textContent).toContain("tablet");
 
       await userEvent.selectOptions(
         screen.getByRole("combobox", { name: /form/i }),
         "capsule",
       );
-      expect(qtyInput.closest(".dose-time-entry")?.textContent).toContain(
-        "capsule",
-      );
+      expect(qtyInput.closest("tr")?.textContent).toContain("capsule");
     });
 
     test("schedule slots include the slot quantity as quantity", async () => {
