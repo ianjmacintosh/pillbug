@@ -487,48 +487,51 @@ function FormFields({
             </select>
           </div>
         </dd>
-
-        <dt>
-          <label htmlFor={`${idPrefix}-startDate`}>Start date</label>
-        </dt>
-        <dd>
-          <input
-            id={`${idPrefix}-startDate`}
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            required
-          />
-        </dd>
-
-        <dt>
-          <label htmlFor={`${idPrefix}-endDate`}>End date (optional)</label>
-        </dt>
-        <dd>
-          <input
-            id={`${idPrefix}-endDate`}
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-          <p className="field-hint">Leave blank for ongoing prescriptions.</p>
-        </dd>
       </dl>
 
       <section className="prescription-detail-schedule">
         <h3>Schedule</h3>
+
+        <div className="date-range-row">
+          <div>
+            <label htmlFor={`${idPrefix}-startDate`}>Start date</label>
+            <input
+              id={`${idPrefix}-startDate`}
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor={`${idPrefix}-endDate`}>End date (optional)</label>
+            <input
+              id={`${idPrefix}-endDate`}
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+            <p className="field-hint">Leave blank for ongoing prescriptions.</p>
+          </div>
+        </div>
+
         <div className="routine-list">
           {routines.map((routine, routineIndex) => (
             <div key={routineIndex} className="routine-block">
-              <button
-                type="button"
-                className="routine-remove-btn button-secondary button-sm"
-                aria-label="Remove routine"
-                disabled={routines.length === 1}
-                onClick={() => removeRoutine(routineIndex)}
-              >
-                Remove routine
-              </button>
+              <div className="routine-block-header">
+                <span className="routine-block-label">
+                  Routine {routineIndex + 1}
+                </span>
+                <button
+                  type="button"
+                  className="routine-remove-btn button-secondary button-sm"
+                  aria-label="Remove routine"
+                  disabled={routines.length === 1}
+                  onClick={() => removeRoutine(routineIndex)}
+                >
+                  Remove routine
+                </button>
+              </div>
 
               <fieldset
                 className="schedule-days"
