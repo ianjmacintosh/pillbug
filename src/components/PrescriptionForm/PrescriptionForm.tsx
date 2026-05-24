@@ -65,12 +65,11 @@ function parseDosage(
 
 export interface PrescriptionFormData {
   id: string;
-  doseCount: number;
   doseForm: string;
   drugName: string;
   dosage: string;
   schedule: {
-    days: Partial<Record<DayOfWeek, string[]>>;
+    days: Partial<Record<DayOfWeek, { time: string; quantity: number }[]>>;
     timezoneMode: "local" | "fixed_utc";
   };
   startDate: string;
@@ -93,9 +92,6 @@ interface DosingSchedule {
 }
 
 function initSchedules(prescription?: PrescriptionFormData): DosingSchedule[] {
-  const defaultQuantity =
-    prescription?.doseCount != null ? String(prescription.doseCount) : "1";
-
   if (!prescription) {
     return [
       {
@@ -108,15 +104,18 @@ function initSchedules(prescription?: PrescriptionFormData): DosingSchedule[] {
   }
 
   const bySignature = new Map<string, DosingSchedule>();
-  for (const [day, times] of Object.entries(prescription.schedule.days)) {
-    if (!times || times.length === 0) continue;
-    const sig = JSON.stringify([...times].sort());
+  for (const [day, slots] of Object.entries(prescription.schedule.days)) {
+    if (!slots || slots.length === 0) continue;
+    const sig = JSON.stringify([...slots].map((s) => s.time).sort());
     if (!bySignature.has(sig)) {
       bySignature.set(sig, {
         days: new Set(),
-        times: [...times]
-          .sort()
-          .map((t) => ({ time: t, quantity: defaultQuantity })),
+        times: [...slots]
+          .sort((a, b) => a.time.localeCompare(b.time))
+          .map((slot) => ({
+            time: slot.time,
+            quantity: String(slot.quantity),
+          })),
         daysError: false,
         timesError: false,
       });

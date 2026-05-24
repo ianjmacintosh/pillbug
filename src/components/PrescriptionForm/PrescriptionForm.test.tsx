@@ -19,9 +19,11 @@ const SAMPLE: PrescriptionFormData = {
   id: "rx-1",
   drugName: "Metformin",
   dosage: "500mg",
-  doseCount: 1,
   doseForm: "tablet",
-  schedule: { days: { monday: ["08:00"] }, timezoneMode: "local" },
+  schedule: {
+    days: { monday: [{ time: "08:00", quantity: 1 }] },
+    timezoneMode: "local",
+  },
   startDate: "2024-01-01",
   endDate: null,
   prescribingDoctor: null,
@@ -820,8 +822,14 @@ describe("EditPrescriptionForm", () => {
     ).toBe("capsule");
   });
 
-  test("pre-populates slot quantity from doseCount in loader", async () => {
-    const prescription = { ...SAMPLE, doseCount: 2 };
+  test("pre-populates slot quantity from schedule slot object", async () => {
+    const prescription = {
+      ...SAMPLE,
+      schedule: {
+        days: { monday: [{ time: "08:00", quantity: 2 }] },
+        timezoneMode: "local" as const,
+      },
+    };
     await renderEditForm(prescription);
     expect(
       (screen.getByLabelText(/quantity 1/i) as HTMLInputElement).value,
@@ -833,8 +841,14 @@ describe("EditPrescriptionForm", () => {
       ...SAMPLE,
       schedule: {
         days: {
-          monday: ["08:00", "20:00"],
-          wednesday: ["08:00", "20:00"],
+          monday: [
+            { time: "08:00", quantity: 1 },
+            { time: "20:00", quantity: 1 },
+          ],
+          wednesday: [
+            { time: "08:00", quantity: 1 },
+            { time: "20:00", quantity: 1 },
+          ],
         },
         timezoneMode: "local" as const,
       },
@@ -915,7 +929,7 @@ describe("EditPrescriptionForm", () => {
       ...SAMPLE,
       dosage: "1 cup",
       schedule: {
-        days: { monday: ["08:00"] },
+        days: { monday: [{ time: "08:00", quantity: 1 }] },
         timezoneMode: "local" as const,
       },
     };
@@ -1014,7 +1028,10 @@ describe("EditPrescriptionForm", () => {
     const prescription = {
       ...SAMPLE,
       doseForm: "tablet",
-      schedule: { days: { monday: ["08:00"] }, timezoneMode: "local" as const },
+      schedule: {
+        days: { monday: [{ time: "08:00", quantity: 1 }] },
+        timezoneMode: "local" as const,
+      },
     };
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
       new Response(JSON.stringify({ ...prescription, doseForm: "capsule" }), {

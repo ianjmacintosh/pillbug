@@ -260,11 +260,13 @@ describe("GET /api/v1/scheduled-doses", () => {
     const prescription: Prescription = {
       id: crypto.randomUUID(),
       patientId,
-      doseCount: 1,
       doseForm: "tablet",
       drugName: "Metformin",
       dosage: "500mg",
-      schedule: { days: { monday: ["08:00"] }, timezoneMode: "local" },
+      schedule: {
+        days: { monday: [{ time: "08:00", quantity: 1 }] },
+        timezoneMode: "local",
+      },
       startDate: "2024-03-11",
       endDate: null,
       prescribingDoctor: null,

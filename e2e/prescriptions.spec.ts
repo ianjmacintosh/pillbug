@@ -44,9 +44,11 @@ async function login(page: Page): Promise<void> {
 const BASE_PRESCRIPTION = {
   drugName: "Metformin",
   dosage: "500 mg",
-  schedule: { days: { monday: ["08:00"] }, timezoneMode: "local" },
+  schedule: {
+    days: { monday: [{ time: "08:00", quantity: 1 }] },
+    timezoneMode: "local",
+  },
   startDate: "2024-01-01",
-  doseCount: 1,
   doseForm: "tablet",
 };
 

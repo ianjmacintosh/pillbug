@@ -7,7 +7,7 @@ interface ScheduledDose {
   prescriptionId: string;
   drugName: string;
   dosage: string;
-  doseCount: number;
+  quantity: number;
   doseForm: string;
   scheduledAt: string;
   actionable: boolean;
@@ -203,7 +203,7 @@ function App({
                                   onChange={handleToggle}
                                 />
                                 <span>
-                                  {dose.doseCount} {dose.doseForm} ×{" "}
+                                  {dose.quantity} {dose.doseForm} ×{" "}
                                   <Link
                                     to="/prescriptions/$id"
                                     params={{ id: dose.prescriptionId }}
