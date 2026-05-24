@@ -207,12 +207,16 @@ function App({
                                   {dose.drugName} {dose.dosage}
                                 </span>
                               </label>
-                              <Link
-                                to="/prescriptions/$id"
-                                params={{ id: dose.prescriptionId }}
-                              >
-                                View Details
-                              </Link>
+                              <span>
+                                (
+                                <Link
+                                  to="/prescriptions/$id"
+                                  params={{ id: dose.prescriptionId }}
+                                >
+                                  View Details
+                                </Link>
+                                )
+                              </span>
                             </li>
                           );
                         })}
