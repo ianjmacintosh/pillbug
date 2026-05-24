@@ -274,3 +274,51 @@ test.describe("Prescription edit", () => {
     await expect(page.getByLabel(/drug name/i)).toHaveValue("Metformin XR");
   });
 });
+
+test.describe("Prescription detail", () => {
+  test("clicking a prescription link in the list navigates to the detail page", async ({
+    page,
+  }) => {
+    await login(page);
+    await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    await page.goto("/prescriptions");
+    await page.getByRole("link", { name: "Metformin", exact: true }).click();
+
+    await expect(page).toHaveURL(/\/prescriptions\/[^/]+$/);
+    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
+      "Metformin",
+    );
+  });
+
+  test("detail page shows drug name, strength, and start date", async ({
+    page,
+  }) => {
+    await login(page);
+    const res = await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    const { id } = (await res.json()) as { id: string };
+    await page.goto(`/prescriptions/${id}`);
+
+    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
+      "Metformin",
+    );
+    await expect(page.getByText("500 mg")).toBeVisible();
+    await expect(page.getByText("01/01/2024")).toBeVisible();
+  });
+
+  test("detail page renders the schedule with formatted dose time", async ({
+    page,
+  }) => {
+    await login(page);
+    const res = await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    const { id } = (await res.json()) as { id: string };
+    await page.goto(`/prescriptions/${id}`);
+
+    await expect(page.getByText("8:00 AM")).toBeVisible();
+  });
+});
