@@ -18,6 +18,23 @@ vi.mock("@tanstack/react-router", async (importOriginal) => {
     getRouteApi: () => ({
       useLoaderData: () => ({ registrationDate: mockRegistrationDate }),
     }),
+    Link: ({
+      to,
+      params,
+      children,
+    }: {
+      to: string;
+      params?: Record<string, string>;
+      children: React.ReactNode;
+    }) => {
+      const href = params
+        ? Object.entries(params).reduce(
+            (acc, [k, v]) => acc.replace(`$${k}`, v),
+            to,
+          )
+        : to;
+      return <a href={href}>{children}</a>;
+    },
   };
 });
 
@@ -70,7 +87,21 @@ describe("App", () => {
     );
     render(<App today={TODAY} />);
     await waitFor(() => {
-      expect(screen.getByText("2 tablet × Metformin 500 mg")).toBeTruthy();
+      expect(screen.getByText(/2 tablet ×/)).toBeTruthy();
+      expect(
+        screen.getByRole("link", { name: "Metformin 500 mg" }),
+      ).toBeTruthy();
+    });
+  });
+
+  test("drug name and dosage render as a link to the prescription detail route", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify([MONDAY_DOSE]), { status: 200 }),
+    );
+    render(<App today={TODAY} />);
+    await waitFor(() => {
+      const link = screen.getByRole("link", { name: /metformin 500mg/i });
+      expect(link.getAttribute("href")).toBe("/prescriptions/rx-1");
     });
   });
 
@@ -238,7 +269,7 @@ describe("App", () => {
       new Response(JSON.stringify([MONDAY_DOSE]), { status: 200 }),
     );
     render(<App today={TODAY} />);
-    await waitFor(() => screen.getByText("1 tablet × Metformin 500mg"));
+    await waitFor(() => screen.getByRole("link", { name: /metformin 500mg/i }));
 
     const [url] = vi.mocked(globalThis.fetch).mock.calls[0] as [string];
     expect(url).toContain("start=2024-03-11");
