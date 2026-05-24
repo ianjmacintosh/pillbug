@@ -131,7 +131,7 @@ test.describe("Home screen doses", () => {
     await expect(mondaySection.getByText(/Lisinopril/)).toBeVisible();
   });
 
-  test("each dose row has a View Details link that navigates to the prescription detail page", async ({
+  test("drug name and dosage link navigates to the prescription detail page", async ({
     page,
   }) => {
     await login(page);
@@ -148,9 +148,9 @@ test.describe("Home screen doses", () => {
     const { id } = (await res.json()) as { id: string };
     await page.goto("/");
 
-    const viewDetailsLink = page.getByRole("link", { name: /view details/i });
-    await expect(viewDetailsLink).toBeVisible();
-    await viewDetailsLink.click();
+    const drugLink = page.getByRole("link", { name: /metformin 500 mg/i });
+    await expect(drugLink).toBeVisible();
+    await drugLink.click();
     await expect(page).toHaveURL(`/prescriptions/${id}`);
   });
 

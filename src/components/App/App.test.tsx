@@ -87,27 +87,20 @@ describe("App", () => {
     );
     render(<App today={TODAY} />);
     await waitFor(() => {
-      expect(screen.getByText("2 tablet × Metformin 500 mg")).toBeTruthy();
+      expect(screen.getByText(/2 tablet ×/)).toBeTruthy();
+      expect(
+        screen.getByRole("link", { name: "Metformin 500 mg" }),
+      ).toBeTruthy();
     });
   });
 
-  test("each dose row has a View Details link", async () => {
+  test("drug name and dosage render as a link to the prescription detail route", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
       new Response(JSON.stringify([MONDAY_DOSE]), { status: 200 }),
     );
     render(<App today={TODAY} />);
     await waitFor(() => {
-      expect(screen.getByRole("link", { name: /view details/i })).toBeTruthy();
-    });
-  });
-
-  test("View Details link points to the prescription detail route", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify([MONDAY_DOSE]), { status: 200 }),
-    );
-    render(<App today={TODAY} />);
-    await waitFor(() => {
-      const link = screen.getByRole("link", { name: /view details/i });
+      const link = screen.getByRole("link", { name: /metformin 500mg/i });
       expect(link.getAttribute("href")).toBe("/prescriptions/rx-1");
     });
   });
@@ -276,7 +269,7 @@ describe("App", () => {
       new Response(JSON.stringify([MONDAY_DOSE]), { status: 200 }),
     );
     render(<App today={TODAY} />);
-    await waitFor(() => screen.getByText("1 tablet × Metformin 500mg"));
+    await waitFor(() => screen.getByRole("link", { name: /metformin 500mg/i }));
 
     const [url] = vi.mocked(globalThis.fetch).mock.calls[0] as [string];
     expect(url).toContain("start=2024-03-11");

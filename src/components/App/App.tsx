@@ -204,19 +204,14 @@ function App({
                                 />
                                 <span>
                                   {dose.doseCount} {dose.doseForm} ×{" "}
-                                  {dose.drugName} {dose.dosage}
+                                  <Link
+                                    to="/prescriptions/$id"
+                                    params={{ id: dose.prescriptionId }}
+                                  >
+                                    {dose.drugName} {dose.dosage}
+                                  </Link>
                                 </span>
                               </label>
-                              <span>
-                                (
-                                <Link
-                                  to="/prescriptions/$id"
-                                  params={{ id: dose.prescriptionId }}
-                                >
-                                  View Details
-                                </Link>
-                                )
-                              </span>
                             </li>
                           );
                         })}
