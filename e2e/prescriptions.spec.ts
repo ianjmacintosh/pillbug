@@ -321,4 +321,71 @@ test.describe("Prescription detail", () => {
 
     await expect(page.getByText("8:00 AM")).toBeVisible();
   });
+
+  test("Edit button navigates to the edit route", async ({ page }) => {
+    await login(page);
+    const res = await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    const { id } = (await res.json()) as { id: string };
+    await page.goto(`/prescriptions/${id}`);
+
+    await page.getByRole("link", { name: /edit/i }).click();
+
+    await expect(page).toHaveURL(`/prescriptions/${id}/edit`);
+  });
+
+  test("Delete button opens a dialog with permanence and dose history warnings", async ({
+    page,
+  }) => {
+    await login(page);
+    const res = await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    const { id } = (await res.json()) as { id: string };
+    await page.goto(`/prescriptions/${id}`);
+
+    await page.getByRole("button", { name: /delete/i }).click();
+
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText(/permanent/i);
+    await expect(dialog).toContainText(/dose history/i);
+  });
+
+  test("cancelling delete closes the dialog and prescription is still present", async ({
+    page,
+  }) => {
+    await login(page);
+    const res = await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    const { id } = (await res.json()) as { id: string };
+    await page.goto(`/prescriptions/${id}`);
+
+    await page.getByRole("button", { name: /delete/i }).click();
+    await page.getByRole("button", { name: /cancel/i }).click();
+
+    await expect(page.getByRole("dialog")).not.toBeVisible();
+    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
+      "Metformin",
+    );
+  });
+
+  test("confirming delete navigates to /prescriptions and prescription is gone from list", async ({
+    page,
+  }) => {
+    await login(page);
+    const res = await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    const { id } = (await res.json()) as { id: string };
+    await page.goto(`/prescriptions/${id}`);
+
+    await page.getByRole("button", { name: /delete/i }).click();
+    await page.getByRole("button", { name: /confirm delete/i }).click();
+
+    await expect(page).toHaveURL("/prescriptions");
+    await expect(page.getByRole("list")).toBeEmpty();
+  });
 });

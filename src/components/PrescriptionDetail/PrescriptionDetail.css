@@ -1,3 +1,42 @@
+.prescription-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 1rem;
+}
+
+.prescription-detail-header h2 {
+  margin: 0;
+}
+
+.prescription-detail-actions {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: #667085;
+  white-space: nowrap;
+}
+
+.prescription-detail-actions::before {
+  content: "( ";
+}
+
+.prescription-detail-actions::after {
+  content: " )";
+}
+
+.prescription-detail-actions a,
+.prescription-detail-actions button {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 .prescription-detail-meta {
   display: grid;
   grid-template-columns: max-content 1fr;

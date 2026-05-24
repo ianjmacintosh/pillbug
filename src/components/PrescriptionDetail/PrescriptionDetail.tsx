@@ -1,4 +1,5 @@
-import { getRouteApi } from "@tanstack/react-router";
+import { useState } from "react";
+import { getRouteApi, Link, useNavigate } from "@tanstack/react-router";
 import "../Prescriptions/Prescriptions.css";
 import "./PrescriptionDetail.css";
 
@@ -106,13 +107,30 @@ const routeApi = getRouteApi("/layout/prescriptions/$id");
 
 function PrescriptionDetail() {
   const prescription = routeApi.useLoaderData() as Prescription;
+  const { id } = routeApi.useParams();
   const routines = groupRoutines(prescription.schedule.days);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const navigate = useNavigate();
+
+  async function handleConfirmDelete() {
+    await fetch(`/api/v1/prescriptions/${id}`, { method: "DELETE" });
+    await navigate({ to: "/prescriptions" });
+  }
 
   return (
     <main className="prescriptions">
       <div className="prescriptions-form-panel">
         <article>
-          <h2>{prescription.drugName}</h2>
+          <div className="prescription-detail-header">
+            <h2>{prescription.drugName}</h2>
+            <div className="prescription-detail-actions">
+              <Link to="/prescriptions/$id/edit" params={{ id }}>
+                edit
+              </Link>
+              <span aria-hidden="true"> | </span>
+              <button onClick={() => setShowDeleteDialog(true)}>delete</button>
+            </div>
+          </div>
           <dl className="prescription-detail-meta">
             <dt>Strength</dt>
             <dd>{prescription.dosage}</dd>
@@ -168,6 +186,16 @@ function PrescriptionDetail() {
           </section>
         </article>
       </div>
+      {showDeleteDialog && (
+        <dialog open>
+          <p>
+            This action is permanent. All dose history for this prescription
+            will also be deleted.
+          </p>
+          <button onClick={() => setShowDeleteDialog(false)}>Cancel</button>
+          <button onClick={handleConfirmDelete}>Confirm delete</button>
+        </dialog>
+      )}
     </main>
   );
 }
