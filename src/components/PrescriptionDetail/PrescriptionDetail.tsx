@@ -17,7 +17,7 @@ export interface PerSlotDose {
 }
 
 interface Schedule {
-  days: Partial<Record<DayOfWeek, PerSlotDose[]>>;
+  days: Partial<Record<DayOfWeek, (PerSlotDose | string)[]>>;
   timezoneMode: "local" | "fixed_utc";
 }
 
@@ -59,8 +59,12 @@ interface Routine {
   slots: PerSlotDose[];
 }
 
+function toPerSlotDose(slot: PerSlotDose | string): PerSlotDose {
+  return typeof slot === "string" ? { time: slot, quantity: 1 } : slot;
+}
+
 function groupRoutines(
-  days: Partial<Record<DayOfWeek, PerSlotDose[]>>,
+  days: Partial<Record<DayOfWeek, (PerSlotDose | string)[]>>,
 ): Routine[] {
   const bySignature = new Map<string, DayOfWeek[]>();
   for (const day of WEEKDAYS) {
@@ -76,7 +80,7 @@ function groupRoutines(
       groupDays.length === 7
         ? "Daily"
         : groupDays.map((d) => DAY_ABBRS[d]).join(", "),
-    slots: JSON.parse(sig) as PerSlotDose[],
+    slots: (JSON.parse(sig) as Array<PerSlotDose | string>).map(toPerSlotDose),
   }));
 }
 
