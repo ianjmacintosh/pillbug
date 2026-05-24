@@ -7,7 +7,8 @@ import {
   RouterProvider,
 } from "@tanstack/react-router";
 import { render, screen } from "@testing-library/react";
-import { describe, expect, test } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, test, vi } from "vitest";
 import PrescriptionDetail from "./PrescriptionDetail";
 import type { Prescription } from "./PrescriptionDetail";
 
@@ -57,7 +58,8 @@ async function renderDetail(prescription: Prescription = SAMPLE_PRESCRIPTION) {
     }),
   });
   await router.load();
-  return render(<RouterProvider router={router} />);
+  const result = render(<RouterProvider router={router} />);
+  return { ...result, router };
 }
 
 describe("PrescriptionDetail", () => {
@@ -203,6 +205,76 @@ describe("PrescriptionDetail", () => {
     test("shows dosage strength", async () => {
       await renderDetail();
       expect(screen.getByText("500 mg")).toBeTruthy();
+    });
+  });
+
+  describe("actions", () => {
+    test("shows an Edit link", async () => {
+      await renderDetail();
+      expect(screen.getByRole("link", { name: /edit/i })).toBeTruthy();
+    });
+
+    test("Edit link points to the edit route for this prescription", async () => {
+      await renderDetail();
+      const link = screen.getByRole("link", { name: /edit/i });
+      expect((link as HTMLAnchorElement).href).toContain(
+        "/prescriptions/rx-1/edit",
+      );
+    });
+
+    test("shows a Delete button", async () => {
+      await renderDetail();
+      expect(screen.getByRole("button", { name: /delete/i })).toBeTruthy();
+    });
+
+    test("clicking Delete opens a confirmation dialog", async () => {
+      await renderDetail();
+      await userEvent.click(screen.getByRole("button", { name: /delete/i }));
+      expect(screen.getByRole("dialog")).toBeTruthy();
+    });
+
+    test("delete dialog warns about permanence and dose history loss", async () => {
+      await renderDetail();
+      await userEvent.click(screen.getByRole("button", { name: /delete/i }));
+      const dialog = screen.getByRole("dialog");
+      expect(dialog.textContent).toMatch(/permanent/i);
+      expect(dialog.textContent).toMatch(/dose history/i);
+    });
+
+    test("clicking Cancel in the delete dialog closes it", async () => {
+      await renderDetail();
+      await userEvent.click(screen.getByRole("button", { name: /delete/i }));
+      await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
+      expect(screen.queryByRole("dialog")).toBeNull();
+    });
+
+    test("confirming delete calls DELETE /api/v1/prescriptions/:id", async () => {
+      const fetchSpy = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValue(new Response(null, { status: 200 }));
+      await renderDetail();
+      await userEvent.click(screen.getByRole("button", { name: /delete/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /confirm delete/i }),
+      );
+      expect(fetchSpy).toHaveBeenCalledWith(
+        "/api/v1/prescriptions/rx-1",
+        expect.objectContaining({ method: "DELETE" }),
+      );
+      fetchSpy.mockRestore();
+    });
+
+    test("after confirming delete, navigates to /prescriptions", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(null, { status: 200 }),
+      );
+      const { router } = await renderDetail();
+      await userEvent.click(screen.getByRole("button", { name: /delete/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /confirm delete/i }),
+      );
+      expect(router.state.location.pathname).toBe("/prescriptions");
+      vi.restoreAllMocks();
     });
   });
 });
