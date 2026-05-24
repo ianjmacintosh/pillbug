@@ -1,4 +1,4 @@
-import { getRouteApi } from "@tanstack/react-router";
+import { getRouteApi, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { weekBoundaries } from "../../../shared/week-boundaries";
 import "./App.css";
@@ -207,6 +207,12 @@ function App({
                                   {dose.drugName} {dose.dosage}
                                 </span>
                               </label>
+                              <Link
+                                to="/prescriptions/$id"
+                                params={{ id: dose.prescriptionId }}
+                              >
+                                View Details
+                              </Link>
                             </li>
                           );
                         })}

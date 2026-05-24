@@ -18,6 +18,23 @@ vi.mock("@tanstack/react-router", async (importOriginal) => {
     getRouteApi: () => ({
       useLoaderData: () => ({ registrationDate: mockRegistrationDate }),
     }),
+    Link: ({
+      to,
+      params,
+      children,
+    }: {
+      to: string;
+      params?: Record<string, string>;
+      children: React.ReactNode;
+    }) => {
+      const href = params
+        ? Object.entries(params).reduce(
+            (acc, [k, v]) => acc.replace(`$${k}`, v),
+            to,
+          )
+        : to;
+      return <a href={href}>{children}</a>;
+    },
   };
 });
 
@@ -71,6 +88,27 @@ describe("App", () => {
     render(<App today={TODAY} />);
     await waitFor(() => {
       expect(screen.getByText("2 tablet × Metformin 500 mg")).toBeTruthy();
+    });
+  });
+
+  test("each dose row has a View Details link", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify([MONDAY_DOSE]), { status: 200 }),
+    );
+    render(<App today={TODAY} />);
+    await waitFor(() => {
+      expect(screen.getByRole("link", { name: /view details/i })).toBeTruthy();
+    });
+  });
+
+  test("View Details link points to the prescription detail route", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify([MONDAY_DOSE]), { status: 200 }),
+    );
+    render(<App today={TODAY} />);
+    await waitFor(() => {
+      const link = screen.getByRole("link", { name: /view details/i });
+      expect(link.getAttribute("href")).toBe("/prescriptions/rx-1");
     });
   });
 

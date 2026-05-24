@@ -131,6 +131,29 @@ test.describe("Home screen doses", () => {
     await expect(mondaySection.getByText(/Lisinopril/)).toBeVisible();
   });
 
+  test("each dose row has a View Details link that navigates to the prescription detail page", async ({
+    page,
+  }) => {
+    await login(page);
+    const res = await page.request.post("/api/v1/prescriptions", {
+      data: {
+        drugName: "Metformin",
+        dosage: "500 mg",
+        doseCount: 1,
+        doseForm: "tablet",
+        schedule: { days: { monday: ["08:00"] }, timezoneMode: "local" },
+        startDate: "2024-01-01",
+      },
+    });
+    const { id } = (await res.json()) as { id: string };
+    await page.goto("/");
+
+    const viewDetailsLink = page.getByRole("link", { name: /view details/i });
+    await expect(viewDetailsLink).toBeVisible();
+    await viewDetailsLink.click();
+    await expect(page).toHaveURL(`/prescriptions/${id}`);
+  });
+
   test("two prescriptions at different times each get their own time header", async ({
     page,
   }) => {
