@@ -54,20 +54,30 @@ test.beforeEach(async () => {
   await clearPrescriptions();
 });
 
-test.describe("Prescription list — on mount", () => {
-  test("empty state: add form is shown and list is empty", async ({ page }) => {
+async function fillCreateForm(page: Page) {
+  await page.getByLabel(/drug name/i).fill("Aspirin");
+  await page.getByLabel("Strength").fill("100");
+  await page.getByRole("combobox", { name: /unit/i }).selectOption("mg");
+  await page.getByLabel(/start date/i).fill("2024-06-01");
+  await page.getByRole("checkbox", { name: "Monday" }).locator("..").click();
+  await page.getByLabel(/time 1/i).fill("08:00");
+  await page.getByRole("button", { name: /save prescription/i }).click();
+}
+
+test.describe("Prescription list", () => {
+  test("empty state: list is empty and Add Prescription link is present", async ({
+    page,
+  }) => {
     await login(page);
     await page.goto("/prescriptions");
 
-    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
-      /add prescription/i,
-    );
     await expect(page.getByRole("list")).toBeEmpty();
+    await expect(
+      page.getByRole("link", { name: /add prescription/i }),
+    ).toBeVisible();
   });
 
-  test("prescriptions load automatically without any button click", async ({
-    page,
-  }) => {
+  test("prescriptions load as links", async ({ page }) => {
     await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
@@ -75,23 +85,8 @@ test.describe("Prescription list — on mount", () => {
     await page.goto("/prescriptions");
 
     await expect(
-      page.getByRole("button", { name: "Metformin", exact: true }),
+      page.getByRole("link", { name: "Metformin", exact: true }),
     ).toBeVisible();
-  });
-
-  test("first prescription is auto-selected and its edit form is shown", async ({
-    page,
-  }) => {
-    await login(page);
-    await page.request.post("/api/v1/prescriptions", {
-      data: BASE_PRESCRIPTION,
-    });
-    await page.goto("/prescriptions");
-
-    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
-      /edit prescription/i,
-    );
-    await expect(page.getByLabel(/drug name/i)).toHaveValue("Metformin");
   });
 
   test("heading shows prescription count", async ({ page }) => {
@@ -107,98 +102,51 @@ test.describe("Prescription list — on mount", () => {
     await expect(page.getByRole("heading", { level: 1 })).toContainText("(2)");
   });
 
-  test("clicking a prescription in the list loads its edit form", async ({
-    page,
-  }) => {
+  test("Add Prescription link navigates to create form", async ({ page }) => {
     await login(page);
-    await page.request.post("/api/v1/prescriptions", {
-      data: BASE_PRESCRIPTION,
-    });
-    await page.request.post("/api/v1/prescriptions", {
-      data: { ...BASE_PRESCRIPTION, drugName: "Lisinopril" },
-    });
     await page.goto("/prescriptions");
+    await page.getByRole("link", { name: /add prescription/i }).click();
 
-    await page.getByRole("button", { name: "Lisinopril", exact: true }).click();
-
-    await expect(page.getByLabel(/drug name/i)).toHaveValue("Lisinopril");
+    await expect(page).toHaveURL("/prescriptions/new");
     await expect(page.getByRole("heading", { level: 2 })).toHaveText(
-      /edit prescription/i,
+      /add prescription/i,
     );
   });
 });
 
 test.describe("Prescription create", () => {
-  async function fillAndSave(page: Page) {
-    await page.getByLabel(/drug name/i).fill("Aspirin");
-    await page.getByLabel("Strength").fill("100");
-    await page.getByRole("combobox", { name: /unit/i }).selectOption("mg");
-    await page.getByLabel(/start date/i).fill("2024-06-01");
-    await page.getByRole("checkbox", { name: "Monday" }).locator("..").click();
-    await page.getByLabel(/time 1/i).fill("08:00");
-    await page.getByRole("button", { name: /save prescription/i }).click();
-  }
-
-  test("add prescription form creates prescription and it appears in the list", async ({
+  test("fill and save navigates to the edit form for the new prescription", async ({
     page,
   }) => {
     await login(page);
+    await page.goto("/prescriptions/new");
+    await fillCreateForm(page);
+
+    await expect(page).toHaveURL(/\/prescriptions\/.+\/edit/);
+    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
+      /edit prescription/i,
+    );
+  });
+
+  test("new prescription appears in the list after create", async ({
+    page,
+  }) => {
+    await login(page);
+    await page.goto("/prescriptions/new");
+    await fillCreateForm(page);
+
     await page.goto("/prescriptions");
-    await fillAndSave(page);
 
     await expect(
-      page.getByRole("button", { name: "Aspirin", exact: true }),
+      page.getByRole("link", { name: "Aspirin", exact: true }),
     ).toBeVisible();
   });
 
-  test("after create, edit form is shown with the new prescription", async ({
+  test("Days and Times fieldset is aria-invalid when submitted without a day selected", async ({
     page,
   }) => {
     await login(page);
-    await page.goto("/prescriptions");
-    await fillAndSave(page);
-
-    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
-      /edit prescription/i,
-    );
-    await expect(page.getByLabel(/drug name/i)).toHaveValue("Aspirin");
-  });
-
-  test("count in heading increments after create", async ({ page }) => {
-    await login(page);
-    await page.goto("/prescriptions");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("(0)");
-
-    await fillAndSave(page);
-
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("(1)");
-  });
-
-  test("clicking '+ Add Prescription' switches to the add form with empty fields", async ({
-    page,
-  }) => {
-    await login(page);
-    await page.request.post("/api/v1/prescriptions", {
-      data: BASE_PRESCRIPTION,
-    });
-    await page.goto("/prescriptions");
-
-    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
-      /edit prescription/i,
-    );
-    await page.getByRole("button", { name: /add prescription/i }).click();
-
-    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
-      /add prescription/i,
-    );
-    await expect(page.getByLabel(/drug name/i)).toHaveValue("");
-  });
-
-  test("Days fieldset gets aria-invalid when submitted without a day selected", async ({
-    page,
-  }) => {
-    await login(page);
-    await page.goto("/prescriptions");
+    await page.goto("/prescriptions/new");
     await page.getByLabel(/drug name/i).fill("Aspirin");
     await page.getByLabel("Strength").fill("100");
     await page.getByLabel(/start date/i).fill("2024-06-01");
@@ -206,17 +154,16 @@ test.describe("Prescription create", () => {
 
     await page.getByRole("button", { name: /save prescription/i }).click();
 
-    await expect(page.getByRole("group", { name: /days/i })).toHaveAttribute(
-      "aria-invalid",
-      "true",
-    );
+    await expect(
+      page.getByRole("group", { name: /days and times/i }),
+    ).toHaveAttribute("aria-invalid", "true");
   });
 
-  test("Dose times fieldset gets aria-invalid when submitted with a blank time", async ({
+  test("Days and Times fieldset is aria-invalid when submitted with a blank time", async ({
     page,
   }) => {
     await login(page);
-    await page.goto("/prescriptions");
+    await page.goto("/prescriptions/new");
     await page.getByLabel(/drug name/i).fill("Aspirin");
     await page.getByLabel("Strength").fill("100");
     await page.getByLabel(/start date/i).fill("2024-06-01");
@@ -226,45 +173,13 @@ test.describe("Prescription create", () => {
     await page.getByRole("button", { name: /save prescription/i }).click();
 
     await expect(
-      page.getByRole("group", { name: /dose times/i }),
+      page.getByRole("group", { name: /days and times/i }),
     ).toHaveAttribute("aria-invalid", "true");
-  });
-
-  test("Select all checks every day; Unselect all clears them", async ({
-    page,
-  }) => {
-    await login(page);
-    await page.goto("/prescriptions");
-    await page.getByRole("button", { name: /select all/i }).click();
-    for (const day of [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ]) {
-      await expect(page.getByRole("checkbox", { name: day })).toBeChecked();
-    }
-
-    await page.getByRole("button", { name: /unselect all/i }).click();
-    for (const day of [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ]) {
-      await expect(page.getByRole("checkbox", { name: day })).not.toBeChecked();
-    }
   });
 
   test("clicking a day pill checks and unchecks it", async ({ page }) => {
     await login(page);
-    await page.goto("/prescriptions");
+    await page.goto("/prescriptions/new");
     const monday = page.getByRole("checkbox", { name: "Monday" });
     const mondayPill = monday.locator("..");
 
@@ -275,36 +190,40 @@ test.describe("Prescription create", () => {
     await expect(monday).not.toBeChecked();
   });
 
-  test("Remove button is disabled when only one dose time is shown", async ({
+  test("Remove time button is disabled when only one dose time is shown", async ({
     page,
   }) => {
     await login(page);
-    await page.goto("/prescriptions");
-    await expect(page.getByRole("button", { name: /remove/i })).toBeDisabled();
+    await page.goto("/prescriptions/new");
+
+    await expect(
+      page.getByRole("button", { name: /remove time/i }),
+    ).toBeDisabled();
   });
 
-  test("Remove button is enabled after a second dose time is added", async ({
+  test("Remove time button is enabled after a second dose time is added", async ({
     page,
   }) => {
     await login(page);
-    await page.goto("/prescriptions");
+    await page.goto("/prescriptions/new");
     await page.getByRole("button", { name: /add new dose time/i }).click();
 
-    const removeButtons = page.getByRole("button", { name: /remove/i });
+    const removeButtons = page.getByRole("button", { name: /remove time/i });
     await expect(removeButtons.nth(0)).toBeEnabled();
     await expect(removeButtons.nth(1)).toBeEnabled();
   });
 });
 
 test.describe("Prescription edit", () => {
-  test("edit form pre-populates fields from the selected prescription", async ({
+  test("edit form pre-populates fields from the prescription", async ({
     page,
   }) => {
     await login(page);
-    await page.request.post("/api/v1/prescriptions", {
+    const res = await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
-    await page.goto("/prescriptions");
+    const { id } = (await res.json()) as { id: string };
+    await page.goto(`/prescriptions/${id}/edit`);
 
     await expect(page.getByLabel(/drug name/i)).toHaveValue("Metformin");
     await expect(page.getByLabel("Strength")).toHaveValue("500");
@@ -314,76 +233,50 @@ test.describe("Prescription edit", () => {
     await expect(page.getByLabel(/start date/i)).toHaveValue("2024-01-01");
   });
 
-  test("saving an edit keeps the edit form open with updated values", async ({
-    page,
-  }) => {
-    await login(page);
-    await page.request.post("/api/v1/prescriptions", {
-      data: BASE_PRESCRIPTION,
-    });
-    await page.goto("/prescriptions");
-    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
-      /edit prescription/i,
-    );
-
-    await page.getByLabel(/drug name/i).fill("Metformin XR");
-    await page.getByRole("button", { name: /save prescription/i }).click();
-
-    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
-      /edit prescription/i,
-    );
-    await expect(page.getByLabel(/drug name/i)).toHaveValue("Metformin XR");
-    await expect(
-      page.getByRole("button", { name: "Metformin XR", exact: true }),
-    ).toBeVisible();
-  });
-
-  test("cancel returns to the add form with empty fields", async ({ page }) => {
-    await login(page);
-    await page.request.post("/api/v1/prescriptions", {
-      data: BASE_PRESCRIPTION,
-    });
-    await page.goto("/prescriptions");
-
-    await page.getByRole("button", { name: /cancel/i }).click();
-
-    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
-      /add prescription/i,
-    );
-    await expect(page.getByLabel(/drug name/i)).toHaveValue("");
-    await expect(
-      page.getByRole("button", { name: "Metformin", exact: true }),
-    ).toBeVisible();
-  });
-
   test("edit form pre-populates scheduled days and times", async ({ page }) => {
     await login(page);
-    await page.request.post("/api/v1/prescriptions", {
+    const res = await page.request.post("/api/v1/prescriptions", {
       data: {
         ...BASE_PRESCRIPTION,
         schedule: {
-          days: { monday: ["08:00"], friday: ["08:00", "20:00"] },
+          days: { monday: ["08:00"], wednesday: ["08:00"] },
           timezoneMode: "local",
         },
       },
     });
-    await page.goto("/prescriptions");
+    const { id } = (await res.json()) as { id: string };
+    await page.goto(`/prescriptions/${id}/edit`);
 
     await expect(page.getByRole("checkbox", { name: "Monday" })).toBeChecked();
-    await expect(page.getByRole("checkbox", { name: "Friday" })).toBeChecked();
+    await expect(
+      page.getByRole("checkbox", { name: "Wednesday" }),
+    ).toBeChecked();
     await expect(
       page.getByRole("checkbox", { name: "Tuesday" }),
     ).not.toBeChecked();
-    const times = [
-      await page.getByLabel(/time 1/i).inputValue(),
-      await page.getByLabel(/time 2/i).inputValue(),
-    ].sort();
-    expect(times).toEqual(["08:00", "20:00"]);
+    await expect(page.getByLabel(/time 1/i)).toHaveValue("08:00");
+  });
+
+  test("saving an edit keeps the edit form open with updated drug name", async ({
+    page,
+  }) => {
+    await login(page);
+    const res = await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    const { id } = (await res.json()) as { id: string };
+    await page.goto(`/prescriptions/${id}/edit`);
+
+    await page.getByLabel(/drug name/i).fill("Metformin XR");
+    await page.getByRole("button", { name: /save prescription/i }).click();
+
+    await expect(page).toHaveURL(/\/prescriptions\/.+\/edit/);
+    await expect(page.getByLabel(/drug name/i)).toHaveValue("Metformin XR");
   });
 });
 
-test.describe("Prescription delete", () => {
-  test("delete button has an accessible label that includes the drug name", async ({
+test.describe("Prescription detail", () => {
+  test("clicking a prescription link in the list navigates to the detail page", async ({
     page,
   }) => {
     await login(page);
@@ -391,108 +284,41 @@ test.describe("Prescription delete", () => {
       data: BASE_PRESCRIPTION,
     });
     await page.goto("/prescriptions");
+    await page.getByRole("link", { name: "Metformin", exact: true }).click();
 
-    await expect(
-      page.getByRole("button", { name: /delete metformin/i }),
-    ).toBeAttached();
+    await expect(page).toHaveURL(/\/prescriptions\/[^/]+$/);
+    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
+      "Metformin",
+    );
   });
 
-  test("clicking Delete shows a modal overlay with permanence and dose history warnings", async ({
+  test("detail page shows drug name, strength, and start date", async ({
     page,
   }) => {
     await login(page);
-    await page.request.post("/api/v1/prescriptions", {
+    const res = await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
-    await page.goto("/prescriptions");
+    const { id } = (await res.json()) as { id: string };
+    await page.goto(`/prescriptions/${id}`);
 
-    await page.getByRole("button", { name: /delete metformin/i }).click();
-
-    const dialog = page.getByRole("dialog");
-    await expect(dialog).toBeVisible();
-    await expect(dialog.getByText(/permanent/i)).toBeVisible();
-    await expect(dialog.getByText(/dose history/i)).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
+      "Metformin",
+    );
+    await expect(page.getByText("500 mg")).toBeVisible();
+    await expect(page.getByText("01/01/2024")).toBeVisible();
   });
 
-  test("confirming delete removes the prescription from the list", async ({
+  test("detail page renders the schedule with formatted dose time", async ({
     page,
   }) => {
     await login(page);
-    await page.request.post("/api/v1/prescriptions", {
+    const res = await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
-    await page.goto("/prescriptions");
+    const { id } = (await res.json()) as { id: string };
+    await page.goto(`/prescriptions/${id}`);
 
-    await page.getByRole("button", { name: /delete metformin/i }).click();
-    await page.getByRole("button", { name: /yes, delete/i }).click();
-
-    await expect(
-      page.getByRole("button", { name: "Metformin", exact: true }),
-    ).not.toBeAttached();
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("(0)");
-  });
-
-  test("cancelling delete closes the dialog and keeps the prescription", async ({
-    page,
-  }) => {
-    await login(page);
-    await page.request.post("/api/v1/prescriptions", {
-      data: BASE_PRESCRIPTION,
-    });
-    await page.goto("/prescriptions");
-
-    await page.getByRole("button", { name: /delete metformin/i }).click();
-    await expect(page.getByRole("dialog")).toBeVisible();
-
-    await page
-      .getByRole("dialog")
-      .getByRole("button", { name: /cancel/i })
-      .click();
-
-    await expect(page.getByRole("dialog")).not.toBeAttached();
-    await expect(
-      page.getByRole("button", { name: "Metformin", exact: true }),
-    ).toBeVisible();
-  });
-});
-
-test.describe("Mobile navigation", () => {
-  test.use({ viewport: { width: 390, height: 844 } });
-
-  test("clicking a prescription switches to the form panel", async ({
-    page,
-  }) => {
-    await login(page);
-    await page.request.post("/api/v1/prescriptions", {
-      data: BASE_PRESCRIPTION,
-    });
-    await page.goto("/prescriptions");
-
-    const listPanel = page.locator(".prescriptions-list-panel");
-    const formPanel = page.locator(".prescriptions-form-panel");
-
-    await expect(listPanel).toBeVisible();
-    await expect(formPanel).not.toBeVisible();
-
-    await page.getByRole("button", { name: "Metformin", exact: true }).click();
-
-    await expect(formPanel).toBeVisible();
-    await expect(listPanel).not.toBeVisible();
-  });
-
-  test("back button returns to the list panel", async ({ page }) => {
-    await login(page);
-    await page.request.post("/api/v1/prescriptions", {
-      data: BASE_PRESCRIPTION,
-    });
-    await page.goto("/prescriptions");
-
-    await page.getByRole("button", { name: "Metformin", exact: true }).click();
-    await expect(page.locator(".prescriptions-form-panel")).toBeVisible();
-
-    await page.getByRole("button", { name: /back to list/i }).click();
-
-    await expect(page.locator(".prescriptions-list-panel")).toBeVisible();
-    await expect(page.locator(".prescriptions-form-panel")).not.toBeVisible();
+    await expect(page.getByText("8:00 AM")).toBeVisible();
   });
 });

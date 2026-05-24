@@ -83,6 +83,24 @@ describe("validateSchedule", () => {
       error: "invalid_days",
     });
   });
+
+  test("accepts per-slot objects with valid HH:MM times", () => {
+    expect(
+      validateSchedule({
+        days: { monday: [{ time: "08:00", quantity: 1 }] },
+        timezoneMode: "local",
+      }),
+    ).toBeNull();
+  });
+
+  test("rejects per-slot objects with invalid time", () => {
+    expect(
+      validateSchedule({
+        days: { monday: [{ time: "8am", quantity: 1 }] },
+        timezoneMode: "local",
+      }),
+    ).toEqual({ error: "invalid_time_format" });
+  });
 });
 
 describe("createPrescription", () => {
