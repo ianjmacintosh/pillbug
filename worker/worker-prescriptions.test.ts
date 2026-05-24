@@ -234,6 +234,100 @@ describe("GET /api/v1/prescriptions", () => {
   });
 });
 
+describe("GET /api/v1/prescriptions/:prescriptionId", () => {
+  test("returns 401 when unauthenticated", async () => {
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/prescriptions/rx-1"),
+      makeEnv(),
+    );
+    expect(response.status).toBe(401);
+  });
+
+  test("returns 404 when prescription not found", async () => {
+    const authRepo = makeInMemoryRepo();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(authRepo);
+    const { cookie } = await makeAuthenticatedSession(authRepo);
+
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/prescriptions/rx-missing", {
+        headers: { Cookie: cookie },
+      }),
+      makeEnv(),
+    );
+    expect(response.status).toBe(404);
+  });
+
+  test("returns 200 with prescription when found", async () => {
+    const authRepo = makeInMemoryRepo();
+    const prescriptionRepo = makeInMemoryPrescriptionRepo();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(authRepo);
+    vi.mocked(makeD1PrescriptionRepo).mockReturnValue(prescriptionRepo);
+
+    const { patientId, cookie } = await makeAuthenticatedSession(authRepo);
+    await prescriptionRepo.createPrescription({
+      id: "rx-1",
+      patientId,
+      doseCount: 1,
+      doseForm: "tablet",
+      drugName: "Metformin",
+      dosage: "500mg",
+      schedule: { days: {}, timezoneMode: "local" },
+      startDate: "2024-01-01",
+      endDate: null,
+      prescribingDoctor: null,
+      instructions: null,
+      status: "active",
+      createdAt: new Date().toISOString(),
+    });
+
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/prescriptions/rx-1", {
+        headers: { Cookie: cookie },
+      }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    const data = await response.json<Record<string, unknown>>();
+    expect(data.id).toBe("rx-1");
+    expect(data.drugName).toBe("Metformin");
+    expect(data.patientId).toBeUndefined();
+  });
+
+  test("returns 404 when prescription belongs to a different patient", async () => {
+    const authRepo = makeInMemoryRepo();
+    const prescriptionRepo = makeInMemoryPrescriptionRepo();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(authRepo);
+    vi.mocked(makeD1PrescriptionRepo).mockReturnValue(prescriptionRepo);
+
+    const { cookie } = await makeAuthenticatedSession(authRepo);
+    const { patientId: otherId } = await makeAuthenticatedSession(authRepo);
+    await prescriptionRepo.createPrescription({
+      id: "rx-1",
+      patientId: otherId,
+      doseCount: 1,
+      doseForm: "tablet",
+      drugName: "NotMine",
+      dosage: "10mg",
+      schedule: { days: {}, timezoneMode: "local" },
+      startDate: "2024-01-01",
+      endDate: null,
+      prescribingDoctor: null,
+      instructions: null,
+      status: "active",
+      createdAt: new Date().toISOString(),
+    });
+
+    const response = await worker.fetch(
+      new Request("http://localhost/api/v1/prescriptions/rx-1", {
+        headers: { Cookie: cookie },
+      }),
+      makeEnv(),
+    );
+    expect(response.status).toBe(404);
+  });
+});
+
 describe("PATCH /api/v1/prescriptions/:prescriptionId", () => {
   test("returns 401 when unauthenticated", async () => {
     const response = await worker.fetch(

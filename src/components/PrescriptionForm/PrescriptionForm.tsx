@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getRouteApi } from "@tanstack/react-router";
+import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import "../Prescriptions/Prescriptions.css";
 import "../PrescriptionDetail/PrescriptionDetail.css";
 
@@ -688,6 +688,7 @@ function FormFields({
 
 export function NewPrescriptionForm() {
   const form = usePrescriptionForm();
+  const navigate = useNavigate();
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -711,9 +712,10 @@ export function NewPrescriptionForm() {
 
     if (res.ok) {
       const created = (await res.json()) as PrescriptionFormData;
-      form.setSubmitting(false);
-      // TODO: navigate to /prescriptions/${created.id} after API wiring (#156)
-      void created;
+      await navigate({
+        to: "/prescriptions/$id/edit",
+        params: { id: created.id },
+      });
     } else {
       const data = (await res.json()) as { error: string };
       form.setError(data.error);

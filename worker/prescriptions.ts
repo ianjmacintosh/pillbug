@@ -71,17 +71,25 @@ export function validateSchedule(schedule: unknown): { error: string } | null {
     return { error: "invalid_days" };
   }
 
-  for (const [key, times] of Object.entries(
+  for (const [key, slots] of Object.entries(
     s.days as Record<string, unknown>,
   )) {
     if (!VALID_WEEKDAYS.includes(key as DayOfWeek)) {
       return { error: "invalid_days" };
     }
-    if (
-      !Array.isArray(times) ||
-      !times.every((t: unknown) => HH_MM.test(String(t)))
-    ) {
+    if (!Array.isArray(slots)) {
       return { error: "invalid_time_format" };
+    }
+    for (const slot of slots) {
+      const time =
+        typeof slot === "string"
+          ? slot
+          : typeof slot === "object" && slot !== null
+            ? (slot as Record<string, unknown>).time
+            : null;
+      if (typeof time !== "string" || !HH_MM.test(time)) {
+        return { error: "invalid_time_format" };
+      }
     }
   }
 
