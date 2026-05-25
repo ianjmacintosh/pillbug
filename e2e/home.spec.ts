@@ -86,9 +86,11 @@ test.describe("Home screen doses", () => {
       data: {
         drugName: "Metformin",
         dosage: "500 mg",
-        doseCount: 2,
         doseForm: "tablet",
-        schedule: { days: { monday: ["08:00"] }, timezoneMode: "local" },
+        schedule: {
+          days: { monday: [{ time: "08:00", quantity: 2 }] },
+          timezoneMode: "local",
+        },
         startDate: "2024-01-01",
       },
     });
@@ -105,9 +107,11 @@ test.describe("Home screen doses", () => {
       data: {
         drugName: "Metformin",
         dosage: "500 mg",
-        doseCount: 1,
         doseForm: "tablet",
-        schedule: { days: { monday: ["08:00"] }, timezoneMode: "local" },
+        schedule: {
+          days: { monday: [{ time: "08:00", quantity: 1 }] },
+          timezoneMode: "local",
+        },
         startDate: "2024-01-01",
       },
     });
@@ -115,9 +119,11 @@ test.describe("Home screen doses", () => {
       data: {
         drugName: "Lisinopril",
         dosage: "10 mg",
-        doseCount: 1,
         doseForm: "tablet",
-        schedule: { days: { monday: ["08:00"] }, timezoneMode: "local" },
+        schedule: {
+          days: { monday: [{ time: "08:00", quantity: 1 }] },
+          timezoneMode: "local",
+        },
         startDate: "2024-01-01",
       },
     });
@@ -139,9 +145,11 @@ test.describe("Home screen doses", () => {
       data: {
         drugName: "Metformin",
         dosage: "500 mg",
-        doseCount: 1,
         doseForm: "tablet",
-        schedule: { days: { monday: ["08:00"] }, timezoneMode: "local" },
+        schedule: {
+          days: { monday: [{ time: "08:00", quantity: 1 }] },
+          timezoneMode: "local",
+        },
         startDate: "2024-01-01",
       },
     });
@@ -162,9 +170,11 @@ test.describe("Home screen doses", () => {
       data: {
         drugName: "Metformin",
         dosage: "500 mg",
-        doseCount: 1,
         doseForm: "tablet",
-        schedule: { days: { monday: ["08:00"] }, timezoneMode: "local" },
+        schedule: {
+          days: { monday: [{ time: "08:00", quantity: 1 }] },
+          timezoneMode: "local",
+        },
         startDate: "2024-01-01",
       },
     });
@@ -172,9 +182,11 @@ test.describe("Home screen doses", () => {
       data: {
         drugName: "Lisinopril",
         dosage: "10 mg",
-        doseCount: 1,
         doseForm: "tablet",
-        schedule: { days: { monday: ["20:00"] }, timezoneMode: "local" },
+        schedule: {
+          days: { monday: [{ time: "20:00", quantity: 1 }] },
+          timezoneMode: "local",
+        },
         startDate: "2024-01-01",
       },
     });
