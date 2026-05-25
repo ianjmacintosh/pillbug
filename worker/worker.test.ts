@@ -76,7 +76,7 @@ describe("security headers", () => {
     );
 
     expect(response.headers.get("Content-Security-Policy")).toBe(
-      "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; frame-src 'self' https://challenges.cloudflare.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self'",
+      "default-src 'self'; script-src 'self' https://challenges.cloudflare.com https://scripts.simpleanalyticscdn.com; frame-src 'self' https://challenges.cloudflare.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; connect-src 'self' https://queue.simpleanalyticscdn.com; img-src 'self' https://queue.simpleanalyticscdn.com https://simpleanalyticsbadges.com",
     );
     expect(response.headers.get("Strict-Transport-Security")).toBe(
       "max-age=63072000",
