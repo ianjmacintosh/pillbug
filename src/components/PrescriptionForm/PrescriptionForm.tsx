@@ -626,11 +626,8 @@ function FormFields({
                       <th scope="col" className="col-time">
                         Time
                       </th>
-                      <th scope="col" className="col-qty">
-                        Qty
-                      </th>
-                      <th scope="col" className="col-form">
-                        Form
+                      <th scope="col" className="col-dose">
+                        Dose
                       </th>
                       <th scope="col" className="col-remove">
                         <span className="visually-hidden">Remove</span>
@@ -654,23 +651,25 @@ function FormFields({
                             }
                           />
                         </td>
-                        <td className="col-qty">
-                          <input
-                            type="text"
-                            inputMode="decimal"
-                            aria-label={`Quantity ${timeIndex + 1}`}
-                            value={slot.quantity}
-                            onChange={(e) =>
-                              updateSlotQuantity(
-                                scheduleIndex,
-                                timeIndex,
-                                e.target.value,
-                              )
-                            }
-                            className="dose-time-qty-input"
-                          />
+                        <td className="col-dose">
+                          <span className="dose-cell">
+                            <input
+                              type="text"
+                              inputMode="decimal"
+                              aria-label={`Quantity ${timeIndex + 1}`}
+                              value={slot.quantity}
+                              onChange={(e) =>
+                                updateSlotQuantity(
+                                  scheduleIndex,
+                                  timeIndex,
+                                  e.target.value,
+                                )
+                              }
+                              className="dose-time-qty-input"
+                            />
+                            {doseForm}
+                          </span>
                         </td>
-                        <td className="col-form">{doseForm}</td>
                         <td className="col-remove">
                           <button
                             type="button"
@@ -751,7 +750,7 @@ export function NewPrescriptionForm() {
     if (res.ok) {
       const created = (await res.json()) as PrescriptionFormData;
       await navigate({
-        to: "/prescriptions/$id/edit",
+        to: "/prescriptions/$id",
         params: { id: created.id },
       });
     } else {
@@ -791,6 +790,7 @@ export function EditPrescriptionForm() {
   const prescription = editRouteApi.useLoaderData() as PrescriptionFormData;
   const { id } = editRouteApi.useParams();
   const form = usePrescriptionForm(prescription);
+  const navigate = useNavigate();
 
   async function handleSaveEdit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -813,8 +813,7 @@ export function EditPrescriptionForm() {
     });
 
     if (res.ok) {
-      // TODO: navigate back to /prescriptions/${id} after API wiring (#156)
-      form.setSubmitting(false);
+      await navigate({ to: "/prescriptions/$id", params: { id } });
     } else {
       const data = (await res.json()) as { error: string };
       form.setError(data.error);

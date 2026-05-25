@@ -48,7 +48,8 @@ async function renderNewForm() {
     history: createMemoryHistory({ initialEntries: ["/prescriptions/new"] }),
   });
   await router.load();
-  return render(<RouterProvider router={router} />);
+  render(<RouterProvider router={router} />);
+  return { router };
 }
 
 async function renderEditForm(prescription = SAMPLE) {
@@ -71,7 +72,8 @@ async function renderEditForm(prescription = SAMPLE) {
     }),
   });
   await router.load();
-  return render(<RouterProvider router={router} />);
+  render(<RouterProvider router={router} />);
+  return { router };
 }
 
 describe("NewPrescriptionForm", () => {
@@ -767,6 +769,30 @@ describe("NewPrescriptionForm", () => {
     });
   });
 
+  describe("navigation after save", () => {
+    test("after successful save, navigates to the prescription detail view", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify(SAMPLE), { status: 201 }),
+      );
+      const { router } = await renderNewForm();
+
+      await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
+      await userEvent.type(screen.getByLabelText(/strength/i), "100");
+      await userEvent.selectOptions(
+        screen.getByRole("combobox", { name: /unit/i }),
+        "mg",
+      );
+      await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      await waitFor(() => {
+        expect(router.state.location.pathname).toBe(
+          `/prescriptions/${SAMPLE.id}`,
+        );
+      });
+    });
+  });
+
   describe("dosing schedules", () => {
     test("'Remove dosing schedule' button is disabled when only one dosing schedule exists", async () => {
       await renderNewForm();
@@ -1087,6 +1113,21 @@ describe("EditPrescriptionForm", () => {
 
     expect(screen.getByRole("alert")).toBeTruthy();
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  test("after successful save, navigates to the prescription detail view", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify(SAMPLE), { status: 200 }),
+    );
+    const { router } = await renderEditForm();
+
+    await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe(
+        `/prescriptions/${SAMPLE.id}`,
+      );
+    });
   });
 
   test("edit PATCH sends doseForm", async () => {

@@ -304,12 +304,14 @@
   width: 10rem;
 }
 
-.prescriptions-form-panel .prescription-list .col-qty {
-  width: 5.5rem;
+.prescriptions-form-panel .prescription-list .col-dose {
+  width: auto;
 }
 
-.prescriptions-form-panel .prescription-list .col-form {
-  width: auto;
+.prescriptions .dose-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .prescriptions-form-panel .prescription-list .col-remove {
@@ -336,7 +338,6 @@
 }
 
 .prescriptions .prescription-list td:last-child {
-  display: flex;
   gap: 0.5rem;
   align-items: center;
 }
