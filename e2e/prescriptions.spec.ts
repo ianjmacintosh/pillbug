@@ -241,7 +241,10 @@ test.describe("Prescription edit", () => {
       data: {
         ...BASE_PRESCRIPTION,
         schedule: {
-          days: { monday: ["08:00"], wednesday: ["08:00"] },
+          days: {
+            monday: [{ time: "08:00", quantity: 1 }],
+            wednesday: [{ time: "08:00", quantity: 1 }],
+          },
           timezoneMode: "local",
         },
       },
