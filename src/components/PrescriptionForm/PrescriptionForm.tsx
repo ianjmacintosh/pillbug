@@ -225,6 +225,25 @@ function usePrescriptionForm(prescription?: PrescriptionFormData) {
     setSchedules((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function toggleAllDays(scheduleIndex: number) {
+    setSchedules((prev) => {
+      const allSelected = prev[scheduleIndex].days.size === WEEKDAYS.length;
+      return prev.map((s, i) => {
+        if (i === scheduleIndex) {
+          return {
+            ...s,
+            days: allSelected ? new Set() : new Set(WEEKDAYS),
+            daysError: false,
+          };
+        }
+        if (!allSelected) {
+          return { ...s, days: new Set() };
+        }
+        return s;
+      });
+    });
+  }
+
   function toggleDay(scheduleIndex: number, day: DayOfWeek) {
     setSchedules((prev) =>
       prev.map((s, i) => {
@@ -338,6 +357,7 @@ function usePrescriptionForm(prescription?: PrescriptionFormData) {
     validateSchedule,
     addSchedule,
     removeSchedule,
+    toggleAllDays,
     toggleDay,
     addDoseTime,
     updateDoseTime,
@@ -369,6 +389,7 @@ interface FormFieldsProps {
   setDetectedDuplicateUnit: (v: DosageUnit | null) => void;
   addSchedule: () => void;
   removeSchedule: (index: number) => void;
+  toggleAllDays: (scheduleIndex: number) => void;
   toggleDay: (scheduleIndex: number, day: DayOfWeek) => void;
   addDoseTime: (scheduleIndex: number) => void;
   updateDoseTime: (
@@ -407,6 +428,7 @@ function FormFields({
   setDetectedDuplicateUnit,
   addSchedule,
   removeSchedule,
+  toggleAllDays,
   toggleDay,
   addDoseTime,
   updateDoseTime,
@@ -562,7 +584,18 @@ function FormFields({
                   schedule.daysError || schedule.timesError ? true : undefined
                 }
               >
-                <legend>Days and Times</legend>
+                <legend>
+                  Days and Times
+                  <button
+                    type="button"
+                    className="toggle-all-link"
+                    onClick={() => toggleAllDays(scheduleIndex)}
+                  >
+                    {schedule.days.size === WEEKDAYS.length
+                      ? "(Unselect all)"
+                      : "(Select all)"}
+                  </button>
+                </legend>
                 {schedule.daysError && (
                   <p role="alert" className="schedule-error-message">
                     Please select at least one day.

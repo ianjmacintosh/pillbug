@@ -702,6 +702,71 @@ describe("NewPrescriptionForm", () => {
     });
   });
 
+  describe("select all / unselect all days", () => {
+    test("'(Select all)' button is visible when not all days are selected", async () => {
+      await renderNewForm();
+      expect(screen.getByRole("button", { name: /select all/i })).toBeTruthy();
+    });
+
+    test("button label switches to '(Unselect all)' when all 7 days are selected", async () => {
+      await renderNewForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /select all/i }),
+      );
+      expect(
+        screen.getByRole("button", { name: /unselect all/i }),
+      ).toBeTruthy();
+      expect(
+        screen.queryByRole("button", { name: /^\(Select all\)$/i }),
+      ).toBeNull();
+    });
+
+    test("clicking '(Unselect all)' deselects all days", async () => {
+      await renderNewForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /select all/i }),
+      );
+      await userEvent.click(
+        screen.getByRole("button", { name: /unselect all/i }),
+      );
+      for (const day of [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ]) {
+        expect(
+          (screen.getByRole("checkbox", { name: day }) as HTMLInputElement)
+            .checked,
+        ).toBe(false);
+      }
+    });
+
+    test("clicking '(Select all)' selects all 7 days", async () => {
+      await renderNewForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /select all/i }),
+      );
+      for (const day of [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ]) {
+        expect(
+          (screen.getByRole("checkbox", { name: day }) as HTMLInputElement)
+            .checked,
+        ).toBe(true);
+      }
+    });
+  });
+
   describe("dosing schedules", () => {
     test("'Remove dosing schedule' button is disabled when only one dosing schedule exists", async () => {
       await renderNewForm();
