@@ -18,6 +18,11 @@ import Register from "../Register";
 import Settings from "../Settings";
 import Terms from "../Terms";
 import EnterCode from "../EnterCode";
+import PrescriptionDetail from "../PrescriptionDetail";
+import {
+  EditPrescriptionForm,
+  NewPrescriptionForm,
+} from "../PrescriptionForm/PrescriptionForm";
 
 const rootRoute = createRootRoute({
   component: Outlet,
@@ -120,6 +125,37 @@ const prescriptionsRoute = createRoute({
   component: Prescriptions,
 });
 
+const prescriptionNewRoute = createRoute({
+  getParentRoute: () => prescriptionsRoute,
+  path: "new",
+  beforeLoad: requireAuth,
+  component: NewPrescriptionForm,
+});
+
+const prescriptionDetailRoute = createRoute({
+  getParentRoute: () => prescriptionsRoute,
+  path: "$id",
+  beforeLoad: requireAuth,
+  loader: async ({ params }) => {
+    const res = await fetch(`/api/v1/prescriptions/${params.id}`);
+    if (!res.ok) throw redirect({ to: "/prescriptions" });
+    return res.json();
+  },
+  component: PrescriptionDetail,
+});
+
+const prescriptionEditRoute = createRoute({
+  getParentRoute: () => prescriptionsRoute,
+  path: "$id/edit",
+  beforeLoad: requireAuth,
+  loader: async ({ params }) => {
+    const res = await fetch(`/api/v1/prescriptions/${params.id}`);
+    if (!res.ok) throw redirect({ to: "/prescriptions" });
+    return res.json();
+  },
+  component: EditPrescriptionForm,
+});
+
 const logoutRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/logout",
@@ -142,7 +178,11 @@ const routeTree = rootRoute.addChildren([
     privacyRoute,
     settingsRoute,
     fillSessionRoute,
-    prescriptionsRoute,
+    prescriptionsRoute.addChildren([
+      prescriptionNewRoute,
+      prescriptionDetailRoute,
+      prescriptionEditRoute,
+    ]),
     logoutRoute,
     enterCodeRoute,
   ]),

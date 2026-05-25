@@ -5,7 +5,7 @@ export interface ScheduledDose {
   prescriptionId: string;
   drugName: string;
   dosage: string;
-  doseCount: number;
+  quantity: number;
   doseForm: string;
   scheduledAt: string;
   actionable: boolean;
@@ -43,9 +43,9 @@ export function scheduledDoses(
       if (dateStr < rx.startDate) continue;
       if (rx.endDate && dateStr > rx.endDate) continue;
 
-      const times = rx.schedule.days[dayName] ?? [];
-      for (const time of times) {
-        const scheduledAt = `${dateStr}T${time}:00Z`;
+      const slots = rx.schedule.days[dayName] ?? [];
+      for (const slot of slots) {
+        const scheduledAt = `${dateStr}T${slot.time}:00Z`;
         const actionable = dateStr <= today;
         const match = loggedDoses.find(
           (dose) =>
@@ -55,7 +55,7 @@ export function scheduledDoses(
           prescriptionId: rx.id,
           drugName: rx.drugName,
           dosage: rx.dosage,
-          doseCount: rx.doseCount,
+          quantity: slot.quantity,
           doseForm: rx.doseForm,
           scheduledAt,
           actionable,

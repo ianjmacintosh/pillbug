@@ -18,8 +18,13 @@ const VALID_WEEKDAYS: DayOfWeek[] = [
 ];
 const HH_MM = /^([01]\d|2[0-3]):[0-5]\d$/;
 
+export interface PerSlotDose {
+  time: string;
+  quantity: number;
+}
+
 export interface Schedule {
-  days: Partial<Record<DayOfWeek, string[]>>;
+  days: Partial<Record<DayOfWeek, PerSlotDose[]>>;
   timezoneMode: "local" | "fixed_utc";
 }
 
@@ -32,7 +37,6 @@ export type PrescriptionStatus =
 export interface Prescription {
   id: string;
   patientId: string;
-  doseCount: number;
   doseForm: string;
   drugName: string;
   dosage: string;
@@ -71,17 +75,24 @@ export function validateSchedule(schedule: unknown): { error: string } | null {
     return { error: "invalid_days" };
   }
 
-  for (const [key, times] of Object.entries(
+  for (const [key, slots] of Object.entries(
     s.days as Record<string, unknown>,
   )) {
     if (!VALID_WEEKDAYS.includes(key as DayOfWeek)) {
       return { error: "invalid_days" };
     }
-    if (
-      !Array.isArray(times) ||
-      !times.every((t: unknown) => HH_MM.test(String(t)))
-    ) {
+    if (!Array.isArray(slots)) {
       return { error: "invalid_time_format" };
+    }
+    for (const slot of slots) {
+      if (
+        typeof slot !== "object" ||
+        slot === null ||
+        typeof (slot as Record<string, unknown>).time !== "string" ||
+        !HH_MM.test((slot as Record<string, unknown>).time as string)
+      ) {
+        return { error: "invalid_time_format" };
+      }
     }
   }
 
@@ -90,7 +101,6 @@ export function validateSchedule(schedule: unknown): { error: string } | null {
 
 export async function createPrescription(
   input: {
-    doseCount?: number;
     doseForm?: string;
     drugName: string;
     dosage: string;
@@ -110,7 +120,6 @@ export async function createPrescription(
   const prescription: Prescription = {
     id: crypto.randomUUID(),
     patientId,
-    doseCount: input.doseCount ?? 1,
     doseForm: input.doseForm ?? "tablet",
     drugName: input.drugName,
     dosage: input.dosage,
@@ -129,7 +138,6 @@ export async function createPrescription(
 export function toPrescriptionResponse(p: Prescription) {
   return {
     id: p.id,
-    doseCount: p.doseCount,
     doseForm: p.doseForm,
     drugName: p.drugName,
     dosage: p.dosage,

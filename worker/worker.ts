@@ -261,7 +261,6 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     }
     const result = await createPrescription(
       {
-        doseCount: body.doseCount != null ? Number(body.doseCount) : undefined,
         doseForm: body.doseForm != null ? String(body.doseForm) : undefined,
         drugName: String(body.drugName),
         dosage: String(body.dosage),
@@ -317,6 +316,32 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     /^\/api\/v1\/prescriptions\/([^/]+)$/,
   );
 
+  if (prescriptionMatch && request.method === "GET") {
+    const sessionId = getSessionId(request);
+    const session = sessionId ? await getSession(sessionId, repo) : null;
+    if (!session) {
+      return new Response(JSON.stringify({ error: "not_authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const prescriptionId = prescriptionMatch[1];
+    const prescription = await prescriptionRepo.getPrescription(
+      prescriptionId,
+      session.patientId,
+    );
+    if (!prescription) {
+      return new Response(JSON.stringify({ error: "not_found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify(toPrescriptionResponse(prescription)), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   if (prescriptionMatch && request.method === "PATCH") {
     const sessionId = getSessionId(request);
     const session = sessionId ? await getSession(sessionId, repo) : null;
@@ -330,7 +355,6 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     const body = await request.json<Record<string, unknown>>();
     const fields: Record<string, unknown> = {};
     const allowed = [
-      "doseCount",
       "doseForm",
       "drugName",
       "dosage",

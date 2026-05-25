@@ -6,12 +6,14 @@ import type { Prescription } from "./prescriptions";
 const BASE_PRESCRIPTION: Prescription = {
   id: "rx-1",
   patientId: "patient-1",
-  doseCount: 1,
   doseForm: "tablet",
   drugName: "Metformin",
   dosage: "500mg",
   schedule: {
-    days: { monday: ["08:00"], wednesday: ["08:00"] },
+    days: {
+      monday: [{ time: "08:00", quantity: 1 }],
+      wednesday: [{ time: "08:00", quantity: 1 }],
+    },
     timezoneMode: "local",
   },
   startDate: "2024-03-11",
@@ -46,7 +48,11 @@ describe("scheduledDoses", () => {
     const rx: Prescription = {
       ...BASE_PRESCRIPTION,
       schedule: {
-        days: { monday: ["08:00"], wednesday: ["08:00"], friday: ["08:00"] },
+        days: {
+          monday: [{ time: "08:00", quantity: 1 }],
+          wednesday: [{ time: "08:00", quantity: 1 }],
+          friday: [{ time: "08:00", quantity: 1 }],
+        },
         timezoneMode: "local",
       },
       endDate: "2024-03-13",
@@ -63,7 +69,10 @@ describe("scheduledDoses", () => {
       ...BASE_PRESCRIPTION,
       id: "rx-2",
       drugName: "Lisinopril",
-      schedule: { days: { tuesday: ["12:00"] }, timezoneMode: "local" },
+      schedule: {
+        days: { tuesday: [{ time: "12:00", quantity: 1 }] },
+        timezoneMode: "local",
+      },
     };
     const result = scheduledDoses(
       [BASE_PRESCRIPTION, rx2],
@@ -102,7 +111,10 @@ describe("scheduledDoses", () => {
     const rx: Prescription = {
       ...BASE_PRESCRIPTION,
       schedule: {
-        days: { monday: ["08:00"], friday: ["08:00"] },
+        days: {
+          monday: [{ time: "08:00", quantity: 1 }],
+          friday: [{ time: "08:00", quantity: 1 }],
+        },
         timezoneMode: "local",
       },
     };
