@@ -66,6 +66,52 @@ async function fillCreateForm(page: Page) {
   await page.getByRole("button", { name: /save prescription/i }).click();
 }
 
+test.describe("Split-panel layout", () => {
+  test("list panel and detail panel are both visible at /prescriptions/$id", async ({
+    page,
+  }) => {
+    await login(page);
+    const res = await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    const { id } = (await res.json()) as { id: string };
+    await page.goto(`/prescriptions/${id}`);
+
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Metformin", level: 2 }),
+    ).toBeVisible();
+  });
+
+  test("navigates to first prescription detail on /prescriptions load", async ({
+    page,
+  }) => {
+    await login(page);
+    const res = await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    const { id } = (await res.json()) as { id: string };
+    await page.goto("/prescriptions");
+
+    await expect(page).toHaveURL(`/prescriptions/${id}`);
+    await expect(
+      page.getByRole("heading", { name: "Metformin", level: 2 }),
+    ).toBeVisible();
+  });
+
+  test("prescription list is visible while create form is open", async ({
+    page,
+  }) => {
+    await login(page);
+    await page.goto("/prescriptions/new");
+
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /add prescription/i, level: 2 }),
+    ).toBeVisible();
+  });
+});
+
 test.describe("Prescription list", () => {
   test("empty state: list is empty and Add Prescription link is present", async ({
     page,
@@ -283,20 +329,26 @@ test.describe("Prescription edit", () => {
 });
 
 test.describe("Prescription detail", () => {
-  test("clicking a prescription link in the list navigates to the detail page", async ({
+  test("clicking a different prescription in the list updates the detail panel", async ({
     page,
   }) => {
     await login(page);
-    await page.request.post("/api/v1/prescriptions", {
+    const res1 = await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
-    await page.goto("/prescriptions");
-    await page.getByRole("link", { name: "Metformin", exact: true }).click();
+    const { id: metforminId } = (await res1.json()) as { id: string };
+    const res2 = await page.request.post("/api/v1/prescriptions", {
+      data: { ...BASE_PRESCRIPTION, drugName: "Lisinopril" },
+    });
+    const { id: lisinoprilId } = (await res2.json()) as { id: string };
 
-    await expect(page).toHaveURL(/\/prescriptions\/[^/]+$/);
-    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
-      "Metformin",
-    );
+    await page.goto(`/prescriptions/${metforminId}`);
+    await page.getByRole("link", { name: "Lisinopril", exact: true }).click();
+
+    await expect(page).toHaveURL(`/prescriptions/${lisinoprilId}`);
+    await expect(
+      page.getByRole("heading", { name: "Lisinopril", level: 2 }),
+    ).toBeVisible();
   });
 
   test("detail page shows drug name, strength, and start date", async ({

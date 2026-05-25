@@ -41,7 +41,7 @@ function Prescriptions() {
         setPrescriptions(data);
       })
       .catch(() => {});
-  }, []);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (
