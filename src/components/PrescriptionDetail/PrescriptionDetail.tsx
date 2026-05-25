@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { getRouteApi, Link, useNavigate } from "@tanstack/react-router";
-import "../Prescriptions/Prescriptions.css";
 import "./PrescriptionDetail.css";
 
 type DayOfWeek =
@@ -118,74 +117,72 @@ function PrescriptionDetail() {
   }
 
   return (
-    <main className="prescriptions">
-      <div className="prescriptions-form-panel">
-        <article>
-          <div className="prescription-detail-header">
-            <h2>{prescription.drugName}</h2>
-            <div className="prescription-detail-actions">
-              <Link to="/prescriptions/$id/edit" params={{ id }}>
-                edit
-              </Link>
-              <span aria-hidden="true"> | </span>
-              <button onClick={() => setShowDeleteDialog(true)}>delete</button>
-            </div>
+    <>
+      <article>
+        <div className="prescription-detail-header">
+          <h2>{prescription.drugName}</h2>
+          <div className="prescription-detail-actions">
+            <Link to="/prescriptions/$id/edit" params={{ id }}>
+              edit
+            </Link>
+            <span aria-hidden="true"> | </span>
+            <button onClick={() => setShowDeleteDialog(true)}>delete</button>
           </div>
-          <dl className="prescription-detail-meta">
-            <dt>Strength</dt>
-            <dd>{prescription.dosage}</dd>
-            <dt>Start date</dt>
-            <dd>
-              <time dateTime={prescription.startDate}>
-                {formatDate(prescription.startDate)}
+        </div>
+        <dl className="prescription-detail-meta">
+          <dt>Strength</dt>
+          <dd>{prescription.dosage}</dd>
+          <dt>Start date</dt>
+          <dd>
+            <time dateTime={prescription.startDate}>
+              {formatDate(prescription.startDate)}
+            </time>
+          </dd>
+          <dt>End date</dt>
+          <dd>
+            {prescription.endDate ? (
+              <time dateTime={prescription.endDate}>
+                {formatDate(prescription.endDate)}
               </time>
-            </dd>
-            <dt>End date</dt>
-            <dd>
-              {prescription.endDate ? (
-                <time dateTime={prescription.endDate}>
-                  {formatDate(prescription.endDate)}
-                </time>
-              ) : (
-                "N/A (On-going)"
-              )}
-            </dd>
-          </dl>
-          <section className="prescription-detail-schedule">
-            <h3>Schedule</h3>
-            {routines.map((routine) => (
-              <section
-                key={routine.label}
-                className="prescription-detail-routine"
-              >
-                <h4>{routine.label}</h4>
-                <table className="prescription-list">
-                  <thead>
-                    <tr>
-                      <th scope="col">Time</th>
-                      <th scope="col">Dose</th>
+            ) : (
+              "N/A (On-going)"
+            )}
+          </dd>
+        </dl>
+        <section className="prescription-detail-schedule">
+          <h3>Schedule</h3>
+          {routines.map((routine) => (
+            <section
+              key={routine.label}
+              className="prescription-detail-routine"
+            >
+              <h4>{routine.label}</h4>
+              <table className="prescription-list">
+                <thead>
+                  <tr>
+                    <th scope="col">Time</th>
+                    <th scope="col">Dose</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {routine.slots.map((slot) => (
+                    <tr key={slot.time}>
+                      <td>
+                        <time dateTime={slot.time}>
+                          {formatTime(slot.time)}
+                        </time>
+                      </td>
+                      <td>
+                        {formatQuantity(slot.quantity, prescription.doseForm)}
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {routine.slots.map((slot) => (
-                      <tr key={slot.time}>
-                        <td>
-                          <time dateTime={slot.time}>
-                            {formatTime(slot.time)}
-                          </time>
-                        </td>
-                        <td>
-                          {formatQuantity(slot.quantity, prescription.doseForm)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </section>
-            ))}
-          </section>
-        </article>
-      </div>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+          ))}
+        </section>
+      </article>
       {showDeleteDialog && (
         <dialog open>
           <p>
@@ -196,7 +193,7 @@ function PrescriptionDetail() {
           <button onClick={handleConfirmDelete}>Confirm delete</button>
         </dialog>
       )}
-    </main>
+    </>
   );
 }
 

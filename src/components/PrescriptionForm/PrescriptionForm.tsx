@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
-import "../Prescriptions/Prescriptions.css";
-import "../PrescriptionDetail/PrescriptionDetail.css";
 
 type DayOfWeek =
   | "sunday"
@@ -761,26 +759,22 @@ export function NewPrescriptionForm() {
   }
 
   return (
-    <main className="prescriptions">
-      <div className="prescriptions-form-panel">
-        <section>
-          <h2>Add prescription</h2>
-          <form onSubmit={handleCreate}>
-            {form.error && <p role="alert">{form.error}</p>}
-            <FormFields idPrefix="create" {...form} />
-            <div className="form-actions">
-              <button
-                type="submit"
-                disabled={form.submitting}
-                className="button-primary"
-              >
-                {form.submitting ? "Saving…" : "Save prescription"}
-              </button>
-            </div>
-          </form>
-        </section>
-      </div>
-    </main>
+    <section>
+      <h2>Add prescription</h2>
+      <form onSubmit={handleCreate}>
+        {form.error && <p role="alert">{form.error}</p>}
+        <FormFields idPrefix="create" {...form} />
+        <div className="form-actions">
+          <button
+            type="submit"
+            disabled={form.submitting}
+            className="button-primary"
+          >
+            {form.submitting ? "Saving…" : "Save prescription"}
+          </button>
+        </div>
+      </form>
+    </section>
   );
 }
 
@@ -822,25 +816,21 @@ export function EditPrescriptionForm() {
   }
 
   return (
-    <main className="prescriptions">
-      <div className="prescriptions-form-panel">
-        <section>
-          <h2>Edit prescription</h2>
-          <form onSubmit={handleSaveEdit}>
-            {form.error && <p role="alert">{form.error}</p>}
-            <FormFields idPrefix="edit" {...form} />
-            <div className="form-actions">
-              <button
-                type="submit"
-                disabled={form.submitting}
-                className="button-primary"
-              >
-                {form.submitting ? "Saving…" : "Save prescription"}
-              </button>
-            </div>
-          </form>
-        </section>
-      </div>
-    </main>
+    <section>
+      <h2>Edit prescription</h2>
+      <form onSubmit={handleSaveEdit}>
+        {form.error && <p role="alert">{form.error}</p>}
+        <FormFields idPrefix="edit" {...form} />
+        <div className="form-actions">
+          <button
+            type="submit"
+            disabled={form.submitting}
+            className="button-primary"
+          >
+            {form.submitting ? "Saving…" : "Save prescription"}
+          </button>
+        </div>
+      </form>
+    </section>
   );
 }

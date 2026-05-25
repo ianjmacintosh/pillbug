@@ -54,58 +54,6 @@
   margin: 0;
 }
 
-.date-range-row {
-  display: flex;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.date-range-row > div {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  flex: 1;
-}
-
-.date-range-row label {
-  font-family: system-ui, sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.routine-block {
-  background: #f5f6f8;
-  border: 1px solid #d0d5dd;
-  border-radius: 8px;
-  padding: 1rem;
-}
-
-.routine-block + .routine-block {
-  margin-top: 0.75rem;
-}
-
-.routine-block-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.875rem;
-}
-
-.routine-block-label {
-  font-family: system-ui, sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #344054;
-}
-
-.prescription-detail-schedule {
-  margin-top: 2rem;
-}
-
-.prescription-detail-schedule > h3 {
-  margin-bottom: 0.75rem;
-}
-
 .prescription-detail-routine + .prescription-detail-routine {
   margin-top: 1.5rem;
 }

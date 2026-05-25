@@ -126,15 +126,15 @@ const prescriptionsRoute = createRoute({
 });
 
 const prescriptionNewRoute = createRoute({
-  getParentRoute: () => layoutRoute,
-  path: "/prescriptions/new",
+  getParentRoute: () => prescriptionsRoute,
+  path: "new",
   beforeLoad: requireAuth,
   component: NewPrescriptionForm,
 });
 
 const prescriptionDetailRoute = createRoute({
-  getParentRoute: () => layoutRoute,
-  path: "/prescriptions/$id",
+  getParentRoute: () => prescriptionsRoute,
+  path: "$id",
   beforeLoad: requireAuth,
   loader: async ({ params }) => {
     const res = await fetch(`/api/v1/prescriptions/${params.id}`);
@@ -145,8 +145,8 @@ const prescriptionDetailRoute = createRoute({
 });
 
 const prescriptionEditRoute = createRoute({
-  getParentRoute: () => layoutRoute,
-  path: "/prescriptions/$id/edit",
+  getParentRoute: () => prescriptionsRoute,
+  path: "$id/edit",
   beforeLoad: requireAuth,
   loader: async ({ params }) => {
     const res = await fetch(`/api/v1/prescriptions/${params.id}`);
@@ -178,10 +178,11 @@ const routeTree = rootRoute.addChildren([
     privacyRoute,
     settingsRoute,
     fillSessionRoute,
-    prescriptionsRoute,
-    prescriptionNewRoute,
-    prescriptionDetailRoute,
-    prescriptionEditRoute,
+    prescriptionsRoute.addChildren([
+      prescriptionNewRoute,
+      prescriptionDetailRoute,
+      prescriptionEditRoute,
+    ]),
     logoutRoute,
     enterCodeRoute,
   ]),

@@ -117,17 +117,17 @@ test.describe("Prescription list", () => {
 });
 
 test.describe("Prescription create", () => {
-  test("fill and save navigates to the edit form for the new prescription", async ({
+  test("fill and save navigates to the prescription detail view", async ({
     page,
   }) => {
     await login(page);
     await page.goto("/prescriptions/new");
     await fillCreateForm(page);
 
-    await expect(page).toHaveURL(/\/prescriptions\/.+\/edit/);
-    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
-      /edit prescription/i,
-    );
+    await expect(page).toHaveURL(/\/prescriptions\/[^/]+$/);
+    await expect(
+      page.getByRole("heading", { name: "Aspirin", level: 2 }),
+    ).toBeVisible();
   });
 
   test("new prescription appears in the list after create", async ({
@@ -262,7 +262,7 @@ test.describe("Prescription edit", () => {
     await expect(page.getByLabel(/time 1/i)).toHaveValue("08:00");
   });
 
-  test("saving an edit keeps the edit form open with updated drug name", async ({
+  test("saving an edit navigates to the prescription detail view", async ({
     page,
   }) => {
     await login(page);
@@ -275,8 +275,10 @@ test.describe("Prescription edit", () => {
     await page.getByLabel(/drug name/i).fill("Metformin XR");
     await page.getByRole("button", { name: /save prescription/i }).click();
 
-    await expect(page).toHaveURL(/\/prescriptions\/.+\/edit/);
-    await expect(page.getByLabel(/drug name/i)).toHaveValue("Metformin XR");
+    await expect(page).toHaveURL(`/prescriptions/${id}`);
+    await expect(
+      page.getByRole("heading", { name: "Metformin XR", level: 2 }),
+    ).toBeVisible();
   });
 });
 
