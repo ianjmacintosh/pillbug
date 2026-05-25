@@ -161,6 +161,13 @@
 
 .prescriptions .drug-info-row .drug-form-field select {
   width: 100%;
+  height: 42px;
+  padding: 0 0.375rem;
+  border: 1px solid var(--gray-50);
+  border-radius: 4px;
+  font-size: 0.875rem;
+  background-color: #fff;
+  cursor: pointer;
 }
 
 .prescriptions .drug-info-row .drug-dosage-field {
@@ -178,8 +185,9 @@
 }
 
 .prescriptions .count-form-row select {
+  height: 42px;
   min-width: 7rem;
-  padding: 0.5rem 0.375rem;
+  padding: 0 0.375rem;
   border: 1px solid var(--gray-50);
   border-radius: 4px;
   font-size: 0.875rem;
@@ -199,7 +207,8 @@
 }
 
 .prescriptions .dosage-input-row select {
-  padding: 0.5rem 0.375rem;
+  height: 42px;
+  padding: 0 0.375rem;
   border: 1px solid var(--gray-50);
   border-radius: 4px;
   font-size: 0.875rem;
@@ -255,6 +264,7 @@
 }
 
 .prescriptions input {
+  height: 42px;
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--gray-50);
   border-radius: 4px;
@@ -389,6 +399,7 @@
 
 .prescriptions input.visually-hidden {
   width: 1px;
+  height: 1px;
   padding: 0;
 }
 
@@ -426,11 +437,12 @@
 .prescriptions .prescription-list input[type="time"] {
   width: 9rem;
   box-sizing: border-box;
-  height: 2.5rem;
+  height: 42px;
   font-variant-numeric: tabular-nums;
 }
 
 .prescriptions .dose-time-qty-input {
+  height: 42px;
   width: 4rem;
   box-sizing: border-box;
 }
