@@ -623,10 +623,16 @@ function FormFields({
                 <table className="prescription-list">
                   <thead>
                     <tr>
-                      <th scope="col">Qty</th>
-                      <th scope="col">Form</th>
-                      <th scope="col">Time</th>
-                      <th scope="col">
+                      <th scope="col" className="col-time">
+                        Time
+                      </th>
+                      <th scope="col" className="col-qty">
+                        Qty
+                      </th>
+                      <th scope="col" className="col-form">
+                        Form
+                      </th>
+                      <th scope="col" className="col-remove">
                         <span className="visually-hidden">Remove</span>
                       </th>
                     </tr>
@@ -634,7 +640,21 @@ function FormFields({
                   <tbody>
                     {schedule.times.map((slot, timeIndex) => (
                       <tr key={timeIndex}>
-                        <td>
+                        <td className="col-time">
+                          <input
+                            type="time"
+                            aria-label={`Time ${timeIndex + 1}`}
+                            value={slot.time}
+                            onChange={(e) =>
+                              updateDoseTime(
+                                scheduleIndex,
+                                timeIndex,
+                                e.target.value,
+                              )
+                            }
+                          />
+                        </td>
+                        <td className="col-qty">
                           <input
                             type="text"
                             inputMode="decimal"
@@ -650,22 +670,8 @@ function FormFields({
                             className="dose-time-qty-input"
                           />
                         </td>
-                        <td>{doseForm}</td>
-                        <td>
-                          <input
-                            type="time"
-                            aria-label={`Time ${timeIndex + 1}`}
-                            value={slot.time}
-                            onChange={(e) =>
-                              updateDoseTime(
-                                scheduleIndex,
-                                timeIndex,
-                                e.target.value,
-                              )
-                            }
-                          />
-                        </td>
-                        <td>
+                        <td className="col-form">{doseForm}</td>
+                        <td className="col-remove">
                           <button
                             type="button"
                             className="remove-time"

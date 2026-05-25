@@ -296,6 +296,26 @@
   font-size: 0.9375rem;
 }
 
+.prescriptions-form-panel .prescription-list {
+  table-layout: fixed;
+}
+
+.prescriptions-form-panel .prescription-list .col-time {
+  width: 10rem;
+}
+
+.prescriptions-form-panel .prescription-list .col-qty {
+  width: 5.5rem;
+}
+
+.prescriptions-form-panel .prescription-list .col-form {
+  width: auto;
+}
+
+.prescriptions-form-panel .prescription-list .col-remove {
+  width: 3rem;
+}
+
 .prescriptions .prescription-list th {
   text-align: left;
   font-size: 0.8125rem;
