@@ -33,6 +33,8 @@ export interface AuthRepository {
     id: string,
   ): Promise<{ patientId: string; expiresAt: string } | null>;
   findPatientCreatedAt(patientId: string): Promise<string | null>;
+  findPatientTimezone(patientId: string): Promise<string | null>;
+  updatePatientTimezone(patientId: string, timezone: string): Promise<void>;
   deleteSession(id: string): Promise<void>;
   findUnverifiedPatientsBefore(cutoff: string): Promise<{ id: string }[]>;
   deletePatient(patientId: string): Promise<void>;

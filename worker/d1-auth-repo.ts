@@ -116,6 +116,21 @@ export function makeD1AuthRepo(
       return row?.createdAt ?? null;
     },
 
+    async findPatientTimezone(patientId) {
+      const row = await db
+        .prepare("SELECT timezone FROM patients WHERE id = ?")
+        .bind(patientId)
+        .first<{ timezone: string | null }>();
+      return row?.timezone ?? null;
+    },
+
+    async updatePatientTimezone(patientId, timezone) {
+      await db
+        .prepare("UPDATE patients SET timezone = ? WHERE id = ?")
+        .bind(timezone, patientId)
+        .run();
+    },
+
     async deleteSession(id) {
       await db.prepare("DELETE FROM sessions WHERE id = ?").bind(id).run();
     },
