@@ -1,7 +1,9 @@
 {
   "permissions": {
     "deny": [
-      "Read(./.env)"
+      "Read(./.env)",
+      "Bash(npm run db:users:local*)",
+      "Bash(node*scripts/list-users.js*)"
     ]
   },
   "hooks": {
