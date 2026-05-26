@@ -445,6 +445,105 @@ describe("GET /api/v1/session", () => {
     expect(body.patientId).toBe("patient-1");
     expect(body.registrationDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
+
+  test("returns timezone: null when patient has no timezone set", async () => {
+    await repo.createPatient(
+      "patient-1",
+      "delivered@resend.dev",
+      new Date().toISOString(),
+    );
+    const expiresAt = new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+    await repo.createSession("session-id-1", "patient-1", expiresAt);
+
+    const response = await worker.fetch(
+      new Request("http://localhost:5173/api/v1/session", {
+        headers: { Cookie: "session=session-id-1" },
+      }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { timezone: string | null };
+    expect(body.timezone).toBeNull();
+  });
+});
+
+describe("PATCH /api/v1/account", () => {
+  let repo: ReturnType<typeof makeInMemoryRepo>;
+
+  beforeEach(() => {
+    repo = makeInMemoryRepo();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(repo);
+  });
+
+  async function createSessionAndPatient() {
+    await repo.createPatient(
+      "patient-1",
+      "delivered@resend.dev",
+      new Date().toISOString(),
+    );
+    const expiresAt = new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+    await repo.createSession("session-id-1", "patient-1", expiresAt);
+  }
+
+  test("returns 401 when not authenticated", async () => {
+    const response = await worker.fetch(
+      new Request("http://localhost:5173/api/v1/account", {
+        method: "PATCH",
+        body: JSON.stringify({ timezone: "America/New_York" }),
+        headers: { "Content-Type": "application/json" },
+      }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "not_authenticated" });
+  });
+
+  test("returns 200 and persists a valid IANA timezone", async () => {
+    await createSessionAndPatient();
+
+    const response = await worker.fetch(
+      new Request("http://localhost:5173/api/v1/account", {
+        method: "PATCH",
+        body: JSON.stringify({ timezone: "America/New_York" }),
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: "session=session-id-1",
+        },
+      }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true });
+    expect(await repo.findPatientTimezone("patient-1")).toBe(
+      "America/New_York",
+    );
+  });
+
+  test("returns 400 for an unrecognised timezone value", async () => {
+    await createSessionAndPatient();
+
+    const response = await worker.fetch(
+      new Request("http://localhost:5173/api/v1/account", {
+        method: "PATCH",
+        body: JSON.stringify({ timezone: "Not/ATimezone" }),
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: "session=session-id-1",
+        },
+      }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "invalid_timezone" });
+  });
 });
 
 describe("POST /api/v1/auth/verify-pin", () => {

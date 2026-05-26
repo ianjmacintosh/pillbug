@@ -9,6 +9,7 @@ export function makeInMemoryRepo(): AuthRepository {
       termsAcceptedAt: string;
       createdAt: string;
       lastLoginAt: string | null;
+      timezone: string | null;
     }
   >();
   const tokens = new Map<
@@ -34,6 +35,7 @@ export function makeInMemoryRepo(): AuthRepository {
         termsAcceptedAt,
         createdAt: new Date().toISOString(),
         lastLoginAt: null,
+        timezone: null,
       });
     },
     async findPatientByEmail(email) {
@@ -83,6 +85,13 @@ export function makeInMemoryRepo(): AuthRepository {
     },
     async findPatientCreatedAt(patientId) {
       return patients.get(patientId)?.createdAt ?? null;
+    },
+    async findPatientTimezone(patientId) {
+      return patients.get(patientId)?.timezone ?? null;
+    },
+    async updatePatientTimezone(patientId, timezone) {
+      const p = patients.get(patientId);
+      if (p) patients.set(patientId, { ...p, timezone });
     },
     async findUnverifiedPatientsBefore(cutoff) {
       return [...patients.values()]
