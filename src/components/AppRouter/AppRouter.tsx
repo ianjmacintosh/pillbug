@@ -15,6 +15,7 @@ import NotFound from "../NotFound";
 import Prescriptions from "../Prescriptions";
 import Privacy from "../Privacy";
 import Register from "../Register";
+import CompleteSetup from "../CompleteSetup";
 import Settings from "../Settings";
 import Terms from "../Terms";
 import EnterCode from "../EnterCode";
@@ -59,7 +60,7 @@ async function requireTimezone() {
   }
   const data = (await res.json()) as { timezone: string | null };
   if (!data.timezone) {
-    throw redirect({ to: "/settings" });
+    throw redirect({ to: "/finish-setup" });
   }
 }
 
@@ -93,7 +94,7 @@ const indexRoute = createRoute({
       timezone: string | null;
     };
     if (!data.timezone) {
-      throw redirect({ to: "/settings" });
+      throw redirect({ to: "/finish-setup" });
     }
     return { registrationDate: data.registrationDate };
   },
@@ -124,6 +125,19 @@ const privacyRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/privacy",
   component: Privacy,
+});
+
+const completeSetupRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: "/finish-setup",
+  beforeLoad: requireAuth,
+  loader: async () => {
+    const res = await fetch("/api/v1/session");
+    if (!res.ok) throw redirect({ to: "/login" });
+    const data = (await res.json()) as { timezone: string | null };
+    return { timezone: data.timezone };
+  },
+  component: CompleteSetup,
 });
 
 const settingsRoute = createRoute({
@@ -204,6 +218,7 @@ const routeTree = rootRoute.addChildren([
     loginRoute,
     termsRoute,
     privacyRoute,
+    completeSetupRoute,
     settingsRoute,
     fillSessionRoute,
     prescriptionsRoute.addChildren([

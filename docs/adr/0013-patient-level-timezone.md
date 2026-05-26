@@ -23,7 +23,7 @@ A single Patient rarely needs different timezone semantics for different Prescri
 - `patients` table needs a `timezone` column (nullable TEXT, IANA string). Reminder delivery falls back to UTC when null.
 - The `timezoneMode` field should be removed from the `Schedule` TypeScript interface and no longer written by new code.
 - Settings screen exposes a timezone picker pre-populated with the browser-detected timezone. Saving calls `PATCH /api/v1/account` and redirects to `/`.
-- Authenticated users without a saved timezone are gated: the router redirects them to `/settings` before they can access `/`, `/prescriptions`, or any other app route. `/settings` and `/logout` are exempt from the gate.
+- Authenticated users without a saved timezone are gated: the router redirects them to `/finish-setup` before they can access `/`, `/prescriptions`, or any other app route. `/finish-setup`, `/settings`, and `/logout` are exempt from the gate.
 - `GET /api/v1/prescriptions` and related endpoints do not need to change — timezone is only relevant at Reminder fire time.
 
 ## Rejected alternative

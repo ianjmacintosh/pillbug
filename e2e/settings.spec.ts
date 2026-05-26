@@ -37,11 +37,11 @@ test.describe("Settings screen", () => {
     await expect(page.getByRole("option").first()).toBeVisible();
   });
 
-  test("redirects to /settings when accessing / without a timezone set", async ({
+  test("redirects to /finish-setup when accessing / without a timezone set", async ({
     page,
   }) => {
     await page.goto("/");
-    await expect(page).toHaveURL("/settings");
+    await expect(page).toHaveURL("/finish-setup");
   });
 
   test("saving a timezone redirects to / and persists on return", async ({
