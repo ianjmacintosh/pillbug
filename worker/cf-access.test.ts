@@ -16,7 +16,7 @@ function b64url(buf: ArrayBuffer | Uint8Array): string {
 }
 
 beforeAll(async () => {
-  const pair = await crypto.subtle.generateKey(
+  const pair = (await crypto.subtle.generateKey(
     {
       name: "RSASSA-PKCS1-v1_5",
       modulusLength: 2048,
@@ -25,7 +25,7 @@ beforeAll(async () => {
     },
     true,
     ["sign", "verify"],
-  );
+  )) as CryptoKeyPair;
   privateKey = pair.privateKey;
   const pubJwk = await crypto.subtle.exportKey("jwk", pair.publicKey);
   jwks = { keys: [{ ...pubJwk, kid: KID, use: "sig", alg: "RS256" }] };
