@@ -70,3 +70,17 @@ A future improvement would be a separate Playwright job that runs against the de
 When `env.EMAIL_MOCK === "true"`, the worker uses a no-op email sender for `/api/register` and `/api/login` — no HTTP requests are made to `api.resend.com`. The health check endpoint calls `resend.domains.list()` as normal (that call is quota-free and is intentionally not mocked).
 
 Do not set `EMAIL_MOCK` in `.env`, staging, or production.
+
+## Admin panel mock (local dev only)
+
+`CF_ACCESS_MOCK` bypasses Cloudflare Access JWT validation on `GET /admin`, allowing the admin panel to be accessed without a real Access session. This is useful during local development where Cloudflare Access is not in front of the Worker.
+
+To enable it, add to your local `.env` (for `npm run dev`) or `.dev.vars` (for `npm run dev:wrangler`):
+
+```
+CF_ACCESS_MOCK=true
+```
+
+Both files are gitignored. Do not set `CF_ACCESS_MOCK` in `wrangler.jsonc`, staging, or production.
+
+Even if `CF_ACCESS_MOCK` were set in a real environment, it would have no effect: the bypass is only active when the request arrives over HTTP. Production and staging are always HTTPS, so `CF_ACCESS_MOCK` is silently ignored there regardless of its value.

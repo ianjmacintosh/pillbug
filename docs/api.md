@@ -545,6 +545,36 @@ Empty array if no matching Prescriptions have a `prescribingDoctor` set.
 
 ---
 
+## Admin endpoints
+
+The Admin Panel is protected by Cloudflare Access. All requests to `/admin` must carry a valid `Cf-Access-Jwt-Assertion` header. The Worker validates this JWT independently against the JWKS at `{CF_TEAM_DOMAIN}/cdn-cgi/access/certs`. Requests without a valid JWT are rejected with 401 even if they somehow bypass Cloudflare Access (e.g. via the `*.workers.dev` URL).
+
+No per-Patient data is exposed — only aggregate counts.
+
+---
+
+### `GET /admin`
+
+Returns a server-rendered HTML page with three aggregate deployment statistics.
+
+**Authentication**: Cloudflare Access JWT (`Cf-Access-Jwt-Assertion` header, injected by Cloudflare Access)
+
+**Response — 200**
+
+HTML page containing:
+
+- Total registered Patients
+- Unverified Patients (registered but not yet verified)
+- Active Sessions (sessions where `expires_at` is in the future)
+
+**Response — 401** (missing or invalid JWT)
+
+```
+Unauthorized
+```
+
+---
+
 ## Unauthenticated redirect
 
 `GET /` without a valid session cookie → 302 to `/register`.

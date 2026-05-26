@@ -6,12 +6,19 @@ import { makeEmailSender } from "./email-sender";
 import { makeEmailSpy, makeInMemoryRepo } from "./test/auth-helpers";
 import { verifyTurnstileToken } from "./turnstile";
 import { checkHealth } from "./health";
+import { validateCfAccessJwt } from "./cf-access";
+import { getAdminStats, renderAdminHtml } from "./admin";
 
 vi.mock("resend", () => ({ Resend: vi.fn() }));
 vi.mock("./d1-auth-repo", () => ({ makeD1AuthRepo: vi.fn() }));
 vi.mock("./email-sender", () => ({ makeEmailSender: vi.fn() }));
 vi.mock("./health", () => ({ checkHealth: vi.fn() }));
 vi.mock("./turnstile", () => ({ verifyTurnstileToken: vi.fn() }));
+vi.mock("./cf-access", () => ({ validateCfAccessJwt: vi.fn() }));
+vi.mock("./admin", () => ({
+  getAdminStats: vi.fn(),
+  renderAdminHtml: vi.fn(),
+}));
 
 function makeEnv(
   assetResponse = new Response("ok"),
@@ -24,6 +31,8 @@ function makeEnv(
     TURNSTILE_SECRET_KEY: "test-turnstile-secret",
     EMAIL_SECRET: "test-email-secret",
     PIN_SECRET: "test-pin-secret",
+    CF_TEAM_DOMAIN: "https://test.cloudflareaccess.com",
+    CF_ACCESS_AUD: "test-aud",
   } as unknown as Parameters<typeof worker.fetch>[1];
 }
 
@@ -573,6 +582,91 @@ describe("GET /api/v1/health", () => {
     );
 
     expect(await response.json()).toEqual({ db: "ok", email: "ok" });
+  });
+});
+
+describe("GET /admin", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getAdminStats).mockResolvedValue({
+      totalPatients: 10,
+      unverifiedPatients: 2,
+      activeSessions: 5,
+    });
+    vi.mocked(renderAdminHtml).mockReturnValue("<html>admin</html>");
+  });
+
+  test("returns 401 when no JWT header is present", async () => {
+    const response = await worker.fetch(
+      new Request("http://localhost/admin"),
+      makeEnv(),
+    );
+    expect(response.status).toBe(401);
+  });
+
+  test("returns 401 when JWT is invalid", async () => {
+    vi.mocked(validateCfAccessJwt).mockResolvedValue(false);
+    const response = await worker.fetch(
+      new Request("http://localhost/admin", {
+        headers: { "cf-access-jwt-assertion": "bad-token" },
+      }),
+      makeEnv(),
+    );
+    expect(response.status).toBe(401);
+  });
+
+  test("returns 200 HTML when JWT is valid", async () => {
+    vi.mocked(validateCfAccessJwt).mockResolvedValue(true);
+    const response = await worker.fetch(
+      new Request("http://localhost/admin", {
+        headers: { "cf-access-jwt-assertion": "valid-token" },
+      }),
+      makeEnv(),
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Content-Type")).toContain("text/html");
+  });
+
+  test("returns 200 without a JWT when CF_ACCESS_MOCK is set on HTTP", async () => {
+    const env = {
+      ...makeEnv(),
+      CF_ACCESS_MOCK: "true",
+    } as unknown as Parameters<typeof worker.fetch>[1];
+    const response = await worker.fetch(
+      new Request("http://localhost/admin"),
+      env,
+    );
+    expect(response.status).toBe(200);
+    expect(validateCfAccessJwt).not.toHaveBeenCalled();
+  });
+
+  test("ignores CF_ACCESS_MOCK on HTTPS and still requires a valid JWT", async () => {
+    const env = {
+      ...makeEnv(),
+      CF_ACCESS_MOCK: "true",
+    } as unknown as Parameters<typeof worker.fetch>[1];
+    const response = await worker.fetch(
+      new Request("https://pillbug.ianjmacintosh.com/admin"),
+      env,
+    );
+    expect(response.status).toBe(401);
+    expect(validateCfAccessJwt).not.toHaveBeenCalled();
+  });
+
+  test("calls validateCfAccessJwt with the env vars", async () => {
+    vi.mocked(validateCfAccessJwt).mockResolvedValue(true);
+    const env = makeEnv();
+    await worker.fetch(
+      new Request("http://localhost/admin", {
+        headers: { "cf-access-jwt-assertion": "a-token" },
+      }),
+      env,
+    );
+    expect(validateCfAccessJwt).toHaveBeenCalledWith(
+      "a-token",
+      "https://test.cloudflareaccess.com",
+      "test-aud",
+    );
   });
 });
 

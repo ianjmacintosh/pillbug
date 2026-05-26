@@ -39,6 +39,8 @@
       ],
       "vars": {
         "APP_URL": "https://pillbug.ianjmacintosh.com",
+        "CF_TEAM_DOMAIN": "https://banana-squad.cloudflareaccess.com",
+        "CF_ACCESS_AUD": "11ac3cc55febe375f39ed5a63a1edb9842c12aa4a6f98953c9623d685cd13570",
       },
       "d1_databases": [
         {
@@ -59,6 +61,8 @@
       ],
       "vars": {
         "APP_URL": "https://pillbug-staging.ianjmacintosh.com",
+        "CF_TEAM_DOMAIN": "https://banana-squad.cloudflareaccess.com",
+        "CF_ACCESS_AUD": "7774856702e0b9102401ef7e87bcd6f8bcb159bf110342da44b0f5bc9742d1e1",
       },
       "d1_databases": [
         {
