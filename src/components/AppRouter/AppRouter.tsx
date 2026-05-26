@@ -47,6 +47,22 @@ async function requireAuth() {
   }
 }
 
+async function requireTimezone() {
+  let res: Response;
+  try {
+    res = await fetch("/api/v1/session");
+  } catch {
+    return; // offline — let the app load
+  }
+  if (!res.ok) {
+    throw redirect({ to: "/login" });
+  }
+  const data = (await res.json()) as { timezone: string | null };
+  if (!data.timezone) {
+    throw redirect({ to: "/settings" });
+  }
+}
+
 async function redirectIfAuthenticated() {
   let res: Response;
   try {
@@ -72,7 +88,13 @@ const indexRoute = createRoute({
     if (!res.ok) {
       throw redirect({ to: "/register" });
     }
-    const data = (await res.json()) as { registrationDate: string | null };
+    const data = (await res.json()) as {
+      registrationDate: string | null;
+      timezone: string | null;
+    };
+    if (!data.timezone) {
+      throw redirect({ to: "/settings" });
+    }
     return { registrationDate: data.registrationDate };
   },
   component: App,
@@ -108,20 +130,26 @@ const settingsRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/settings",
   beforeLoad: requireAuth,
+  loader: async () => {
+    const res = await fetch("/api/v1/session");
+    if (!res.ok) throw redirect({ to: "/login" });
+    const data = (await res.json()) as { timezone: string | null };
+    return { timezone: data.timezone };
+  },
   component: Settings,
 });
 
 const fillSessionRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/fill-session",
-  beforeLoad: requireAuth,
+  beforeLoad: requireTimezone,
   component: FillSession,
 });
 
 const prescriptionsRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/prescriptions",
-  beforeLoad: requireAuth,
+  beforeLoad: requireTimezone,
   component: Prescriptions,
 });
 
