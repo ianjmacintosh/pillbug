@@ -581,11 +581,18 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   }
 
   if (url.pathname === "/admin" && request.method === "GET") {
-    const devBypass = env.CF_ACCESS_MOCK && !secure;
+    const devBypass = env.CF_ACCESS_MOCK === "true" && !secure;
+    const adminHeaders = {
+      ...(secure ? HTTPS_SECURITY_HEADERS : SECURITY_HEADERS),
+      "Cache-Control": "no-store, private",
+    };
     if (!devBypass) {
       const token = request.headers.get("cf-access-jwt-assertion");
       if (!token) {
-        return new Response("Unauthorized", { status: 401 });
+        return new Response("Unauthorized", {
+          status: 401,
+          headers: adminHeaders,
+        });
       }
       const valid = await validateCfAccessJwt(
         token,
@@ -593,12 +600,18 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
         env.CF_ACCESS_AUD ?? "",
       );
       if (!valid) {
-        return new Response("Unauthorized", { status: 401 });
+        return new Response("Unauthorized", {
+          status: 401,
+          headers: adminHeaders,
+        });
       }
     }
     const stats = await getAdminStats(env.DB);
     return new Response(renderAdminHtml(stats), {
-      headers: { "Content-Type": "text/html; charset=utf-8" },
+      headers: {
+        ...adminHeaders,
+        "Content-Type": "text/html; charset=utf-8",
+      },
     });
   }
 

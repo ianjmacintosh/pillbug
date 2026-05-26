@@ -107,8 +107,11 @@ describe("validateCfAccessJwt", () => {
       "fetch",
       vi.fn().mockRejectedValue(new Error("network error")),
     );
-    const token = await makeToken();
-    const result = await validateCfAccessJwt(token, TEAM_DOMAIN, AUD);
+    // Use a domain not seen by other tests so the module-level JWKS
+    // resolver cache doesn't satisfy this request from a prior fetch.
+    const freshDomain = "https://fetch-fail-test.cloudflareaccess.com";
+    const token = await makeToken({ issuer: freshDomain });
+    const result = await validateCfAccessJwt(token, freshDomain, AUD);
     expect(result).toBe(false);
     vi.unstubAllGlobals();
   });
