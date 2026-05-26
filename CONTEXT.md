@@ -21,7 +21,7 @@ The person who runs the Pillbug deployment — not a Patient. Has access to the 
 _Avoid_: Admin user, superuser, staff
 
 **Admin Panel**:
-A restricted page (`/admin`) accessible only to the Operator. The Worker validates the Cloudflare Access JWT, queries D1, and returns a server-rendered HTML page showing aggregate counts only — total registered Patients, unverified Patients, and active Sessions. Exposes no per-Patient data (no emails, no UUIDs, no Prescription data). Requests that bypass Cloudflare are rejected by the Worker itself.
+A restricted page (`/admin`) accessible only to the Operator. The Worker validates the Cloudflare Access JWT, queries D1, and returns a server-rendered HTML page showing aggregate counts only — total registered Patients, unverified Patients, and active Sessions. Also provides a delete-by-email form (`POST /admin/patients/delete`) allowing the Operator to permanently remove a specific Patient record by entering a known email address; the Worker hashes the email, looks up the Patient, and deletes without displaying any per-Patient data. Requests that bypass Cloudflare are rejected by the Worker itself.
 _Avoid_: Dashboard, management console, back-office
 
 **Patient**:
@@ -44,6 +44,22 @@ _Avoid_: PIN, OTP, One-time password
 **Enter Code Screen**:
 The screen shown to the Patient after submitting the Registration or Login form, at `/enter-code?token=<uuid>`. The Patient enters their Verification Code from the email to create a session on the current device. The token in the URL identifies which Verification Code to validate against. The email also includes a pre-filled link that lands here with the code in the URL and auto-submits on arrival. After 5 failed entries the Verification Code is locked for that token — the in-email link is also blocked, since it carries the same code in the URL and resolves through the same endpoint. A locked Patient must request a new code from `/login`. Displays distinct messages for four token states: `expired` (token not found or past the 20-minute window), `invalid` (token exists but the Verification Code doesn't match), `used` (already redeemed — Patient is likely logged in on another device), and `locked` (5 failed code entries).
 _Avoid_: Challenge screen, Verify screen, Check your email
+
+**Account Deletion**:
+The irreversible action by which a Patient permanently erases their account, including all Prescriptions, Dose history, Sessions, and tokens. Initiated from Settings. Requires the Patient to confirm email ownership via a Deletion Link containing a Verification Code. On confirmation, the Patient record is hard-deleted and all child records are removed by database-level cascade. The Patient is shown an Account Deletion Confirmation screen after submitting the code; on success, it displays an "Account deleted" message in place of the form. The Patient is not redirected to Registration.
+_Avoid_: Account removal, deactivation, closure
+
+**Deletion Link**:
+An email sent to the Patient when they initiate Account Deletion, containing a pre-filled link to the Account Deletion Confirmation screen and a Verification Code. Shares the same 20-minute expiry window and Verification Code mechanics (failed attempt tracking, locking) as authentication emails. The link's URL contains a Deletion Token UUID.
+_Avoid_: Suicide link, delete link, confirmation email
+
+**Account Deletion Confirmation**:
+The screen at `/confirm-delete-account?token=<uuid>` where the Patient enters the Verification Code from their Deletion Link to permanently delete their account. Displays an explicit warning that the action is irreversible. On successful code entry, replaces itself inline with an "Account deleted" message without redirecting. Shares the same four error states as the Enter Code screen (`expired`, `invalid`, `used`, `locked`), but backed by a Deletion Token rather than an auth token.
+_Avoid_: Delete confirmation screen, verify deletion
+
+**Deletion Token**:
+A row in `magic_link_tokens` with `purpose = 'deletion'`, created when a Patient initiates Account Deletion. Structurally identical to an auth token but distinguished by the `purpose` column, which prevents cross-redemption: the `verify-pin` auth endpoint rejects Deletion Tokens, and the Account Deletion Confirmation endpoint rejects auth tokens.
+_Avoid_: Delete token, deletion code
 
 **Prescription**:
 A medication a clinician has directed the Patient to take on a schedule.
@@ -228,14 +244,15 @@ erDiagram
 
 **magic_link_tokens**
 
-| Column            | Description                                                                                              |
-| ----------------- | -------------------------------------------------------------------------------------------------------- |
-| `token`           | Opaque token included in the Enter Code screen URL                                                       |
-| `patient_id`      | Owning Patient; cascades on delete                                                                       |
-| `expires_at`      | Token validity deadline (20-minute window from issue)                                                    |
-| `used_at`         | When the token was successfully verified; `NULL` means unused                                            |
-| `pin_hash`        | Hash of the 4-digit Verification Code; set at token creation                                             |
-| `failed_attempts` | Count of incorrect Verification Code submissions; the code is locked (returns `locked`) when this hits 5 |
+| Column            | Description                                                                                                                           |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `token`           | Opaque token included in the Enter Code screen URL                                                                                    |
+| `patient_id`      | Owning Patient; cascades on delete                                                                                                    |
+| `expires_at`      | Token validity deadline (20-minute window from issue)                                                                                 |
+| `used_at`         | When the token was successfully verified; `NULL` means unused                                                                         |
+| `pin_hash`        | Hash of the 4-digit Verification Code; set at token creation                                                                          |
+| `failed_attempts` | Count of incorrect Verification Code submissions; the code is locked (returns `locked`) when this hits 5                              |
+| `purpose`         | `'auth'` (default) or `'deletion'` — distinguishes Deletion Tokens from auth tokens; endpoints check this to prevent cross-redemption |
 
 **sessions**
 
