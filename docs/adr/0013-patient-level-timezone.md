@@ -10,7 +10,7 @@ In practice, the `timezoneMode` field was never exposed in the UI (always defaul
 
 ## Decision
 
-Timezone is a single Patient-level preference (IANA string, e.g. `America/New_York`), auto-detected from the browser on first session and editable in Settings. All schedule times are stored as HH:MM local values and interpreted using the Patient's timezone. Reminder delivery converts local time → UTC using the Patient's timezone at fire time.
+Timezone is a single Patient-level preference (IANA string, e.g. `America/New_York`), set explicitly by the Patient in Settings before they can use the rest of the app. The Settings screen pre-populates the picker with the browser-detected timezone (`Intl.DateTimeFormat().resolvedOptions().timeZone`) as a default, but the Patient must confirm with an explicit Save. All schedule times are stored as HH:MM local values and interpreted using the Patient's timezone. Reminder delivery converts local time → UTC using the Patient's timezone at fire time.
 
 The `timezoneMode` key in existing `prescriptions.schedule` JSON is legacy — it is written as `"local"` in all existing records and is now ignored by the application.
 
@@ -22,7 +22,8 @@ A single Patient rarely needs different timezone semantics for different Prescri
 
 - `patients` table needs a `timezone` column (nullable TEXT, IANA string). Reminder delivery falls back to UTC when null.
 - The `timezoneMode` field should be removed from the `Schedule` TypeScript interface and no longer written by new code.
-- Settings screen must expose timezone detection and manual override.
+- Settings screen exposes a timezone picker pre-populated with the browser-detected timezone. Saving calls `PATCH /api/v1/account` and redirects to `/`.
+- Authenticated users without a saved timezone are gated: the router redirects them to `/settings` before they can access `/`, `/prescriptions`, or any other app route. `/settings` and `/logout` are exempt from the gate.
 - `GET /api/v1/prescriptions` and related endpoints do not need to change — timezone is only relevant at Reminder fire time.
 
 ## Rejected alternative
