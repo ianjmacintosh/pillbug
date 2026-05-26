@@ -19,7 +19,7 @@
   // Configure tool-specific properties.
   "customizations": {
     "vscode": {
-      "extensions": ["bierner.markdown-mermaid"]
+      "extensions": ["bierner.markdown-mermaid", "esbenp.prettier-vscode"]
     }
   }
 
