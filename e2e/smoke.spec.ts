@@ -51,3 +51,8 @@ test("unknown path renders a 404 page", async ({ page }) => {
   await page.goto("/does-not-exist");
   await expect(page.getByRole("heading", { name: /not found/i })).toBeVisible();
 });
+
+test("GET /admin without a JWT returns 401", async ({ request }) => {
+  const response = await request.get("/admin");
+  expect(response.status()).toBe(401);
+});

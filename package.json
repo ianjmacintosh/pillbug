@@ -10,6 +10,7 @@
     "db:migrate:local": "wrangler d1 migrations apply pillbug-staging --env staging --local",
     "db:migrate:debug": "node scripts/debug-migration.js",
     "db:seed:local": "node --env-file-if-exists=.env scripts/seed-test-accounts.js",
+    "db:users:local": "node --env-file=.env scripts/list-users.js",
     "db:reset:local": "ss -tlnp 2>/dev/null | grep -q :5173 && echo 'Stop the dev server before resetting the database.' && exit 1; rm -rf .wrangler/state/v3/d1 && npm run db:migrate:local",
     "dev:remote": "wrangler dev --env staging --remote",
     "deploy": "npm run deploy:production",
@@ -30,6 +31,7 @@
   "dependencies": {
     "@marsidev/react-turnstile": "^1.5.2",
     "@tanstack/react-router": "^1.169.2",
+    "jose": "^6.2.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "resend": "^6.12.3"

@@ -1,3 +1,9 @@
+// Request URLs in this file are synthetic — no socket is opened and no host
+// is contacted. `worker.fetch` is invoked directly in-process, and the URL
+// only feeds `url.pathname` and `url.protocol` inside `handleRequest`. The
+// `http://localhost:5173` form mirrors the Vite dev port from .env.EXAMPLE,
+// and `https://test.ianjmacintosh.com` is a fictitious host used solely to
+// exercise the HTTPS code path (the `secure` flag).
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import worker from "./worker";
 import { Resend } from "resend";
@@ -6,12 +12,19 @@ import { makeEmailSender } from "./email-sender";
 import { makeEmailSpy, makeInMemoryRepo } from "./test/auth-helpers";
 import { verifyTurnstileToken } from "./turnstile";
 import { checkHealth } from "./health";
+import { validateCfAccessJwt } from "./cf-access";
+import { getAdminStats, renderAdminHtml } from "./admin";
 
 vi.mock("resend", () => ({ Resend: vi.fn() }));
 vi.mock("./d1-auth-repo", () => ({ makeD1AuthRepo: vi.fn() }));
 vi.mock("./email-sender", () => ({ makeEmailSender: vi.fn() }));
 vi.mock("./health", () => ({ checkHealth: vi.fn() }));
 vi.mock("./turnstile", () => ({ verifyTurnstileToken: vi.fn() }));
+vi.mock("./cf-access", () => ({ validateCfAccessJwt: vi.fn() }));
+vi.mock("./admin", () => ({
+  getAdminStats: vi.fn(),
+  renderAdminHtml: vi.fn(),
+}));
 
 function makeEnv(
   assetResponse = new Response("ok"),
@@ -20,10 +33,12 @@ function makeEnv(
     ASSETS: { fetch: vi.fn().mockResolvedValue(assetResponse) },
     DB: {},
     RESEND_API_KEY: "test-key",
-    APP_URL: "http://localhost",
+    APP_URL: "http://localhost:5173",
     TURNSTILE_SECRET_KEY: "test-turnstile-secret",
     EMAIL_SECRET: "test-email-secret",
     PIN_SECRET: "test-pin-secret",
+    CF_TEAM_DOMAIN: "https://test.cloudflareaccess.com",
+    CF_ACCESS_AUD: "test-aud",
   } as unknown as Parameters<typeof worker.fetch>[1];
 }
 
@@ -58,7 +73,7 @@ beforeEach(() => {
 describe("security headers", () => {
   test("always-on headers are added to asset responses", async () => {
     const response = await worker.fetch(
-      new Request("http://localhost/app"),
+      new Request("http://localhost:5173/app"),
       makeEnv(),
     );
 
@@ -71,7 +86,7 @@ describe("security headers", () => {
 
   test("CSP and HSTS are added on HTTPS", async () => {
     const response = await worker.fetch(
-      new Request("https://pillbug.ianjmacintosh.com/app"),
+      new Request("https://test.ianjmacintosh.com/app"),
       makeEnv(),
     );
 
@@ -85,7 +100,7 @@ describe("security headers", () => {
 
   test("CSP and HSTS are omitted on HTTP", async () => {
     const response = await worker.fetch(
-      new Request("http://localhost/app"),
+      new Request("http://localhost:5173/app"),
       makeEnv(),
     );
 
@@ -102,7 +117,7 @@ describe("security headers", () => {
     });
 
     const response = await worker.fetch(
-      new Request("http://localhost/app"),
+      new Request("http://localhost:5173/app"),
       makeEnv(assetResponse),
     );
 
@@ -127,13 +142,13 @@ describe("session cookie", () => {
   test("includes Secure, HttpOnly, and SameSite=Lax on HTTPS", async () => {
     const env = makeEnv();
     await worker.fetch(
-      makeRegisterRequest("https://pillbug.ianjmacintosh.com/api/v1/register"),
+      makeRegisterRequest("https://test.ianjmacintosh.com/api/v1/register"),
       env,
     );
     const { token, pin } = email.sent[0];
 
     const response = await worker.fetch(
-      new Request("https://pillbug.ianjmacintosh.com/api/v1/auth/verify-pin", {
+      new Request("https://test.ianjmacintosh.com/api/v1/auth/verify-pin", {
         method: "POST",
         body: JSON.stringify({ token, pin }),
         headers: { "Content-Type": "application/json" },
@@ -150,13 +165,13 @@ describe("session cookie", () => {
   test("omits Secure on HTTP", async () => {
     const env = makeEnv();
     await worker.fetch(
-      makeRegisterRequest("http://localhost/api/v1/register"),
+      makeRegisterRequest("http://localhost:5173/api/v1/register"),
       env,
     );
     const { token, pin } = email.sent[0];
 
     const response = await worker.fetch(
-      new Request("http://localhost/api/v1/auth/verify-pin", {
+      new Request("http://localhost:5173/api/v1/auth/verify-pin", {
         method: "POST",
         body: JSON.stringify({ token, pin }),
         headers: { "Content-Type": "application/json" },
@@ -176,7 +191,7 @@ describe("Resend lazy initialization", () => {
     vi.mocked(Resend).mockClear();
 
     await worker.fetch(
-      new Request("http://localhost/api/v1/logout", { method: "POST" }),
+      new Request("http://localhost:5173/api/v1/logout", { method: "POST" }),
       makeEnv(),
     );
 
@@ -187,7 +202,7 @@ describe("Resend lazy initialization", () => {
     vi.mocked(makeEmailSender).mockClear();
 
     await worker.fetch(
-      new Request("http://localhost/api/v1/logout", { method: "POST" }),
+      new Request("http://localhost:5173/api/v1/logout", { method: "POST" }),
       makeEnv(),
     );
 
@@ -198,7 +213,7 @@ describe("Resend lazy initialization", () => {
     vi.mocked(Resend).mockClear();
 
     await worker.fetch(
-      new Request("http://localhost/api/v1/auth/verify?token=bad"),
+      new Request("http://localhost:5173/api/v1/auth/verify?token=bad"),
       makeEnv(),
     );
 
@@ -209,7 +224,7 @@ describe("Resend lazy initialization", () => {
     vi.mocked(makeEmailSender).mockClear();
 
     await worker.fetch(
-      new Request("http://localhost/api/v1/auth/verify?token=bad"),
+      new Request("http://localhost:5173/api/v1/auth/verify?token=bad"),
       makeEnv(),
     );
 
@@ -224,7 +239,7 @@ describe("unhandled exception handling", () => {
     });
 
     const response = await worker.fetch(
-      new Request("http://localhost/api/v1/register", { method: "POST" }),
+      new Request("http://localhost:5173/api/v1/register", { method: "POST" }),
       makeEnv(),
     );
 
@@ -237,7 +252,7 @@ describe("unhandled exception handling", () => {
     });
 
     const response = await worker.fetch(
-      new Request("http://localhost/api/v1/register", { method: "POST" }),
+      new Request("http://localhost:5173/api/v1/register", { method: "POST" }),
       makeEnv(),
     );
 
@@ -250,7 +265,7 @@ describe("unhandled exception handling", () => {
     });
 
     const response = await worker.fetch(
-      new Request("http://localhost/api/v1/register", { method: "POST" }),
+      new Request("http://localhost:5173/api/v1/register", { method: "POST" }),
       makeEnv(),
     );
 
@@ -265,7 +280,7 @@ describe("POST /api/v1/register email trimming", () => {
     vi.mocked(makeEmailSender).mockReturnValue(email.sender);
 
     await worker.fetch(
-      new Request("http://localhost/api/v1/register", {
+      new Request("http://localhost:5173/api/v1/register", {
         method: "POST",
         body: JSON.stringify({
           email: "delivered@resend.dev ",
@@ -285,7 +300,7 @@ describe("POST /api/v1/register Turnstile validation", () => {
     vi.mocked(verifyTurnstileToken).mockResolvedValue(true);
 
     const response = await worker.fetch(
-      makeRegisterRequest("http://localhost/api/v1/register"),
+      makeRegisterRequest("http://localhost:5173/api/v1/register"),
       makeEnv(),
     );
 
@@ -299,7 +314,7 @@ describe("POST /api/v1/register Turnstile validation", () => {
     vi.mocked(verifyTurnstileToken).mockResolvedValue(false);
 
     const response = await worker.fetch(
-      makeRegisterRequest("http://localhost/api/v1/register"),
+      makeRegisterRequest("http://localhost:5173/api/v1/register"),
       makeEnv(),
     );
 
@@ -317,7 +332,7 @@ describe("POST /api/v1/login email trimming", () => {
     vi.mocked(makeEmailSender).mockReturnValue(email.sender);
 
     await worker.fetch(
-      new Request("http://localhost/api/v1/register", {
+      new Request("http://localhost:5173/api/v1/register", {
         method: "POST",
         body: JSON.stringify({
           email: "delivered@resend.dev",
@@ -328,7 +343,7 @@ describe("POST /api/v1/login email trimming", () => {
       env,
     );
     await worker.fetch(
-      new Request("http://localhost/api/v1/login", {
+      new Request("http://localhost:5173/api/v1/login", {
         method: "POST",
         body: JSON.stringify({
           email: "delivered@resend.dev ",
@@ -349,7 +364,7 @@ describe("POST /api/v1/login Turnstile validation", () => {
     vi.mocked(verifyTurnstileToken).mockResolvedValue(true);
 
     const response = await worker.fetch(
-      makeLoginRequest("http://localhost/api/v1/login"),
+      makeLoginRequest("http://localhost:5173/api/v1/login"),
       makeEnv(),
     );
 
@@ -363,7 +378,7 @@ describe("POST /api/v1/login Turnstile validation", () => {
     vi.mocked(verifyTurnstileToken).mockResolvedValue(false);
 
     const response = await worker.fetch(
-      makeLoginRequest("http://localhost/api/v1/login"),
+      makeLoginRequest("http://localhost:5173/api/v1/login"),
       makeEnv(),
     );
 
@@ -382,7 +397,7 @@ describe("GET /api/v1/session", () => {
 
   test("returns 401 when no session cookie is present", async () => {
     const response = await worker.fetch(
-      new Request("http://localhost/api/v1/session"),
+      new Request("http://localhost:5173/api/v1/session"),
       makeEnv(),
     );
 
@@ -392,7 +407,7 @@ describe("GET /api/v1/session", () => {
 
   test("returns 401 when session cookie does not match a session", async () => {
     const response = await worker.fetch(
-      new Request("http://localhost/api/v1/session", {
+      new Request("http://localhost:5173/api/v1/session", {
         headers: { Cookie: "session=unknown-session-id" },
       }),
       makeEnv(),
@@ -414,7 +429,7 @@ describe("GET /api/v1/session", () => {
     await repo.createSession("session-id-1", "patient-1", expiresAt);
 
     const response = await worker.fetch(
-      new Request("http://localhost/api/v1/session", {
+      new Request("http://localhost:5173/api/v1/session", {
         headers: { Cookie: "session=session-id-1" },
       }),
       makeEnv(),
@@ -446,13 +461,13 @@ describe("POST /api/v1/auth/verify-pin", () => {
   test("returns 200 with ok:true and sets session cookie on correct PIN", async () => {
     const env = makeEnv();
     await worker.fetch(
-      makeRegisterRequest("http://localhost/api/v1/register"),
+      makeRegisterRequest("http://localhost:5173/api/v1/register"),
       env,
     );
     const { token, pin } = email.sent[0];
 
     const response = await worker.fetch(
-      new Request("http://localhost/api/v1/auth/verify-pin", {
+      new Request("http://localhost:5173/api/v1/auth/verify-pin", {
         method: "POST",
         body: JSON.stringify({ token, pin }),
         headers: { "Content-Type": "application/json" },
@@ -467,7 +482,7 @@ describe("POST /api/v1/auth/verify-pin", () => {
 
   test("returns 400 with error:expired for an unknown token", async () => {
     const response = await worker.fetch(
-      new Request("http://localhost/api/v1/auth/verify-pin", {
+      new Request("http://localhost:5173/api/v1/auth/verify-pin", {
         method: "POST",
         body: JSON.stringify({ token: "no-such-token", pin: "1234" }),
         headers: { "Content-Type": "application/json" },
@@ -482,14 +497,14 @@ describe("POST /api/v1/auth/verify-pin", () => {
   test("returns 400 with error:expired for an expired token", async () => {
     const env = makeEnv();
     await worker.fetch(
-      makeRegisterRequest("http://localhost/api/v1/register"),
+      makeRegisterRequest("http://localhost:5173/api/v1/register"),
       env,
     );
     const { token, pin } = email.sent[0];
 
     vi.setSystemTime(new Date(Date.now() + 21 * 60 * 1000));
     const response = await worker.fetch(
-      new Request("http://localhost/api/v1/auth/verify-pin", {
+      new Request("http://localhost:5173/api/v1/auth/verify-pin", {
         method: "POST",
         body: JSON.stringify({ token, pin }),
         headers: { "Content-Type": "application/json" },
@@ -505,12 +520,12 @@ describe("POST /api/v1/auth/verify-pin", () => {
   test("returns 400 with error:used for an already-redeemed token", async () => {
     const env = makeEnv();
     await worker.fetch(
-      makeRegisterRequest("http://localhost/api/v1/register"),
+      makeRegisterRequest("http://localhost:5173/api/v1/register"),
       env,
     );
     const { token, pin } = email.sent[0];
     await worker.fetch(
-      new Request("http://localhost/api/v1/auth/verify-pin", {
+      new Request("http://localhost:5173/api/v1/auth/verify-pin", {
         method: "POST",
         body: JSON.stringify({ token, pin }),
         headers: { "Content-Type": "application/json" },
@@ -519,7 +534,7 @@ describe("POST /api/v1/auth/verify-pin", () => {
     );
 
     const response = await worker.fetch(
-      new Request("http://localhost/api/v1/auth/verify-pin", {
+      new Request("http://localhost:5173/api/v1/auth/verify-pin", {
         method: "POST",
         body: JSON.stringify({ token, pin }),
         headers: { "Content-Type": "application/json" },
@@ -534,13 +549,13 @@ describe("POST /api/v1/auth/verify-pin", () => {
   test("returns 400 with error:locked after 5 failed attempts", async () => {
     const env = makeEnv();
     await worker.fetch(
-      makeRegisterRequest("http://localhost/api/v1/register"),
+      makeRegisterRequest("http://localhost:5173/api/v1/register"),
       env,
     );
     const { token } = email.sent[0];
     for (let i = 0; i < 5; i++) {
       await worker.fetch(
-        new Request("http://localhost/api/v1/auth/verify-pin", {
+        new Request("http://localhost:5173/api/v1/auth/verify-pin", {
           method: "POST",
           body: JSON.stringify({ token, pin: "0000" }),
           headers: { "Content-Type": "application/json" },
@@ -550,7 +565,7 @@ describe("POST /api/v1/auth/verify-pin", () => {
     }
 
     const response = await worker.fetch(
-      new Request("http://localhost/api/v1/auth/verify-pin", {
+      new Request("http://localhost:5173/api/v1/auth/verify-pin", {
         method: "POST",
         body: JSON.stringify({ token, pin: "0000" }),
         headers: { "Content-Type": "application/json" },
@@ -568,7 +583,7 @@ describe("GET /api/v1/health", () => {
     vi.mocked(checkHealth).mockResolvedValue({ db: "ok", email: "ok" });
 
     const response = await worker.fetch(
-      new Request("http://localhost/api/v1/health"),
+      new Request("http://localhost:5173/api/v1/health"),
       makeEnv(),
     );
 
@@ -576,10 +591,136 @@ describe("GET /api/v1/health", () => {
   });
 });
 
+describe("GET /admin", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getAdminStats).mockResolvedValue({
+      totalPatients: 10,
+      unverifiedPatients: 2,
+      activeSessions: 5,
+    });
+    vi.mocked(renderAdminHtml).mockReturnValue("<html>admin</html>");
+  });
+
+  test("returns 401 when no JWT header is present", async () => {
+    const response = await worker.fetch(
+      new Request("http://localhost:5173/admin"),
+      makeEnv(),
+    );
+    expect(response.status).toBe(401);
+  });
+
+  test("returns 401 when JWT is invalid", async () => {
+    vi.mocked(validateCfAccessJwt).mockResolvedValue(false);
+    const response = await worker.fetch(
+      new Request("http://localhost:5173/admin", {
+        headers: { "cf-access-jwt-assertion": "bad-token" },
+      }),
+      makeEnv(),
+    );
+    expect(response.status).toBe(401);
+  });
+
+  test("returns 200 HTML when JWT is valid", async () => {
+    vi.mocked(validateCfAccessJwt).mockResolvedValue(true);
+    const response = await worker.fetch(
+      new Request("http://localhost:5173/admin", {
+        headers: { "cf-access-jwt-assertion": "valid-token" },
+      }),
+      makeEnv(),
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Content-Type")).toContain("text/html");
+  });
+
+  test("applies security headers and no-store cache to the 200 response on HTTPS", async () => {
+    vi.mocked(validateCfAccessJwt).mockResolvedValue(true);
+    const response = await worker.fetch(
+      new Request("https://test.ianjmacintosh.com/admin", {
+        headers: { "cf-access-jwt-assertion": "valid-token" },
+      }),
+      makeEnv(),
+    );
+    expect(response.headers.get("X-Frame-Options")).toBe("DENY");
+    expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
+    expect(response.headers.get("Content-Security-Policy")).toContain(
+      "default-src 'self'",
+    );
+    expect(response.headers.get("Strict-Transport-Security")).toBe(
+      "max-age=63072000",
+    );
+    expect(response.headers.get("Cache-Control")).toBe("no-store, private");
+  });
+
+  test("applies security headers and no-store cache to the 401 response", async () => {
+    const response = await worker.fetch(
+      new Request("https://test.ianjmacintosh.com/admin"),
+      makeEnv(),
+    );
+    expect(response.status).toBe(401);
+    expect(response.headers.get("X-Frame-Options")).toBe("DENY");
+    expect(response.headers.get("Cache-Control")).toBe("no-store, private");
+  });
+
+  test("returns 200 without a JWT when CF_ACCESS_MOCK is 'true' on HTTP", async () => {
+    const env = {
+      ...makeEnv(),
+      CF_ACCESS_MOCK: "true",
+    } as unknown as Parameters<typeof worker.fetch>[1];
+    const response = await worker.fetch(
+      new Request("http://localhost:5173/admin"),
+      env,
+    );
+    expect(response.status).toBe(200);
+    expect(validateCfAccessJwt).not.toHaveBeenCalled();
+  });
+
+  test("ignores CF_ACCESS_MOCK on HTTPS and still requires a valid JWT", async () => {
+    const env = {
+      ...makeEnv(),
+      CF_ACCESS_MOCK: "true",
+    } as unknown as Parameters<typeof worker.fetch>[1];
+    const response = await worker.fetch(
+      new Request("https://test.ianjmacintosh.com/admin"),
+      env,
+    );
+    expect(response.status).toBe(401);
+    expect(validateCfAccessJwt).not.toHaveBeenCalled();
+  });
+
+  test("does not bypass JWT validation when CF_ACCESS_MOCK is the string 'false'", async () => {
+    const env = {
+      ...makeEnv(),
+      CF_ACCESS_MOCK: "false",
+    } as unknown as Parameters<typeof worker.fetch>[1];
+    const response = await worker.fetch(
+      new Request("http://localhost:5173/admin"),
+      env,
+    );
+    expect(response.status).toBe(401);
+  });
+
+  test("calls validateCfAccessJwt with the env vars", async () => {
+    vi.mocked(validateCfAccessJwt).mockResolvedValue(true);
+    const env = makeEnv();
+    await worker.fetch(
+      new Request("http://localhost:5173/admin", {
+        headers: { "cf-access-jwt-assertion": "a-token" },
+      }),
+      env,
+    );
+    expect(validateCfAccessJwt).toHaveBeenCalledWith(
+      "a-token",
+      "https://test.cloudflareaccess.com",
+      "test-aud",
+    );
+  });
+});
+
 describe("clear session cookie", () => {
   test("includes Secure, HttpOnly, and SameSite=Lax on HTTPS", async () => {
     const response = await worker.fetch(
-      new Request("https://pillbug.ianjmacintosh.com/api/v1/logout", {
+      new Request("https://test.ianjmacintosh.com/api/v1/logout", {
         method: "POST",
       }),
       makeEnv(),
@@ -593,7 +734,7 @@ describe("clear session cookie", () => {
 
   test("omits Secure on HTTP", async () => {
     const response = await worker.fetch(
-      new Request("http://localhost/api/v1/logout", { method: "POST" }),
+      new Request("http://localhost:5173/api/v1/logout", { method: "POST" }),
       makeEnv(),
     );
 

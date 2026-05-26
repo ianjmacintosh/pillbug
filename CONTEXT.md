@@ -16,6 +16,14 @@ When designing a new feature, ask: what is the minimum information needed here, 
 
 ## Language
 
+**Operator**:
+The person who runs the Pillbug deployment — not a Patient. Has access to the Admin Panel to view aggregate statistics about the deployment. Authenticates via Cloudflare Access (Zero Trust), not the Patient magic-link flow. There is no Operator record in the database; the identity is managed entirely by Cloudflare.
+_Avoid_: Admin user, superuser, staff
+
+**Admin Panel**:
+A restricted page (`/admin`) accessible only to the Operator. The Worker validates the Cloudflare Access JWT, queries D1, and returns a server-rendered HTML page showing aggregate counts only — total registered Patients, unverified Patients, and active Sessions. Exposes no per-Patient data (no emails, no UUIDs, no Prescription data). Requests that bypass Cloudflare are rejected by the Worker itself.
+_Avoid_: Dashboard, management console, back-office
+
 **Patient**:
 The person who takes medications and uses the app to manage their own schedule. Authenticates via a Verification Code sent by email.
 _Avoid_: User, account, client
