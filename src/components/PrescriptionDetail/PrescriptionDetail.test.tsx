@@ -29,7 +29,6 @@ const SAMPLE_PRESCRIPTION: Prescription = {
   doseForm: "tablet",
   schedule: {
     days: ALL_DAYS_SLOTS,
-    timezoneMode: "local",
   },
   startDate: "2024-01-15",
   endDate: null,
@@ -186,7 +185,6 @@ describe("PrescriptionDetail", () => {
               { time: "21:00", quantity: 1 },
             ],
           },
-          timezoneMode: "local" as const,
         },
       };
       await renderDetail(rx);
