@@ -16,6 +16,12 @@
             "if": "Bash(git commit*)",
             "command": "npm run format 2>/dev/null || true",
             "statusMessage": "Running Prettier before commit..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(git commit*)",
+            "command": "npm run typecheck",
+            "statusMessage": "Running typecheck before commit..."
           }
         ]
       }
