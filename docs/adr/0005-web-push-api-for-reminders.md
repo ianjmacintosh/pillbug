@@ -1,18 +1,24 @@
-# Web Push API (self-hosted, VAPID) for Reminders
+# Reminders deferred until native app; Web Push rejected as primary channel
 
-Pillbug delivers Reminders via the browser Web Push API using VAPID keys, with no managed notification service (OneSignal, Firebase Cloud Messaging dashboard, etc.).
+**Status: superseded.** The original decision selected Web Push API with VAPID keys as the Reminder delivery mechanism. That decision is reversed: Reminder delivery will not ship until a native app wrapper (Capacitor or equivalent) is available.
 
-Reminder payloads contain medication names and scheduled times — health-sensitive content that should not transit a third-party server. The Web Push API delivers notifications directly through browser push infrastructure (Chrome/FCM, Firefox/Autopush, Safari/APNs) without Pillbug sharing patient data with any notification vendor. VAPID keys are generated and held by Pillbug's Cloudflare Workers backend.
+## Why Web Push was rejected as the launch channel
 
-This approach also aligns naturally with the PWA service worker that Pillbug requires for offline support and home-screen installation.
+Web Push on iOS requires the patient to install the PWA to their home screen via "Add to Home Screen" in Safari before any notifications are delivered. The expected patient platform split is majority iOS. This means the majority of patients would receive no Reminders without completing a multi-step, non-obvious installation flow that most will not complete unprompted — making Web Push an unreliable primary notification channel at launch.
 
-Patient push subscription tokens are stored in D1 and deleted on unsubscribe or account deletion.
+The server-side cron scheduling logic and UTC time conversion (HH:MM + patient IANA timezone → UTC fire time) remain valid regardless of delivery mechanism and will be built when Reminder delivery is in scope.
 
-## Deferred — native app push notifications
+## When Reminders ship
 
-Web Push does not work in native iOS or Android apps. When native apps are built, the push infrastructure will need to expand to include direct APNs (Apple Push Notification service) and FCM (Firebase Cloud Messaging) integration from the Workers backend. Managed notification services (OneSignal, etc.) remain rejected on the same grounds as above — direct platform APIs keep Reminder content off any additional third-party servers. Apple and Google are unavoidable transports; no further vendor layer will be added.
+Reminders will launch alongside a native app wrapper. The delivery mechanism will be:
 
-## Considered Options
+- **iOS**: Local notifications scheduled directly on-device via the native API (UNUserNotificationCenter). Fires at exact local time, no network dependency.
+- **Android**: Local notifications via AlarmManager, or Web Push via FCM if the native wrapper supports it.
 
-- **Web Push API with VAPID (self-hosted)** — chosen: no third-party sees Reminder content, works natively with the PWA service worker, no additional vendor dependency.
-- **Managed service (OneSignal, etc.)** — rejected: Reminder content (medication names, scheduled times) would transit a third-party server, which is inconsistent with the project's privacy stance.
+Managed notification services (OneSignal, etc.) remain rejected — Reminder payloads contain medication names and scheduled times, which are health-sensitive and must not transit a third-party server.
+
+## Consequences
+
+- No push subscription table in D1. No VAPID key provisioning.
+- No cron-based notification dispatch until the native app is in scope.
+- The Settings screen may expose a "Reminders" section in future, but it ships disabled until the native app is available.
