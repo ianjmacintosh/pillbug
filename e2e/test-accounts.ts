@@ -11,7 +11,8 @@ export const ALICE_EMAIL = "test-user-alice@pillbug.ianjmacintosh.com";
 
 // PRESCRIPTIONS_PATIENT is a dedicated account for prescription E2E tests.
 // Using a Resend test address means no real mail is ever sent.
-// prescriptions.spec.ts clears this patient's prescriptions before each test.
+// prescriptions.spec.ts resets this patient's timezone and clears their
+// prescriptions before each test.
 export const PRESCRIPTIONS_PATIENT_EMAIL =
   "delivered+e2e-prescriptions@resend.dev";
 

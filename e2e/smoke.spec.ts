@@ -53,6 +53,11 @@ test("unknown path renders a 404 page", async ({ page }) => {
 });
 
 test("GET /admin without a JWT returns 401", async ({ request }) => {
+  // CF_ACCESS_MOCK=true bypasses admin auth in local dev — skip in that environment.
+  test.skip(
+    process.env.CF_ACCESS_MOCK === "true",
+    "CF_ACCESS_MOCK bypasses admin auth — only meaningful in CI/staging",
+  );
   const response = await request.get("/admin");
   expect(response.status()).toBe(401);
 });

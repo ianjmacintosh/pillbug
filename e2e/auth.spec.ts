@@ -59,21 +59,38 @@ test.describe("POST /api/v1/register", () => {
 });
 
 test.describe("POST /api/v1/auth/verify-pin", () => {
-  test("correct PIN entered manually creates a session and navigates to /", async ({
-    page,
-    request,
-  }) => {
-    const email = `delivered+manual-pin-${Date.now()}@resend.dev`;
-    await request.post("/api/v1/register", {
-      data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
+  test.describe("new account (no timezone configured yet)", () => {
+    test("correct PIN entered manually creates a session and navigates to /finish-setup", async ({
+      page,
+      request,
+    }) => {
+      const email = `delivered+manual-pin-${Date.now()}@resend.dev`;
+      await request.post("/api/v1/register", {
+        data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
+      });
+      const { token, pin } = await silentLogin(email, request);
+
+      await page.goto(`/enter-code?token=${token}`); // no pin= → no auto-submit
+      await page.getByLabel(/4-digit code/i).fill(pin);
+      await page.getByRole("button", { name: /verify/i }).click();
+
+      await expect(page).toHaveURL("/finish-setup");
     });
-    const { token, pin } = await silentLogin(email, request);
 
-    await page.goto(`/enter-code?token=${token}`); // no pin= → no auto-submit
-    await page.getByLabel(/4-digit code/i).fill(pin);
-    await page.getByRole("button", { name: /verify/i }).click();
+    test("correct PIN via fallback link auto-submits and navigates to /finish-setup", async ({
+      page,
+      request,
+    }) => {
+      const email = `delivered+verify-pin-${Date.now()}@resend.dev`;
+      await request.post("/api/v1/register", {
+        data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
+      });
+      const { token, pin } = await silentLogin(email, request);
 
-    await expect(page).toHaveURL("/");
+      await page.goto(`/enter-code?token=${token}&pin=${pin}`);
+
+      await expect(page).toHaveURL("/finish-setup");
+    });
   });
 
   test("wrong PIN entered manually shows error alert", async ({
@@ -92,21 +109,6 @@ test.describe("POST /api/v1/auth/verify-pin", () => {
     await page.getByRole("button", { name: /verify/i }).click();
 
     await expect(page.getByRole("alert")).toContainText(/incorrect code/i);
-  });
-
-  test("correct PIN via fallback link auto-submits and navigates to /", async ({
-    page,
-    request,
-  }) => {
-    const email = `delivered+verify-pin-${Date.now()}@resend.dev`;
-    await request.post("/api/v1/register", {
-      data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
-    });
-    const { token, pin } = await silentLogin(email, request);
-
-    await page.goto(`/enter-code?token=${token}&pin=${pin}`);
-
-    await expect(page).toHaveURL("/");
   });
 
   test("invalid token shows error on the enter-code page", async ({ page }) => {
@@ -274,7 +276,7 @@ test("logout button ends the session and redirects to /register", async ({
   });
   const { token, pin } = await silentLogin(email, request);
   await page.goto(`/enter-code?token=${token}&pin=${pin}`);
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/finish-setup"); // new account, no timezone yet
 
   await page.getByRole("button", { name: /log out/i }).click();
 

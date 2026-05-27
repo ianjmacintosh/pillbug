@@ -1,10 +1,10 @@
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useState, type SyntheticEvent } from "react";
-import "./Settings.css";
+import "./CompleteSetup.css";
 
-const Route = getRouteApi("/layout/settings");
+const Route = getRouteApi("/layout/finish-setup");
 
-function Settings() {
+function CompleteSetup() {
   const { timezone: savedTimezone } = Route.useLoaderData();
   const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const [selected, setSelected] = useState(savedTimezone ?? browserTimezone);
@@ -31,8 +31,12 @@ function Settings() {
   }
 
   return (
-    <main className="settings">
-      <h1>Settings</h1>
+    <main className="finish-setup">
+      <h1>Set your time zone</h1>
+      <p>
+        Pillbug uses your time zone to schedule dose reminders at the right
+        time. Confirm your time zone below to get started.
+      </p>
       <form onSubmit={handleSubmit}>
         <div className="field">
           <label htmlFor="timezone">Time zone</label>
@@ -59,4 +63,4 @@ function Settings() {
   );
 }
 
-export default Settings;
+export default CompleteSetup;

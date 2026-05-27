@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import Settings from "./Settings";
+import CompleteSetup from "./CompleteSetup";
 
 let mockTimezone: string | null = "America/New_York";
 let mockNavigate: ReturnType<typeof vi.fn>;
@@ -24,16 +24,21 @@ beforeEach(() => {
 });
 afterEach(() => vi.restoreAllMocks());
 
-describe("Settings", () => {
+describe("CompleteSetup", () => {
   test("renders a timezone select with options", () => {
-    render(<Settings />);
+    render(<CompleteSetup />);
     expect(screen.getByRole("combobox")).toBeTruthy();
     expect(screen.getAllByRole("option").length).toBeGreaterThan(0);
   });
 
+  test("renders onboarding messaging explaining why timezone is required", () => {
+    render(<CompleteSetup />);
+    expect(screen.getByText(/time zone/i, { selector: "p" })).toBeTruthy();
+  });
+
   test("defaults select to saved timezone", () => {
     mockTimezone = "America/Chicago";
-    render(<Settings />);
+    render(<CompleteSetup />);
     expect((screen.getByRole("combobox") as HTMLSelectElement).value).toBe(
       "America/Chicago",
     );
@@ -44,7 +49,7 @@ describe("Settings", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
       new Response(null, { status: 200 }),
     );
-    render(<Settings />);
+    render(<CompleteSetup />);
     await userEvent.click(screen.getByRole("button", { name: /save/i }));
     await waitFor(() => {
       const calls = vi.mocked(globalThis.fetch).mock.calls;
@@ -64,7 +69,7 @@ describe("Settings", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
       new Response(null, { status: 200 }),
     );
-    render(<Settings />);
+    render(<CompleteSetup />);
     await userEvent.click(screen.getByRole("button", { name: /save/i }));
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith({ to: "/" });
@@ -75,7 +80,7 @@ describe("Settings", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
       new Response(null, { status: 500 }),
     );
-    render(<Settings />);
+    render(<CompleteSetup />);
     await userEvent.click(screen.getByRole("button", { name: /save/i }));
     await waitFor(() => {
       expect(screen.getByRole("alert")).toBeTruthy();
@@ -86,7 +91,7 @@ describe("Settings", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
       new Response(null, { status: 500 }),
     );
-    render(<Settings />);
+    render(<CompleteSetup />);
     await userEvent.click(screen.getByRole("button", { name: /save/i }));
     await waitFor(() => screen.getByRole("alert"));
     expect(mockNavigate).not.toHaveBeenCalled();
@@ -101,7 +106,7 @@ describe("Settings", () => {
       numberingSystem: "latn",
       timeZone: "Europe/London",
     });
-    render(<Settings />);
+    render(<CompleteSetup />);
     expect((screen.getByRole("combobox") as HTMLSelectElement).value).toBe(
       "Europe/London",
     );

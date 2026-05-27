@@ -46,6 +46,7 @@ async function renderNewForm() {
   const router = createRouter({
     routeTree: rootRoute.addChildren([layoutRoute.addChildren([newRoute])]),
     history: createMemoryHistory({ initialEntries: ["/prescriptions/new"] }),
+    defaultNotFoundComponent: () => null,
   });
   await router.load();
   render(<RouterProvider router={router} />);
@@ -70,6 +71,7 @@ async function renderEditForm(prescription = SAMPLE) {
     history: createMemoryHistory({
       initialEntries: [`/prescriptions/${prescription.id}/edit`],
     }),
+    defaultNotFoundComponent: () => null,
   });
   await router.load();
   render(<RouterProvider router={router} />);
