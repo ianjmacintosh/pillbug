@@ -68,7 +68,6 @@ export interface PrescriptionFormData {
   dosage: string;
   schedule: {
     days: Partial<Record<DayOfWeek, { time: string; quantity: number }[]>>;
-    timezoneMode: "local" | "fixed_utc";
   };
   startDate: string;
   endDate: string | null;
@@ -193,7 +192,7 @@ function usePrescriptionForm(prescription?: PrescriptionFormData) {
         }));
       }
     }
-    return { days, timezoneMode: "local" as const };
+    return { days };
   }
 
   function validateSchedule(): boolean {

@@ -11,7 +11,7 @@ interface Prescription {
   id: string;
   drugName: string;
   dosage: string;
-  schedule: { days: Record<string, unknown>; timezoneMode: string };
+  schedule: { days: Record<string, unknown> };
   startDate: string;
   endDate: string | null;
   prescribingDoctor: string | null;

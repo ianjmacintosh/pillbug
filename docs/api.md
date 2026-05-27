@@ -207,8 +207,7 @@ A Prescription object has the following shape:
     "days": {
       "monday": ["08:00", "20:00"],
       "friday": ["08:00"]
-    },
-    "timezoneMode": "local" | "fixed_utc"
+    }
   },
   "startDate": "2024-01-01",
   "endDate": "2024-06-01",
@@ -218,7 +217,7 @@ A Prescription object has the following shape:
 }
 ```
 
-`schedule.days` maps each weekday name (`"sunday"` through `"saturday"`) to an array of `HH:MM` dose times for that day. Omitting a day means no dose on that day. `timezoneMode` defaults to `"local"` if omitted on create.
+`schedule.days` maps each weekday name (`"sunday"` through `"saturday"`) to an array of `HH:MM` dose times for that day. Omitting a day means no dose on that day.
 
 `endDate`, `prescribingDoctor`, and `instructions` are optional and may be `null`. `startDate` and `endDate` are ISO 8601 date strings (`YYYY-MM-DD`).
 
@@ -264,8 +263,7 @@ Creates a new Prescription for the authenticated Patient. Status defaults to `ac
   "drugName": "Metformin",
   "dosage": "500mg",
   "schedule": {
-    "days": { "monday": ["08:00", "20:00"], "friday": ["08:00"] },
-    "timezoneMode": "local"
+    "days": { "monday": ["08:00", "20:00"], "friday": ["08:00"] }
   },
   "startDate": "2024-01-01",
   "endDate": "2024-06-01",
