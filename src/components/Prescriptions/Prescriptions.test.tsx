@@ -17,7 +17,7 @@ const SAMPLE_PRESCRIPTION = {
   id: "rx-1",
   drugName: "Metformin",
   dosage: "500mg",
-  schedule: { days: { monday: ["08:00"] }, timezoneMode: "local" },
+  schedule: { days: { monday: ["08:00"] } },
   startDate: "2024-01-01",
   endDate: null,
   prescribingDoctor: null,
@@ -32,7 +32,6 @@ const SAMPLE_DETAIL: Prescription = {
   doseForm: "tablet",
   schedule: {
     days: { monday: [{ time: "09:00", quantity: 1 }] },
-    timezoneMode: "local",
   },
   startDate: "2024-01-01",
   endDate: null,

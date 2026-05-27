@@ -18,7 +18,6 @@ export interface PerSlotDose {
 
 interface Schedule {
   days: Partial<Record<DayOfWeek, (PerSlotDose | string)[]>>;
-  timezoneMode: "local" | "fixed_utc";
 }
 
 export interface Prescription {

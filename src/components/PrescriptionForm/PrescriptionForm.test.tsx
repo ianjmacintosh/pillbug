@@ -22,7 +22,6 @@ const SAMPLE: PrescriptionFormData = {
   doseForm: "tablet",
   schedule: {
     days: { monday: [{ time: "08:00", quantity: 1 }] },
-    timezoneMode: "local",
   },
   startDate: "2024-01-01",
   endDate: null,
@@ -548,6 +547,28 @@ describe("NewPrescriptionForm", () => {
       expect(screen.getByLabelText(/time 1/i)).toBeTruthy();
     });
 
+    test("submitted schedule does not include timezoneMode", async () => {
+      const fetchSpy = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(SAMPLE), { status: 201 }),
+        );
+      await renderNewForm();
+      await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
+      await userEvent.type(screen.getByLabelText(/strength/i), "100");
+      await userEvent.selectOptions(
+        screen.getByRole("combobox", { name: /unit/i }),
+        "mg",
+      );
+      await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      const body = JSON.parse(
+        (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
+      );
+      expect(body.schedule.timezoneMode).toBeUndefined();
+    });
+
     test("submitting with a day checked and a time set sends the correct schedule", async () => {
       const fetchSpy = vi
         .spyOn(globalThis, "fetch")
@@ -920,7 +941,6 @@ describe("EditPrescriptionForm", () => {
       ...SAMPLE,
       schedule: {
         days: { monday: [{ time: "08:00", quantity: 2 }] },
-        timezoneMode: "local" as const,
       },
     };
     await renderEditForm(prescription);
@@ -943,7 +963,6 @@ describe("EditPrescriptionForm", () => {
             { time: "20:00", quantity: 1 },
           ],
         },
-        timezoneMode: "local" as const,
       },
     };
     await renderEditForm(prescription);
@@ -1023,7 +1042,6 @@ describe("EditPrescriptionForm", () => {
       dosage: "1 cup",
       schedule: {
         days: { monday: [{ time: "08:00", quantity: 1 }] },
-        timezoneMode: "local" as const,
       },
     };
     const fetchSpy = vi
@@ -1044,7 +1062,7 @@ describe("EditPrescriptionForm", () => {
   test("edit sends updated schedule in PATCH body", async () => {
     const emptySchedulePrescription = {
       ...SAMPLE,
-      schedule: { days: {}, timezoneMode: "local" as const },
+      schedule: { days: {} },
     };
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
       new Response(
@@ -1052,7 +1070,6 @@ describe("EditPrescriptionForm", () => {
           ...SAMPLE,
           schedule: {
             days: { wednesday: ["20:00"] },
-            timezoneMode: "local",
           },
         }),
         { status: 200 },
@@ -1084,7 +1101,7 @@ describe("EditPrescriptionForm", () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch");
     const emptySchedulePrescription = {
       ...SAMPLE,
-      schedule: { days: {}, timezoneMode: "local" as const },
+      schedule: { days: {} },
     };
     await renderEditForm(emptySchedulePrescription);
 
@@ -1105,7 +1122,7 @@ describe("EditPrescriptionForm", () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch");
     const emptySchedulePrescription = {
       ...SAMPLE,
-      schedule: { days: {}, timezoneMode: "local" as const },
+      schedule: { days: {} },
     };
     await renderEditForm(emptySchedulePrescription);
 
@@ -1138,7 +1155,6 @@ describe("EditPrescriptionForm", () => {
       doseForm: "tablet",
       schedule: {
         days: { monday: [{ time: "08:00", quantity: 1 }] },
-        timezoneMode: "local" as const,
       },
     };
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
