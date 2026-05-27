@@ -102,7 +102,6 @@ describe("CompleteSetup", () => {
     vi.spyOn(Intl.DateTimeFormat.prototype, "resolvedOptions").mockReturnValue({
       locale: "en-US",
       calendar: "gregory",
-      collation: "default",
       hourCycle: "h23",
       numberingSystem: "latn",
       timeZone: "Europe/London",

@@ -56,6 +56,7 @@ async function renderDetail(prescription: Prescription = SAMPLE_PRESCRIPTION) {
     history: createMemoryHistory({
       initialEntries: ["/prescriptions/rx-1"],
     }),
+    defaultNotFoundComponent: () => null,
   });
   await router.load();
   const result = render(<RouterProvider router={router} />);

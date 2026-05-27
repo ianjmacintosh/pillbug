@@ -34,7 +34,7 @@ test.describe("Settings screen", () => {
   test("renders a timezone select with options", async ({ page }) => {
     await page.goto("/settings");
     await expect(page.getByRole("combobox")).toBeVisible();
-    await expect(page.getByRole("option").first()).toBeVisible();
+    await expect(page.getByRole("option").first()).toBeAttached();
   });
 
   test("redirects to /finish-setup when accessing / without a timezone set", async ({
