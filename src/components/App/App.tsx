@@ -33,12 +33,12 @@ function formatShortDate(dateStr: string): string {
   });
 }
 
-function formatTime(scheduledAt: string): string {
+function formatTime(scheduledAt: string, timezone: string): string {
   return new Date(scheduledAt).toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
-    timeZone: "UTC",
+    timeZone: timezone,
   });
 }
 
@@ -125,7 +125,7 @@ function App({ today: todayProp }: { today?: string }) {
         for (const dose of [...dayDoses].sort((a, b) =>
           a.scheduledAt.localeCompare(b.scheduledAt),
         )) {
-          const time = formatTime(dose.scheduledAt);
+          const time = formatTime(dose.scheduledAt, timezone ?? "UTC");
           if (!timeGroups.has(time)) timeGroups.set(time, []);
           timeGroups.get(time)!.push(dose);
         }
