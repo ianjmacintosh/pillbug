@@ -71,6 +71,22 @@ When `env.EMAIL_MOCK === "true"`, the worker uses a no-op email sender for `/api
 
 Do not set `EMAIL_MOCK` in `.env` or `.dev.vars`. It must not be set in production.
 
+## Worker secrets in E2E tests
+
+The Cloudflare Vite plugin exposes Worker secrets from `.dev.vars` and `.env` files — not from process environment variables. CI environment variables (set via `env:` in workflow steps) do **not** automatically reach the Worker's `env` object.
+
+For local development, `.env` (created from `.env.EXAMPLE`) provides `TURNSTILE_SECRET_KEY`, `EMAIL_SECRET`, and `PIN_SECRET` to the local Worker.
+
+For CI, `e2e-tests.yml` writes a `.env` file before running Playwright. This is the only mechanism that makes these secrets available to the local Worker process started by Playwright's webServer.
+
+Secrets that must be in `.dev.vars` for E2E tests to pass:
+
+| Secret                 | CI value                                                       | Why needed by Worker                                      |
+| ---------------------- | -------------------------------------------------------------- | --------------------------------------------------------- |
+| `TURNSTILE_SECRET_KEY` | `1x0000000000000000000000000000000AA` (always-passes test key) | Validates the dummy Turnstile token sent by setup scripts |
+| `EMAIL_SECRET`         | From `secrets.EMAIL_SECRET`                                    | Hashes email addresses to look up patients in the DB      |
+| `PIN_SECRET`           | From `secrets.PIN_SECRET`                                      | Hashes PINs for magic link token verification             |
+
 ## Admin panel mock (local dev only)
 
 `CF_ACCESS_MOCK` bypasses Cloudflare Access JWT validation on `GET /admin`, allowing the admin panel to be accessed without a real Access session. This is useful during local development where Cloudflare Access is not in front of the Worker.

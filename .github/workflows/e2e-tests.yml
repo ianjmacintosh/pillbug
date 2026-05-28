@@ -7,6 +7,10 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container: mcr.microsoft.com/playwright:v1.58.1-noble
+    env:
+      EMAIL_SECRET: ${{ secrets.EMAIL_SECRET }}
+      PIN_SECRET: ${{ secrets.PIN_SECRET }}
+      VITE_TURNSTILE_SITE_KEY: "1x00000000000000000000AA"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -17,16 +21,12 @@ jobs:
       - name: Apply D1 migrations (local)
         run: npx wrangler d1 migrations apply pillbug-staging --env staging --local
       - name: Seed test accounts (local)
-        env:
-          EMAIL_SECRET: ${{ secrets.EMAIL_SECRET }}
         run: npm run db:seed:local
+      - name: Write .env for local Worker
+        run: |
+          printf 'TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA\nEMAIL_SECRET=%s\nPIN_SECRET=%s\n' \
+            "$EMAIL_SECRET" "$PIN_SECRET" > .env
       - name: Run Playwright tests
-        env:
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          EMAIL_SECRET: ${{ secrets.EMAIL_SECRET }}
-          PIN_SECRET: ${{ secrets.PIN_SECRET }}
-          TURNSTILE_SECRET_KEY: "1x0000000000000000000000000000000AA"
-          VITE_TURNSTILE_SITE_KEY: "1x00000000000000000000AA"
         run: npm run test:e2e
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
