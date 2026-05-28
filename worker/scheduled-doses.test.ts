@@ -14,7 +14,6 @@ const BASE_PRESCRIPTION: Prescription = {
       monday: [{ time: "08:00", quantity: 1 }],
       wednesday: [{ time: "08:00", quantity: 1 }],
     },
-    timezoneMode: "local",
   },
   startDate: "2024-03-11",
   endDate: null,
@@ -30,7 +29,9 @@ const TODAY = "2024-03-17";
 
 describe("scheduledDoses", () => {
   test("returns empty array for empty prescriptions list", () => {
-    expect(scheduledDoses([], WEEK_START, WEEK_END, TODAY, [])).toEqual([]);
+    expect(scheduledDoses([], WEEK_START, WEEK_END, TODAY, [], "UTC")).toEqual(
+      [],
+    );
   });
 
   test("only generates doses from a prescription's start date onward", () => {
@@ -38,7 +39,7 @@ describe("scheduledDoses", () => {
       ...BASE_PRESCRIPTION,
       startDate: "2024-03-13",
     };
-    const result = scheduledDoses([rx], WEEK_START, WEEK_END, TODAY, []);
+    const result = scheduledDoses([rx], WEEK_START, WEEK_END, TODAY, [], "UTC");
     const dates = result.map((d) => d.scheduledAt.slice(0, 10));
     expect(dates).not.toContain("2024-03-11");
     expect(dates).toContain("2024-03-13");
@@ -53,11 +54,10 @@ describe("scheduledDoses", () => {
           wednesday: [{ time: "08:00", quantity: 1 }],
           friday: [{ time: "08:00", quantity: 1 }],
         },
-        timezoneMode: "local",
       },
       endDate: "2024-03-13",
     };
-    const result = scheduledDoses([rx], WEEK_START, WEEK_END, TODAY, []);
+    const result = scheduledDoses([rx], WEEK_START, WEEK_END, TODAY, [], "UTC");
     const dates = result.map((d) => d.scheduledAt.slice(0, 10));
     expect(dates).toContain("2024-03-11");
     expect(dates).toContain("2024-03-13");
@@ -71,7 +71,6 @@ describe("scheduledDoses", () => {
       drugName: "Lisinopril",
       schedule: {
         days: { tuesday: [{ time: "12:00", quantity: 1 }] },
-        timezoneMode: "local",
       },
     };
     const result = scheduledDoses(
@@ -80,6 +79,7 @@ describe("scheduledDoses", () => {
       WEEK_END,
       TODAY,
       [],
+      "UTC",
     );
     const ids = result.map((d) => d.prescriptionId);
     expect(ids).toContain("rx-1");
@@ -91,7 +91,7 @@ describe("scheduledDoses", () => {
       id: "dose-1",
       patientId: "patient-1",
       prescriptionId: "rx-1",
-      scheduledAt: "2024-03-11T08:00:00Z",
+      scheduledAt: "2024-03-11T08:00:00.000Z",
       status: "taken",
       loggedAt: "2024-03-11T08:05:00.000Z",
       createdAt: "2024-03-11T08:05:00.000Z",
@@ -102,8 +102,11 @@ describe("scheduledDoses", () => {
       WEEK_END,
       TODAY,
       [loggedDose],
+      "UTC",
     );
-    const monday = result.find((d) => d.scheduledAt === "2024-03-11T08:00:00Z");
+    const monday = result.find(
+      (d) => d.scheduledAt === "2024-03-11T08:00:00.000Z",
+    );
     expect(monday?.resolvedDose).toEqual({ id: "dose-1", status: "taken" });
   });
 
@@ -115,11 +118,10 @@ describe("scheduledDoses", () => {
           monday: [{ time: "08:00", quantity: 1 }],
           friday: [{ time: "08:00", quantity: 1 }],
         },
-        timezoneMode: "local",
       },
     };
     const today = "2024-03-13";
-    const result = scheduledDoses([rx], WEEK_START, WEEK_END, today, []);
+    const result = scheduledDoses([rx], WEEK_START, WEEK_END, today, [], "UTC");
     const monday = result.find((d) => d.scheduledAt.startsWith("2024-03-11"));
     const friday = result.find((d) => d.scheduledAt.startsWith("2024-03-15"));
     expect(monday?.actionable).toBe(true);
@@ -128,6 +130,33 @@ describe("scheduledDoses", () => {
 
   test("non-active prescriptions do not generate doses", () => {
     const rx: Prescription = { ...BASE_PRESCRIPTION, status: "paused" };
-    expect(scheduledDoses([rx], WEEK_START, WEEK_END, TODAY, [])).toEqual([]);
+    expect(
+      scheduledDoses([rx], WEEK_START, WEEK_END, TODAY, [], "UTC"),
+    ).toEqual([]);
+  });
+
+  test("converts 08:00 wall-clock time to real UTC for America/New_York (UTC-5 in winter)", () => {
+    // 2024-01-08 is a Monday in January — New York is firmly UTC-5 (no DST)
+    const weekStart = "2024-01-08";
+    const weekEnd = "2024-01-14";
+    const rx: Prescription = { ...BASE_PRESCRIPTION, startDate: "2024-01-08" };
+    const result = scheduledDoses(
+      [rx],
+      weekStart,
+      weekEnd,
+      weekEnd,
+      [],
+      "America/New_York",
+    );
+    const monday = result.find((d) => d.scheduledAt.startsWith("2024-01-08"));
+    expect(monday?.scheduledAt).toBe("2024-01-08T13:00:00.000Z");
+  });
+
+  test("logged_at minus scheduled_at gives correct duration for a real-UTC scheduledAt", () => {
+    const scheduledAt = "2024-03-11T13:00:00.000Z";
+    const loggedAt = "2024-03-11T13:05:00.000Z";
+    const durationMs =
+      new Date(loggedAt).getTime() - new Date(scheduledAt).getTime();
+    expect(durationMs).toBe(300_000);
   });
 });

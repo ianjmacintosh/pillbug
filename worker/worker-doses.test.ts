@@ -270,7 +270,6 @@ describe("GET /api/v1/scheduled-doses", () => {
       dosage: "500mg",
       schedule: {
         days: { tuesday: [{ time: "08:00", quantity: 1 }] },
-        timezoneMode: "local",
       },
       startDate: "2024-03-11",
       endDate: null,
@@ -314,7 +313,6 @@ describe("GET /api/v1/scheduled-doses", () => {
       dosage: "500mg",
       schedule: {
         days: { monday: [{ time: "08:00", quantity: 1 }] },
-        timezoneMode: "local",
       },
       startDate: "2024-03-11",
       endDate: null,
@@ -340,7 +338,7 @@ describe("GET /api/v1/scheduled-doses", () => {
     expect(body[0]).toMatchObject({
       prescriptionId: prescription.id,
       drugName: "Metformin",
-      scheduledAt: "2024-03-11T08:00:00Z",
+      scheduledAt: "2024-03-11T08:00:00.000Z",
     });
   });
 });

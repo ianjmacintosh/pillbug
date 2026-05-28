@@ -22,12 +22,35 @@ const DAY_NAMES: DayOfWeek[] = [
   "saturday",
 ];
 
+function localToUtc(
+  dateStr: string,
+  timeStr: string,
+  timezone: string,
+): string {
+  const guessUtc = new Date(`${dateStr}T${timeStr}:00Z`);
+  const localRepr = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  })
+    .format(guessUtc)
+    .replace(" ", "T");
+  const offsetMs = guessUtc.getTime() - new Date(localRepr + "Z").getTime();
+  return new Date(guessUtc.getTime() + offsetMs).toISOString();
+}
+
 export function scheduledDoses(
   prescriptions: Prescription[],
   weekStart: string,
   weekEnd: string,
   today: string,
   loggedDoses: Dose[],
+  patientTimezone = "UTC",
 ): ScheduledDose[] {
   const result: ScheduledDose[] = [];
   const active = prescriptions.filter((rx) => rx.status === "active");
@@ -45,7 +68,7 @@ export function scheduledDoses(
 
       const slots = rx.schedule.days[dayName] ?? [];
       for (const slot of slots) {
-        const scheduledAt = `${dateStr}T${slot.time}:00Z`;
+        const scheduledAt = localToUtc(dateStr, slot.time, patientTimezone);
         const actionable = dateStr <= today;
         const match = loggedDoses.find(
           (dose) =>
