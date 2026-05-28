@@ -100,7 +100,9 @@ function App({ today: todayProp }: { today?: string }) {
 
   const dosesByDate = new Map<string, ScheduledDose[]>();
   for (const dose of doses) {
-    const date = dose.scheduledAt.slice(0, 10);
+    const date = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone ?? "UTC",
+    }).format(new Date(dose.scheduledAt));
     if (!dosesByDate.has(date)) dosesByDate.set(date, []);
     dosesByDate.get(date)!.push(dose);
   }
