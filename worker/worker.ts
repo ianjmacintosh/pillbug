@@ -234,10 +234,9 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       repo.findPatientTimezone(session.patientId),
     ]);
     const registrationDate = createdAt ? createdAt.slice(0, 10) : null;
-    return new Response(
-      JSON.stringify({ timezone, registrationDate }),
-      { headers: { "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ timezone, registrationDate }), {
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   if (url.pathname === "/api/v1/account" && request.method === "PATCH") {
