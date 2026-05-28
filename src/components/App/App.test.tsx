@@ -9,6 +9,7 @@ const TODAY = "2024-03-13";
 const REGISTRATION_DATE = "2024-03-06";
 
 let mockRegistrationDate: string | null = null;
+let mockTimezone: string | null = null;
 
 vi.mock("@tanstack/react-router", async (importOriginal) => {
   const actual =
@@ -16,7 +17,10 @@ vi.mock("@tanstack/react-router", async (importOriginal) => {
   return {
     ...actual,
     getRouteApi: () => ({
-      useLoaderData: () => ({ registrationDate: mockRegistrationDate }),
+      useLoaderData: () => ({
+        registrationDate: mockRegistrationDate,
+        timezone: mockTimezone,
+      }),
     }),
     Link: ({
       to,
@@ -67,8 +71,12 @@ const FRIDAY_DOSE = {
 
 beforeEach(() => {
   mockRegistrationDate = null;
+  mockTimezone = null;
 });
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.useRealTimers();
+});
 
 describe("App", () => {
   test("renders dose label as 'N doseForm × drugName dosage'", async () => {
@@ -504,5 +512,21 @@ describe("App", () => {
       expect(url).toContain("start=2024-03-11");
       expect(url).toContain("end=2024-03-17");
     });
+  });
+
+  test("derives today from patient timezone when no today prop is given", async () => {
+    // 2024-03-12T01:00:00Z = UTC Tuesday, but America/New_York (UTC-4, DST) = Monday 2024-03-11 at 9 PM
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2024-03-12T01:00:00Z"));
+    mockTimezone = "America/New_York";
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify([]), { status: 200 }),
+    );
+    render(<App />);
+    // Local NY date is Monday 2024-03-11 — Monday heading should carry aria-current
+    const mondayHeading = screen.getByText("Monday");
+    expect(mondayHeading.closest("[aria-current='date']")).toBeTruthy();
+    const tuesdayHeading = screen.getByText("Tuesday");
+    expect(tuesdayHeading.closest("[aria-current='date']")).toBeFalsy();
   });
 });

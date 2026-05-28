@@ -59,12 +59,13 @@ function addDays(dateStr: string, days: number): string {
 
 const Route = getRouteApi("/layout/");
 
-function App({
-  today = new Date().toISOString().slice(0, 10),
-}: {
-  today?: string;
-}) {
-  const { registrationDate } = Route.useLoaderData();
+function App({ today: todayProp }: { today?: string }) {
+  const { registrationDate, timezone } = Route.useLoaderData();
+  const today =
+    todayProp ??
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone ?? "UTC",
+    }).format(new Date());
   const { monday: currentWeekMonday } = weekBoundaries(today);
   const [doses, setDoses] = useState<ScheduledDose[]>([]);
   const [displayedMonday, setDisplayedMonday] = useState(currentWeekMonday);

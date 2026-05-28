@@ -250,6 +250,55 @@ describe("GET /api/v1/scheduled-doses", () => {
     expect(response.status).toBe(400);
   });
 
+  test("uses patient's stored timezone when determining which doses are actionable", async () => {
+    // 2024-03-12T01:00:00Z = UTC Tuesday, but America/New_York (UTC-4, DST active) = Monday 2024-03-11 at 9 PM
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2024-03-12T01:00:00Z"));
+
+    const authRepo = makeInMemoryRepo();
+    const prescriptionRepo = makeInMemoryPrescriptionRepo();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(authRepo);
+    vi.mocked(makeD1PrescriptionRepo).mockReturnValue(prescriptionRepo);
+    const { patientId, cookie } = await makeAuthenticatedSession(authRepo);
+    await authRepo.updatePatientTimezone(patientId, "America/New_York");
+
+    const prescription: Prescription = {
+      id: crypto.randomUUID(),
+      patientId,
+      doseForm: "tablet",
+      drugName: "Metformin",
+      dosage: "500mg",
+      schedule: {
+        days: { tuesday: [{ time: "08:00", quantity: 1 }] },
+        timezoneMode: "local",
+      },
+      startDate: "2024-03-11",
+      endDate: null,
+      prescribingDoctor: null,
+      instructions: null,
+      status: "active",
+      createdAt: "2024-01-01T00:00:00.000Z",
+    };
+    await prescriptionRepo.createPrescription(prescription);
+
+    const response = await worker.fetch(
+      new Request(
+        "http://localhost/api/v1/scheduled-doses?start=2024-03-11&end=2024-03-17",
+        { headers: { Cookie: cookie } },
+      ),
+      makeEnv(),
+    );
+    const body =
+      await response.json<{ scheduledAt: string; actionable: boolean }[]>();
+    const tuesdayDose = body.find((d) =>
+      d.scheduledAt.startsWith("2024-03-12"),
+    );
+    // NY time is still Monday — Tuesday's dose should not yet be actionable
+    expect(tuesdayDose?.actionable).toBe(false);
+
+    vi.useRealTimers();
+  });
+
   test("returns projected scheduled doses for the week when authenticated", async () => {
     const authRepo = makeInMemoryRepo();
     const prescriptionRepo = makeInMemoryPrescriptionRepo();
