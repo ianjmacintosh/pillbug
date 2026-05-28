@@ -131,12 +131,6 @@ const completeSetupRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/finish-setup",
   beforeLoad: requireAuth,
-  loader: async () => {
-    const res = await fetch("/api/v1/account");
-    if (!res.ok) throw redirect({ to: "/login" });
-    const data = (await res.json()) as { timezone: string | null };
-    return { timezone: data.timezone };
-  },
   component: CompleteSetup,
 });
 
