@@ -596,7 +596,10 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
         headers: { "Content-Type": "application/json" },
       });
     }
-    const today = new Date().toISOString().slice(0, 10);
+    const patientTimezone = await repo.findPatientTimezone(session.patientId);
+    const today = new Intl.DateTimeFormat("en-CA", {
+      timeZone: patientTimezone ?? "UTC",
+    }).format(new Date());
     const prescriptions = await listPrescriptions(
       session.patientId,
       ["active"],

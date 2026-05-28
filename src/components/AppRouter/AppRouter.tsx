@@ -96,7 +96,7 @@ const indexRoute = createRoute({
     if (!data.timezone) {
       throw redirect({ to: "/finish-setup" });
     }
-    return { registrationDate: data.registrationDate };
+    return { registrationDate: data.registrationDate, timezone: data.timezone };
   },
   component: App,
 });
