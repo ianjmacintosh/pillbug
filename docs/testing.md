@@ -65,11 +65,11 @@ A future improvement would be a separate Playwright job that runs against the de
 
 ## Email mock (E2E tests)
 
-`npm run test:e2e` sets `EMAIL_MOCK=true` and `CLOUDFLARE_INCLUDE_PROCESS_ENV=true` in the script definition. `CLOUDFLARE_INCLUDE_PROCESS_ENV=true` tells the Cloudflare Vite plugin to expose all process environment variables as Worker bindings, so `EMAIL_MOCK=true` reaches the Worker's `env` object.
+`EMAIL_MOCK: "true"` is set as a wrangler var in the `staging` environment (`wrangler.jsonc`). `npm run dev` runs with `CLOUDFLARE_ENV=staging`, so the Cloudflare Vite plugin applies the staging wrangler config and passes `EMAIL_MOCK: "true"` to the Worker's `env` object. Playwright's webServer starts `npm run dev`, so the same var is active during `npm run test:e2e` — both locally and in CI.
 
 When `env.EMAIL_MOCK === "true"`, the worker uses a no-op email sender for `/api/register` and `/api/login` — no HTTP requests are made to `api.resend.com`. The health check endpoint calls `resend.domains.list()` as normal (that call is quota-free and is intentionally not mocked).
 
-Do not set `EMAIL_MOCK` in `.env`, staging, or production.
+Do not set `EMAIL_MOCK` in `.env` or `.dev.vars`. It must not be set in production.
 
 ## Admin panel mock (local dev only)
 
