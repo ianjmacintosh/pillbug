@@ -10,7 +10,6 @@ jobs:
     env:
       EMAIL_SECRET: ${{ secrets.EMAIL_SECRET }}
       PIN_SECRET: ${{ secrets.PIN_SECRET }}
-      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       VITE_TURNSTILE_SITE_KEY: "1x00000000000000000000AA"
     steps:
       - uses: actions/checkout@v4
@@ -25,8 +24,8 @@ jobs:
         run: npm run db:seed:local
       - name: Write .env for local Worker
         run: |
-          printf 'TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA\nEMAIL_SECRET=%s\nPIN_SECRET=%s\nRESEND_API_KEY=%s\n' \
-            "$EMAIL_SECRET" "$PIN_SECRET" "$RESEND_API_KEY" > .env
+          printf 'TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA\nEMAIL_SECRET=%s\nPIN_SECRET=%s\n' \
+            "$EMAIL_SECRET" "$PIN_SECRET" > .env
       - name: Run Playwright tests
         run: npm run test:e2e
       - uses: actions/upload-artifact@v4

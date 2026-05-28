@@ -5,7 +5,7 @@ type Status = "ok" | "error";
 
 export async function checkHealth(
   db: D1Database,
-  resend: Pick<Resend, "domains">,
+  resend: Pick<Resend, "domains"> | null,
 ): Promise<{ db: Status; email: Status }> {
   const [dbStatus, emailStatus] = await Promise.all([
     db
@@ -20,10 +20,12 @@ export async function checkHealth(
           .then((row) => (row?.count === 3 ? "ok" : "error") as Status),
       )
       .catch(() => "error" as Status),
-    resend.domains
-      .list()
-      .then(({ error }) => (error ? "error" : "ok") as Status)
-      .catch(() => "error" as Status),
+    resend
+      ? resend.domains
+          .list()
+          .then(({ error }) => (error ? "error" : "ok") as Status)
+          .catch(() => "error" as Status)
+      : Promise.resolve("error" as Status),
   ]);
   return { db: dbStatus, email: emailStatus };
 }
