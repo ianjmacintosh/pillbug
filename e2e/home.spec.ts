@@ -204,3 +204,55 @@ test.describe("Home screen doses", () => {
     await expect(mondaySection.getByText("8:00 PM")).toBeVisible();
   });
 });
+
+test.describe("scheduled-doses timezone conversion", () => {
+  test.beforeEach(async () => {
+    await clearPrescriptions();
+  });
+
+  test("scheduledAt is real UTC based on the patient's stored timezone", async ({
+    page,
+  }) => {
+    await login(page);
+
+    // Create a prescription with a 2:00 PM Monday slot
+    await page.request.post("/api/v1/prescriptions", {
+      data: {
+        drugName: "Test Drug",
+        dosage: "10 mg",
+        doseForm: "tablet",
+        schedule: { days: { monday: [{ time: "14:00", quantity: 1 }] } },
+        startDate: "2024-01-01",
+      },
+    });
+
+    // 2024-01-08 is a Monday in January (standard time — no DST ambiguity)
+    const weekQuery = "start=2024-01-08&end=2024-01-14";
+
+    // Los Angeles is PST (UTC-8) in January: 2:00 PM local = T22:00:00.000Z
+    await page.request.patch("/api/v1/account", {
+      data: { timezone: "America/Los_Angeles" },
+    });
+    const laRes = await page.request.get(
+      `/api/v1/scheduled-doses?${weekQuery}`,
+    );
+    const laDoses = (await laRes.json()) as Array<{ scheduledAt: string }>;
+    const laMonday = laDoses.find((d) =>
+      d.scheduledAt.startsWith("2024-01-08"),
+    );
+    expect(laMonday?.scheduledAt).toBe("2024-01-08T22:00:00.000Z");
+
+    // New York is EST (UTC-5) in January: 2:00 PM local = T19:00:00.000Z
+    await page.request.patch("/api/v1/account", {
+      data: { timezone: "America/New_York" },
+    });
+    const nyRes = await page.request.get(
+      `/api/v1/scheduled-doses?${weekQuery}`,
+    );
+    const nyDoses = (await nyRes.json()) as Array<{ scheduledAt: string }>;
+    const nyMonday = nyDoses.find((d) =>
+      d.scheduledAt.startsWith("2024-01-08"),
+    );
+    expect(nyMonday?.scheduledAt).toBe("2024-01-08T19:00:00.000Z");
+  });
+});

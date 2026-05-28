@@ -606,7 +606,14 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       prescriptionRepo,
     );
     const doses = await doseRepo.listDoses(session.patientId, start, end);
-    const result = scheduledDoses(prescriptions, start, end, today, doses);
+    const result = scheduledDoses(
+      prescriptions,
+      start,
+      end,
+      today,
+      doses,
+      patientTimezone ?? "UTC",
+    );
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

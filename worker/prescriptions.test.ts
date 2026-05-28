@@ -57,20 +57,18 @@ describe("validateSchedule", () => {
             { time: "20:00", quantity: 2 },
           ],
         },
-        timezoneMode: "local",
       }),
     ).toBeNull();
   });
 
   test("accepts an empty days object", () => {
-    expect(validateSchedule({ days: {}, timezoneMode: "local" })).toBeNull();
+    expect(validateSchedule({ days: {} })).toBeNull();
   });
 
   test("rejects an invalid day key", () => {
     expect(
       validateSchedule({
         days: { funday: ["08:00"] },
-        timezoneMode: "local",
       }),
     ).toEqual({ error: "invalid_days" });
   });
@@ -79,13 +77,12 @@ describe("validateSchedule", () => {
     expect(
       validateSchedule({
         days: { monday: ["8am"] },
-        timezoneMode: "local",
       }),
     ).toEqual({ error: "invalid_time_format" });
   });
 
   test("rejects a non-object days value", () => {
-    expect(validateSchedule({ days: "daily", timezoneMode: "local" })).toEqual({
+    expect(validateSchedule({ days: "daily" })).toEqual({
       error: "invalid_days",
     });
   });
@@ -94,7 +91,6 @@ describe("validateSchedule", () => {
     expect(
       validateSchedule({
         days: { monday: [{ time: "08:00", quantity: 1 }] },
-        timezoneMode: "local",
       }),
     ).toBeNull();
   });
@@ -103,7 +99,6 @@ describe("validateSchedule", () => {
     expect(
       validateSchedule({
         days: { monday: [{ time: "8am", quantity: 1 }] },
-        timezoneMode: "local",
       }),
     ).toEqual({ error: "invalid_time_format" });
   });
@@ -112,7 +107,6 @@ describe("validateSchedule", () => {
     expect(
       validateSchedule({
         days: { monday: ["08:00"] },
-        timezoneMode: "local",
       }),
     ).toEqual({ error: "invalid_time_format" });
   });
@@ -127,7 +121,6 @@ describe("createPrescription", () => {
         dosage: "500mg",
         schedule: {
           days: { monday: [{ time: "08:00", quantity: 2 }] },
-          timezoneMode: "local",
         },
         startDate: "2024-01-01",
         doseForm: "capsule",
@@ -149,7 +142,6 @@ describe("createPrescription", () => {
         dosage: "500mg",
         schedule: {
           days: { monday: [{ time: "08:00", quantity: 1 }] },
-          timezoneMode: "local",
         },
         startDate: "2024-01-01",
       },
@@ -170,7 +162,6 @@ describe("createPrescription", () => {
         dosage: "500mg",
         schedule: {
           days: { monday: [{ time: "08:00", quantity: 1 }] },
-          timezoneMode: "local",
         },
         startDate: "2024-01-01",
       },
@@ -192,7 +183,7 @@ describe("createPrescription", () => {
       {
         drugName: "Metformin",
         dosage: "500mg",
-        schedule: { days: {}, timezoneMode: "local" },
+        schedule: { days: {} },
         startDate: "2024-06-01",
         endDate: "2024-01-01",
       },
@@ -209,7 +200,7 @@ const BASE_PRESCRIPTION: Prescription = {
   doseForm: "tablet",
   drugName: "Metformin",
   dosage: "500mg",
-  schedule: { days: {}, timezoneMode: "local" },
+  schedule: { days: {} },
   startDate: "2024-01-01",
   endDate: null,
   prescribingDoctor: null,
@@ -311,7 +302,6 @@ describe("updatePrescription", () => {
       {
         schedule: {
           days: { funday: ["08:00"] } as never,
-          timezoneMode: "local",
         },
       },
       repo,

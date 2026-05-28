@@ -33,7 +33,7 @@ export function parseScheduleJson(raw: string): Schedule {
     for (const day of selectedDays) {
       days[day] = legacy.times.map((time) => ({ time, quantity: 1 }));
     }
-    return { days, timezoneMode: legacy.timezoneMode };
+    return { days };
   }
   return parsed as unknown as Schedule;
 }
