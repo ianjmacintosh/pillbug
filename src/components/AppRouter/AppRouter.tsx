@@ -51,7 +51,7 @@ async function requireAuth() {
 async function requireTimezone() {
   let res: Response;
   try {
-    res = await fetch("/api/v1/session");
+    res = await fetch("/api/v1/account");
   } catch {
     return; // offline — let the app load
   }
@@ -82,7 +82,7 @@ const indexRoute = createRoute({
   loader: async () => {
     let res: Response;
     try {
-      res = await fetch("/api/v1/session");
+      res = await fetch("/api/v1/account");
     } catch {
       return { registrationDate: null };
     }
@@ -132,7 +132,7 @@ const completeSetupRoute = createRoute({
   path: "/finish-setup",
   beforeLoad: requireAuth,
   loader: async () => {
-    const res = await fetch("/api/v1/session");
+    const res = await fetch("/api/v1/account");
     if (!res.ok) throw redirect({ to: "/login" });
     const data = (await res.json()) as { timezone: string | null };
     return { timezone: data.timezone };
@@ -145,7 +145,7 @@ const settingsRoute = createRoute({
   path: "/settings",
   beforeLoad: requireAuth,
   loader: async () => {
-    const res = await fetch("/api/v1/session");
+    const res = await fetch("/api/v1/account");
     if (!res.ok) throw redirect({ to: "/login" });
     const data = (await res.json()) as { timezone: string | null };
     return { timezone: data.timezone };

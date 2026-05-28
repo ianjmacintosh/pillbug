@@ -126,17 +126,30 @@ Returns the current session state. Used by the client to check auth on page load
 **Response — 200** (authenticated)
 
 ```json
-{
-  "ok": true,
-  "patientId": "<uuid>",
-  "registrationDate": "2024-01-15",
-  "timezone": "America/New_York"
-}
+{ "ok": true, "patientId": "<uuid>" }
 ```
 
-`timezone` is `string | null` — `null` means the patient has not yet set a timezone preference.
-
 **Response — 401** (no session or expired session)
+
+```json
+{ "error": "not_authenticated" }
+```
+
+---
+
+### `GET /api/v1/account`
+
+Returns the authenticated Patient's account data.
+
+**Response — 200**
+
+```json
+{ "timezone": "America/New_York", "registrationDate": "2024-01-15" }
+```
+
+`timezone` is `string | null` — `null` means the patient has not yet set a timezone preference. `registrationDate` is `string | null` in `YYYY-MM-DD` format.
+
+**Response — 401**
 
 ```json
 { "error": "not_authenticated" }
@@ -160,16 +173,16 @@ Updates the authenticated Patient's account settings. Only fields included in th
 { "ok": true }
 ```
 
-**Response — 400** (unrecognised IANA timezone value)
-
-```json
-{ "error": "invalid_timezone" }
-```
-
 **Response — 401**
 
 ```json
 { "error": "not_authenticated" }
+```
+
+**Response — 422** (unrecognised IANA timezone value)
+
+```json
+{ "error": "invalid_timezone" }
 ```
 
 ---
