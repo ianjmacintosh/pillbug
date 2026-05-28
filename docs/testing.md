@@ -81,11 +81,12 @@ For CI, `e2e-tests.yml` writes a `.env` file before running Playwright. This is 
 
 Secrets that must be in `.dev.vars` for E2E tests to pass:
 
-| Secret                 | CI value                                                       | Why needed by Worker                                      |
-| ---------------------- | -------------------------------------------------------------- | --------------------------------------------------------- |
-| `TURNSTILE_SECRET_KEY` | `1x0000000000000000000000000000000AA` (always-passes test key) | Validates the dummy Turnstile token sent by setup scripts |
-| `EMAIL_SECRET`         | From `secrets.EMAIL_SECRET`                                    | Hashes email addresses to look up patients in the DB      |
-| `PIN_SECRET`           | From `secrets.PIN_SECRET`                                      | Hashes PINs for magic link token verification             |
+| Secret                 | CI value                                                       | Why needed by Worker                                                                                   |
+| ---------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `TURNSTILE_SECRET_KEY` | `1x0000000000000000000000000000000AA` (always-passes test key) | Validates the dummy Turnstile token sent by setup scripts                                              |
+| `EMAIL_SECRET`         | From `secrets.EMAIL_SECRET`                                    | Hashes email addresses to look up patients in the DB                                                   |
+| `PIN_SECRET`           | From `secrets.PIN_SECRET`                                      | Hashes PINs for magic link token verification                                                          |
+| `RESEND_API_KEY`       | From `secrets.RESEND_API_KEY`                                  | Used by the health check endpoint (`resend.domains.list()`) — not mocked even when `EMAIL_MOCK` is set |
 
 ## Admin panel mock (local dev only)
 
