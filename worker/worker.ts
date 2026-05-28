@@ -214,20 +214,29 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
         headers: { "Content-Type": "application/json" },
       });
     }
+    return new Response(
+      JSON.stringify({ ok: true, patientId: session.patientId }),
+      { headers: { "Content-Type": "application/json" } },
+    );
+  }
+
+  if (url.pathname === "/api/v1/account" && request.method === "GET") {
+    const sessionId = getSessionId(request);
+    const session = sessionId ? await getSession(sessionId, repo) : null;
+    if (!session) {
+      return new Response(JSON.stringify({ error: "not_authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
     const [createdAt, timezone] = await Promise.all([
       repo.findPatientCreatedAt(session.patientId),
       repo.findPatientTimezone(session.patientId),
     ]);
     const registrationDate = createdAt ? createdAt.slice(0, 10) : null;
-    return new Response(
-      JSON.stringify({
-        ok: true,
-        patientId: session.patientId,
-        registrationDate,
-        timezone,
-      }),
-      { headers: { "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ timezone, registrationDate }), {
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   if (url.pathname === "/api/v1/account" && request.method === "PATCH") {
@@ -245,7 +254,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       const validZones = new Set(Intl.supportedValuesOf("timeZone"));
       if (!validZones.has(timezone)) {
         return new Response(JSON.stringify({ error: "invalid_timezone" }), {
-          status: 400,
+          status: 422,
           headers: { "Content-Type": "application/json" },
         });
       }

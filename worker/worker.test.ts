@@ -436,37 +436,11 @@ describe("GET /api/v1/session", () => {
     );
 
     expect(response.status).toBe(200);
-    const body = (await response.json()) as {
-      ok: boolean;
-      patientId: string;
-      registrationDate: string | null;
-    };
+    const body = (await response.json()) as { ok: boolean; patientId: string };
     expect(body.ok).toBe(true);
     expect(body.patientId).toBe("patient-1");
-    expect(body.registrationDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-  });
-
-  test("returns timezone: null when patient has no timezone set", async () => {
-    await repo.createPatient(
-      "patient-1",
-      "delivered@resend.dev",
-      new Date().toISOString(),
-    );
-    const expiresAt = new Date(
-      Date.now() + 30 * 24 * 60 * 60 * 1000,
-    ).toISOString();
-    await repo.createSession("session-id-1", "patient-1", expiresAt);
-
-    const response = await worker.fetch(
-      new Request("http://localhost:5173/api/v1/session", {
-        headers: { Cookie: "session=session-id-1" },
-      }),
-      makeEnv(),
-    );
-
-    expect(response.status).toBe(200);
-    const body = (await response.json()) as { timezone: string | null };
-    expect(body.timezone).toBeNull();
+    expect(body).not.toHaveProperty("registrationDate");
+    expect(body).not.toHaveProperty("timezone");
   });
 });
 
@@ -526,7 +500,7 @@ describe("PATCH /api/v1/account", () => {
     );
   });
 
-  test("returns 400 for an unrecognised timezone value", async () => {
+  test("returns 422 for an unrecognised timezone value", async () => {
     await createSessionAndPatient();
 
     const response = await worker.fetch(
@@ -541,8 +515,74 @@ describe("PATCH /api/v1/account", () => {
       makeEnv(),
     );
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(422);
     expect(await response.json()).toEqual({ error: "invalid_timezone" });
+  });
+});
+
+describe("GET /api/v1/account", () => {
+  let repo: ReturnType<typeof makeInMemoryRepo>;
+
+  beforeEach(() => {
+    repo = makeInMemoryRepo();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(repo);
+  });
+
+  async function createSessionAndPatient() {
+    await repo.createPatient(
+      "patient-1",
+      "delivered@resend.dev",
+      new Date().toISOString(),
+    );
+    const expiresAt = new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+    await repo.createSession("session-id-1", "patient-1", expiresAt);
+  }
+
+  test("returns 401 when not authenticated", async () => {
+    const response = await worker.fetch(
+      new Request("http://localhost:5173/api/v1/account"),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "not_authenticated" });
+  });
+
+  test("returns timezone and registrationDate for authenticated patient", async () => {
+    await createSessionAndPatient();
+    await repo.updatePatientTimezone("patient-1", "America/Chicago");
+
+    const response = await worker.fetch(
+      new Request("http://localhost:5173/api/v1/account", {
+        headers: { Cookie: "session=session-id-1" },
+      }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as {
+      timezone: string | null;
+      registrationDate: string | null;
+    };
+    expect(body.timezone).toBe("America/Chicago");
+    expect(body.registrationDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  test("returns timezone: null when patient has no timezone set", async () => {
+    await createSessionAndPatient();
+
+    const response = await worker.fetch(
+      new Request("http://localhost:5173/api/v1/account", {
+        headers: { Cookie: "session=session-id-1" },
+      }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { timezone: string | null };
+    expect(body.timezone).toBeNull();
   });
 });
 
