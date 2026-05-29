@@ -63,6 +63,7 @@
         "APP_URL": "https://pillbug-staging.ianjmacintosh.com",
         "CF_TEAM_DOMAIN": "https://banana-squad.cloudflareaccess.com",
         "CF_ACCESS_AUD": "7774856702e0b9102401ef7e87bcd6f8bcb159bf110342da44b0f5bc9742d1e1",
+        "EMAIL_MOCK": "true",
       },
       "d1_databases": [
         {

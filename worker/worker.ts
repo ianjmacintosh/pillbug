@@ -117,7 +117,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   }
 
   if (url.pathname === "/api/v1/health") {
-    const resend = new Resend(env.RESEND_API_KEY);
+    const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
     const health = await checkHealth(env.DB, resend);
     return new Response(JSON.stringify(health), {
       headers: { "Content-Type": "application/json", ...CORS_HEADERS },

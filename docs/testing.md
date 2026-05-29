@@ -65,11 +65,27 @@ A future improvement would be a separate Playwright job that runs against the de
 
 ## Email mock (E2E tests)
 
-`npm run test:e2e` sets `EMAIL_MOCK=true` and `CLOUDFLARE_INCLUDE_PROCESS_ENV=true` in the script definition. `CLOUDFLARE_INCLUDE_PROCESS_ENV=true` tells the Cloudflare Vite plugin to expose all process environment variables as Worker bindings, so `EMAIL_MOCK=true` reaches the Worker's `env` object.
+`EMAIL_MOCK: "true"` is set as a wrangler var in the `staging` environment (`wrangler.jsonc`). `npm run dev` runs with `CLOUDFLARE_ENV=staging`, so the Cloudflare Vite plugin applies the staging wrangler config and passes `EMAIL_MOCK: "true"` to the Worker's `env` object. Playwright's webServer starts `npm run dev`, so the same var is active during `npm run test:e2e` — both locally and in CI.
 
 When `env.EMAIL_MOCK === "true"`, the worker uses a no-op email sender for `/api/register` and `/api/login` — no HTTP requests are made to `api.resend.com`. The health check endpoint calls `resend.domains.list()` as normal (that call is quota-free and is intentionally not mocked).
 
-Do not set `EMAIL_MOCK` in `.env`, staging, or production.
+Do not set `EMAIL_MOCK` in `.env` or `.dev.vars`. It must not be set in production.
+
+## Worker secrets in E2E tests
+
+The Cloudflare Vite plugin exposes Worker secrets from `.dev.vars` and `.env` files — not from process environment variables. CI environment variables (set via `env:` in workflow steps) do **not** automatically reach the Worker's `env` object.
+
+For local development, `.env` (created from `.env.EXAMPLE`) provides `TURNSTILE_SECRET_KEY`, `EMAIL_SECRET`, and `PIN_SECRET` to the local Worker.
+
+For CI, `e2e-tests.yml` writes a `.env` file before running Playwright. This is the only mechanism that makes these secrets available to the local Worker process started by Playwright's webServer.
+
+Secrets that must be in `.dev.vars` for E2E tests to pass:
+
+| Secret                 | CI value                                                       | Why needed by Worker                                      |
+| ---------------------- | -------------------------------------------------------------- | --------------------------------------------------------- |
+| `TURNSTILE_SECRET_KEY` | `1x0000000000000000000000000000000AA` (always-passes test key) | Validates the dummy Turnstile token sent by setup scripts |
+| `EMAIL_SECRET`         | From `secrets.EMAIL_SECRET`                                    | Hashes email addresses to look up patients in the DB      |
+| `PIN_SECRET`           | From `secrets.PIN_SECRET`                                      | Hashes PINs for magic link token verification             |
 
 ## Admin panel mock (local dev only)
 
