@@ -75,148 +75,148 @@ describe("resolveCompartmentLabel", () => {
       expect(resolveCompartmentLabel("09:00", lateNightConfig)).toBe("Day");
     });
   });
+});
 
-  describe("pillsNeeded", () => {
-    const everyDay = {
-      monday: [{ time: "08:00", quantity: 1 }],
-      tuesday: [{ time: "08:00", quantity: 1 }],
-      wednesday: [{ time: "08:00", quantity: 1 }],
-      thursday: [{ time: "08:00", quantity: 1 }],
-      friday: [{ time: "08:00", quantity: 1 }],
-      saturday: [{ time: "08:00", quantity: 1 }],
-      sunday: [{ time: "08:00", quantity: 1 }],
-    };
+describe("pillsNeeded", () => {
+  const everyDay = {
+    monday: [{ time: "08:00", quantity: 1 }],
+    tuesday: [{ time: "08:00", quantity: 1 }],
+    wednesday: [{ time: "08:00", quantity: 1 }],
+    thursday: [{ time: "08:00", quantity: 1 }],
+    friday: [{ time: "08:00", quantity: 1 }],
+    saturday: [{ time: "08:00", quantity: 1 }],
+    sunday: [{ time: "08:00", quantity: 1 }],
+  };
 
-    test("once-daily prescription over 7 days", () => {
-      expect(pillsNeeded({ days: everyDay }, 7)).toBe(7);
-    });
-
-    test("once-daily prescription scales with span: 14 days = 14 pills", () => {
-      expect(pillsNeeded({ days: everyDay }, 14)).toBe(14);
-    });
-
-    test("twice-daily prescription over 7 days", () => {
-      const schedule = {
-        days: {
-          monday: [
-            { time: "08:00", quantity: 1 },
-            { time: "20:00", quantity: 1 },
-          ],
-          tuesday: [
-            { time: "08:00", quantity: 1 },
-            { time: "20:00", quantity: 1 },
-          ],
-          wednesday: [
-            { time: "08:00", quantity: 1 },
-            { time: "20:00", quantity: 1 },
-          ],
-          thursday: [
-            { time: "08:00", quantity: 1 },
-            { time: "20:00", quantity: 1 },
-          ],
-          friday: [
-            { time: "08:00", quantity: 1 },
-            { time: "20:00", quantity: 1 },
-          ],
-          saturday: [
-            { time: "08:00", quantity: 1 },
-            { time: "20:00", quantity: 1 },
-          ],
-          sunday: [
-            { time: "08:00", quantity: 1 },
-            { time: "20:00", quantity: 1 },
-          ],
-        },
-      };
-      expect(pillsNeeded(schedule, 7)).toBe(14);
-    });
-
-    test("per-slot quantity variation: 2 tablets AM, 1 tablet PM over 7 days", () => {
-      const schedule = {
-        days: {
-          monday: [
-            { time: "08:00", quantity: 2 },
-            { time: "20:00", quantity: 1 },
-          ],
-          tuesday: [
-            { time: "08:00", quantity: 2 },
-            { time: "20:00", quantity: 1 },
-          ],
-          wednesday: [
-            { time: "08:00", quantity: 2 },
-            { time: "20:00", quantity: 1 },
-          ],
-          thursday: [
-            { time: "08:00", quantity: 2 },
-            { time: "20:00", quantity: 1 },
-          ],
-          friday: [
-            { time: "08:00", quantity: 2 },
-            { time: "20:00", quantity: 1 },
-          ],
-          saturday: [
-            { time: "08:00", quantity: 2 },
-            { time: "20:00", quantity: 1 },
-          ],
-          sunday: [
-            { time: "08:00", quantity: 2 },
-            { time: "20:00", quantity: 1 },
-          ],
-        },
-      };
-      expect(pillsNeeded(schedule, 7)).toBe(21);
-    });
-
-    test("prescription active only on weekdays over 7 days", () => {
-      const schedule = {
-        days: {
-          monday: [{ time: "08:00", quantity: 1 }],
-          tuesday: [{ time: "08:00", quantity: 1 }],
-          wednesday: [{ time: "08:00", quantity: 1 }],
-          thursday: [{ time: "08:00", quantity: 1 }],
-          friday: [{ time: "08:00", quantity: 1 }],
-        },
-      };
-      expect(pillsNeeded(schedule, 7)).toBe(5);
-      expect(pillsNeeded(schedule, 14)).toBe(10);
-    });
-
-    test("empty schedule needs 0 pills", () => {
-      expect(pillsNeeded({ days: {} }, 7)).toBe(0);
-    });
+  test("once-daily prescription over 7 days", () => {
+    expect(pillsNeeded({ days: everyDay }, 7)).toBe(7);
   });
 
-  describe("error cases", () => {
-    test("throws on invalid time format", () => {
-      expect(() => resolveCompartmentLabel("8am", TWO_COMPARTMENTS)).toThrow(
-        "invalid time",
-      );
-    });
+  test("once-daily prescription scales with span: 14 days = 14 pills", () => {
+    expect(pillsNeeded({ days: everyDay }, 14)).toBe(14);
+  });
 
-    test("throws on invalid compartment startTime", () => {
-      expect(() =>
-        resolveCompartmentLabel("08:00", [
-          { label: "X", startTime: "bad", endTime: "12:00" },
-        ]),
-      ).toThrow("invalid compartment startTime");
-    });
+  test("twice-daily prescription over 7 days", () => {
+    const schedule = {
+      days: {
+        monday: [
+          { time: "08:00", quantity: 1 },
+          { time: "20:00", quantity: 1 },
+        ],
+        tuesday: [
+          { time: "08:00", quantity: 1 },
+          { time: "20:00", quantity: 1 },
+        ],
+        wednesday: [
+          { time: "08:00", quantity: 1 },
+          { time: "20:00", quantity: 1 },
+        ],
+        thursday: [
+          { time: "08:00", quantity: 1 },
+          { time: "20:00", quantity: 1 },
+        ],
+        friday: [
+          { time: "08:00", quantity: 1 },
+          { time: "20:00", quantity: 1 },
+        ],
+        saturday: [
+          { time: "08:00", quantity: 1 },
+          { time: "20:00", quantity: 1 },
+        ],
+        sunday: [
+          { time: "08:00", quantity: 1 },
+          { time: "20:00", quantity: 1 },
+        ],
+      },
+    };
+    expect(pillsNeeded(schedule, 7)).toBe(14);
+  });
 
-    test("throws on invalid compartment endTime", () => {
-      expect(() =>
-        resolveCompartmentLabel("08:00", [
-          { label: "X", startTime: "00:00", endTime: "bad" },
-        ]),
-      ).toThrow("invalid compartment endTime");
-    });
+  test("per-slot quantity variation: 2 tablets AM, 1 tablet PM over 7 days", () => {
+    const schedule = {
+      days: {
+        monday: [
+          { time: "08:00", quantity: 2 },
+          { time: "20:00", quantity: 1 },
+        ],
+        tuesday: [
+          { time: "08:00", quantity: 2 },
+          { time: "20:00", quantity: 1 },
+        ],
+        wednesday: [
+          { time: "08:00", quantity: 2 },
+          { time: "20:00", quantity: 1 },
+        ],
+        thursday: [
+          { time: "08:00", quantity: 2 },
+          { time: "20:00", quantity: 1 },
+        ],
+        friday: [
+          { time: "08:00", quantity: 2 },
+          { time: "20:00", quantity: 1 },
+        ],
+        saturday: [
+          { time: "08:00", quantity: 2 },
+          { time: "20:00", quantity: 1 },
+        ],
+        sunday: [
+          { time: "08:00", quantity: 2 },
+          { time: "20:00", quantity: 1 },
+        ],
+      },
+    };
+    expect(pillsNeeded(schedule, 7)).toBe(21);
+  });
 
-    test("throws when time falls in a gap (invalid config)", () => {
-      const gappyConfig = [
-        { label: "AM", startTime: "00:00", endTime: "11:59" },
-        { label: "PM", startTime: "14:00", endTime: "23:59" },
-      ];
-      expect(() => resolveCompartmentLabel("13:00", gappyConfig)).toThrow(
-        "does not match any compartment",
-      );
-    });
+  test("prescription active only on weekdays over 7 days", () => {
+    const schedule = {
+      days: {
+        monday: [{ time: "08:00", quantity: 1 }],
+        tuesday: [{ time: "08:00", quantity: 1 }],
+        wednesday: [{ time: "08:00", quantity: 1 }],
+        thursday: [{ time: "08:00", quantity: 1 }],
+        friday: [{ time: "08:00", quantity: 1 }],
+      },
+    };
+    expect(pillsNeeded(schedule, 7)).toBe(5);
+    expect(pillsNeeded(schedule, 14)).toBe(10);
+  });
+
+  test("empty schedule needs 0 pills", () => {
+    expect(pillsNeeded({ days: {} }, 7)).toBe(0);
+  });
+});
+
+describe("resolveCompartmentLabel error cases", () => {
+  test("throws on invalid time format", () => {
+    expect(() => resolveCompartmentLabel("8am", TWO_COMPARTMENTS)).toThrow(
+      "invalid time",
+    );
+  });
+
+  test("throws on invalid compartment startTime", () => {
+    expect(() =>
+      resolveCompartmentLabel("08:00", [
+        { label: "X", startTime: "bad", endTime: "12:00" },
+      ]),
+    ).toThrow("invalid compartment startTime");
+  });
+
+  test("throws on invalid compartment endTime", () => {
+    expect(() =>
+      resolveCompartmentLabel("08:00", [
+        { label: "X", startTime: "00:00", endTime: "bad" },
+      ]),
+    ).toThrow("invalid compartment endTime");
+  });
+
+  test("throws when time falls in a gap (invalid config)", () => {
+    const gappyConfig = [
+      { label: "AM", startTime: "00:00", endTime: "11:59" },
+      { label: "PM", startTime: "14:00", endTime: "23:59" },
+    ];
+    expect(() => resolveCompartmentLabel("13:00", gappyConfig)).toThrow(
+      "does not match any compartment",
+    );
   });
 });
