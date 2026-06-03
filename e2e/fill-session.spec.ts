@@ -231,8 +231,8 @@ test.describe("Fill Session", () => {
         .getByRole("combobox", { name: /pill organizer/i })
         .selectOption("2");
 
-      await expect(page.getByText("AM")).toBeVisible();
-      await expect(page.getByText("PM")).toBeVisible();
+      await expect(page.getByText("AM", { exact: true })).toBeVisible();
+      await expect(page.getByText("PM", { exact: true })).toBeVisible();
     });
 
     test("switching to Morn/Noon/Night shows three slot labels", async ({
@@ -246,9 +246,9 @@ test.describe("Fill Session", () => {
         .getByRole("combobox", { name: /pill organizer/i })
         .selectOption("3");
 
-      await expect(page.getByText("Morn")).toBeVisible();
-      await expect(page.getByText("Noon")).toBeVisible();
-      await expect(page.getByText("Night")).toBeVisible();
+      await expect(page.getByText("Morn", { exact: true })).toBeVisible();
+      await expect(page.getByText("Noon", { exact: true })).toBeVisible();
+      await expect(page.getByText("Night", { exact: true })).toBeVisible();
     });
   });
 });
