@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import {
   ONE_COMPARTMENT,
   TWO_COMPARTMENTS,
+  THREE_COMPARTMENTS,
   FOUR_COMPARTMENTS,
-  pillsNeeded,
   groupByMedicine,
   type Compartment,
   type Schedule,
@@ -19,11 +19,24 @@ interface Prescription {
   status: string;
 }
 
-const COMPARTMENT_CONFIGS: Record<string, Compartment[]> = {
-  "1": ONE_COMPARTMENT,
-  "2": TWO_COMPARTMENTS,
-  "4": FOUR_COMPARTMENTS,
-};
+const ORGANIZER_OPTIONS: {
+  value: string;
+  label: string;
+  compartments: Compartment[];
+}[] = [
+  { value: "1", label: "Simple 7-day", compartments: ONE_COMPARTMENT },
+  { value: "2", label: "7-day AM/PM", compartments: TWO_COMPARTMENTS },
+  {
+    value: "3",
+    label: "7-day Morn/Noon/Night",
+    compartments: THREE_COMPARTMENTS,
+  },
+  {
+    value: "4",
+    label: "7-day Morn/Noon/Eve/Bed",
+    compartments: FOUR_COMPARTMENTS,
+  },
+];
 
 const DAYS_OF_WEEK = [
   "sunday",
@@ -47,25 +60,33 @@ const DAY_LABELS: Record<string, string> = {
 
 function FillSession() {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
-  const [spanDays, setSpanDays] = useState(7);
-  const [compartmentsPerDay, setCompartmentsPerDay] = useState("1");
+  const [organizerType, setOrganizerType] = useState("1");
+  const [openCardKey, setOpenCardKey] = useState<string | null>(null);
 
   const compartments =
-    COMPARTMENT_CONFIGS[compartmentsPerDay] ?? ONE_COMPARTMENT;
+    ORGANIZER_OPTIONS.find((o) => o.value === organizerType)?.compartments ??
+    ONE_COMPARTMENT;
 
   useEffect(() => {
     fetch("/api/v1/prescriptions?status=active")
       .then((res) => (res.ok ? res.json() : []))
-      .then((data: Prescription[]) => setPrescriptions(data))
+      .then((data: Prescription[]) => {
+        setPrescriptions(data);
+        const initialCards = groupByMedicine(data, ONE_COMPARTMENT);
+        if (initialCards.length > 0) {
+          setOpenCardKey(
+            `${initialCards[0].drugName}-${initialCards[0].dosage}`,
+          );
+        }
+      })
       .catch(() => {});
   }, []);
 
-  const weeks = spanDays / 7;
   const cards = groupByMedicine(prescriptions, compartments);
-  const totalPills = prescriptions.reduce(
-    (sum, rx) => sum + pillsNeeded(rx.schedule, spanDays),
-    0,
-  );
+
+  const toggleCard = (key: string) => {
+    setOpenCardKey((prev) => (prev === key ? null : key));
+  };
 
   return (
     <main className="fill-session">
@@ -73,25 +94,16 @@ function FillSession() {
 
       <div className="fill-session-controls">
         <label>
-          Span
+          Pill organizer
           <select
-            value={spanDays}
-            onChange={(e) => setSpanDays(Number(e.target.value))}
+            value={organizerType}
+            onChange={(e) => setOrganizerType(e.target.value)}
           >
-            <option value="7">7 days</option>
-            <option value="14">14 days</option>
-            <option value="28">28 days</option>
-          </select>
-        </label>
-        <label>
-          Compartments per day
-          <select
-            value={compartmentsPerDay}
-            onChange={(e) => setCompartmentsPerDay(e.target.value)}
-          >
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="4">4</option>
+            {ORGANIZER_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
           </select>
         </label>
       </div>
@@ -100,21 +112,18 @@ function FillSession() {
         <p>No active prescriptions.</p>
       ) : (
         <>
-          {weeks > 1 && (
-            <p className="fill-session-repeat-note">
-              Weekly schedule repeats for {weeks} weeks.
-            </p>
-          )}
-
           <div className="fill-session-cards">
             {cards.map((card) => {
-              const spanTotal = card.weeklyTotal * weeks;
+              const cardKey = `${card.drugName}-${card.dosage}`;
+              const isOpen = openCardKey === cardKey;
               return (
-                <div
-                  key={`${card.drugName}-${card.dosage}`}
-                  className="fill-session-card"
-                >
-                  <div className="fill-session-card-header">
+                <div key={cardKey} className="fill-session-card">
+                  <button
+                    type="button"
+                    className={`fill-session-card-header${isOpen ? " fill-session-card-header--open" : ""}`}
+                    onClick={() => toggleCard(cardKey)}
+                    aria-expanded={isOpen}
+                  >
                     <span className="fill-session-card-drug-name">
                       {card.drugName}
                     </span>
@@ -122,71 +131,90 @@ function FillSession() {
                       {card.dosage}
                     </span>
                     <span className="fill-session-card-drug-total">
-                      {spanTotal} pill{spanTotal !== 1 ? "s" : ""}
+                      {card.weeklyTotal} pill
+                      {card.weeklyTotal !== 1 ? "s" : ""}
                     </span>
-                  </div>
+                    <span
+                      className="fill-session-card-caret"
+                      aria-hidden="true"
+                    >
+                      ▾
+                    </span>
+                  </button>
 
-                  <div
-                    className="fill-session-card-grid"
-                    style={
-                      {
-                        "--day-count": DAYS_OF_WEEK.length,
-                      } as React.CSSProperties
-                    }
-                  >
-                    <div className="fill-session-card-corner" />
+                  {isOpen && (
+                    <div
+                      className="fill-session-card-grid"
+                      style={
+                        {
+                          "--day-count": DAYS_OF_WEEK.length,
+                          "--comp-count": compartments.length,
+                        } as React.CSSProperties
+                      }
+                    >
+                      <div className="fill-session-card-corner" />
 
-                    {DAYS_OF_WEEK.map((day) => (
-                      <div key={day} className="fill-session-card-day-header">
-                        {DAY_LABELS[day].slice(0, 3)}
-                      </div>
-                    ))}
+                      {DAYS_OF_WEEK.map((day, dayIdx) => (
+                        <div
+                          key={day}
+                          className="fill-session-card-day-header"
+                          style={{ "--day-idx": dayIdx } as React.CSSProperties}
+                        >
+                          {DAY_LABELS[day].slice(0, 3)}
+                        </div>
+                      ))}
 
-                    {compartments.map((comp) => {
-                      const slot = card.slots.find(
-                        (s) => s.compartmentLabel === comp.label,
-                      )!;
-                      return (
-                        <>
-                          <div
-                            key={comp.label}
-                            className="fill-session-card-slot-label"
-                          >
-                            <span className="fill-session-card-slot-name">
-                              {comp.label}
-                            </span>
-                            <span className="fill-session-card-slot-time">
-                              {comp.startTime}–{comp.endTime}
-                            </span>
-                          </div>
-                          {DAYS_OF_WEEK.map((day) => {
-                            const qty = slot.quantities[day] ?? 0;
-                            return (
-                              <div
-                                key={day}
-                                className={`fill-session-card-cell${qty === 0 ? " fill-session-card-cell--empty" : ""}`}
-                              >
-                                <span className="fill-session-card-cell-count">
-                                  {qty > 0 ? qty : "—"}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </>
-                      );
-                    })}
-                  </div>
+                      {compartments.map((comp, compIdx) => {
+                        const slot = card.slots.find(
+                          (s) => s.compartmentLabel === comp.label,
+                        )!;
+                        return (
+                          <Fragment key={comp.label}>
+                            <div
+                              className="fill-session-card-slot-label"
+                              style={
+                                {
+                                  "--comp-idx": compIdx,
+                                } as React.CSSProperties
+                              }
+                            >
+                              <span className="fill-session-card-slot-name">
+                                {comp.label}
+                              </span>
+                              <span className="fill-session-card-slot-time">
+                                {comp.startTime}–{comp.endTime}
+                              </span>
+                            </div>
+                            {DAYS_OF_WEEK.map((day, dayIdx) => {
+                              const qty = slot.quantities[day] ?? 0;
+                              return (
+                                <div
+                                  key={day}
+                                  className={`fill-session-card-cell${qty === 0 ? " fill-session-card-cell--empty" : ""}`}
+                                  style={
+                                    {
+                                      "--day-idx": dayIdx,
+                                      "--comp-idx": compIdx,
+                                    } as React.CSSProperties
+                                  }
+                                >
+                                  {qty > 0 && (
+                                    <span className="fill-session-card-cell-count">
+                                      {qty}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </Fragment>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
-
-          <p className="fill-session-total">
-            Total for {spanDays}-day fill:{" "}
-            <strong>
-              {totalPills} pill{totalPills !== 1 ? "s" : ""}
-            </strong>
-          </p>
         </>
       )}
     </main>

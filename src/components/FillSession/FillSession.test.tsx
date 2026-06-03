@@ -79,18 +79,14 @@ describe("FillSession", () => {
     expect(screen.getByRole("heading", { level: 1 })).toBeTruthy();
   });
 
-  test("defaults to 7-day span, 1 compartment per day", async () => {
+  test("defaults to Simple 7-day organizer", async () => {
     mockPrescriptions();
     render(<FillSession />);
     await waitFor(() => {
       expect(
-        (screen.getByRole("combobox", { name: /span/i }) as HTMLSelectElement)
-          .value,
-      ).toBe("7");
-      expect(
         (
           screen.getByRole("combobox", {
-            name: /compartments per day/i,
+            name: /pill organizer/i,
           }) as HTMLSelectElement
         ).value,
       ).toBe("1");
@@ -117,12 +113,11 @@ describe("FillSession", () => {
     });
   });
 
-  test("1-compartment: shows correct pill total per card and in summary", async () => {
+  test("1-compartment: shows correct pill total on card header", async () => {
     mockPrescriptions(METFORMIN);
     render(<FillSession />);
     await waitFor(() => screen.getByText("Metformin"));
-    expect(screen.getAllByText(/7 pills/).length).toBeGreaterThan(0);
-    expect(screen.getByText(/total for 7-day/i)).toBeTruthy();
+    expect(screen.getByText(/7 pills/)).toBeTruthy();
   });
 
   test("compartment time ranges are shown inline in each slot label", async () => {
@@ -138,7 +133,7 @@ describe("FillSession", () => {
     await waitFor(() => screen.getByText("Lisinopril"));
 
     await userEvent.selectOptions(
-      screen.getByRole("combobox", { name: /compartments per day/i }),
+      screen.getByRole("combobox", { name: /pill organizer/i }),
       "2",
     );
 
@@ -167,20 +162,40 @@ describe("FillSession", () => {
     expect(headers[0].textContent).toBe("Sun");
   });
 
-  test("changing span updates the total pills summary", async () => {
+  test("first card is open by default", async () => {
+    mockPrescriptions(METFORMIN, LISINOPRIL);
+    render(<FillSession />);
+    await waitFor(() => screen.getByText("Metformin"));
+    const metforminHeader = screen.getByText("Metformin").closest("button")!;
+    expect(metforminHeader.getAttribute("aria-expanded")).toBe("true");
+    const lisinoprilHeader = screen.getByText("Lisinopril").closest("button")!;
+    expect(lisinoprilHeader.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  test("clicking a closed card opens it and closes the previously open card", async () => {
+    mockPrescriptions(METFORMIN, LISINOPRIL);
+    render(<FillSession />);
+    await waitFor(() => screen.getByText("Metformin"));
+
+    const lisinoprilHeader = screen.getByText("Lisinopril").closest("button")!;
+    await userEvent.click(lisinoprilHeader);
+
+    await waitFor(() => {
+      expect(lisinoprilHeader.getAttribute("aria-expanded")).toBe("true");
+      const metforminHeader = screen.getByText("Metformin").closest("button")!;
+      expect(metforminHeader.getAttribute("aria-expanded")).toBe("false");
+    });
+  });
+
+  test("clicking an open card closes it", async () => {
     mockPrescriptions(METFORMIN);
     render(<FillSession />);
     await waitFor(() => screen.getByText("Metformin"));
 
-    expect(screen.getByText(/total for 7-day/i)).toBeTruthy();
+    const header = screen.getByText("Metformin").closest("button")!;
+    expect(header.getAttribute("aria-expanded")).toBe("true");
 
-    await userEvent.selectOptions(
-      screen.getByRole("combobox", { name: /span/i }),
-      "14",
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText(/total for 14-day/i)).toBeTruthy();
-    });
+    await userEvent.click(header);
+    expect(header.getAttribute("aria-expanded")).toBe("false");
   });
 });

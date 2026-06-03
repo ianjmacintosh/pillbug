@@ -5,6 +5,7 @@ import {
   groupByMedicine,
   ONE_COMPARTMENT,
   TWO_COMPARTMENTS,
+  THREE_COMPARTMENTS,
   FOUR_COMPARTMENTS,
 } from "./fill-session";
 
@@ -32,10 +33,40 @@ describe("resolveCompartmentLabel", () => {
     });
   });
 
+  describe("3-compartment config", () => {
+    test("00:00–11:59 resolves to Morn", () => {
+      expect(resolveCompartmentLabel("00:00", THREE_COMPARTMENTS)).toBe("Morn");
+      expect(resolveCompartmentLabel("11:59", THREE_COMPARTMENTS)).toBe("Morn");
+    });
+
+    test("12:00–17:59 resolves to Noon", () => {
+      expect(resolveCompartmentLabel("12:00", THREE_COMPARTMENTS)).toBe("Noon");
+      expect(resolveCompartmentLabel("17:59", THREE_COMPARTMENTS)).toBe("Noon");
+    });
+
+    test("18:00–23:59 resolves to Night", () => {
+      expect(resolveCompartmentLabel("18:00", THREE_COMPARTMENTS)).toBe(
+        "Night",
+      );
+      expect(resolveCompartmentLabel("23:59", THREE_COMPARTMENTS)).toBe(
+        "Night",
+      );
+    });
+
+    test("boundary: 11:59 is Morn, 12:00 is Noon, 17:59 is Noon, 18:00 is Night", () => {
+      expect(resolveCompartmentLabel("11:59", THREE_COMPARTMENTS)).toBe("Morn");
+      expect(resolveCompartmentLabel("12:00", THREE_COMPARTMENTS)).toBe("Noon");
+      expect(resolveCompartmentLabel("17:59", THREE_COMPARTMENTS)).toBe("Noon");
+      expect(resolveCompartmentLabel("18:00", THREE_COMPARTMENTS)).toBe(
+        "Night",
+      );
+    });
+  });
+
   describe("4-compartment config", () => {
-    test("00:00–05:59 resolves to AM", () => {
-      expect(resolveCompartmentLabel("00:00", FOUR_COMPARTMENTS)).toBe("AM");
-      expect(resolveCompartmentLabel("05:59", FOUR_COMPARTMENTS)).toBe("AM");
+    test("00:00–05:59 resolves to Morn", () => {
+      expect(resolveCompartmentLabel("00:00", FOUR_COMPARTMENTS)).toBe("Morn");
+      expect(resolveCompartmentLabel("05:59", FOUR_COMPARTMENTS)).toBe("Morn");
     });
 
     test("06:00–11:59 resolves to Noon", () => {
@@ -43,18 +74,14 @@ describe("resolveCompartmentLabel", () => {
       expect(resolveCompartmentLabel("11:59", FOUR_COMPARTMENTS)).toBe("Noon");
     });
 
-    test("12:00–17:59 resolves to PM", () => {
-      expect(resolveCompartmentLabel("12:00", FOUR_COMPARTMENTS)).toBe("PM");
-      expect(resolveCompartmentLabel("17:59", FOUR_COMPARTMENTS)).toBe("PM");
+    test("12:00–17:59 resolves to Eve", () => {
+      expect(resolveCompartmentLabel("12:00", FOUR_COMPARTMENTS)).toBe("Eve");
+      expect(resolveCompartmentLabel("17:59", FOUR_COMPARTMENTS)).toBe("Eve");
     });
 
-    test("18:00–23:59 resolves to Bedtime", () => {
-      expect(resolveCompartmentLabel("18:00", FOUR_COMPARTMENTS)).toBe(
-        "Bedtime",
-      );
-      expect(resolveCompartmentLabel("23:59", FOUR_COMPARTMENTS)).toBe(
-        "Bedtime",
-      );
+    test("18:00–23:59 resolves to Bed", () => {
+      expect(resolveCompartmentLabel("18:00", FOUR_COMPARTMENTS)).toBe("Bed");
+      expect(resolveCompartmentLabel("23:59", FOUR_COMPARTMENTS)).toBe("Bed");
     });
   });
 
@@ -365,10 +392,10 @@ describe("groupByMedicine", () => {
       FOUR_COMPARTMENTS,
     );
     expect(cards[0].slots.map((s) => s.compartmentLabel)).toEqual([
-      "AM",
+      "Morn",
       "Noon",
-      "PM",
-      "Bedtime",
+      "Eve",
+      "Bed",
     ]);
   });
 

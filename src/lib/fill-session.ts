@@ -15,11 +15,17 @@ export const TWO_COMPARTMENTS: Compartment[] = [
   { label: "PM", startTime: "12:00", endTime: "23:59" },
 ];
 
+export const THREE_COMPARTMENTS: Compartment[] = [
+  { label: "Morn", startTime: "00:00", endTime: "11:59" },
+  { label: "Noon", startTime: "12:00", endTime: "17:59" },
+  { label: "Night", startTime: "18:00", endTime: "23:59" },
+];
+
 export const FOUR_COMPARTMENTS: Compartment[] = [
-  { label: "AM", startTime: "00:00", endTime: "05:59" },
+  { label: "Morn", startTime: "00:00", endTime: "05:59" },
   { label: "Noon", startTime: "06:00", endTime: "11:59" },
-  { label: "PM", startTime: "12:00", endTime: "17:59" },
-  { label: "Bedtime", startTime: "18:00", endTime: "23:59" },
+  { label: "Eve", startTime: "12:00", endTime: "17:59" },
+  { label: "Bed", startTime: "18:00", endTime: "23:59" },
 ];
 
 export interface Schedule {
