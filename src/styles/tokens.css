@@ -1,4 +1,6 @@
 :root {
+  --page-width: min(92vw, 80rem);
+
   --yellow-20: oklch(0.2 0.06 95);
   --yellow-40: oklch(0.4 0.12 95);
   --yellow-87: oklch(0.87 0.36 95);

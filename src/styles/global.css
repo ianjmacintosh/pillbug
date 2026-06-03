@@ -22,7 +22,7 @@ h6 {
 }
 
 main {
-  max-width: 40rem;
+  width: var(--page-width);
   margin: 0 auto;
   padding: 2rem 1.5rem;
 }
