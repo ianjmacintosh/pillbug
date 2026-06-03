@@ -19,6 +19,11 @@ async function clearPrescriptions(): Promise<void> {
       process.env.EMAIL_SECRET!,
     );
     await env.DB.prepare(
+      "UPDATE patients SET timezone = ? WHERE email_lookup = ?",
+    )
+      .bind("America/Chicago", emailLookup)
+      .run();
+    await env.DB.prepare(
       "DELETE FROM prescriptions WHERE patient_id IN (SELECT id FROM patients WHERE email_lookup = ?)",
     )
       .bind(emailLookup)
