@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test, vi } from "vitest";
 import FillSession from "./FillSession";
@@ -97,83 +97,80 @@ describe("FillSession", () => {
     });
   });
 
-  test("shows a row for each day of the week", async () => {
-    mockPrescriptions(METFORMIN);
-    render(<FillSession />);
-    await waitFor(() => {
-      expect(screen.getByRole("row", { name: /monday/i })).toBeTruthy();
-      expect(screen.getByRole("row", { name: /sunday/i })).toBeTruthy();
-    });
-  });
-
-  test("1-compartment: Monday row shows correct pill count", async () => {
-    mockPrescriptions(METFORMIN);
-    render(<FillSession />);
-    await waitFor(() => {
-      const mondayRow = screen.getByRole("row", { name: /monday/i });
-      expect(within(mondayRow).getByText("1")).toBeTruthy();
-    });
-  });
-
-  test("2-compartment: Monday row shows AM and PM counts separately", async () => {
-    mockPrescriptions(LISINOPRIL);
-    render(<FillSession />);
-    await waitFor(() => screen.getByRole("row", { name: /monday/i }));
-
-    await userEvent.selectOptions(
-      screen.getByRole("combobox", { name: /compartments per day/i }),
-      "2",
-    );
-
-    await waitFor(() => {
-      expect(screen.getByRole("columnheader", { name: /^am/i })).toBeTruthy();
-      expect(screen.getByRole("columnheader", { name: /^pm/i })).toBeTruthy();
-      const mondayRow = screen.getByRole("row", { name: /monday/i });
-      const cells = within(mondayRow).getAllByRole("cell");
-      const counts = cells.slice(1).map((c) => c.textContent);
-      expect(counts).toContain("1"); // AM: 1 Lisinopril
-      expect(counts).toContain("1"); // PM: 1 Lisinopril
-    });
-  });
-
-  test("clicking a day row expands to show per-prescription breakdown", async () => {
+  test("shows a card for each prescription", async () => {
     mockPrescriptions(METFORMIN, LISINOPRIL);
     render(<FillSession />);
-    await waitFor(() => screen.getByRole("row", { name: /monday/i }));
+    await waitFor(() => {
+      expect(screen.getByText("Metformin")).toBeTruthy();
+      expect(screen.getByText("Lisinopril")).toBeTruthy();
+    });
+  });
+
+  test("drug names and details are always visible without interaction", async () => {
+    mockPrescriptions(METFORMIN, LISINOPRIL);
+    render(<FillSession />);
+    await waitFor(() => {
+      expect(screen.getByText("Metformin")).toBeTruthy();
+      expect(screen.getByText("500mg")).toBeTruthy();
+      expect(screen.getByText("Lisinopril")).toBeTruthy();
+      expect(screen.getByText("10mg")).toBeTruthy();
+    });
+  });
+
+  test("1-compartment: shows correct pill total per card and in summary", async () => {
+    mockPrescriptions(METFORMIN);
+    render(<FillSession />);
+    await waitFor(() => screen.getByText("Metformin"));
+    expect(screen.getAllByText(/7 pills/).length).toBeGreaterThan(0);
+    expect(screen.getByText(/total for 7-day/i)).toBeTruthy();
+  });
+
+  test("compartment time ranges are shown inline in each slot label", async () => {
+    mockPrescriptions(METFORMIN);
+    render(<FillSession />);
+    await waitFor(() => screen.getByText("Metformin"));
+    expect(screen.getByText(/00:00/)).toBeTruthy();
+  });
+
+  test("2-compartment: shows AM and PM slot labels with their time ranges", async () => {
+    mockPrescriptions(LISINOPRIL);
+    render(<FillSession />);
+    await waitFor(() => screen.getByText("Lisinopril"));
 
     await userEvent.selectOptions(
       screen.getByRole("combobox", { name: /compartments per day/i }),
       "2",
     );
 
-    await userEvent.click(screen.getByRole("row", { name: /monday/i }));
-
     await waitFor(() => {
-      expect(screen.getAllByText(/Metformin/).length).toBeGreaterThan(0);
-      expect(screen.getAllByText(/Lisinopril/).length).toBeGreaterThan(0);
+      expect(screen.getByText("AM")).toBeTruthy();
+      expect(screen.getByText("PM")).toBeTruthy();
+      expect(screen.getByText(/00:00–11:59/)).toBeTruthy();
+      expect(screen.getByText(/12:00–23:59/)).toBeTruthy();
     });
   });
 
-  test("compartment time mapping is shown separately from the table", async () => {
+  test("all 7 day abbreviations are shown in the grid header", async () => {
     mockPrescriptions(METFORMIN);
     render(<FillSession />);
-    await waitFor(() => screen.getByRole("row", { name: /monday/i }));
+    await waitFor(() => screen.getByText("Metformin"));
+    for (const abbr of ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]) {
+      expect(screen.getByText(abbr)).toBeTruthy();
+    }
+  });
 
-    const mapping = screen.getByRole("region", {
-      name: /compartment mapping/i,
-    });
-    expect(mapping.textContent).toMatch(/00:00/);
-
-    const headers = screen.getAllByRole("columnheader");
-    headers.forEach((h) => {
-      expect(h.textContent).not.toMatch(/00:00/);
-    });
+  test("week starts on Sunday", async () => {
+    mockPrescriptions(METFORMIN);
+    render(<FillSession />);
+    await waitFor(() => screen.getByText("Metformin"));
+    const headers = screen.getAllByText(/^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)$/);
+    expect(headers[0].textContent).toBe("Sun");
   });
 
   test("changing span updates the total pills summary", async () => {
     mockPrescriptions(METFORMIN);
     render(<FillSession />);
-    await waitFor(() => screen.getByRole("row", { name: /monday/i }));
+    await waitFor(() => screen.getByText("Metformin"));
 
     expect(screen.getByText(/total for 7-day/i)).toBeTruthy();
 

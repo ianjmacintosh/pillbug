@@ -38,6 +38,79 @@ export function pillsNeeded(schedule: Schedule, spanDays: number): number {
   return total;
 }
 
+const WEEK_DAYS = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+] as const;
+
+export interface MedicineSlot {
+  compartmentLabel: string;
+  quantities: Partial<Record<string, number>>;
+  weeklyTotal: number;
+}
+
+export interface MedicineCard {
+  drugName: string;
+  dosage: string;
+  slots: MedicineSlot[];
+  weeklyTotal: number;
+}
+
+export function groupByMedicine(
+  prescriptions: Array<{
+    drugName: string;
+    dosage: string;
+    schedule: Schedule;
+  }>,
+  compartments: Compartment[],
+): MedicineCard[] {
+  const cardMap = new Map<string, MedicineCard>();
+
+  for (const rx of prescriptions) {
+    const key = `${rx.drugName}||${rx.dosage}`;
+    if (!cardMap.has(key)) {
+      cardMap.set(key, {
+        drugName: rx.drugName,
+        dosage: rx.dosage,
+        slots: compartments.map((c) => ({
+          compartmentLabel: c.label,
+          quantities: {},
+          weeklyTotal: 0,
+        })),
+        weeklyTotal: 0,
+      });
+    }
+    const card = cardMap.get(key)!;
+
+    for (const dayName of WEEK_DAYS) {
+      const timeSlots = rx.schedule.days[dayName] ?? [];
+      for (const timeSlot of timeSlots) {
+        let label: string;
+        try {
+          label = resolveCompartmentLabel(timeSlot.time, compartments);
+        } catch {
+          continue;
+        }
+        const medicineSlot = card.slots.find(
+          (s) => s.compartmentLabel === label,
+        );
+        if (!medicineSlot) continue;
+        medicineSlot.quantities[dayName] =
+          (medicineSlot.quantities[dayName] ?? 0) + timeSlot.quantity;
+        medicineSlot.weeklyTotal += timeSlot.quantity;
+        card.weeklyTotal += timeSlot.quantity;
+      }
+    }
+  }
+
+  return Array.from(cardMap.values());
+}
+
 export function resolveCompartmentLabel(
   time: string,
   compartments: Compartment[],

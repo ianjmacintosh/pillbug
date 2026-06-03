@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import {
   resolveCompartmentLabel,
   pillsNeeded,
+  groupByMedicine,
   ONE_COMPARTMENT,
   TWO_COMPARTMENTS,
   FOUR_COMPARTMENTS,
@@ -184,6 +185,205 @@ describe("pillsNeeded", () => {
 
   test("empty schedule needs 0 pills", () => {
     expect(pillsNeeded({ days: {} }, 7)).toBe(0);
+  });
+});
+
+describe("groupByMedicine", () => {
+  const everyDay = Object.fromEntries(
+    [
+      "sunday",
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+    ].map((d) => [d, [{ time: "08:00", quantity: 1 }]]),
+  );
+
+  test("single daily prescription produces one card with all compartment slots", () => {
+    const cards = groupByMedicine(
+      [
+        {
+          drugName: "Lisinopril",
+          dosage: "10mg",
+          schedule: { days: everyDay },
+        },
+      ],
+      TWO_COMPARTMENTS,
+    );
+    expect(cards).toHaveLength(1);
+    expect(cards[0].drugName).toBe("Lisinopril");
+    expect(cards[0].slots).toHaveLength(2);
+    expect(cards[0].slots.map((s) => s.compartmentLabel)).toEqual(["AM", "PM"]);
+  });
+
+  test("all 7 days are populated in the correct slot", () => {
+    const cards = groupByMedicine(
+      [
+        {
+          drugName: "Lisinopril",
+          dosage: "10mg",
+          schedule: { days: everyDay },
+        },
+      ],
+      TWO_COMPARTMENTS,
+    );
+    const amSlot = cards[0].slots.find((s) => s.compartmentLabel === "AM")!;
+    expect(Object.keys(amSlot.quantities)).toHaveLength(7);
+    expect(amSlot.quantities["monday"]).toBe(1);
+    expect(amSlot.quantities["sunday"]).toBe(1);
+    const pmSlot = cards[0].slots.find((s) => s.compartmentLabel === "PM")!;
+    expect(Object.keys(pmSlot.quantities)).toHaveLength(0);
+  });
+
+  test("weeklyTotal is correct per slot and per card", () => {
+    const cards = groupByMedicine(
+      [
+        {
+          drugName: "Lisinopril",
+          dosage: "10mg",
+          schedule: { days: everyDay },
+        },
+      ],
+      TWO_COMPARTMENTS,
+    );
+    expect(
+      cards[0].slots.find((s) => s.compartmentLabel === "AM")!.weeklyTotal,
+    ).toBe(7);
+    expect(
+      cards[0].slots.find((s) => s.compartmentLabel === "PM")!.weeklyTotal,
+    ).toBe(0);
+    expect(cards[0].weeklyTotal).toBe(7);
+  });
+
+  test("twice-daily prescription populates both compartment slots", () => {
+    const schedule = {
+      days: Object.fromEntries(
+        [
+          "sunday",
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+        ].map((d) => [
+          d,
+          [
+            { time: "08:00", quantity: 1 },
+            { time: "20:00", quantity: 1 },
+          ],
+        ]),
+      ),
+    };
+    const cards = groupByMedicine(
+      [{ drugName: "Metformin", dosage: "500mg", schedule }],
+      TWO_COMPARTMENTS,
+    );
+    expect(
+      cards[0].slots.find((s) => s.compartmentLabel === "AM")!.weeklyTotal,
+    ).toBe(7);
+    expect(
+      cards[0].slots.find((s) => s.compartmentLabel === "PM")!.weeklyTotal,
+    ).toBe(7);
+    expect(cards[0].weeklyTotal).toBe(14);
+  });
+
+  test("per-slot quantity > 1 is accumulated correctly", () => {
+    const cards = groupByMedicine(
+      [
+        {
+          drugName: "Metformin",
+          dosage: "500mg",
+          schedule: { days: { monday: [{ time: "08:00", quantity: 2 }] } },
+        },
+      ],
+      TWO_COMPARTMENTS,
+    );
+    expect(
+      cards[0].slots.find((s) => s.compartmentLabel === "AM")!.quantities[
+        "monday"
+      ],
+    ).toBe(2);
+    expect(cards[0].weeklyTotal).toBe(2);
+  });
+
+  test("prescription active only on some days leaves other days empty", () => {
+    const cards = groupByMedicine(
+      [
+        {
+          drugName: "Atorvastatin",
+          dosage: "20mg",
+          schedule: {
+            days: {
+              monday: [{ time: "21:00", quantity: 1 }],
+              friday: [{ time: "21:00", quantity: 1 }],
+            },
+          },
+        },
+      ],
+      TWO_COMPARTMENTS,
+    );
+    const pmSlot = cards[0].slots.find((s) => s.compartmentLabel === "PM")!;
+    expect(pmSlot.quantities["monday"]).toBe(1);
+    expect(pmSlot.quantities["friday"]).toBe(1);
+    expect(pmSlot.quantities["tuesday"]).toBeUndefined();
+    expect(pmSlot.weeklyTotal).toBe(2);
+  });
+
+  test("two prescriptions produce two cards in input order", () => {
+    const cards = groupByMedicine(
+      [
+        {
+          drugName: "Lisinopril",
+          dosage: "10mg",
+          schedule: { days: everyDay },
+        },
+        {
+          drugName: "Metformin",
+          dosage: "500mg",
+          schedule: { days: everyDay },
+        },
+      ],
+      ONE_COMPARTMENT,
+    );
+    expect(cards).toHaveLength(2);
+    expect(cards[0].drugName).toBe("Lisinopril");
+    expect(cards[1].drugName).toBe("Metformin");
+  });
+
+  test("slots are ordered by compartment config order", () => {
+    const cards = groupByMedicine(
+      [
+        {
+          drugName: "Lisinopril",
+          dosage: "10mg",
+          schedule: { days: everyDay },
+        },
+      ],
+      FOUR_COMPARTMENTS,
+    );
+    expect(cards[0].slots.map((s) => s.compartmentLabel)).toEqual([
+      "AM",
+      "Noon",
+      "PM",
+      "Bedtime",
+    ]);
+  });
+
+  test("empty prescription schedule produces a card with all-zero slots", () => {
+    const cards = groupByMedicine(
+      [{ drugName: "Lisinopril", dosage: "10mg", schedule: { days: {} } }],
+      TWO_COMPARTMENTS,
+    );
+    expect(cards).toHaveLength(1);
+    expect(cards[0].weeklyTotal).toBe(0);
+    expect(cards[0].slots.every((s) => s.weeklyTotal === 0)).toBe(true);
+  });
+
+  test("empty prescriptions list returns empty array", () => {
+    expect(groupByMedicine([], TWO_COMPARTMENTS)).toEqual([]);
   });
 });
 
