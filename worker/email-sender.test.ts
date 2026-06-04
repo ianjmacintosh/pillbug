@@ -13,7 +13,12 @@ describe("makeEmailSender", () => {
         "https://pillbug.ianjmacintosh.com",
       );
       await expect(
-        sender.sendVerificationEmail("delivered@resend.dev", "token", "1234"),
+        sender.sendVerificationEmail(
+          "delivered@resend.dev",
+          "token",
+          "1234",
+          null,
+        ),
       ).resolves.toBeUndefined();
     });
 
@@ -24,7 +29,7 @@ describe("makeEmailSender", () => {
         "https://pillbug.ianjmacintosh.com",
       );
       await expect(
-        sender.sendLoginEmail("delivered@resend.dev", "token", "1234"),
+        sender.sendLoginEmail("delivered@resend.dev", "token", "1234", null),
       ).resolves.toBeUndefined();
     });
 
@@ -43,7 +48,12 @@ describe("makeEmailSender", () => {
         "https://pillbug.ianjmacintosh.com",
       );
       await expect(
-        sender.sendVerificationEmail("delivered@resend.dev", "token", "1234"),
+        sender.sendVerificationEmail(
+          "delivered@resend.dev",
+          "token",
+          "1234",
+          null,
+        ),
       ).resolves.toBeUndefined();
     });
 
@@ -54,7 +64,7 @@ describe("makeEmailSender", () => {
         "https://pillbug.ianjmacintosh.com",
       );
       await expect(
-        sender.sendLoginEmail("delivered@resend.dev", "token", "1234"),
+        sender.sendLoginEmail("delivered@resend.dev", "token", "1234", null),
       ).resolves.toBeUndefined();
     });
 
