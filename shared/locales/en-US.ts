@@ -1,4 +1,12 @@
 const enUS = {
+  "header.brand": "Pillbug",
+  "header.nav.home": "Home",
+  "header.nav.prescriptions": "Prescriptions",
+  "header.nav.fillSession": "Fill Session",
+  "header.nav.settings": "Settings",
+  "header.nav.logOut": "Log out",
+  "footer.termsOfService": "Terms of Service",
+  "footer.privacyPolicy": "Privacy Policy",
   "register.heading": "Create your account",
   "register.emailLabel": "Email",
   "register.turnstileError":
