@@ -11,7 +11,6 @@ i18next
       "en-US": { translation: enUS },
     },
     supportedLngs: ["en-US"],
-    nonExplicitSupportedLngs: true,
     fallbackLng: "en-US",
     interpolation: { escapeValue: false },
   });
