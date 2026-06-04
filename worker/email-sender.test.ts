@@ -89,5 +89,42 @@ describe("makeEmailSender", () => {
       );
       expect(Resend).toHaveBeenCalledWith("real-api-key");
     });
+
+    test("sendVerificationEmail sends with the correct English subject", async () => {
+      const mockSend = vi.fn().mockResolvedValue({ error: null });
+      vi.mocked(Resend).mockImplementation(function () {
+        return { emails: { send: mockSend } };
+      } as unknown as typeof Resend);
+      const sender = makeEmailSender(
+        undefined,
+        "real-api-key",
+        "https://pillbug.ianjmacintosh.com",
+      );
+      await sender.sendVerificationEmail(
+        "user@example.com",
+        "token",
+        "1234",
+        null,
+      );
+      expect(mockSend).toHaveBeenCalledWith(
+        expect.objectContaining({ subject: "Verify your Pillbug account" }),
+      );
+    });
+
+    test("sendLoginEmail sends with the correct English subject", async () => {
+      const mockSend = vi.fn().mockResolvedValue({ error: null });
+      vi.mocked(Resend).mockImplementation(function () {
+        return { emails: { send: mockSend } };
+      } as unknown as typeof Resend);
+      const sender = makeEmailSender(
+        undefined,
+        "real-api-key",
+        "https://pillbug.ianjmacintosh.com",
+      );
+      await sender.sendLoginEmail("user@example.com", "token", "1234", null);
+      expect(mockSend).toHaveBeenCalledWith(
+        expect.objectContaining({ subject: "Your Pillbug sign-in link" }),
+      );
+    });
   });
 });
