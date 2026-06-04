@@ -1,6 +1,8 @@
 import { describe, expect, test, vi } from "vitest";
 import { makeEmailSender } from "./email-sender";
 import { Resend } from "resend";
+import verificationTemplate from "./emails/verification.html?raw";
+import loginTemplate from "./emails/login.html?raw";
 
 vi.mock("resend", () => ({ Resend: vi.fn() }));
 
@@ -124,6 +126,63 @@ describe("makeEmailSender", () => {
       await sender.sendLoginEmail("user@example.com", "token", "1234", null);
       expect(mockSend).toHaveBeenCalledWith(
         expect.objectContaining({ subject: "Your Pillbug sign-in link" }),
+      );
+    });
+
+    test("sendVerificationEmail sends the rendered verification HTML body", async () => {
+      const mockSend = vi.fn().mockResolvedValue({ error: null });
+      vi.mocked(Resend).mockImplementation(function () {
+        return { emails: { send: mockSend } };
+      } as unknown as typeof Resend);
+      const sender = makeEmailSender(
+        undefined,
+        "real-api-key",
+        "https://pillbug.ianjmacintosh.com",
+      );
+      await sender.sendVerificationEmail(
+        "user@example.com",
+        "mytoken",
+        "5678",
+        null,
+      );
+      const expectedHtml = verificationTemplate
+        .replaceAll("{{pin}}", "5678")
+        .replaceAll(
+          "{{fallback_link}}",
+          "https://pillbug.ianjmacintosh.com/enter-code?token=mytoken&pin=5678",
+        )
+        .replaceAll(
+          "{{login_link}}",
+          "https://pillbug.ianjmacintosh.com/login?email=user%40example.com",
+        );
+      expect(mockSend).toHaveBeenCalledWith(
+        expect.objectContaining({ html: expectedHtml }),
+      );
+    });
+
+    test("sendLoginEmail sends the rendered login HTML body", async () => {
+      const mockSend = vi.fn().mockResolvedValue({ error: null });
+      vi.mocked(Resend).mockImplementation(function () {
+        return { emails: { send: mockSend } };
+      } as unknown as typeof Resend);
+      const sender = makeEmailSender(
+        undefined,
+        "real-api-key",
+        "https://pillbug.ianjmacintosh.com",
+      );
+      await sender.sendLoginEmail("user@example.com", "mytoken", "5678", null);
+      const expectedHtml = loginTemplate
+        .replaceAll("{{pin}}", "5678")
+        .replaceAll(
+          "{{fallback_link}}",
+          "https://pillbug.ianjmacintosh.com/enter-code?token=mytoken&pin=5678",
+        )
+        .replaceAll(
+          "{{login_link}}",
+          "https://pillbug.ianjmacintosh.com/login?email=user%40example.com",
+        );
+      expect(mockSend).toHaveBeenCalledWith(
+        expect.objectContaining({ html: expectedHtml }),
       );
     });
   });
