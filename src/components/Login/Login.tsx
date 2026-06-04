@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Turnstile } from "@marsidev/react-turnstile";
+import { useTranslation } from "react-i18next";
 import "./Login.css";
 
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string;
 
 function Login() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const params = new URLSearchParams(window.location.search);
   const [email, setEmail] = useState(params.get("email") ?? "");
@@ -29,10 +31,10 @@ function Login() {
 
   return (
     <main className="login">
-      <h1>Log in</h1>
+      <h1>{t("login.heading")}</h1>
       <form onSubmit={handleSubmit}>
         <label>
-          Email
+          {t("login.emailLabel")}
           <input
             type="email"
             autoCorrect="on"
@@ -50,17 +52,13 @@ function Login() {
           onError={() => setTurnstileError(true)}
           onExpire={() => setTurnstileToken(null)}
         />
-        {turnstileError && (
-          <p role="alert">
-            Security check failed. Please reload the page and try again.
-          </p>
-        )}
+        {turnstileError && <p role="alert">{t("login.turnstileError")}</p>}
         <button type="submit" disabled={submitting} className="button-primary">
-          {submitting ? "Sending…" : "Email me a login link"}
+          {submitting ? t("login.submitting") : t("login.submit")}
         </button>
       </form>
       <p>
-        New here? <a href="/register">Create an account</a>
+        {t("login.newHere")} <a href="/register">{t("login.createAccount")}</a>
       </p>
     </main>
   );

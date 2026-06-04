@@ -1,5 +1,6 @@
 import { getRouteApi, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { weekBoundaries } from "../../../shared/week-boundaries";
 import "./App.css";
 
@@ -14,15 +15,15 @@ interface ScheduledDose {
   resolvedDose: { id: string; status: "taken" } | null;
 }
 
-const WEEK_DAY_NAMES = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-];
+const WEEK_DAY_KEYS = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+] as const;
 
 function formatShortDate(dateStr: string): string {
   return new Date(dateStr + "T00:00:00Z").toLocaleDateString("en-US", {
@@ -60,6 +61,7 @@ function addDays(dateStr: string, days: number): string {
 const Route = getRouteApi("/layout/");
 
 function App({ today: todayProp }: { today?: string }) {
+  const { t } = useTranslation();
   const { registrationDate, timezone } = Route.useLoaderData();
   const today =
     todayProp ??
@@ -111,15 +113,15 @@ function App({ today: todayProp }: { today?: string }) {
 
   return (
     <main className="home">
-      <h1>Weekly Dose Schedule</h1>
+      <h1>{t("app.heading")}</h1>
       <h2 className="week-range">
         {formatShortDate(displayedMonday)}–{formatShortDate(sunday)}
       </h2>
 
-      {!hasAnyDoses && <p>No doses scheduled for this week.</p>}
+      {!hasAnyDoses && <p>{t("app.noDoses")}</p>}
 
       {weekDates.map((date, i) => {
-        const dayName = WEEK_DAY_NAMES[i];
+        const dayName = t(`days.full.${WEEK_DAY_KEYS[i]}`);
         const isToday = date === today;
         const dayDoses = dosesByDate.get(date) ?? [];
 
@@ -235,7 +237,7 @@ function App({ today: todayProp }: { today?: string }) {
           disabled={atFloor}
           className="button-secondary"
         >
-          Previous week
+          {t("app.previousWeek")}
         </button>
 
         <button
@@ -244,7 +246,7 @@ function App({ today: todayProp }: { today?: string }) {
           disabled={atCeiling}
           className="button-secondary"
         >
-          Next week
+          {t("app.nextWeek")}
         </button>
       </div>
     </main>

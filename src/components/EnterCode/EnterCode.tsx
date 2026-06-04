@@ -1,16 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearch } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 type ErrorCode = "invalid" | "expired" | "used" | "locked";
 
-const ERROR_MESSAGES: Record<ErrorCode, string> = {
-  invalid: "Incorrect code. Please try again.",
-  expired: "That login code has expired, please request a new one.",
-  used: "This code has already been used.",
-  locked: "Too many incorrect attempts. This code is locked.",
-};
-
 function EnterCode() {
+  const { t } = useTranslation();
   const { token, pin: urlPin } = useSearch({ strict: false }) as {
     token?: string;
     pin?: string;
@@ -63,10 +58,10 @@ function EnterCode() {
 
   return (
     <main>
-      <h1>Enter your code</h1>
+      <h1>{t("enterCode.heading")}</h1>
       <form onSubmit={handleSubmit}>
         <label>
-          4-digit code
+          {t("enterCode.codeLabel")}
           <input
             type="text"
             inputMode="numeric"
@@ -80,11 +75,12 @@ function EnterCode() {
         </label>
         {error && (
           <p role="alert">
-            {ERROR_MESSAGES[error]} <a href="/login">Request a new code</a>.
+            {t(`enterCode.error.${error}`)}{" "}
+            <a href="/login">{t("enterCode.requestNewCode")}</a>.
           </p>
         )}
         <button type="submit" disabled={submitting || pin.length !== 4}>
-          {submitting ? "Verifying…" : "Verify"}
+          {submitting ? t("enterCode.submitting") : t("enterCode.submit")}
         </button>
       </form>
     </main>

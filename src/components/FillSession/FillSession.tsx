@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ONE_COMPARTMENT,
   TWO_COMPARTMENTS,
@@ -21,19 +22,27 @@ interface Prescription {
 
 const ORGANIZER_OPTIONS: {
   value: string;
-  label: string;
+  labelKey: string;
   compartments: Compartment[];
 }[] = [
-  { value: "1", label: "Simple 7-day", compartments: ONE_COMPARTMENT },
-  { value: "2", label: "7-day AM/PM", compartments: TWO_COMPARTMENTS },
+  {
+    value: "1",
+    labelKey: "fillSession.organizerOption.simple7day",
+    compartments: ONE_COMPARTMENT,
+  },
+  {
+    value: "2",
+    labelKey: "fillSession.organizerOption.amPm",
+    compartments: TWO_COMPARTMENTS,
+  },
   {
     value: "3",
-    label: "7-day Morn/Noon/Night",
+    labelKey: "fillSession.organizerOption.mornNoonNight",
     compartments: THREE_COMPARTMENTS,
   },
   {
     value: "4",
-    label: "7-day Morn/Noon/Eve/Bed",
+    labelKey: "fillSession.organizerOption.mornNoonEveNight",
     compartments: FOUR_COMPARTMENTS,
   },
 ];
@@ -48,17 +57,8 @@ const DAYS_OF_WEEK = [
   "saturday",
 ] as const;
 
-const DAY_LABELS: Record<string, string> = {
-  sunday: "Sunday",
-  monday: "Monday",
-  tuesday: "Tuesday",
-  wednesday: "Wednesday",
-  thursday: "Thursday",
-  friday: "Friday",
-  saturday: "Saturday",
-};
-
 function FillSession() {
+  const { t } = useTranslation();
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [organizerType, setOrganizerType] = useState("1");
   const [openCardKey, setOpenCardKey] = useState<string | null>(null);
@@ -90,18 +90,18 @@ function FillSession() {
 
   return (
     <main className="fill-session">
-      <h1>Fill Session</h1>
+      <h1>{t("fillSession.heading")}</h1>
 
       <div className="fill-session-controls">
         <label>
-          Pill organizer
+          {t("fillSession.pillOrganizerLabel")}
           <select
             value={organizerType}
             onChange={(e) => setOrganizerType(e.target.value)}
           >
             {ORGANIZER_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
-                {opt.label}
+                {t(opt.labelKey)}
               </option>
             ))}
           </select>
@@ -109,7 +109,7 @@ function FillSession() {
       </div>
 
       {prescriptions.length === 0 ? (
-        <p>No active prescriptions.</p>
+        <p>{t("fillSession.noPrescriptions")}</p>
       ) : (
         <>
           <div className="fill-session-cards">
@@ -131,8 +131,7 @@ function FillSession() {
                       {card.dosage}
                     </span>
                     <span className="fill-session-card-drug-total">
-                      {card.weeklyTotal} pill
-                      {card.weeklyTotal !== 1 ? "s" : ""}
+                      {t("doseForm.pill", { count: card.weeklyTotal })}
                     </span>
                     <span
                       className="fill-session-card-caret"
@@ -160,7 +159,7 @@ function FillSession() {
                           className="fill-session-card-day-header"
                           style={{ "--day-idx": dayIdx } as React.CSSProperties}
                         >
-                          {DAY_LABELS[day].slice(0, 3)}
+                          {t(`days.abbr.${day}`)}
                         </div>
                       ))}
 

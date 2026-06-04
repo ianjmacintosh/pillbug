@@ -5,6 +5,7 @@ import {
   useNavigate,
   useRouterState,
 } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import "./Prescriptions.css";
 
 interface Prescription {
@@ -20,6 +21,7 @@ interface Prescription {
 }
 
 function Prescriptions() {
+  const { t } = useTranslation();
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const { location } = useRouterState();
   const navigate = useNavigate();
@@ -61,7 +63,7 @@ function Prescriptions() {
   return (
     <main className={`prescriptions prescriptions-layout ${mobileClass}`}>
       <div className="prescriptions-list-panel">
-        <h1>Prescriptions ({prescriptions.length})</h1>
+        <h1>{t("prescriptions.heading", { count: prescriptions.length })}</h1>
 
         <ul className="prescription-list">
           {prescriptions.map((p) => (
@@ -81,7 +83,7 @@ function Prescriptions() {
         </ul>
 
         <Link to="/prescriptions/new" className="button-secondary button-sm">
-          + Add Prescription
+          {t("prescriptions.addPrescription")}
         </Link>
       </div>
       <div className="prescriptions-form-panel">
@@ -89,7 +91,7 @@ function Prescriptions() {
           className="prescriptions-back-btn"
           onClick={() => navigate({ to: "/prescriptions" })}
         >
-          ← Back
+          {t("prescriptions.back")}
         </button>
         <Outlet />
       </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import "./Header.css";
 
 async function handleLogout() {
@@ -6,23 +7,25 @@ async function handleLogout() {
 }
 
 function Header({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
+  const { t } = useTranslation();
+
   return (
     <header className="header">
       <a href="/" className="header-brand">
-        Pillbug
+        {t("header.brand")}
       </a>
       {isAuthenticated && (
         <nav className="header-nav">
-          <a href="/">Home</a>
-          <a href="/prescriptions">Prescriptions</a>
-          <a href="/fill-session">Fill Session</a>
-          <a href="/settings">Settings</a>
+          <a href="/">{t("header.nav.home")}</a>
+          <a href="/prescriptions">{t("header.nav.prescriptions")}</a>
+          <a href="/fill-session">{t("header.nav.fillSession")}</a>
+          <a href="/settings">{t("header.nav.settings")}</a>
           <button
             type="button"
             onClick={handleLogout}
             className="header-logout"
           >
-            Log out
+            {t("header.nav.logOut")}
           </button>
         </nav>
       )}

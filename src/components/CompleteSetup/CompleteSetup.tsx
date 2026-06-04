@@ -1,8 +1,10 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import "./CompleteSetup.css";
 
 function CompleteSetup() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [retryCount, setRetryCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -30,12 +32,14 @@ function CompleteSetup() {
 
   return (
     <main className="finish-setup">
-      {loading && <p role="status">Setting up your account…</p>}
+      {loading && <p role="status">{t("completeSetup.loading")}</p>}
       {errorMessage !== null && (
         <div role="alert">
-          <p>Error Details</p>
+          <p>{t("completeSetup.errorHeading")}</p>
           <pre>{errorMessage}</pre>
-          <button onClick={() => setRetryCount((c) => c + 1)}>Retry</button>
+          <button onClick={() => setRetryCount((c) => c + 1)}>
+            {t("completeSetup.retry")}
+          </button>
         </div>
       )}
     </main>

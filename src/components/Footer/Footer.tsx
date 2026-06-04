@@ -1,10 +1,13 @@
+import { useTranslation } from "react-i18next";
 import "./Footer.css";
 
 function Footer() {
+  const { t } = useTranslation();
+
   return (
     <footer className="footer">
-      <a href="/terms">Terms of Service</a>
-      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms">{t("footer.termsOfService")}</a>
+      <a href="/privacy">{t("footer.privacyPolicy")}</a>
     </footer>
   );
 }
