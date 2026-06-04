@@ -1,6 +1,7 @@
 import { getRouteApi, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { weekBoundaries } from "../../../shared/week-boundaries";
+import { WelcomeScreen } from "./WelcomeScreen";
 import "./App.css";
 
 interface ScheduledDose {
@@ -69,6 +70,9 @@ function App({ today: todayProp }: { today?: string }) {
   const { monday: currentWeekMonday } = weekBoundaries(today);
   const [doses, setDoses] = useState<ScheduledDose[]>([]);
   const [displayedMonday, setDisplayedMonday] = useState(currentWeekMonday);
+  const [hasPrescriptions, setHasPrescriptions] = useState<boolean | null>(
+    null,
+  );
 
   const sunday = addDays(displayedMonday, 6);
   const weekDates = Array.from({ length: 7 }, (_, i) =>
@@ -80,6 +84,17 @@ function App({ today: todayProp }: { today?: string }) {
     : null;
   const atFloor = floor !== null && displayedMonday <= floor;
   const atCeiling = displayedMonday >= currentWeekMonday;
+
+  useEffect(() => {
+    fetch("/api/v1/prescriptions")
+      .then(async (res) => {
+        if (res.ok) {
+          const data = (await res.json()) as unknown[];
+          setHasPrescriptions(data.length > 0);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const weekSunday = addDays(displayedMonday, 6);
@@ -108,6 +123,10 @@ function App({ today: todayProp }: { today?: string }) {
   }
 
   const hasAnyDoses = doses.length > 0;
+
+  if (hasPrescriptions === false) {
+    return <WelcomeScreen />;
+  }
 
   return (
     <main className="home">
