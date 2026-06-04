@@ -1,10 +1,12 @@
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useState, type SyntheticEvent } from "react";
+import { useTranslation } from "react-i18next";
 import "./Settings.css";
 
 const Route = getRouteApi("/layout/settings");
 
 function Settings() {
+  const { t } = useTranslation();
   const { timezone: savedTimezone } = Route.useLoaderData();
   const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const [selected, setSelected] = useState(savedTimezone ?? browserTimezone);
@@ -32,10 +34,10 @@ function Settings() {
 
   return (
     <main className="settings">
-      <h1>Settings</h1>
+      <h1>{t("settings.heading")}</h1>
       <form onSubmit={handleSubmit}>
         <div className="field">
-          <label htmlFor="timezone">Time zone</label>
+          <label htmlFor="timezone">{t("settings.timezoneLabel")}</label>
           <select
             id="timezone"
             value={selected}
@@ -48,11 +50,9 @@ function Settings() {
             ))}
           </select>
         </div>
-        {status === "error" && (
-          <p role="alert">Something went wrong. Please try again.</p>
-        )}
+        {status === "error" && <p role="alert">{t("settings.serverError")}</p>}
         <button type="submit" disabled={submitting} className="button-primary">
-          {submitting ? "Saving…" : "Save"}
+          {submitting ? t("settings.submitting") : t("settings.submit")}
         </button>
       </form>
     </main>
