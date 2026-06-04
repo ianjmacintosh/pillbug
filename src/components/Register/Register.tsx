@@ -1,12 +1,14 @@
 import { useState, type SyntheticEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Turnstile } from "@marsidev/react-turnstile";
+import { useTranslation } from "react-i18next";
 import "./Register.css";
 
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string;
 const TURNSTILE_INTERACTIVE_SITE_KEY = "3x00000000000000000000FF";
 
 function Register() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const forceChallenge = new URLSearchParams(window.location.search).has(
     "challenge",
@@ -25,7 +27,7 @@ function Register() {
     e.preventDefault();
 
     if (!terms) {
-      setError("You must accept the Terms of Service to register.");
+      setError(t("register.termsError"));
       return;
     }
 
@@ -42,17 +44,17 @@ function Register() {
       const { token } = (await res.json()) as { token: string };
       await navigate({ to: "/enter-code", search: { token } });
     } else {
-      setError("Something went wrong. Please try again.");
+      setError(t("register.serverError"));
       setSubmitting(false);
     }
   }
 
   return (
     <main className="register">
-      <h1>Create your account</h1>
+      <h1>{t("register.heading")}</h1>
       <form onSubmit={handleSubmit}>
         <label className="email-field">
-          Email
+          {t("register.emailLabel")}
           <input
             type="email"
             autoCorrect="on"
@@ -70,27 +72,26 @@ function Register() {
           onError={() => setTurnstileError(true)}
           onExpire={() => setTurnstileToken(null)}
         />
-        {turnstileError && (
-          <p role="alert">
-            Security check failed. Please reload the page and try again.
-          </p>
-        )}
+        {turnstileError && <p role="alert">{t("register.turnstileError")}</p>}
         <label className="terms-field">
           <input
             type="checkbox"
             checked={terms}
             onChange={(e) => setTerms(e.target.checked)}
           />
-          I agree to the <a href="/terms">Terms of Service</a> and{" "}
-          <a href="/privacy">Privacy Policy</a>
+          {t("register.iAgreeToThe")}{" "}
+          <a href="/terms">{t("register.termsOfService")}</a>{" "}
+          {t("register.and")}{" "}
+          <a href="/privacy">{t("register.privacyPolicy")}</a>
         </label>
         {error && <p role="alert">{error}</p>}
         <button type="submit" disabled={submitting} className="button-primary">
-          {submitting ? "Sending…" : "Email me a login link"}
+          {submitting ? t("register.submitting") : t("register.submit")}
         </button>
       </form>
       <p>
-        Already have an account? <a href="/login">Log in</a>
+        {t("register.alreadyHaveAccount")}{" "}
+        <a href="/login">{t("register.logIn")}</a>
       </p>
     </main>
   );
