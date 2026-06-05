@@ -135,6 +135,8 @@ const enUS = {
   "register.submit": "Email me a login link",
   "register.alreadyHaveAccount": "Already have an account?",
   "register.logIn": "Log in",
+  "email.verificationSubject": "Verify your Pillbug account",
+  "email.loginSubject": "Your Pillbug sign-in link",
 } as const;
 
 export type LocaleKeys = keyof typeof enUS;

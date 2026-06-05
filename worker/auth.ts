@@ -43,8 +43,18 @@ export interface AuthRepository {
 }
 
 export interface EmailSender {
-  sendVerificationEmail(to: string, token: string, pin: string): Promise<void>;
-  sendLoginEmail(to: string, token: string, pin: string): Promise<void>;
+  sendVerificationEmail(
+    to: string,
+    token: string,
+    pin: string,
+    language: string | null,
+  ): Promise<void>;
+  sendLoginEmail(
+    to: string,
+    token: string,
+    pin: string,
+    language: string | null,
+  ): Promise<void>;
 }
 
 export interface SentEmail {
@@ -109,7 +119,7 @@ export async function registerPatient(
 ): Promise<{ ok: true; token: string }> {
   const patientId = await findOrCreatePatient(email, repo);
   const { token, pin } = await createPatientToken(patientId, repo, hashPin);
-  await emailSender.sendVerificationEmail(email, token, pin);
+  await emailSender.sendVerificationEmail(email, token, pin, null);
   return { ok: true, token };
 }
 
@@ -122,7 +132,7 @@ export async function sendLoginLink(
   const patient = await repo.findPatientByEmail(email);
   if (patient) {
     const { token, pin } = await createPatientToken(patient.id, repo, hashPin);
-    await emailSender.sendLoginEmail(email, token, pin);
+    await emailSender.sendLoginEmail(email, token, pin, null);
     return { ok: true, token };
   }
   const token = generateId();

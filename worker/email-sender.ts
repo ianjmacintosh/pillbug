@@ -4,6 +4,7 @@ import verificationTemplate from "./emails/verification.html?raw";
 import loginTemplate from "./emails/login.html?raw";
 import { Resend } from "resend";
 import type { EmailSender } from "./auth";
+import { t } from "../shared/t";
 
 function renderTemplate(
   template: string,
@@ -31,11 +32,11 @@ function makeResendEmailSender(apiKey: string, appUrl: string): EmailSender {
   }
 
   return {
-    async sendVerificationEmail(to, token, pin) {
+    async sendVerificationEmail(to, token, pin, language) {
       const fallbackLink = `${appUrl}/enter-code?token=${token}&pin=${pin}`;
       await send(
         to,
-        "Verify your Pillbug account",
+        t("email.verificationSubject", language),
         renderTemplate(verificationTemplate, {
           pin,
           fallback_link: fallbackLink,
@@ -44,11 +45,11 @@ function makeResendEmailSender(apiKey: string, appUrl: string): EmailSender {
       );
     },
 
-    async sendLoginEmail(to, token, pin) {
+    async sendLoginEmail(to, token, pin, language) {
       const fallbackLink = `${appUrl}/enter-code?token=${token}&pin=${pin}`;
       await send(
         to,
-        "Your Pillbug sign-in link",
+        t("email.loginSubject", language),
         renderTemplate(loginTemplate, {
           pin,
           fallback_link: fallbackLink,
