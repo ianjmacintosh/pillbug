@@ -25,6 +25,10 @@ describe("i18n initialization", () => {
   test("en-US resource bundle is registered", () => {
     expect(i18next.hasResourceBundle("en-US", "translation")).toBe(true);
   });
+
+  test("pt-BR resource bundle is registered", () => {
+    expect(i18next.hasResourceBundle("pt-BR", "translation")).toBe(true);
+  });
 });
 
 describe("language resolution", () => {
@@ -36,7 +40,7 @@ describe("language resolution", () => {
 
   test("unsupported locale falls back to en-US", async () => {
     const i = await makeConfiguredInstance({ greeting: "Hello" });
-    await i.changeLanguage("pt-BR");
+    await i.changeLanguage("fr-FR");
     expect(i.t("greeting")).toBe("Hello");
   });
 });

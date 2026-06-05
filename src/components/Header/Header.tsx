@@ -1,7 +1,10 @@
 import { useTranslation } from "react-i18next";
 import "./Header.css";
 
-const LANGUAGE_OPTIONS = [{ value: "en-US", label: "English (US)" }];
+const LANGUAGE_OPTIONS = [
+  { value: "en-US", label: "English (US)" },
+  { value: "pt-BR", label: "Português (Brasil)" },
+];
 
 async function handleLogout() {
   await fetch("/api/v1/logout", { method: "POST" });
