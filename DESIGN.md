@@ -93,6 +93,7 @@ The visual language is deliberately approachable. Georgia serif body text gives 
 This system rejects three families of design by name. It is not a clinical/hospital UI — cold blue-and-white EHR forms have no place here. It is not a wellness/spa app — no soft gradients, no pastel greens, no mindfulness-app vibes. It is not a gamified health tracker — no streaks, no badges, no progress bars that trivialize medication adherence. Medication management is serious and personal; the interface meets that with warmth and clarity, not performance.
 
 **Key Characteristics:**
+
 - Warm, not clinical; personal, not institutional
 - Typography carries personality (serif body reads as human and editorial)
 - Golden yellow as brand anchor; sky blue as interactive counterpoint
@@ -105,19 +106,22 @@ This system rejects three families of design by name. It is not a clinical/hospi
 Two warm anchors (golden yellow + playful sky blue) grounded in an achromatic neutral scale. Neither shouting, neither hiding.
 
 ### Primary
+
 - **Companion Gold** (`oklch(0.9 0.4 95)`): The brand anchor. Used as the header background, section accents, and primary surface color for brand-facing pages (Register, Login). Saturated and warm but never aggressive — a welcoming entrance, not a warning. Note: this value is near the P3 gamut edge; test on wide-gamut displays.
 - **Deep Amber** (`oklch(0.4 0.12 95)`): The darkened yellow for on-colored-bg text and icon states. Used when yellow itself is the background and contrast is needed.
 - **Border Gold** (`oklch(0.87 0.36 95)`): The header border and divider variant. One step darker than the brand surface; structural, not decorative.
 - **Whisper Yellow** (`oklch(0.95 0.06 95)`): Tinted background for card headers inside yellow-adjacent surfaces (fill session cards). Low-chroma, keeps the warmth without overwhelming content.
 
 ### Secondary
+
 - **Sky Blue** (`oklch(0.72 0.17 220)`): The interactive accent. Links, selected states, active chips, fill. Warm and clear — "playful" rather than corporate. Not the cool blue of an enterprise dashboard.
 - **Sky Blue Interactive** (`oklch(0.52 0.17 220)`): Link text, interactive controls in their default state. Passes WCAG AA on white backgrounds (≥4.5:1).
 - **Sky Blue Hover** (`oklch(0.42 0.17 220)`): Hover state for interactive blue elements.
 
-*Note on reconciliation:* existing code uses `oklch(0.45 0.15 250)` (hue 250, blue-violet) for link/interactive states. That hue should migrate toward 220 to align with the sky blue direction in future work.
+_Note on reconciliation:_ existing code uses `oklch(0.45 0.15 250)` (hue 250, blue-violet) for link/interactive states. That hue should migrate toward 220 to align with the sky blue direction in future work.
 
 ### Neutral
+
 - **Ink** (`oklch(0.1 0 0)`): Primary text. Near-black on the body background achieves ≥15:1 contrast.
 - **Secondary Text** (`oklch(0.3 0 0)`): Supporting copy, labels, secondary information.
 - **Muted Text** (`oklch(0.5 0 0)`): Placeholder text, inactive labels, supplementary metadata. Verify WCAG AA (≥4.5:1) on any non-white surface before using.
@@ -126,6 +130,7 @@ Two warm anchors (golden yellow + playful sky blue) grounded in an achromatic ne
 - **Background** (`oklch(0.98 0 0)`): Page background. Near-white, achromatic. Contrast with Ink: ≥15:1.
 
 ### Danger
+
 - **Alert Red** (`oklch(0.55 0.22 25)`): Destructive actions only. Delete button, hard-delete confirmation, error states.
 
 **The One Red Rule.** Alert Red is reserved for destructive and irreversible actions. Error text uses it; success states, warnings, and neutral alerts do not. If you find yourself reaching for red to signal "important but not dangerous," find a yellow or blue instead.
@@ -141,6 +146,7 @@ Two warm anchors (golden yellow + playful sky blue) grounded in an achromatic ne
 **Character:** Short Stack gives the brand name a casual, handwritten warmth without bleeding into the rest of the UI. Prompt carries everything else — friendly geometric personality, good at both display sizes (600 for page h1s) and body copy (400). Do not load additional weights of Short Stack; it only has 400 and faux-bold is not acceptable here.
 
 ### Hierarchy
+
 - **Display** (weight 400, `clamp(1.75rem, 4vw, 3rem)`, line-height 1.1): Major page headings on brand-facing surfaces (Register, Login, landing). Aspirational: rounded display font.
 - **Headline** (700, `1.25rem`, line-height 1.2): Section titles within the app, the branded app name in the header.
 - **Title** (700, `1rem`, line-height 1.3): Component headers, sub-section labels, card titles.
@@ -158,6 +164,7 @@ Pillbug is essentially flat. Depth is expressed through background tint and bord
 The philosophy: surfaces are at rest by default. Interaction states (hover, focus) may introduce a shadow or shift, but the default page has no ambient glow, no layered glass, no stacked blur.
 
 ### Shadow Vocabulary
+
 - **Card Lift** (`box-shadow: 0 2px 3px oklch(0 0 0 / 0.18), 0 1px 1px oklch(0 0 0 / 0.1)`): Used on fill session pill cells (`fill-session-card-cell`). Gives day-pills the physical quality of a button on an actual organizer. Nowhere else.
 
 **The Flat-by-Default Rule.** Surfaces don't float unless they physically need to. Cards in the prescription list use border + tint, not shadow. If you're adding `box-shadow` to a new component, ask whether it's structurally necessary or just decorative. Usually it's decorative.
@@ -206,6 +213,7 @@ A distinctive input pattern: 7 pill-shaped checkbox toggles representing days of
 ## 6. Do's and Don'ts
 
 ### Do:
+
 - **Do** use Georgia serif for all body copy. It is the personality, not a legacy fallback.
 - **Do** use OKLCH for all color definitions. The token system is OKLCH-only; hex values are for external tool compatibility only.
 - **Do** respect `@media (prefers-reduced-motion: reduce)` on every animation. Patients may include older users; motion is never assumed.
@@ -216,6 +224,7 @@ A distinctive input pattern: 7 pill-shaped checkbox toggles representing days of
 - **Do** use the day-pill pattern (rounded checkbox toggles) when selecting days of the week — it carries the warm and expressive direction distinctively.
 
 ### Don't:
+
 - **Don't** introduce a clinical or hospital UI aesthetic: cold blue-and-white, EHR-style dense form layouts, or anything that looks like a health system portal. That is the primary anti-reference.
 - **Don't** use soft gradients, pastel greens, or mindfulness-app styling (flowing shapes, calming neutrals, spa color palettes). Pillbug is warm and friendly, not soft and therapeutic.
 - **Don't** add game mechanics: streaks, badges, points, progress bars framed as achievement. Medication adherence is not a game; treating it as one is condescending and potentially dangerous.

@@ -4,41 +4,197 @@
   "title": "Design System: Pillbug",
   "extensions": {
     "colorMeta": {
-      "yellow-brand":        { "role": "primary",   "displayName": "Companion Gold",       "canonical": "oklch(0.9 0.4 95)",   "tonalRamp": ["oklch(0.2 0.06 95)", "oklch(0.3 0.09 95)", "oklch(0.4 0.12 95)", "oklch(0.55 0.2 95)", "oklch(0.65 0.28 95)", "oklch(0.75 0.35 95)", "oklch(0.87 0.36 95)", "oklch(0.9 0.4 95)", "oklch(0.95 0.06 95)"] },
-      "yellow-border":       { "role": "primary",   "displayName": "Border Gold",          "canonical": "oklch(0.87 0.36 95)",  "tonalRamp": [] },
-      "yellow-surface":      { "role": "primary",   "displayName": "Whisper Yellow",       "canonical": "oklch(0.95 0.06 95)",  "tonalRamp": [] },
-      "yellow-deep":         { "role": "primary",   "displayName": "Deep Amber",           "canonical": "oklch(0.4 0.12 95)",   "tonalRamp": [] },
-      "sky-blue":            { "role": "secondary", "displayName": "Sky Blue",             "canonical": "oklch(0.72 0.17 220)", "tonalRamp": ["oklch(0.2 0.1 220)", "oklch(0.32 0.13 220)", "oklch(0.42 0.17 220)", "oklch(0.52 0.17 220)", "oklch(0.62 0.17 220)", "oklch(0.72 0.17 220)", "oklch(0.82 0.12 220)", "oklch(0.9 0.06 220)"] },
-      "sky-blue-interactive":{ "role": "secondary", "displayName": "Sky Blue Interactive", "canonical": "oklch(0.52 0.17 220)", "tonalRamp": [] },
-      "sky-blue-hover":      { "role": "secondary", "displayName": "Sky Blue Hover",       "canonical": "oklch(0.42 0.17 220)", "tonalRamp": [] },
-      "ink":                 { "role": "neutral",   "displayName": "Ink",                  "canonical": "oklch(0.1 0 0)",       "tonalRamp": ["oklch(0.1 0 0)", "oklch(0.2 0 0)", "oklch(0.3 0 0)", "oklch(0.4 0 0)", "oklch(0.5 0 0)", "oklch(0.6 0 0)", "oklch(0.7 0 0)", "oklch(0.8 0 0)", "oklch(0.9 0 0)", "oklch(0.98 0 0)"] },
-      "text-secondary":      { "role": "neutral",   "displayName": "Secondary Text",       "canonical": "oklch(0.3 0 0)",       "tonalRamp": [] },
-      "text-muted":          { "role": "neutral",   "displayName": "Muted Text",           "canonical": "oklch(0.5 0 0)",       "tonalRamp": [] },
-      "border":              { "role": "neutral",   "displayName": "Border",               "canonical": "oklch(0.7 0 0)",       "tonalRamp": [] },
-      "surface-raised":      { "role": "neutral",   "displayName": "Surface Raised",       "canonical": "oklch(0.9 0 0)",       "tonalRamp": [] },
-      "bg":                  { "role": "neutral",   "displayName": "Background",           "canonical": "oklch(0.98 0 0)",      "tonalRamp": [] },
-      "danger":              { "role": "danger",    "displayName": "Alert Red",            "canonical": "oklch(0.55 0.22 25)",  "tonalRamp": ["oklch(0.25 0.15 25)", "oklch(0.35 0.18 25)", "oklch(0.45 0.22 25)", "oklch(0.55 0.22 25)", "oklch(0.65 0.18 25)", "oklch(0.75 0.12 25)", "oklch(0.88 0.06 25)"] },
-      "danger-hover":        { "role": "danger",    "displayName": "Alert Red Hover",      "canonical": "oklch(0.45 0.22 25)",  "tonalRamp": [] }
+      "yellow-brand": {
+        "role": "primary",
+        "displayName": "Companion Gold",
+        "canonical": "oklch(0.9 0.4 95)",
+        "tonalRamp": [
+          "oklch(0.2 0.06 95)",
+          "oklch(0.3 0.09 95)",
+          "oklch(0.4 0.12 95)",
+          "oklch(0.55 0.2 95)",
+          "oklch(0.65 0.28 95)",
+          "oklch(0.75 0.35 95)",
+          "oklch(0.87 0.36 95)",
+          "oklch(0.9 0.4 95)",
+          "oklch(0.95 0.06 95)"
+        ]
+      },
+      "yellow-border": {
+        "role": "primary",
+        "displayName": "Border Gold",
+        "canonical": "oklch(0.87 0.36 95)",
+        "tonalRamp": []
+      },
+      "yellow-surface": {
+        "role": "primary",
+        "displayName": "Whisper Yellow",
+        "canonical": "oklch(0.95 0.06 95)",
+        "tonalRamp": []
+      },
+      "yellow-deep": {
+        "role": "primary",
+        "displayName": "Deep Amber",
+        "canonical": "oklch(0.4 0.12 95)",
+        "tonalRamp": []
+      },
+      "sky-blue": {
+        "role": "secondary",
+        "displayName": "Sky Blue",
+        "canonical": "oklch(0.72 0.17 220)",
+        "tonalRamp": [
+          "oklch(0.2 0.1 220)",
+          "oklch(0.32 0.13 220)",
+          "oklch(0.42 0.17 220)",
+          "oklch(0.52 0.17 220)",
+          "oklch(0.62 0.17 220)",
+          "oklch(0.72 0.17 220)",
+          "oklch(0.82 0.12 220)",
+          "oklch(0.9 0.06 220)"
+        ]
+      },
+      "sky-blue-interactive": {
+        "role": "secondary",
+        "displayName": "Sky Blue Interactive",
+        "canonical": "oklch(0.52 0.17 220)",
+        "tonalRamp": []
+      },
+      "sky-blue-hover": {
+        "role": "secondary",
+        "displayName": "Sky Blue Hover",
+        "canonical": "oklch(0.42 0.17 220)",
+        "tonalRamp": []
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(0.1 0 0)",
+        "tonalRamp": [
+          "oklch(0.1 0 0)",
+          "oklch(0.2 0 0)",
+          "oklch(0.3 0 0)",
+          "oklch(0.4 0 0)",
+          "oklch(0.5 0 0)",
+          "oklch(0.6 0 0)",
+          "oklch(0.7 0 0)",
+          "oklch(0.8 0 0)",
+          "oklch(0.9 0 0)",
+          "oklch(0.98 0 0)"
+        ]
+      },
+      "text-secondary": {
+        "role": "neutral",
+        "displayName": "Secondary Text",
+        "canonical": "oklch(0.3 0 0)",
+        "tonalRamp": []
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Muted Text",
+        "canonical": "oklch(0.5 0 0)",
+        "tonalRamp": []
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Border",
+        "canonical": "oklch(0.7 0 0)",
+        "tonalRamp": []
+      },
+      "surface-raised": {
+        "role": "neutral",
+        "displayName": "Surface Raised",
+        "canonical": "oklch(0.9 0 0)",
+        "tonalRamp": []
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "Background",
+        "canonical": "oklch(0.98 0 0)",
+        "tonalRamp": []
+      },
+      "danger": {
+        "role": "danger",
+        "displayName": "Alert Red",
+        "canonical": "oklch(0.55 0.22 25)",
+        "tonalRamp": [
+          "oklch(0.25 0.15 25)",
+          "oklch(0.35 0.18 25)",
+          "oklch(0.45 0.22 25)",
+          "oklch(0.55 0.22 25)",
+          "oklch(0.65 0.18 25)",
+          "oklch(0.75 0.12 25)",
+          "oklch(0.88 0.06 25)"
+        ]
+      },
+      "danger-hover": {
+        "role": "danger",
+        "displayName": "Alert Red Hover",
+        "canonical": "oklch(0.45 0.22 25)",
+        "tonalRamp": []
+      }
     },
     "typographyMeta": {
-      "display": { "displayName": "Display", "purpose": "Major page headings on brand-facing surfaces (Register, Login). Aspirational: Coiny or Sour Gummy." },
-      "headline": { "displayName": "Headline", "purpose": "Section titles, app brand name in header." },
-      "title":    { "displayName": "Title",    "purpose": "Component headers, sub-section labels." },
-      "body":     { "displayName": "Body",     "purpose": "All paragraph copy — Georgia serif is the personality, not a fallback." },
-      "label":    { "displayName": "Label",    "purpose": "Form labels, table headers, UI chrome." }
+      "display": {
+        "displayName": "Display",
+        "purpose": "Major page headings on brand-facing surfaces (Register, Login). Aspirational: Coiny or Sour Gummy."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section titles, app brand name in header."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Component headers, sub-section labels."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "All paragraph copy — Georgia serif is the personality, not a fallback."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Form labels, table headers, UI chrome."
+      }
     },
     "shadows": [
-      { "name": "card-lift", "value": "0 2px 3px oklch(0 0 0 / 0.18), 0 1px 1px oklch(0 0 0 / 0.1)", "purpose": "Pill organizer cells in fill session. Conveys physical tactility of a pill tray button. Use nowhere else." }
+      {
+        "name": "card-lift",
+        "value": "0 2px 3px oklch(0 0 0 / 0.18), 0 1px 1px oklch(0 0 0 / 0.1)",
+        "purpose": "Pill organizer cells in fill session. Conveys physical tactility of a pill tray button. Use nowhere else."
+      }
     ],
     "motion": [
-      { "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Default easing for state transitions (hover, open/close)." },
-      { "name": "ease-out-quart", "value": "cubic-bezier(0.25, 1, 0.5, 1)", "purpose": "Preferred easing for entrances — elements decelerate into position." },
-      { "name": "duration-fast", "value": "100ms", "purpose": "Checkbox toggles, button hover." },
-      { "name": "duration-standard", "value": "200ms", "purpose": "Card expand/collapse, panel transitions." }
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Default easing for state transitions (hover, open/close)."
+      },
+      {
+        "name": "ease-out-quart",
+        "value": "cubic-bezier(0.25, 1, 0.5, 1)",
+        "purpose": "Preferred easing for entrances — elements decelerate into position."
+      },
+      {
+        "name": "duration-fast",
+        "value": "100ms",
+        "purpose": "Checkbox toggles, button hover."
+      },
+      {
+        "name": "duration-standard",
+        "value": "200ms",
+        "purpose": "Card expand/collapse, panel transitions."
+      }
     ],
     "breakpoints": [
-      { "name": "mobile", "value": "480px", "purpose": "Date/drug-info row stacking in prescription form." },
-      { "name": "sm",     "value": "640px", "purpose": "Prescription list panel: mobile accordion vs. desktop split. Fill session grid: transposed layout." }
+      {
+        "name": "mobile",
+        "value": "480px",
+        "purpose": "Date/drug-info row stacking in prescription form."
+      },
+      {
+        "name": "sm",
+        "value": "640px",
+        "purpose": "Prescription list panel: mobile accordion vs. desktop split. Fill session grid: transposed layout."
+      }
     ]
   },
   "components": [
@@ -111,11 +267,31 @@
       "WCAG AA floor, readability over elegance, designed for older users and all visual ranges"
     ],
     "rules": [
-      { "name": "The One Red Rule", "body": "Alert Red is reserved for destructive and irreversible actions only. Never use red to signal 'important but not dangerous.'", "section": "colors" },
-      { "name": "The No Pastel Rule", "body": "Tinted neutrals are always achromatic (chroma 0) or very faintly hued (chroma ≤0.04). Never add warmth or coolness to neutral backgrounds — 'warm neutral' is the AI-slop cliché this system explicitly rejects.", "section": "colors" },
-      { "name": "The Serif Body Rule", "body": "Georgia is not a legacy fallback — it is the deliberate voice of the app. Don't replace it with system-ui or Inter for body copy.", "section": "typography" },
-      { "name": "The Playful Display Horizon", "body": "Coiny, Sour Gummy, and Short Stack are the aspirational direction for display headings on public-facing screens. Until loaded, system-ui holds the position.", "section": "typography" },
-      { "name": "The Flat-by-Default Rule", "body": "Surfaces don't float unless they physically need to. If you're adding box-shadow to a new component, ask whether it's structurally necessary or just decorative.", "section": "elevation" }
+      {
+        "name": "The One Red Rule",
+        "body": "Alert Red is reserved for destructive and irreversible actions only. Never use red to signal 'important but not dangerous.'",
+        "section": "colors"
+      },
+      {
+        "name": "The No Pastel Rule",
+        "body": "Tinted neutrals are always achromatic (chroma 0) or very faintly hued (chroma ≤0.04). Never add warmth or coolness to neutral backgrounds — 'warm neutral' is the AI-slop cliché this system explicitly rejects.",
+        "section": "colors"
+      },
+      {
+        "name": "The Serif Body Rule",
+        "body": "Georgia is not a legacy fallback — it is the deliberate voice of the app. Don't replace it with system-ui or Inter for body copy.",
+        "section": "typography"
+      },
+      {
+        "name": "The Playful Display Horizon",
+        "body": "Coiny, Sour Gummy, and Short Stack are the aspirational direction for display headings on public-facing screens. Until loaded, system-ui holds the position.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-by-Default Rule",
+        "body": "Surfaces don't float unless they physically need to. If you're adding box-shadow to a new component, ask whether it's structurally necessary or just decorative.",
+        "section": "elevation"
+      }
     ],
     "dos": [
       "Use Georgia serif for all body copy. It is the personality, not a legacy fallback.",
