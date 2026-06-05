@@ -65,4 +65,22 @@ test.describe("Language switching (logged in)", () => {
       page.getByRole("heading", { name: /configurações/i }),
     ).toBeVisible();
   });
+
+  test("home page dates render in pt-BR format (DD/MM/YYYY) when language is pt-BR", async ({
+    page,
+  }) => {
+    await page.goto("/settings");
+    await page
+      .getByRole("combobox", { name: /time zone/i })
+      .selectOption("America/Chicago");
+    await page
+      .getByRole("combobox", { name: /language/i })
+      .selectOption("pt-BR");
+    await page.getByRole("button", { name: /save/i }).click();
+    await expect(page).toHaveURL("/");
+
+    // Week range heading should use DD/MM/YYYY format, not M/D/YYYY
+    const heading = await page.locator("h2.week-range").textContent();
+    expect(heading).toMatch(/^\d{2}\/\d{2}\/\d{4}–\d{2}\/\d{2}\/\d{4}$/);
+  });
 });

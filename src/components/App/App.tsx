@@ -25,8 +25,8 @@ const WEEK_DAY_KEYS = [
   "sunday",
 ] as const;
 
-function formatShortDate(dateStr: string): string {
-  return new Date(dateStr + "T00:00:00Z").toLocaleDateString("en-US", {
+function formatShortDate(dateStr: string, locale: string): string {
+  return new Date(dateStr + "T00:00:00Z").toLocaleDateString(locale, {
     month: "numeric",
     day: "numeric",
     year: "numeric",
@@ -34,8 +34,12 @@ function formatShortDate(dateStr: string): string {
   });
 }
 
-function formatTime(scheduledAt: string, timezone: string): string {
-  return new Date(scheduledAt).toLocaleTimeString("en-US", {
+function formatTime(
+  scheduledAt: string,
+  timezone: string,
+  locale: string,
+): string {
+  return new Date(scheduledAt).toLocaleTimeString(locale, {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
@@ -43,8 +47,8 @@ function formatTime(scheduledAt: string, timezone: string): string {
   });
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr + "T00:00:00Z").toLocaleDateString("en-US", {
+function formatDate(dateStr: string, locale: string): string {
+  return new Date(dateStr + "T00:00:00Z").toLocaleDateString(locale, {
     month: "long",
     day: "numeric",
     year: "numeric",
@@ -61,7 +65,7 @@ function addDays(dateStr: string, days: number): string {
 const Route = getRouteApi("/layout/");
 
 function App({ today: todayProp }: { today?: string }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { registrationDate, timezone } = Route.useLoaderData();
   const today =
     todayProp ??
@@ -115,7 +119,8 @@ function App({ today: todayProp }: { today?: string }) {
     <main className="home">
       <h1>{t("app.heading")}</h1>
       <h2 className="week-range">
-        {formatShortDate(displayedMonday)}–{formatShortDate(sunday)}
+        {formatShortDate(displayedMonday, i18n.language)}–
+        {formatShortDate(sunday, i18n.language)}
       </h2>
 
       {!hasAnyDoses && <p>{t("app.noDoses")}</p>}
@@ -129,7 +134,11 @@ function App({ today: todayProp }: { today?: string }) {
         for (const dose of [...dayDoses].sort((a, b) =>
           a.scheduledAt.localeCompare(b.scheduledAt),
         )) {
-          const time = formatTime(dose.scheduledAt, timezone ?? "UTC");
+          const time = formatTime(
+            dose.scheduledAt,
+            timezone ?? "UTC",
+            i18n.language,
+          );
           if (!timeGroups.has(time)) timeGroups.set(time, []);
           timeGroups.get(time)!.push(dose);
         }
@@ -137,7 +146,7 @@ function App({ today: todayProp }: { today?: string }) {
         return (
           <section key={date} aria-current={isToday ? "date" : undefined}>
             <h2>{dayName}</h2>
-            <time dateTime={date}>{formatDate(date)}</time>
+            <time dateTime={date}>{formatDate(date, i18n.language)}</time>
             {dayDoses.length > 0 && (
               <ul>
                 {Array.from(timeGroups.entries()).map(
