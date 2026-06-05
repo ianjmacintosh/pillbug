@@ -16,39 +16,41 @@ function Header({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
 
   return (
     <header className="header">
-      <a href="/" className="header-brand">
-        {t("header.brand")}
-      </a>
-      {!isAuthenticated && (
-        <label className="header-language">
-          <span className="visually-hidden">{t("header.language")}</span>
-          <select
-            value={i18n.language}
-            onChange={(e) => i18n.changeLanguage(e.target.value)}
-          >
-            {LANGUAGE_OPTIONS.map(({ value, label }) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
-      {isAuthenticated && (
-        <nav className="header-nav">
-          <a href="/">{t("header.nav.home")}</a>
-          <a href="/prescriptions">{t("header.nav.prescriptions")}</a>
-          <a href="/fill-session">{t("header.nav.fillSession")}</a>
-          <a href="/settings">{t("header.nav.settings")}</a>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="header-logout"
-          >
-            {t("header.nav.logOut")}
-          </button>
-        </nav>
-      )}
+      <div className="header-inner">
+        <a href="/" className="header-brand">
+          {t("header.brand")}
+        </a>
+        {!isAuthenticated && (
+          <label className="header-language">
+            <span className="visually-hidden">{t("header.language")}</span>
+            <select
+              value={i18n.language}
+              onChange={(e) => i18n.changeLanguage(e.target.value)}
+            >
+              {LANGUAGE_OPTIONS.map(({ value, label }) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {isAuthenticated && (
+          <nav className="header-nav">
+            <a href="/">{t("header.nav.home")}</a>
+            <a href="/prescriptions">{t("header.nav.prescriptions")}</a>
+            <a href="/fill-session">{t("header.nav.fillSession")}</a>
+            <a href="/settings">{t("header.nav.settings")}</a>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="header-logout"
+            >
+              {t("header.nav.logOut")}
+            </button>
+          </nav>
+        )}
+      </div>
     </header>
   );
 }

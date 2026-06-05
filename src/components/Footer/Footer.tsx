@@ -6,8 +6,10 @@ function Footer() {
 
   return (
     <footer className="footer">
-      <a href="/terms">{t("footer.termsOfService")}</a>
-      <a href="/privacy">{t("footer.privacyPolicy")}</a>
+      <div className="footer-inner">
+        <a href="/terms">{t("footer.termsOfService")}</a>
+        <a href="/privacy">{t("footer.privacyPolicy")}</a>
+      </div>
     </footer>
   );
 }

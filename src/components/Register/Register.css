@@ -1,20 +1,80 @@
 .register {
-  max-width: 26rem;
+  max-width: none;
+  display: grid;
+  grid-template-columns: 1fr 24rem;
+  gap: var(--space-2xl);
+  align-items: start;
 }
 
-.register h1 {
+@media (max-width: 640px) {
+  .register {
+    grid-template-columns: 1fr;
+  }
+}
+
+.register-card {
+  background: var(--yellow-90);
+  border: 1px solid var(--yellow-87);
+  border-radius: 8px;
+  padding: var(--space-lg) var(--space-xl);
+  margin-bottom: var(--space-md);
+}
+
+.register-card h1 {
   font-family: var(--font-body);
   font-size: var(--text-display);
   font-weight: 600;
   line-height: 1.2;
   color: var(--gray-10);
+  text-wrap: balance;
+  margin-bottom: var(--space-lg);
 }
+
+/* Sales copy column */
+
+.register .rv1-headline {
+  font-family: var(--font-body);
+  font-size: var(--text-display);
+  font-weight: 600;
+  line-height: 1.15;
+  text-wrap: balance;
+  color: var(--gray-10);
+}
+
+.register .rv1-body {
+  margin-top: var(--space-md);
+  font-size: var(--text-base);
+  line-height: 1.65;
+  color: var(--gray-30);
+  max-width: 52ch;
+}
+
+.register .rv1-features {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-xl) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.register .rv1-feature {
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  color: var(--gray-30);
+}
+
+.register .rv1-feature strong {
+  color: var(--gray-10);
+  font-weight: 600;
+}
+
+/* Form column */
 
 .register form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-top: 1.5rem;
 }
 
 .register .email-field {
@@ -45,12 +105,24 @@
   margin-top: 0.15em;
 }
 
+.register .terms-field span {
+  line-height: 1.4;
+}
+
+.register .terms-field a {
+  color: oklch(0.52 0.17 220);
+}
+
 .register [role="alert"] {
   color: oklch(0.4 0.15 25);
   font-size: var(--text-sm);
 }
 
-.register p {
-  margin-top: 0.5rem;
+.register .rv1-login {
+  margin-top: var(--space-sm);
   font-size: var(--text-sm);
+}
+
+.register .rv1-login a {
+  color: oklch(0.52 0.17 220);
 }
