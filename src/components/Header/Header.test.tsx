@@ -1,11 +1,38 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, test } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import i18next from "../../lib/i18n";
 import Header from "./Header";
 
 describe("Header", () => {
+  afterEach(() => vi.restoreAllMocks());
+
   test("renders a link to the home page", () => {
     render(<Header />);
     expect(screen.getByRole("link", { name: /pillbug/i })).toBeTruthy();
+  });
+
+  test("shows language selector when not authenticated", () => {
+    render(<Header />);
+    expect(screen.getByRole("combobox", { name: /language/i })).toBeTruthy();
+  });
+
+  test("does not show language selector when authenticated", () => {
+    render(<Header isAuthenticated />);
+    expect(screen.queryByRole("combobox", { name: /language/i })).toBeNull();
+  });
+
+  test("language selector includes English (US) option", () => {
+    render(<Header />);
+    expect(screen.getByRole("option", { name: "English (US)" })).toBeTruthy();
+  });
+
+  test("changing language selector calls i18next.changeLanguage", () => {
+    const spy = vi.spyOn(i18next, "changeLanguage");
+    render(<Header />);
+    fireEvent.change(screen.getByRole("combobox", { name: /language/i }), {
+      target: { value: "en-US" },
+    });
+    expect(spy).toHaveBeenCalledWith("en-US");
   });
 
   test("does not show settings or logout when not authenticated", () => {

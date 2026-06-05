@@ -46,3 +46,18 @@
 .header-logout:hover {
   text-decoration: underline;
 }
+
+.header-language {
+  margin-left: auto;
+}
+
+.header-language select {
+  font-family: system-ui, sans-serif;
+  font-size: 0.9rem;
+  color: var(--gray-10);
+  background: transparent;
+  border: 1px solid var(--yellow-40);
+  border-radius: 4px;
+  padding: 0.25rem 0.375rem;
+  cursor: pointer;
+}
