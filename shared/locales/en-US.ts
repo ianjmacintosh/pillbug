@@ -13,6 +13,7 @@ const enUS = {
   "completeSetup.retry": "Retry",
   "settings.heading": "Settings",
   "settings.timezoneLabel": "Time zone",
+  "settings.languageLabel": "Language",
   "settings.serverError": "Something went wrong. Please try again.",
   "settings.submitting": "Saving…",
   "settings.submit": "Save",

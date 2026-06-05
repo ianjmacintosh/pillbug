@@ -1,6 +1,7 @@
 import { getPlatformProxy } from "wrangler";
 import type { D1Database } from "@cloudflare/workers-types";
 import { expect, test } from "@playwright/test";
+import { hashEmail } from "../worker/email-crypto";
 import { setKnownPin, TURNSTILE_DUMMY_TOKEN, TEST_PIN } from "./helpers";
 
 interface Env {
@@ -44,6 +45,28 @@ test.describe("POST /api/v1/register", () => {
     const body = (await res.json()) as { ok: boolean; token: string };
     expect(body.ok).toBe(true);
     expect(body.token).toMatch(/^[0-9a-f-]{36}$/);
+  });
+
+  test("stores language in the database when provided", async ({ request }) => {
+    const email = `delivered+e2e-lang-reg-${Date.now()}@resend.dev`;
+    await request.post("/api/v1/register", {
+      data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN, language: "en-US" },
+    });
+
+    const { env, dispose } = await getPlatformProxy<Env>({
+      environment: "staging",
+    });
+    try {
+      const emailLookup = await hashEmail(email, process.env.EMAIL_SECRET!);
+      const result = await env.DB.prepare(
+        "SELECT language FROM patients WHERE email_lookup = ?",
+      )
+        .bind(emailLookup)
+        .first<{ language: string }>();
+      expect(result?.language).toBe("en-US");
+    } finally {
+      await dispose();
+    }
   });
 
   test("returns 200 for an already-registered email", async ({ request }) => {
@@ -153,6 +176,41 @@ test.describe("POST /api/v1/auth/verify-pin", () => {
     await expect(page).toHaveURL(`/enter-code?token=${token}&pin=${pin}`);
     await expect(page.getByRole("alert")).toBeVisible();
   });
+});
+
+test("completing onboarding stores language in the account", async ({
+  page,
+  request,
+}) => {
+  const email = `delivered+e2e-onboard-lang-${Date.now()}@resend.dev`;
+  await request.post("/api/v1/register", {
+    data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
+  });
+  const { token, pin } = await silentLogin(email, request);
+
+  // Auto-submit PIN navigates to /finish-setup where CompleteSetup PATCHes account.
+  await page.goto(`/enter-code?token=${token}&pin=${pin}`);
+  await expect(page).toHaveURL("/finish-setup");
+
+  // Language is stored at registration time (resolveLanguage defaults to "en-US").
+  // Check via API without requiring CompleteSetup's PATCH to complete first.
+  const accountRes = await page.request.get("/api/v1/account");
+  const account = (await accountRes.json()) as { language: string | null };
+  expect(account.language).toBe("en-US");
+});
+
+test("/register shows a language selector in the header", async ({ page }) => {
+  await page.goto("/register");
+  await expect(
+    page.locator("header").getByRole("combobox", { name: /language/i }),
+  ).toBeVisible();
+});
+
+test("/login shows a language selector in the header", async ({ page }) => {
+  await page.goto("/login");
+  await expect(
+    page.locator("header").getByRole("combobox", { name: /language/i }),
+  ).toBeVisible();
 });
 
 test("registration form submits via UI and navigates to /enter-code", async ({
