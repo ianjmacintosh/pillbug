@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { getRouteApi, Link, useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import "./PrescriptionDetail.css";
 
 type DayOfWeek =
@@ -43,18 +44,8 @@ const WEEKDAYS: DayOfWeek[] = [
   "saturday",
 ];
 
-const DAY_ABBRS: Record<DayOfWeek, string> = {
-  sunday: "Sun",
-  monday: "Mon",
-  tuesday: "Tue",
-  wednesday: "Wed",
-  thursday: "Thu",
-  friday: "Fri",
-  saturday: "Sat",
-};
-
 interface Routine {
-  label: string;
+  days: DayOfWeek[];
   slots: PerSlotDose[];
 }
 
@@ -75,10 +66,7 @@ function groupRoutines(
     bySignature.set(sig, group);
   }
   return Array.from(bySignature.entries()).map(([sig, groupDays]) => ({
-    label:
-      groupDays.length === 7
-        ? "Daily"
-        : groupDays.map((d) => DAY_ABBRS[d]).join(", "),
+    days: groupDays,
     slots: (JSON.parse(sig) as Array<PerSlotDose | string>).map(toPerSlotDose),
   }));
 }
@@ -91,11 +79,6 @@ function formatTime(time: string): string {
   return `${hour12}:${minute} ${period}`;
 }
 
-function formatQuantity(quantity: number, doseForm: string): string {
-  const form = quantity === 1 ? doseForm : `${doseForm}s`;
-  return `${quantity} ${form}`;
-}
-
 function formatDate(dateStr: string): string {
   const [year, month, day] = dateStr.split("-");
   return `${month}/${day}/${year}`;
@@ -104,6 +87,7 @@ function formatDate(dateStr: string): string {
 const routeApi = getRouteApi("/layout/prescriptions/$id");
 
 function PrescriptionDetail() {
+  const { t } = useTranslation();
   const prescription = routeApi.useLoaderData() as Prescription;
   const { id } = routeApi.useParams();
   const routines = groupRoutines(prescription.schedule.days);
@@ -122,74 +106,85 @@ function PrescriptionDetail() {
           <h2>{prescription.drugName}</h2>
           <div className="prescription-detail-actions">
             <Link to="/prescriptions/$id/edit" params={{ id }}>
-              edit
+              {t("prescriptionDetail.edit")}
             </Link>
             <span aria-hidden="true"> | </span>
-            <button onClick={() => setShowDeleteDialog(true)}>delete</button>
+            <button onClick={() => setShowDeleteDialog(true)}>
+              {t("prescriptionDetail.delete")}
+            </button>
           </div>
         </div>
         <dl className="prescription-detail-meta">
-          <dt>Strength</dt>
+          <dt>{t("prescriptionDetail.strength")}</dt>
           <dd>{prescription.dosage}</dd>
-          <dt>Start date</dt>
+          <dt>{t("prescriptionDetail.startDate")}</dt>
           <dd>
             <time dateTime={prescription.startDate}>
               {formatDate(prescription.startDate)}
             </time>
           </dd>
-          <dt>End date</dt>
+          <dt>{t("prescriptionDetail.endDate")}</dt>
           <dd>
             {prescription.endDate ? (
               <time dateTime={prescription.endDate}>
                 {formatDate(prescription.endDate)}
               </time>
             ) : (
-              "N/A (On-going)"
+              t("prescriptionDetail.endDateNa")
             )}
           </dd>
         </dl>
         <section className="prescription-detail-schedule">
-          <h3>Schedule</h3>
-          {routines.map((routine) => (
-            <section
-              key={routine.label}
-              className="prescription-detail-routine"
-            >
-              <h4>{routine.label}</h4>
-              <table className="prescription-list">
-                <thead>
-                  <tr>
-                    <th scope="col">Time</th>
-                    <th scope="col">Dose</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {routine.slots.map((slot) => (
-                    <tr key={slot.time}>
-                      <td>
-                        <time dateTime={slot.time}>
-                          {formatTime(slot.time)}
-                        </time>
-                      </td>
-                      <td>
-                        {formatQuantity(slot.quantity, prescription.doseForm)}
-                      </td>
+          <h3>{t("prescriptionDetail.schedule")}</h3>
+          {routines.map((routine) => {
+            const routineLabel =
+              routine.days.length === 7
+                ? t("prescriptionDetail.scheduleDaily")
+                : routine.days.map((d) => t(`days.abbr.${d}`)).join(", ");
+            return (
+              <section
+                key={routineLabel}
+                className="prescription-detail-routine"
+              >
+                <h4>{routineLabel}</h4>
+                <table className="prescription-list">
+                  <thead>
+                    <tr>
+                      <th scope="col">{t("prescriptionDetail.time")}</th>
+                      <th scope="col">{t("prescriptionDetail.dose")}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </section>
-          ))}
+                  </thead>
+                  <tbody>
+                    {routine.slots.map((slot) => (
+                      <tr key={slot.time}>
+                        <td>
+                          <time dateTime={slot.time}>
+                            {formatTime(slot.time)}
+                          </time>
+                        </td>
+                        <td>
+                          {t(`doseForm.${prescription.doseForm}`, {
+                            count: slot.quantity,
+                          })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </section>
+            );
+          })}
         </section>
       </article>
       {showDeleteDialog && (
         <dialog open>
-          <p>
-            This action is permanent. All dose history for this prescription
-            will also be deleted.
-          </p>
-          <button onClick={() => setShowDeleteDialog(false)}>Cancel</button>
-          <button onClick={handleConfirmDelete}>Confirm delete</button>
+          <p>{t("prescriptionDetail.deleteWarning")}</p>
+          <button onClick={() => setShowDeleteDialog(false)}>
+            {t("prescriptionDetail.cancel")}
+          </button>
+          <button onClick={handleConfirmDelete}>
+            {t("prescriptionDetail.confirmDelete")}
+          </button>
         </dialog>
       )}
     </>

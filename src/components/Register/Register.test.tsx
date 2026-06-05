@@ -41,6 +41,26 @@ describe("Register form submission", () => {
     vi.unstubAllGlobals();
   });
 
+  test("includes language in registration POST body", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ token: "test-token" }),
+      }),
+    );
+    render(<Register />);
+    fillAndSubmitForm();
+
+    await vi.waitFor(() => {
+      expect(vi.mocked(fetch)).toHaveBeenCalled();
+    });
+
+    const [, options] = vi.mocked(fetch).mock.calls[0];
+    const body = JSON.parse(options?.body as string);
+    expect(body.language).toBe("en-US");
+  });
+
   test("shows generic error message when server returns internal_error", async () => {
     vi.stubGlobal(
       "fetch",

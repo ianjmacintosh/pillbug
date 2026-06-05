@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import i18next from "../../lib/i18n";
 import App from "./App";
 
 // Wednesday — Monday of the week is 2024-03-11, Sunday is 2024-03-17
@@ -511,6 +512,47 @@ describe("App", () => {
       const url = calls[calls.length - 1][0] as string;
       expect(url).toContain("start=2024-03-11");
       expect(url).toContain("end=2024-03-17");
+    });
+  });
+
+  describe("locale-aware date formatting", () => {
+    afterEach(async () => {
+      await i18next.changeLanguage("en-US");
+    });
+
+    test("formatDate uses pt-BR locale when language is pt-BR", async () => {
+      await i18next.changeLanguage("pt-BR");
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([MONDAY_DOSE]), { status: 200 }),
+      );
+      render(<App today={TODAY} />);
+      // Monday 2024-03-11 in pt-BR long format: "11 de março de 2024"
+      await waitFor(() => {
+        expect(screen.getByText("11 de março de 2024")).toBeTruthy();
+      });
+    });
+
+    test("formatShortDate uses pt-BR locale in the week range heading", async () => {
+      await i18next.changeLanguage("pt-BR");
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([]), { status: 200 }),
+      );
+      render(<App today={TODAY} />);
+      // Week 2024-03-11 to 2024-03-17 in pt-BR: "11/03/2024–17/03/2024"
+      await waitFor(() => {
+        expect(screen.getByText("11/03/2024–17/03/2024")).toBeTruthy();
+      });
+    });
+
+    test("formatTime passes the active language as locale to toLocaleTimeString", async () => {
+      await i18next.changeLanguage("pt-BR");
+      const spy = vi.spyOn(Date.prototype, "toLocaleTimeString");
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([MONDAY_DOSE]), { status: 200 }),
+      );
+      render(<App today={TODAY} />);
+      await waitFor(() => screen.getAllByRole("heading", { level: 3 }));
+      expect(spy.mock.calls.some(([locale]) => locale === "pt-BR")).toBe(true);
     });
   });
 

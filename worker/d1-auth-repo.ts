@@ -7,12 +7,12 @@ export function makeD1AuthRepo(
   emailSecret: string,
 ): AuthRepository {
   return {
-    async createPatient(id, email, termsAcceptedAt) {
+    async createPatient(id, email, termsAcceptedAt, language = null) {
       const emailLookup = await hashEmail(email, emailSecret);
       const emailEncrypted = await encryptEmail(email, emailSecret);
       await db
         .prepare(
-          "INSERT INTO patients (id, email_lookup, email_encrypted, terms_accepted_at, created_at) VALUES (?, ?, ?, ?, ?)",
+          "INSERT INTO patients (id, email_lookup, email_encrypted, terms_accepted_at, created_at, language) VALUES (?, ?, ?, ?, ?, ?)",
         )
         .bind(
           id,
@@ -20,6 +20,7 @@ export function makeD1AuthRepo(
           emailEncrypted,
           termsAcceptedAt,
           new Date().toISOString(),
+          language,
         )
         .run();
     },
@@ -128,6 +129,21 @@ export function makeD1AuthRepo(
       await db
         .prepare("UPDATE patients SET timezone = ? WHERE id = ?")
         .bind(timezone, patientId)
+        .run();
+    },
+
+    async findPatientLanguage(patientId) {
+      const row = await db
+        .prepare("SELECT language FROM patients WHERE id = ?")
+        .bind(patientId)
+        .first<{ language: string | null }>();
+      return row?.language ?? null;
+    },
+
+    async updatePatientLanguage(patientId, language) {
+      await db
+        .prepare("UPDATE patients SET language = ? WHERE id = ?")
+        .bind(language, patientId)
         .run();
     },
 
