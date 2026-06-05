@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-05T00:00:00Z",
+  "title": "Design System: Pillbug",
+  "extensions": {
+    "colorMeta": {
+      "yellow-brand":        { "role": "primary",   "displayName": "Companion Gold",       "canonical": "oklch(0.9 0.4 95)",   "tonalRamp": ["oklch(0.2 0.06 95)", "oklch(0.3 0.09 95)", "oklch(0.4 0.12 95)", "oklch(0.55 0.2 95)", "oklch(0.65 0.28 95)", "oklch(0.75 0.35 95)", "oklch(0.87 0.36 95)", "oklch(0.9 0.4 95)", "oklch(0.95 0.06 95)"] },
+      "yellow-border":       { "role": "primary",   "displayName": "Border Gold",          "canonical": "oklch(0.87 0.36 95)",  "tonalRamp": [] },
+      "yellow-surface":      { "role": "primary",   "displayName": "Whisper Yellow",       "canonical": "oklch(0.95 0.06 95)",  "tonalRamp": [] },
+      "yellow-deep":         { "role": "primary",   "displayName": "Deep Amber",           "canonical": "oklch(0.4 0.12 95)",   "tonalRamp": [] },
+      "sky-blue":            { "role": "secondary", "displayName": "Sky Blue",             "canonical": "oklch(0.72 0.17 220)", "tonalRamp": ["oklch(0.2 0.1 220)", "oklch(0.32 0.13 220)", "oklch(0.42 0.17 220)", "oklch(0.52 0.17 220)", "oklch(0.62 0.17 220)", "oklch(0.72 0.17 220)", "oklch(0.82 0.12 220)", "oklch(0.9 0.06 220)"] },
+      "sky-blue-interactive":{ "role": "secondary", "displayName": "Sky Blue Interactive", "canonical": "oklch(0.52 0.17 220)", "tonalRamp": [] },
+      "sky-blue-hover":      { "role": "secondary", "displayName": "Sky Blue Hover",       "canonical": "oklch(0.42 0.17 220)", "tonalRamp": [] },
+      "ink":                 { "role": "neutral",   "displayName": "Ink",                  "canonical": "oklch(0.1 0 0)",       "tonalRamp": ["oklch(0.1 0 0)", "oklch(0.2 0 0)", "oklch(0.3 0 0)", "oklch(0.4 0 0)", "oklch(0.5 0 0)", "oklch(0.6 0 0)", "oklch(0.7 0 0)", "oklch(0.8 0 0)", "oklch(0.9 0 0)", "oklch(0.98 0 0)"] },
+      "text-secondary":      { "role": "neutral",   "displayName": "Secondary Text",       "canonical": "oklch(0.3 0 0)",       "tonalRamp": [] },
+      "text-muted":          { "role": "neutral",   "displayName": "Muted Text",           "canonical": "oklch(0.5 0 0)",       "tonalRamp": [] },
+      "border":              { "role": "neutral",   "displayName": "Border",               "canonical": "oklch(0.7 0 0)",       "tonalRamp": [] },
+      "surface-raised":      { "role": "neutral",   "displayName": "Surface Raised",       "canonical": "oklch(0.9 0 0)",       "tonalRamp": [] },
+      "bg":                  { "role": "neutral",   "displayName": "Background",           "canonical": "oklch(0.98 0 0)",      "tonalRamp": [] },
+      "danger":              { "role": "danger",    "displayName": "Alert Red",            "canonical": "oklch(0.55 0.22 25)",  "tonalRamp": ["oklch(0.25 0.15 25)", "oklch(0.35 0.18 25)", "oklch(0.45 0.22 25)", "oklch(0.55 0.22 25)", "oklch(0.65 0.18 25)", "oklch(0.75 0.12 25)", "oklch(0.88 0.06 25)"] },
+      "danger-hover":        { "role": "danger",    "displayName": "Alert Red Hover",      "canonical": "oklch(0.45 0.22 25)",  "tonalRamp": [] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Major page headings on brand-facing surfaces (Register, Login). Aspirational: Coiny or Sour Gummy." },
+      "headline": { "displayName": "Headline", "purpose": "Section titles, app brand name in header." },
+      "title":    { "displayName": "Title",    "purpose": "Component headers, sub-section labels." },
+      "body":     { "displayName": "Body",     "purpose": "All paragraph copy — Georgia serif is the personality, not a fallback." },
+      "label":    { "displayName": "Label",    "purpose": "Form labels, table headers, UI chrome." }
+    },
+    "shadows": [
+      { "name": "card-lift", "value": "0 2px 3px oklch(0 0 0 / 0.18), 0 1px 1px oklch(0 0 0 / 0.1)", "purpose": "Pill organizer cells in fill session. Conveys physical tactility of a pill tray button. Use nowhere else." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Default easing for state transitions (hover, open/close)." },
+      { "name": "ease-out-quart", "value": "cubic-bezier(0.25, 1, 0.5, 1)", "purpose": "Preferred easing for entrances — elements decelerate into position." },
+      { "name": "duration-fast", "value": "100ms", "purpose": "Checkbox toggles, button hover." },
+      { "name": "duration-standard", "value": "200ms", "purpose": "Card expand/collapse, panel transitions." }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "480px", "purpose": "Date/drug-info row stacking in prescription form." },
+      { "name": "sm",     "value": "640px", "purpose": "Prescription list panel: mobile accordion vs. desktop split. Fill session grid: transposed layout." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Default action button. Understated on gray; review for yellow fill on brand-facing pages.",
+      "html": "<button class=\"ds-btn-primary\">Save changes</button>",
+      "css": ".ds-btn-primary { background: oklch(0.9 0 0); color: oklch(0.1 0 0); border: none; padding: 10px 24px; border-radius: 4px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.1s; } .ds-btn-primary:hover { background: oklch(0.7 0 0); } .ds-btn-primary:focus-visible { outline: 2px solid oklch(0.3 0 0); outline-offset: 2px; } .ds-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Ghost/outline variant for secondary actions.",
+      "html": "<button class=\"ds-btn-secondary\">Previous week</button>",
+      "css": ".ds-btn-secondary { background: transparent; color: oklch(0.3 0 0); border: 1px solid oklch(0.7 0 0); padding: 10px 24px; border-radius: 4px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.1s, color 0.1s; } .ds-btn-secondary:hover { background: oklch(0.9 0 0); color: oklch(0.1 0 0); } .ds-btn-secondary:focus-visible { outline: 2px solid oklch(0.3 0 0); outline-offset: 2px; } .ds-btn-secondary:disabled { opacity: 0.6; cursor: not-allowed; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive actions only: delete prescription, hard-delete confirmation.",
+      "html": "<button class=\"ds-btn-danger\">Delete prescription</button>",
+      "css": ".ds-btn-danger { background: oklch(0.55 0.22 25); color: oklch(1 0 0); border: none; padding: 10px 24px; border-radius: 4px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.1s; } .ds-btn-danger:hover { background: oklch(0.45 0.22 25); } .ds-btn-danger:focus-visible { outline: 2px solid oklch(0.55 0.22 25); outline-offset: 2px; } .ds-btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": null,
+      "description": "Standard form field — label stacked above, 42px height.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-label\" for=\"ds-input-demo\">Drug name</label><input class=\"ds-input\" id=\"ds-input-demo\" type=\"text\" placeholder=\"e.g. Lisinopril\" /></div>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 4px; } .ds-label { font-family: system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; color: oklch(0.1 0 0); } .ds-input { height: 42px; padding: 8px 12px; border: 1px solid oklch(0.7 0 0); border-radius: 4px; font-size: 1rem; font-family: Georgia, serif; width: 100%; box-sizing: border-box; background: #fff; color: oklch(0.1 0 0); } .ds-input:focus-visible { outline: 2px solid oklch(0.3 0 0); outline-offset: 2px; }"
+    },
+    {
+      "name": "App Header",
+      "kind": "nav",
+      "refersTo": null,
+      "description": "Top navigation bar — Companion Gold background, brand name left, nav links right.",
+      "html": "<header class=\"ds-header\"><a class=\"ds-header-brand\" href=\"/\">Pillbug</a><nav class=\"ds-header-nav\"><a href=\"/prescriptions\">Prescriptions</a><a href=\"/fill-session\">Fill</a><button class=\"ds-header-logout\">Log out</button></nav></header>",
+      "css": ".ds-header { display: flex; align-items: center; gap: 24px; padding: 12px 24px; background: oklch(0.9 0.4 95); border-bottom: 2px solid oklch(0.87 0.36 95); } .ds-header-brand { font-family: system-ui, sans-serif; font-weight: 700; font-size: 1.25rem; color: oklch(0.1 0 0); text-decoration: none; } .ds-header-nav { display: flex; gap: 16px; align-items: center; margin-left: auto; } .ds-header-nav a { color: oklch(0.1 0 0); font-family: system-ui, sans-serif; font-size: 0.9rem; text-decoration: none; } .ds-header-nav a:hover { text-decoration: underline; } .ds-header-logout { background: none; border: none; cursor: pointer; color: oklch(0.1 0 0); font-family: system-ui, sans-serif; font-size: 0.9rem; padding: 0; } .ds-header-logout:hover { text-decoration: underline; }"
+    },
+    {
+      "name": "Day Pill Toggle",
+      "kind": "chip",
+      "refersTo": null,
+      "description": "Day-of-week checkbox toggle. The most expressive component in the system — physical, tactile, warm.",
+      "html": "<label class=\"ds-day-pill\"><input type=\"checkbox\" class=\"ds-visually-hidden\" /><span>Mon<br/>6/9</span></label>",
+      "css": ".ds-day-pill { display: flex; cursor: pointer; } .ds-day-pill span { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 6px 2px; border-radius: 4px; border: 1px solid oklch(0.7 0 0); background: oklch(0.97 0 0); color: oklch(0.3 0 0); font-size: 0.75rem; font-weight: 500; font-family: system-ui, sans-serif; user-select: none; box-shadow: 0 2px 3px oklch(0 0 0 / 0.18), 0 1px 1px oklch(0 0 0 / 0.1); transition: background 0.1s, color 0.1s, border-color 0.1s, box-shadow 0.1s; } .ds-day-pill:has(input:checked) span { background: oklch(0.52 0.17 220); border-color: oklch(0.52 0.17 220); color: #fff; box-shadow: inset 0 2px 3px oklch(0 0 0 / 0.25); } .ds-visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }"
+    },
+    {
+      "name": "Fill Session Card",
+      "kind": "card",
+      "refersTo": null,
+      "description": "Expandable medication card showing the weekly pill-organizer grid. Signature component.",
+      "html": "<div class=\"ds-fill-card\"><button class=\"ds-fill-card-header ds-fill-card-header--open\"><span class=\"ds-fill-card-drug-name\">Lisinopril</span><span class=\"ds-fill-card-drug-dosage\">10 mg</span><span class=\"ds-fill-card-total\">14 tablets</span><span class=\"ds-fill-card-caret\">▲</span></button></div>",
+      "css": ".ds-fill-card { border: 1px solid oklch(0.9 0 0); border-radius: 10px; overflow: hidden; } .ds-fill-card-header { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: oklch(0.95 0.06 95); border: none; width: 100%; cursor: pointer; text-align: left; font-family: system-ui, sans-serif; } .ds-fill-card-header--open { border-bottom: 1px solid oklch(0.9 0 0); } .ds-fill-card-drug-name { font-size: 1rem; font-weight: 700; color: oklch(0.1 0 0); } .ds-fill-card-drug-dosage { font-size: 0.875rem; color: oklch(0.5 0 0); } .ds-fill-card-total { font-size: 1rem; font-weight: 700; color: oklch(0.1 0 0); margin-inline-start: auto; } .ds-fill-card-caret { font-size: 0.75rem; color: oklch(0.5 0 0); transform: rotate(180deg); flex-shrink: 0; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Trusted Companion",
+    "overview": "Pillbug is a personal tool built for the rhythms of real daily life — refilling the pill organizer on Sunday evening, checking off the 8am dose before leaving the house, looking up a prescription detail at the pharmacy. The interface is always there when you need it, never in the way when you don't. It earns trust not by announcing itself, but by being consistently reliable and warm.\n\nThe visual language is deliberately approachable. Georgia serif body text gives the app a human, slightly old-fashioned warmth — more like a trusted notebook than a clinical portal. Golden yellow grounds the identity without demanding attention; playful sky blue signals interaction and life. Together they say: this was made for a person, by someone who cares.\n\nThis system rejects three families of design by name: clinical/hospital UI (cold blue-and-white EHR forms), wellness/spa styling (soft gradients, pastel greens, mindfulness-app vibes), and gamified health tracking (streaks, badges, progress bars). Medication management is serious and personal; the interface meets that with warmth and clarity, not performance.",
+    "keyCharacteristics": [
+      "Warm, not clinical; personal, not institutional",
+      "Typography carries personality (serif body reads as human and editorial)",
+      "Golden yellow as brand anchor; sky blue as interactive counterpoint",
+      "Expressive and rounded in components, never boxy or flat-corporate",
+      "Privacy by default: minimal information on screen unless the patient actively chooses more",
+      "WCAG AA floor, readability over elegance, designed for older users and all visual ranges"
+    ],
+    "rules": [
+      { "name": "The One Red Rule", "body": "Alert Red is reserved for destructive and irreversible actions only. Never use red to signal 'important but not dangerous.'", "section": "colors" },
+      { "name": "The No Pastel Rule", "body": "Tinted neutrals are always achromatic (chroma 0) or very faintly hued (chroma ≤0.04). Never add warmth or coolness to neutral backgrounds — 'warm neutral' is the AI-slop cliché this system explicitly rejects.", "section": "colors" },
+      { "name": "The Serif Body Rule", "body": "Georgia is not a legacy fallback — it is the deliberate voice of the app. Don't replace it with system-ui or Inter for body copy.", "section": "typography" },
+      { "name": "The Playful Display Horizon", "body": "Coiny, Sour Gummy, and Short Stack are the aspirational direction for display headings on public-facing screens. Until loaded, system-ui holds the position.", "section": "typography" },
+      { "name": "The Flat-by-Default Rule", "body": "Surfaces don't float unless they physically need to. If you're adding box-shadow to a new component, ask whether it's structurally necessary or just decorative.", "section": "elevation" }
+    ],
+    "dos": [
+      "Use Georgia serif for all body copy. It is the personality, not a legacy fallback.",
+      "Use OKLCH for all color definitions. The token system is OKLCH-only.",
+      "Respect @media (prefers-reduced-motion: reduce) on every animation.",
+      "Use sky blue (oklch(0.52 0.17 220)) for interactive text and link states.",
+      "Keep button labels as verb + object: 'Save changes', 'Delete prescription', 'Add dose time'.",
+      "Verify ≥4.5:1 contrast for all body text before using muted text on any non-white surface.",
+      "Design for privacy by default: sensitive information hidden unless patient actively shows it.",
+      "Use the day-pill pattern (rounded checkbox toggles) when selecting days of the week."
+    ],
+    "donts": [
+      "Don't introduce a clinical or hospital UI aesthetic: cold blue-and-white, EHR-style dense form layouts.",
+      "Don't use soft gradients, pastel greens, or mindfulness-app styling.",
+      "Don't add game mechanics: streaks, badges, points, progress bars framed as achievement.",
+      "Don't use border-left or border-right greater than 1px as a colored accent on cards or callouts.",
+      "Don't use gradient text (background-clip: text). Single solid color only.",
+      "Don't use the cream/sand/beige warm-neutral background (OKLCH L 0.84–0.97, chroma < 0.06, hue 40–100).",
+      "Don't default to system-ui for all text. Georgia is the body font and is non-negotiable for paragraph copy.",
+      "Don't put the same tiny all-caps tracked eyebrow above every section."
+    ]
+  }
+}
