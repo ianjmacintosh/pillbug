@@ -1,6 +1,7 @@
 :root {
   --page-width: min(92vw, 80rem);
 
+  /* Colors */
   --yellow-20: oklch(0.2 0.06 95);
   --yellow-40: oklch(0.4 0.12 95);
   --yellow-87: oklch(0.87 0.36 95);
@@ -12,4 +13,23 @@
   --gray-50: oklch(0.5 0 0);
   --gray-70: oklch(0.7 0 0);
   --gray-90: oklch(0.9 0 0);
+
+  /* Typography — families */
+  --font-display: 'Short Stack', 'Short Stack Fallback', system-ui, sans-serif;
+  --font-ui: system-ui, sans-serif;
+  --font-body: 'Prompt', 'Prompt Fallback', system-ui, sans-serif;
+
+  /* Typography — size scale (fixed rem; ~1.15 ratio) */
+  --text-xs:      0.75rem;   /* 12px */
+  --text-sm:      0.875rem;  /* 14px */
+  --text-base:    1rem;      /* 16px */
+  --text-lg:      1.125rem;  /* 18px */
+  --text-xl:      1.25rem;   /* 20px */
+  --text-2xl:     1.5rem;    /* 24px */
+  --text-display: clamp(1.75rem, 5vw, 2.75rem); /* brand-screen h1 only */
+
+  /* Typography — weights */
+  --weight-regular:  400;
+  --weight-semibold: 600;
+  --weight-bold:     700;
 }

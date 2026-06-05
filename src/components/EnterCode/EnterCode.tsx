@@ -63,7 +63,7 @@ function EnterCode() {
 
   return (
     <main>
-      <h1>Enter your code</h1>
+      <h1 className="display-heading">Enter your code</h1>
       <form onSubmit={handleSubmit}>
         <label>
           4-digit code

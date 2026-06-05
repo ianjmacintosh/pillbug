@@ -8,11 +8,12 @@
 }
 
 .header-brand {
-  font-family: system-ui, sans-serif;
-  font-weight: 700;
-  font-size: 1.25rem;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--text-xl);
   color: var(--gray-10);
   text-decoration: none;
+  letter-spacing: 0;
 }
 
 .header-nav {
@@ -24,8 +25,8 @@
 
 .header-nav a {
   color: var(--gray-10);
-  font-family: system-ui, sans-serif;
-  font-size: 0.9rem;
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
   text-decoration: none;
 }
 
@@ -38,8 +39,8 @@
   border: none;
   cursor: pointer;
   color: var(--gray-10);
-  font-family: system-ui, sans-serif;
-  font-size: 0.9rem;
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
   padding: 0;
 }
 

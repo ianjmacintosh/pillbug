@@ -7,8 +7,7 @@
 
 .footer a {
   color: var(--gray-30);
-  font-family: system-ui, sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   text-decoration: none;
 }
 

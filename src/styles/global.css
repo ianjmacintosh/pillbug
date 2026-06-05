@@ -1,12 +1,31 @@
 @import "./reset.css";
 @import "./tokens.css";
 
+/* Metric-matched fallbacks — reduce layout shift while web fonts load */
+@font-face {
+  font-family: 'Short Stack Fallback';
+  src: local('Comic Sans MS'), local('Chalkboard SE'), local('cursive');
+  size-adjust: 98%;
+  ascent-override: 92%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Prompt Fallback';
+  src: local('Trebuchet MS'), local('system-ui');
+  size-adjust: 100%;
+  ascent-override: 95%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}
+
 :root {
   color-scheme: light dark;
 }
 
 body {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-body);
   color: var(--gray-10);
   background-color: oklch(0.98 0 0);
 }
@@ -17,7 +36,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-ui);
   line-height: 1.2;
 }
 
@@ -93,6 +112,15 @@ main {
   padding: 0.25rem 0.625rem;
   font-size: 0.75rem;
   border-radius: 3px;
+}
+
+/* Brand-screen display heading — used on auth/public pages (Login, Register, Enter Code, Setup) */
+.display-heading {
+  font-family: var(--font-body);
+  font-size: var(--text-display);
+  font-weight: 600;
+  line-height: 1.2;
+  text-wrap: balance;
 }
 
 .visually-hidden {

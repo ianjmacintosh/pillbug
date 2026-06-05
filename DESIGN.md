@@ -19,7 +19,7 @@ colors:
   danger-hover: "oklch(0.45 0.22 25)"
 typography:
   display:
-    fontFamily: "Coiny, Sour Gummy, system-ui, sans-serif"
+    fontFamily: "'Sour Gummy', 'Sour Gummy Fallback', system-ui, sans-serif"
     fontSize: "clamp(1.75rem, 4vw, 3rem)"
     fontWeight: 400
     lineHeight: 1.1
@@ -134,11 +134,11 @@ Two warm anchors (golden yellow + playful sky blue) grounded in an achromatic ne
 
 ## 3. Typography
 
-**Display/Headline Font:** system-ui, sans-serif (current) → aspirational: Coiny, Sour Gummy, or Short Stack (playful, rounded, warm)
-**Body Font:** Georgia, "Times New Roman", serif
-**Label/UI Font:** system-ui, sans-serif
+**Logotype Font:** Short Stack, weight 400 (Google Fonts; `.header-brand` only — the "Pillbug" brand name)
+**Primary Font:** Prompt, weights 400 and 600 (Google Fonts; headings, body copy, labels, all UI text)
+**UI fallback:** system-ui (only where Prompt is explicitly not wanted)
 
-**Character:** The pairing of a serif body with a clean sans-serif heading stack is deliberately warm and editorial — unusual for a utility app, and that's the point. Georgia says "this was made for reading," not "this was built on a dashboard template." The aspirational display direction (Coiny/Sour Gummy range) would push the personality further on auth/marketing surfaces once adopted.
+**Character:** Short Stack gives the brand name a casual, handwritten warmth without bleeding into the rest of the UI. Prompt carries everything else — friendly geometric personality, good at both display sizes (600 for page h1s) and body copy (400). Do not load additional weights of Short Stack; it only has 400 and faux-bold is not acceptable here.
 
 ### Hierarchy
 - **Display** (weight 400, `clamp(1.75rem, 4vw, 3rem)`, line-height 1.1): Major page headings on brand-facing surfaces (Register, Login, landing). Aspirational: rounded display font.
@@ -149,7 +149,7 @@ Two warm anchors (golden yellow + playful sky blue) grounded in an achromatic ne
 
 **The Serif Body Rule.** Georgia is not a legacy fallback — it is the deliberate voice of the app. Don't replace it with system-ui or Inter for body copy. The warmth it carries is the personality. Headlines and UI chrome stay in system-ui to contrast.
 
-**The Playful Display Horizon.** Coiny, Sour Gummy, and Short Stack are the aspirational direction for display headings on public-facing screens. When those fonts are loaded, use them for h1 and major feature headings on Register/Login/landing. Until then, system-ui holds the position with appropriate weight contrast.
+**The Logotype Rule.** Short Stack is the "Pillbug" brand mark only — the `.header-brand` element. Nowhere else. Page h1s, buttons, labels, and all other text use Prompt. Never synthesize a faux-bold of Short Stack; weight 400 is its only weight and the right one.
 
 ## 4. Elevation
 
