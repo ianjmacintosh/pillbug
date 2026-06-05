@@ -3,6 +3,8 @@ import { makeEmailSender } from "./email-sender";
 import { Resend } from "resend";
 import verificationTemplate from "./emails/verification.html?raw";
 import loginTemplate from "./emails/login.html?raw";
+import verificationPtBRTemplate from "./emails/verification.pt-BR.html?raw";
+import loginPtBRTemplate from "./emails/login.pt-BR.html?raw";
 
 vi.mock("resend", () => ({ Resend: vi.fn() }));
 
@@ -172,6 +174,107 @@ describe("makeEmailSender", () => {
       );
       await sender.sendLoginEmail("user@example.com", "mytoken", "5678", null);
       const expectedHtml = loginTemplate
+        .replaceAll("{{pin}}", "5678")
+        .replaceAll(
+          "{{fallback_link}}",
+          "https://pillbug.ianjmacintosh.com/enter-code?token=mytoken&pin=5678",
+        )
+        .replaceAll(
+          "{{login_link}}",
+          "https://pillbug.ianjmacintosh.com/login?email=user%40example.com",
+        );
+      expect(mockSend).toHaveBeenCalledWith(
+        expect.objectContaining({ html: expectedHtml }),
+      );
+    });
+
+    test("sendVerificationEmail with pt-BR sends the pt-BR subject", async () => {
+      const mockSend = vi.fn().mockResolvedValue({ error: null });
+      vi.mocked(Resend).mockImplementation(function () {
+        return { emails: { send: mockSend } };
+      } as unknown as typeof Resend);
+      const sender = makeEmailSender(
+        undefined,
+        "real-api-key",
+        "https://pillbug.ianjmacintosh.com",
+      );
+      await sender.sendVerificationEmail(
+        "user@example.com",
+        "token",
+        "1234",
+        "pt-BR",
+      );
+      expect(mockSend).toHaveBeenCalledWith(
+        expect.objectContaining({ subject: "Verifique sua conta Pillbug" }),
+      );
+    });
+
+    test("sendLoginEmail with pt-BR sends the pt-BR subject", async () => {
+      const mockSend = vi.fn().mockResolvedValue({ error: null });
+      vi.mocked(Resend).mockImplementation(function () {
+        return { emails: { send: mockSend } };
+      } as unknown as typeof Resend);
+      const sender = makeEmailSender(
+        undefined,
+        "real-api-key",
+        "https://pillbug.ianjmacintosh.com",
+      );
+      await sender.sendLoginEmail("user@example.com", "token", "1234", "pt-BR");
+      expect(mockSend).toHaveBeenCalledWith(
+        expect.objectContaining({
+          subject: "Seu link de acesso ao Pillbug",
+        }),
+      );
+    });
+
+    test("sendVerificationEmail with pt-BR sends the pt-BR HTML body", async () => {
+      const mockSend = vi.fn().mockResolvedValue({ error: null });
+      vi.mocked(Resend).mockImplementation(function () {
+        return { emails: { send: mockSend } };
+      } as unknown as typeof Resend);
+      const sender = makeEmailSender(
+        undefined,
+        "real-api-key",
+        "https://pillbug.ianjmacintosh.com",
+      );
+      await sender.sendVerificationEmail(
+        "user@example.com",
+        "mytoken",
+        "5678",
+        "pt-BR",
+      );
+      const expectedHtml = verificationPtBRTemplate
+        .replaceAll("{{pin}}", "5678")
+        .replaceAll(
+          "{{fallback_link}}",
+          "https://pillbug.ianjmacintosh.com/enter-code?token=mytoken&pin=5678",
+        )
+        .replaceAll(
+          "{{login_link}}",
+          "https://pillbug.ianjmacintosh.com/login?email=user%40example.com",
+        );
+      expect(mockSend).toHaveBeenCalledWith(
+        expect.objectContaining({ html: expectedHtml }),
+      );
+    });
+
+    test("sendLoginEmail with pt-BR sends the pt-BR HTML body", async () => {
+      const mockSend = vi.fn().mockResolvedValue({ error: null });
+      vi.mocked(Resend).mockImplementation(function () {
+        return { emails: { send: mockSend } };
+      } as unknown as typeof Resend);
+      const sender = makeEmailSender(
+        undefined,
+        "real-api-key",
+        "https://pillbug.ianjmacintosh.com",
+      );
+      await sender.sendLoginEmail(
+        "user@example.com",
+        "mytoken",
+        "5678",
+        "pt-BR",
+      );
+      const expectedHtml = loginPtBRTemplate
         .replaceAll("{{pin}}", "5678")
         .replaceAll(
           "{{fallback_link}}",

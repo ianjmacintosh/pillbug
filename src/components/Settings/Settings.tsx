@@ -5,7 +5,10 @@ import "./Settings.css";
 
 const Route = getRouteApi("/layout/settings");
 
-const LANGUAGE_OPTIONS = [{ value: "en-US", label: "English (US)" }];
+const LANGUAGE_OPTIONS = [
+  { value: "en-US", label: "English (US)" },
+  { value: "pt-BR", label: "Português (Brasil)" },
+];
 
 function Settings() {
   const { t, i18n } = useTranslation();
