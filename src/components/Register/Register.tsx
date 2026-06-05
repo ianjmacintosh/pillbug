@@ -56,24 +56,20 @@ function Register() {
   return (
     <main className="register">
       <div className="rv1-copy">
-        <h2 className="rv1-headline">Your medications, organized</h2>
-        <p className="rv1-body">
-          Pillbug keeps your prescription schedule in one place. See every dose
-          for the week, confirm each medication as you take it, and get
-          step-by-step help filling your pill organizer.
-        </p>
+        <h2 className="rv1-headline">{t("register.pitch.headline")}</h2>
+        <p className="rv1-body">{t("register.pitch.body")}</p>
         <ul className="rv1-features">
           <li className="rv1-feature">
-            <strong>Week at a glance.</strong> Every dose, every day, in a
-            single view.
+            <strong>{t("register.pitch.weekAtAGlanceLabel")}</strong>{" "}
+            {t("register.pitch.weekAtAGlance")}
           </li>
           <li className="rv1-feature">
-            <strong>Confirm as you go.</strong> Mark doses taken with a tap.
-            Come back any time to see where you left off.
+            <strong>{t("register.pitch.confirmAsYouGoLabel")}</strong>{" "}
+            {t("register.pitch.confirmAsYouGo")}
           </li>
           <li className="rv1-feature">
-            <strong>Guided refills.</strong> Fill your weekly pill organizer
-            compartment by compartment.
+            <strong>{t("register.pitch.guidedRefillsLabel")}</strong>{" "}
+            {t("register.pitch.guidedRefills")}
           </li>
         </ul>
       </div>

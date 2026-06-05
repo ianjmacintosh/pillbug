@@ -137,6 +137,17 @@ const enUS = {
   "register.submit": "Email me a login link",
   "register.alreadyHaveAccount": "Already have an account?",
   "register.logIn": "Log in",
+  "register.pitch.headline": "Your medications, organized",
+  "register.pitch.body":
+    "Pillbug keeps your prescription schedule in one place. See every dose for the week, confirm each medication as you take it, and get step-by-step help filling your pill organizer.",
+  "register.pitch.weekAtAGlanceLabel": "Week at a glance.",
+  "register.pitch.weekAtAGlance": "Every dose, every day, in a single view.",
+  "register.pitch.confirmAsYouGoLabel": "Confirm as you go.",
+  "register.pitch.confirmAsYouGo":
+    "Mark doses taken with a tap. Come back any time to see where you left off.",
+  "register.pitch.guidedRefillsLabel": "Guided refills.",
+  "register.pitch.guidedRefills":
+    "Fill your weekly pill organizer compartment by compartment.",
   "email.verificationSubject": "Verify your Pillbug account",
   "email.loginSubject": "Your Pillbug sign-in link",
 } as const;

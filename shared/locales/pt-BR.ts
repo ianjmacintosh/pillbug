@@ -141,6 +141,17 @@ const ptBR = {
   "register.submit": "Enviar link de acesso por e-mail",
   "register.alreadyHaveAccount": "Já tem uma conta?",
   "register.logIn": "Entrar",
+  "register.pitch.headline": "Seus medicamentos, organizados",
+  "register.pitch.body":
+    "O Pillbug mantém sua agenda de prescrições em um só lugar. Veja cada dose da semana, confirme cada medicamento ao tomá-lo e receba ajuda passo a passo para preencher seu organizador de comprimidos.",
+  "register.pitch.weekAtAGlanceLabel": "Semana de uma olhada.",
+  "register.pitch.weekAtAGlance": "Cada dose, todo dia, em uma única tela.",
+  "register.pitch.confirmAsYouGoLabel": "Confirme enquanto avança.",
+  "register.pitch.confirmAsYouGo":
+    "Marque as doses tomadas com um toque. Volte a qualquer momento para ver onde parou.",
+  "register.pitch.guidedRefillsLabel": "Reposição guiada.",
+  "register.pitch.guidedRefills":
+    "Preencha seu organizador semanal compartimento por compartimento.",
   "email.verificationSubject": "Verifique sua conta Pillbug",
   "email.loginSubject": "Seu link de acesso ao Pillbug",
 } as const;
