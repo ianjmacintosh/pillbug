@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import "./CompleteSetup.css";
 
 function CompleteSetup() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [retryCount, setRetryCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -18,7 +18,7 @@ function CompleteSetup() {
       const res = await fetch("/api/v1/account", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ timezone }),
+        body: JSON.stringify({ timezone, language: i18n.language }),
       });
       setLoading(false);
       if (res.ok) {
