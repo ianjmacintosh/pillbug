@@ -8,7 +8,7 @@ const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string;
 const TURNSTILE_INTERACTIVE_SITE_KEY = "3x00000000000000000000FF";
 
 function Register() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const forceChallenge = new URLSearchParams(window.location.search).has(
     "challenge",
@@ -37,7 +37,11 @@ function Register() {
     const res = await fetch("/api/v1/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email.trim(), turnstileToken }),
+      body: JSON.stringify({
+        email: email.trim(),
+        turnstileToken,
+        language: i18n.language,
+      }),
     });
 
     if (res.ok) {

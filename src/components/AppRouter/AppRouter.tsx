@@ -6,6 +6,7 @@ import {
   redirect,
   RouterProvider,
 } from "@tanstack/react-router";
+import { applyStoredLanguage } from "../../lib/applyStoredLanguage";
 import App from "../App";
 import FillSession from "../FillSession";
 import Layout from "../Layout";
@@ -58,7 +59,11 @@ async function requireTimezone() {
   if (!res.ok) {
     throw redirect({ to: "/login" });
   }
-  const data = (await res.json()) as { timezone: string | null };
+  const data = (await res.json()) as {
+    timezone: string | null;
+    language: string | null;
+  };
+  await applyStoredLanguage(data.language ?? null);
   if (!data.timezone) {
     throw redirect({ to: "/finish-setup" });
   }
@@ -92,7 +97,9 @@ const indexRoute = createRoute({
     const data = (await res.json()) as {
       registrationDate: string | null;
       timezone: string | null;
+      language: string | null;
     };
+    await applyStoredLanguage(data.language ?? null);
     if (!data.timezone) {
       throw redirect({ to: "/finish-setup" });
     }
@@ -141,8 +148,11 @@ const settingsRoute = createRoute({
   loader: async () => {
     const res = await fetch("/api/v1/account");
     if (!res.ok) throw redirect({ to: "/login" });
-    const data = (await res.json()) as { timezone: string | null };
-    return { timezone: data.timezone };
+    const data = (await res.json()) as {
+      timezone: string | null;
+      language: string | null;
+    };
+    return { timezone: data.timezone, language: data.language };
   },
   component: Settings,
 });
