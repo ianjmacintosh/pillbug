@@ -104,6 +104,15 @@ export default {
   },
 };
 
+function resolveLanguage(raw: unknown): string {
+  if (typeof raw !== "string") return "en-US";
+  try {
+    return new Intl.Locale(raw).toString();
+  } catch {
+    return "en-US";
+  }
+}
+
 async function handleRequest(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const secure = url.protocol === "https:";
@@ -125,9 +134,14 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   }
 
   if (url.pathname === "/api/v1/register" && request.method === "POST") {
-    const { email, turnstileToken } = await request.json<{
+    const {
+      email,
+      turnstileToken,
+      language: rawLanguage,
+    } = await request.json<{
       email: string;
       turnstileToken: string;
+      language?: unknown;
     }>();
     const tokenValid = await verifyTurnstileToken(
       turnstileToken,
@@ -139,6 +153,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
         { status: 403, headers: { "Content-Type": "application/json" } },
       );
     }
+    const language = resolveLanguage(rawLanguage);
     const emailSender = makeEmailSender(
       env.EMAIL_MOCK,
       env.RESEND_API_KEY,
@@ -149,6 +164,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       repo,
       emailSender,
       hashPin,
+      language,
     );
     return new Response(JSON.stringify({ ok: true, token }), {
       headers: { "Content-Type": "application/json" },
@@ -229,14 +245,16 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
         headers: { "Content-Type": "application/json" },
       });
     }
-    const [createdAt, timezone] = await Promise.all([
+    const [createdAt, timezone, language] = await Promise.all([
       repo.findPatientCreatedAt(session.patientId),
       repo.findPatientTimezone(session.patientId),
+      repo.findPatientLanguage(session.patientId),
     ]);
     const registrationDate = createdAt ? createdAt.slice(0, 10) : null;
-    return new Response(JSON.stringify({ timezone, registrationDate }), {
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ timezone, registrationDate, language }),
+      { headers: { "Content-Type": "application/json" } },
+    );
   }
 
   if (url.pathname === "/api/v1/account" && request.method === "PATCH") {
@@ -249,7 +267,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       });
     }
     const body = await request.json<Record<string, unknown>>();
-    const { timezone } = body;
+    const { timezone, language } = body;
     if (typeof timezone === "string") {
       const validZones = new Set(Intl.supportedValuesOf("timeZone"));
       if (!validZones.has(timezone)) {
@@ -259,6 +277,12 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
         });
       }
       await repo.updatePatientTimezone(session.patientId, timezone);
+    }
+    if (typeof language === "string") {
+      await repo.updatePatientLanguage(
+        session.patientId,
+        resolveLanguage(language),
+      );
     }
     return new Response(JSON.stringify({ ok: true }), {
       headers: { "Content-Type": "application/json" },

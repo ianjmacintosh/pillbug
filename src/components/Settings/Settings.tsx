@@ -1,11 +1,22 @@
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useState, type SyntheticEvent } from "react";
+import { useTranslation } from "react-i18next";
 import "./Settings.css";
 
 const Route = getRouteApi("/layout/settings");
 
+const LANGUAGE_OPTIONS = [
+  { value: "en-US", label: "English (US)" },
+  { value: "pt-BR", label: "Português (Brasil)" },
+];
+
 function Settings() {
-  const { timezone: savedTimezone } = Route.useLoaderData();
+  const { t, i18n } = useTranslation();
+  const { timezone: savedTimezone, language: savedLanguage } =
+    Route.useLoaderData();
+  const [selectedLanguage, setSelectedLanguage] = useState(
+    savedLanguage ?? i18n.language,
+  );
   const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const [selected, setSelected] = useState(savedTimezone ?? browserTimezone);
   const navigate = useNavigate();
@@ -20,10 +31,11 @@ function Settings() {
     const res = await fetch("/api/v1/account", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ timezone: selected }),
+      body: JSON.stringify({ timezone: selected, language: selectedLanguage }),
     });
     setSubmitting(false);
     if (res.ok) {
+      await i18n.changeLanguage(selectedLanguage);
       await navigate({ to: "/" });
     } else {
       setStatus("error");
@@ -32,10 +44,24 @@ function Settings() {
 
   return (
     <main className="settings">
-      <h1>Settings</h1>
+      <h1>{t("settings.heading")}</h1>
       <form onSubmit={handleSubmit}>
         <div className="field">
-          <label htmlFor="timezone">Time zone</label>
+          <label htmlFor="language">{t("settings.languageLabel")}</label>
+          <select
+            id="language"
+            value={selectedLanguage}
+            onChange={(e) => setSelectedLanguage(e.target.value)}
+          >
+            {LANGUAGE_OPTIONS.map(({ value, label }) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field">
+          <label htmlFor="timezone">{t("settings.timezoneLabel")}</label>
           <select
             id="timezone"
             value={selected}
@@ -48,11 +74,9 @@ function Settings() {
             ))}
           </select>
         </div>
-        {status === "error" && (
-          <p role="alert">Something went wrong. Please try again.</p>
-        )}
+        {status === "error" && <p role="alert">{t("settings.serverError")}</p>}
         <button type="submit" disabled={submitting} className="button-primary">
-          {submitting ? "Saving…" : "Save"}
+          {submitting ? t("settings.submitting") : t("settings.submit")}
         </button>
       </form>
     </main>

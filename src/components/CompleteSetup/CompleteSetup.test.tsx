@@ -76,6 +76,25 @@ describe("CompleteSetup", () => {
     });
   });
 
+  test("on mount, PATCH body includes language", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(null, { status: 200 }),
+    );
+    render(<CompleteSetup />);
+    await waitFor(() => {
+      const calls = vi.mocked(globalThis.fetch).mock.calls;
+      const patchCall = calls.find(
+        ([url, init]) =>
+          typeof url === "string" &&
+          url === "/api/v1/account" &&
+          (init as RequestInit)?.method === "PATCH",
+      );
+      expect(patchCall).toBeTruthy();
+      const body = JSON.parse((patchCall![1] as RequestInit).body as string);
+      expect(body.language).toBe("en-US");
+    });
+  });
+
   test("on mount, PATCHes browser timezone without user interaction", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
       new Response(null, { status: 200 }),

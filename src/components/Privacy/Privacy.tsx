@@ -1,8 +1,11 @@
+import { useTranslation } from "react-i18next";
+
 function Privacy() {
+  const { t } = useTranslation();
   return (
     <main>
-      <h1>Privacy Policy</h1>
-      <p>Privacy Policy content coming soon.</p>
+      <h1>{t("privacy.heading")}</h1>
+      <p>{t("privacy.placeholder")}</p>
     </main>
   );
 }

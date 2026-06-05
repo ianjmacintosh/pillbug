@@ -36,8 +36,10 @@ Creates a new Patient account and sends a verification email with a 4-digit PIN.
 **Request**
 
 ```json
-{ "email": "patient@example.com", "turnstileToken": "..." }
+{ "email": "patient@example.com", "turnstileToken": "...", "language": "en-US" }
 ```
+
+`language` is optional. The frontend sends the react-i18next resolved locale (e.g. `"en-US"`, `"pt-BR"`). Unknown, missing, or non-string values fall back to `"en-US"`. The value is stored on the new `patients` row and used to select the language for the verification email.
 
 **Response — 200**
 
@@ -144,10 +146,14 @@ Returns the authenticated Patient's account data.
 **Response — 200**
 
 ```json
-{ "timezone": "America/New_York", "registrationDate": "2024-01-15" }
+{
+  "timezone": "America/New_York",
+  "registrationDate": "2024-01-15",
+  "language": "en-US"
+}
 ```
 
-`timezone` is `string | null` — `null` means the patient has not yet set a timezone preference. `registrationDate` is `string | null` in `YYYY-MM-DD` format.
+`timezone` is `string | null` — `null` means the patient has not yet set a timezone preference. `registrationDate` is `string | null` in `YYYY-MM-DD` format. `language` is `string | null` — `null` means language was not captured (pre-feature patients); callers should fall back to `"en-US"`.
 
 **Response — 401**
 
@@ -164,8 +170,10 @@ Updates the authenticated Patient's account settings. Only fields included in th
 **Request**
 
 ```json
-{ "timezone": "America/New_York" }
+{ "timezone": "America/New_York", "language": "en-US" }
 ```
+
+Both fields are optional. For `language`: unknown or non-string values fall back to `"en-US"` (no error). If omitted, the stored value is unchanged.
 
 **Response — 200**
 

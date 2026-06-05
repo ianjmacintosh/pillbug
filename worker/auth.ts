@@ -3,6 +3,7 @@ export interface AuthRepository {
     id: string,
     email: string,
     termsAcceptedAt: string,
+    language?: string | null,
   ): Promise<void>;
   findPatientByEmail(
     email: string,
@@ -35,6 +36,8 @@ export interface AuthRepository {
   findPatientCreatedAt(patientId: string): Promise<string | null>;
   findPatientTimezone(patientId: string): Promise<string | null>;
   updatePatientTimezone(patientId: string, timezone: string): Promise<void>;
+  findPatientLanguage(patientId: string): Promise<string | null>;
+  updatePatientLanguage(patientId: string, language: string): Promise<void>;
   deleteSession(id: string): Promise<void>;
   findUnverifiedPatientsBefore(cutoff: string): Promise<{ id: string }[]>;
   deletePatient(patientId: string): Promise<void>;
@@ -43,8 +46,18 @@ export interface AuthRepository {
 }
 
 export interface EmailSender {
-  sendVerificationEmail(to: string, token: string, pin: string): Promise<void>;
-  sendLoginEmail(to: string, token: string, pin: string): Promise<void>;
+  sendVerificationEmail(
+    to: string,
+    token: string,
+    pin: string,
+    language: string | null,
+  ): Promise<void>;
+  sendLoginEmail(
+    to: string,
+    token: string,
+    pin: string,
+    language: string | null,
+  ): Promise<void>;
 }
 
 export interface SentEmail {
@@ -70,11 +83,17 @@ function generatePin(): string {
 async function findOrCreatePatient(
   email: string,
   repo: AuthRepository,
+  language: string | null = null,
 ): Promise<string> {
   const existing = await repo.findPatientByEmail(email);
   if (existing) return existing.id;
   const patientId = generateId();
-  await repo.createPatient(patientId, email, new Date().toISOString());
+  await repo.createPatient(
+    patientId,
+    email,
+    new Date().toISOString(),
+    language,
+  );
   return patientId;
 }
 
@@ -106,10 +125,11 @@ export async function registerPatient(
   repo: AuthRepository,
   emailSender: EmailSender,
   hashPin: (pin: string) => Promise<string>,
+  language: string | null = null,
 ): Promise<{ ok: true; token: string }> {
-  const patientId = await findOrCreatePatient(email, repo);
+  const patientId = await findOrCreatePatient(email, repo, language);
   const { token, pin } = await createPatientToken(patientId, repo, hashPin);
-  await emailSender.sendVerificationEmail(email, token, pin);
+  await emailSender.sendVerificationEmail(email, token, pin, language);
   return { ok: true, token };
 }
 
@@ -122,7 +142,7 @@ export async function sendLoginLink(
   const patient = await repo.findPatientByEmail(email);
   if (patient) {
     const { token, pin } = await createPatientToken(patient.id, repo, hashPin);
-    await emailSender.sendLoginEmail(email, token, pin);
+    await emailSender.sendLoginEmail(email, token, pin, null);
     return { ok: true, token };
   }
   const token = generateId();

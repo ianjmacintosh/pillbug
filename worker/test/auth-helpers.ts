@@ -10,6 +10,7 @@ export function makeInMemoryRepo(): AuthRepository {
       createdAt: string;
       lastLoginAt: string | null;
       timezone: string | null;
+      language: string | null;
     }
   >();
   const tokens = new Map<
@@ -25,7 +26,7 @@ export function makeInMemoryRepo(): AuthRepository {
   const sessions = new Map<string, { patientId: string; expiresAt: string }>();
 
   return {
-    async createPatient(id, email, termsAcceptedAt) {
+    async createPatient(id, email, termsAcceptedAt, language = null) {
       if ([...patients.values()].some((p) => p.email === email)) {
         throw new Error("email_taken");
       }
@@ -36,6 +37,7 @@ export function makeInMemoryRepo(): AuthRepository {
         createdAt: new Date().toISOString(),
         lastLoginAt: null,
         timezone: null,
+        language,
       });
     },
     async findPatientByEmail(email) {
@@ -92,6 +94,13 @@ export function makeInMemoryRepo(): AuthRepository {
     async updatePatientTimezone(patientId, timezone) {
       const p = patients.get(patientId);
       if (p) patients.set(patientId, { ...p, timezone });
+    },
+    async findPatientLanguage(patientId) {
+      return patients.get(patientId)?.language ?? null;
+    },
+    async updatePatientLanguage(patientId, language) {
+      const p = patients.get(patientId);
+      if (p) patients.set(patientId, { ...p, language });
     },
     async findUnverifiedPatientsBefore(cutoff) {
       return [...patients.values()]

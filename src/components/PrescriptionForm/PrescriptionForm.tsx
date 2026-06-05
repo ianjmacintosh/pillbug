@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
+import { type TFunction } from "i18next";
 
 type DayOfWeek =
   | "sunday"
@@ -19,26 +21,6 @@ const WEEKDAYS: DayOfWeek[] = [
   "friday",
   "saturday",
 ];
-
-const DAY_LABELS: Record<DayOfWeek, string> = {
-  sunday: "Sunday",
-  monday: "Monday",
-  tuesday: "Tuesday",
-  wednesday: "Wednesday",
-  thursday: "Thursday",
-  friday: "Friday",
-  saturday: "Saturday",
-};
-
-const DAY_ABBRS: Record<DayOfWeek, string> = {
-  sunday: "Sun",
-  monday: "Mon",
-  tuesday: "Tue",
-  wednesday: "Wed",
-  thursday: "Thu",
-  friday: "Fri",
-  saturday: "Sat",
-};
 
 const DOSAGE_UNITS = ["mg", "g", "mcg"] as const;
 type DosageUnit = (typeof DOSAGE_UNITS)[number];
@@ -364,6 +346,7 @@ function usePrescriptionForm(prescription?: PrescriptionFormData) {
 }
 
 interface FormFieldsProps {
+  t: TFunction;
   idPrefix: string;
   doseForm: string;
   setDoseForm: (v: string) => void;
@@ -403,6 +386,7 @@ interface FormFieldsProps {
 }
 
 function FormFields({
+  t,
   idPrefix,
   doseForm,
   setDoseForm,
@@ -436,7 +420,9 @@ function FormFields({
     <>
       <div className="drug-info-row">
         <div className="field drug-name-field">
-          <label htmlFor={`${idPrefix}-drugName`}>Drug name</label>
+          <label htmlFor={`${idPrefix}-drugName`}>
+            {t("prescriptionForm.drugNameLabel")}
+          </label>
           <input
             id={`${idPrefix}-drugName`}
             type="text"
@@ -447,7 +433,9 @@ function FormFields({
         </div>
 
         <div className="field">
-          <label htmlFor={`${idPrefix}-dosage`}>Strength</label>
+          <label htmlFor={`${idPrefix}-dosage`}>
+            {t("prescriptionForm.strengthLabel")}
+          </label>
           {dosageFallback !== null ? (
             <input
               id={`${idPrefix}-dosage`}
@@ -474,7 +462,7 @@ function FormFields({
                 required
               />
               <select
-                aria-label="Unit"
+                aria-label={t("prescriptionForm.unitLabel")}
                 value={dosageUnit}
                 onChange={(e) => {
                   setDosageUnit(e.target.value as DosageUnit | "");
@@ -483,7 +471,9 @@ function FormFields({
                   );
                 }}
               >
-                <option value="">(blank)</option>
+                <option value="">
+                  {t("prescriptionForm.dosageUnitBlank")}
+                </option>
                 <option value="mg">mg</option>
                 <option value="g">g</option>
                 <option value="mcg">mcg</option>
@@ -492,9 +482,11 @@ function FormFields({
           )}
           {detectedDuplicateUnit !== null && (
             <p className="field-hint dosage-unit-warning">
-              Looks like you included the unit in the strength number (&ldquo;
-              {dosageUnit ? `${dosageQuantity} ${dosageUnit}` : dosageQuantity}
-              &rdquo;) &mdash; Did you mean{" "}
+              {t("prescriptionForm.dosageUnitWarning", {
+                value: dosageUnit
+                  ? `${dosageQuantity} ${dosageUnit}`
+                  : dosageQuantity,
+              })}{" "}
               <button
                 type="button"
                 className="dosage-fix-link"
@@ -517,26 +509,36 @@ function FormFields({
         </div>
 
         <div className="field drug-form-field">
-          <label htmlFor={`${idPrefix}-doseForm`}>Form</label>
+          <label htmlFor={`${idPrefix}-doseForm`}>
+            {t("prescriptionForm.formLabel")}
+          </label>
           <select
             id={`${idPrefix}-doseForm`}
             value={doseForm}
             onChange={(e) => setDoseForm(e.target.value)}
           >
-            <option value="tablet">tablet</option>
-            <option value="capsule">capsule</option>
-            <option value="pill">pill</option>
-            <option value="other">other</option>
+            <option value="tablet">
+              {t("prescriptionForm.doseForm.tablet")}
+            </option>
+            <option value="capsule">
+              {t("prescriptionForm.doseForm.capsule")}
+            </option>
+            <option value="pill">{t("prescriptionForm.doseForm.pill")}</option>
+            <option value="other">
+              {t("prescriptionForm.doseForm.other")}
+            </option>
           </select>
         </div>
       </div>
 
       <section className="prescription-detail-schedule">
-        <h3>Schedule</h3>
+        <h3>{t("prescriptionForm.schedule")}</h3>
 
         <div className="date-range-row">
           <div>
-            <label htmlFor={`${idPrefix}-startDate`}>Start date</label>
+            <label htmlFor={`${idPrefix}-startDate`}>
+              {t("prescriptionForm.startDate")}
+            </label>
             <input
               id={`${idPrefix}-startDate`}
               type="date"
@@ -546,14 +548,16 @@ function FormFields({
             />
           </div>
           <div>
-            <label htmlFor={`${idPrefix}-endDate`}>End date (optional)</label>
+            <label htmlFor={`${idPrefix}-endDate`}>
+              {t("prescriptionForm.endDate")}
+            </label>
             <input
               id={`${idPrefix}-endDate`}
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
             />
-            <p className="field-hint">Leave blank for ongoing prescriptions.</p>
+            <p className="field-hint">{t("prescriptionForm.endDateHint")}</p>
           </div>
         </div>
 
@@ -562,16 +566,18 @@ function FormFields({
             <div key={scheduleIndex} className="routine-block">
               <div className="routine-block-header">
                 <span className="routine-block-label">
-                  Dosing Schedule {scheduleIndex + 1}
+                  {t("prescriptionForm.dosingSchedule", {
+                    number: scheduleIndex + 1,
+                  })}
                 </span>
                 <button
                   type="button"
                   className="routine-remove-btn button-secondary button-sm"
-                  aria-label="Remove dosing schedule"
+                  aria-label={t("prescriptionForm.removeDosingSchedule")}
                   disabled={schedules.length === 1}
                   onClick={() => removeSchedule(scheduleIndex)}
                 >
-                  Remove dosing schedule
+                  {t("prescriptionForm.removeDosingSchedule")}
                 </button>
               </div>
 
@@ -582,20 +588,20 @@ function FormFields({
                 }
               >
                 <legend>
-                  Days and Times
+                  {t("prescriptionForm.daysAndTimes")}
                   <button
                     type="button"
                     className="toggle-all-link"
                     onClick={() => toggleAllDays(scheduleIndex)}
                   >
                     {schedule.days.size === WEEKDAYS.length
-                      ? "(Unselect all)"
-                      : "(Select all)"}
+                      ? t("prescriptionForm.unselectAll")
+                      : t("prescriptionForm.selectAll")}
                   </button>
                 </legend>
                 {schedule.daysError && (
                   <p role="alert" className="schedule-error-message">
-                    Please select at least one day.
+                    {t("prescriptionForm.daysError")}
                   </p>
                 )}
                 <div className="day-pills-row">
@@ -606,28 +612,30 @@ function FormFields({
                         className="visually-hidden"
                         checked={schedule.days.has(day)}
                         onChange={() => toggleDay(scheduleIndex, day)}
-                        aria-label={DAY_LABELS[day]}
+                        aria-label={t(`days.full.${day}`)}
                       />
-                      <span aria-hidden="true">{DAY_ABBRS[day]}</span>
+                      <span aria-hidden="true">{t(`days.abbr.${day}`)}</span>
                     </label>
                   ))}
                 </div>
                 {schedule.timesError && (
                   <p role="alert" className="schedule-error-message">
-                    Please add at least one dose time.
+                    {t("prescriptionForm.timesError")}
                   </p>
                 )}
                 <table className="prescription-list">
                   <thead>
                     <tr>
                       <th scope="col" className="col-time">
-                        Time
+                        {t("prescriptionForm.time")}
                       </th>
                       <th scope="col" className="col-dose">
-                        Dose
+                        {t("prescriptionForm.dose")}
                       </th>
                       <th scope="col" className="col-remove">
-                        <span className="visually-hidden">Remove</span>
+                        <span className="visually-hidden">
+                          {t("prescriptionForm.removeLabel")}
+                        </span>
                       </th>
                     </tr>
                   </thead>
@@ -671,7 +679,7 @@ function FormFields({
                           <button
                             type="button"
                             className="remove-time"
-                            aria-label="Remove time"
+                            aria-label={t("prescriptionForm.removeDoseTime")}
                             disabled={schedule.times.length === 1}
                             onClick={() =>
                               removeDoseTime(scheduleIndex, timeIndex)
@@ -689,7 +697,7 @@ function FormFields({
                   className="add-dose-time"
                   onClick={() => addDoseTime(scheduleIndex)}
                 >
-                  + Add new dose time
+                  {t("prescriptionForm.addDoseTime")}
                 </button>
               </fieldset>
             </div>
@@ -700,14 +708,14 @@ function FormFields({
             className="button-secondary button-sm"
             onClick={addSchedule}
           >
-            + Add dosing schedule
+            {t("prescriptionForm.addDosingSchedule")}
           </button>
         </div>
       </section>
 
       <div className="field">
         <label htmlFor={`${idPrefix}-instructions`}>
-          Instructions (optional)
+          {t("prescriptionForm.instructionsLabel")}
         </label>
         <input
           id={`${idPrefix}-instructions`}
@@ -721,6 +729,7 @@ function FormFields({
 }
 
 export function NewPrescriptionForm() {
+  const { t } = useTranslation();
   const form = usePrescriptionForm();
   const navigate = useNavigate();
 
@@ -759,17 +768,19 @@ export function NewPrescriptionForm() {
 
   return (
     <section>
-      <h2>Add prescription</h2>
+      <h2>{t("prescriptionForm.addHeading")}</h2>
       <form onSubmit={handleCreate}>
         {form.error && <p role="alert">{form.error}</p>}
-        <FormFields idPrefix="create" {...form} />
+        <FormFields t={t} idPrefix="create" {...form} />
         <div className="form-actions">
           <button
             type="submit"
             disabled={form.submitting}
             className="button-primary"
           >
-            {form.submitting ? "Saving…" : "Save prescription"}
+            {form.submitting
+              ? t("prescriptionForm.saving")
+              : t("prescriptionForm.save")}
           </button>
         </div>
       </form>
@@ -780,6 +791,7 @@ export function NewPrescriptionForm() {
 const editRouteApi = getRouteApi("/layout/prescriptions/$id/edit");
 
 export function EditPrescriptionForm() {
+  const { t } = useTranslation();
   const prescription = editRouteApi.useLoaderData() as PrescriptionFormData;
   const { id } = editRouteApi.useParams();
   const form = usePrescriptionForm(prescription);
@@ -816,17 +828,19 @@ export function EditPrescriptionForm() {
 
   return (
     <section>
-      <h2>Edit prescription</h2>
+      <h2>{t("prescriptionForm.editHeading")}</h2>
       <form onSubmit={handleSaveEdit}>
         {form.error && <p role="alert">{form.error}</p>}
-        <FormFields idPrefix="edit" {...form} />
+        <FormFields t={t} idPrefix="edit" {...form} />
         <div className="form-actions">
           <button
             type="submit"
             disabled={form.submitting}
             className="button-primary"
           >
-            {form.submitting ? "Saving…" : "Save prescription"}
+            {form.submitting
+              ? t("prescriptionForm.saving")
+              : t("prescriptionForm.save")}
           </button>
         </div>
       </form>

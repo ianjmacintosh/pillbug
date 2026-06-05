@@ -3,10 +3,30 @@ import { getPlatformProxy } from "wrangler";
 import type { D1Database } from "@cloudflare/workers-types";
 import { hashEmail } from "../worker/email-crypto";
 import { setKnownPin, TURNSTILE_DUMMY_TOKEN, TEST_PIN } from "./helpers";
-import { ALICE_AUTH_FILE, PRESCRIPTIONS_PATIENT_EMAIL } from "./test-accounts";
+import {
+  ALICE_AUTH_FILE,
+  ALICE_EMAIL,
+  PRESCRIPTIONS_PATIENT_EMAIL,
+} from "./test-accounts";
 
 interface Env {
   DB: D1Database;
+}
+
+async function resetAliceLanguage(): Promise<void> {
+  const { env, dispose } = await getPlatformProxy<Env>({
+    environment: "staging",
+  });
+  try {
+    const emailLookup = await hashEmail(ALICE_EMAIL, process.env.EMAIL_SECRET!);
+    await env.DB.prepare(
+      "UPDATE patients SET language = NULL WHERE email_lookup = ?",
+    )
+      .bind(emailLookup)
+      .run();
+  } finally {
+    await dispose();
+  }
 }
 
 async function clearPrescriptions(): Promise<void> {
@@ -48,6 +68,10 @@ async function login(page: Page): Promise<void> {
 
 test.describe("Home screen week navigation", () => {
   test.use({ storageState: ALICE_AUTH_FILE });
+
+  test.beforeEach(async () => {
+    await resetAliceLanguage();
+  });
 
   test("Previous week button is enabled", async ({ page }) => {
     await page.goto("/");

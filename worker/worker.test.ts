@@ -295,6 +295,61 @@ describe("POST /api/v1/register email trimming", () => {
   });
 });
 
+describe("POST /api/v1/register language", () => {
+  let repo: ReturnType<typeof makeInMemoryRepo>;
+
+  beforeEach(() => {
+    repo = makeInMemoryRepo();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(repo);
+  });
+
+  test("stores language on the new patient when provided", async () => {
+    await worker.fetch(
+      new Request("http://localhost:5173/api/v1/register", {
+        method: "POST",
+        body: JSON.stringify({
+          email: "delivered@resend.dev",
+          turnstileToken: "valid-token",
+          language: "pt-BR",
+        }),
+        headers: { "Content-Type": "application/json" },
+      }),
+      makeEnv(),
+    );
+
+    const patient = await repo.findPatientByEmail("delivered@resend.dev");
+    expect(await repo.findPatientLanguage(patient!.id)).toBe("pt-BR");
+  });
+
+  test("stores en-US when language is missing", async () => {
+    await worker.fetch(
+      makeRegisterRequest("http://localhost:5173/api/v1/register"),
+      makeEnv(),
+    );
+
+    const patient = await repo.findPatientByEmail("delivered@resend.dev");
+    expect(await repo.findPatientLanguage(patient!.id)).toBe("en-US");
+  });
+
+  test("stores en-US when language is not a valid BCP 47 tag", async () => {
+    await worker.fetch(
+      new Request("http://localhost:5173/api/v1/register", {
+        method: "POST",
+        body: JSON.stringify({
+          email: "delivered@resend.dev",
+          turnstileToken: "valid-token",
+          language: "not-a-locale!!!",
+        }),
+        headers: { "Content-Type": "application/json" },
+      }),
+      makeEnv(),
+    );
+
+    const patient = await repo.findPatientByEmail("delivered@resend.dev");
+    expect(await repo.findPatientLanguage(patient!.id)).toBe("en-US");
+  });
+});
+
 describe("POST /api/v1/register Turnstile validation", () => {
   test("returns 200 with token when Turnstile token is valid", async () => {
     vi.mocked(verifyTurnstileToken).mockResolvedValue(true);
@@ -518,6 +573,63 @@ describe("PATCH /api/v1/account", () => {
     expect(response.status).toBe(422);
     expect(await response.json()).toEqual({ error: "invalid_timezone" });
   });
+
+  test("returns 200 and persists a valid language", async () => {
+    await createSessionAndPatient();
+
+    const response = await worker.fetch(
+      new Request("http://localhost:5173/api/v1/account", {
+        method: "PATCH",
+        body: JSON.stringify({ language: "pt-BR" }),
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: "session=session-id-1",
+        },
+      }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true });
+    expect(await repo.findPatientLanguage("patient-1")).toBe("pt-BR");
+  });
+
+  test("stores en-US when language is not a valid BCP 47 tag", async () => {
+    await createSessionAndPatient();
+
+    await worker.fetch(
+      new Request("http://localhost:5173/api/v1/account", {
+        method: "PATCH",
+        body: JSON.stringify({ language: "not-a-locale!!!" }),
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: "session=session-id-1",
+        },
+      }),
+      makeEnv(),
+    );
+
+    expect(await repo.findPatientLanguage("patient-1")).toBe("en-US");
+  });
+
+  test("does not change stored language when language is omitted", async () => {
+    await createSessionAndPatient();
+    await repo.updatePatientLanguage("patient-1", "pt-BR");
+
+    await worker.fetch(
+      new Request("http://localhost:5173/api/v1/account", {
+        method: "PATCH",
+        body: JSON.stringify({ timezone: "America/New_York" }),
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: "session=session-id-1",
+        },
+      }),
+      makeEnv(),
+    );
+
+    expect(await repo.findPatientLanguage("patient-1")).toBe("pt-BR");
+  });
 });
 
 describe("GET /api/v1/account", () => {
@@ -583,6 +695,37 @@ describe("GET /api/v1/account", () => {
     expect(response.status).toBe(200);
     const body = (await response.json()) as { timezone: string | null };
     expect(body.timezone).toBeNull();
+  });
+
+  test("returns language: null when patient has no language set", async () => {
+    await createSessionAndPatient();
+
+    const response = await worker.fetch(
+      new Request("http://localhost:5173/api/v1/account", {
+        headers: { Cookie: "session=session-id-1" },
+      }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { language: string | null };
+    expect(body.language).toBeNull();
+  });
+
+  test("returns stored language value", async () => {
+    await createSessionAndPatient();
+    await repo.updatePatientLanguage("patient-1", "pt-BR");
+
+    const response = await worker.fetch(
+      new Request("http://localhost:5173/api/v1/account", {
+        headers: { Cookie: "session=session-id-1" },
+      }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { language: string | null };
+    expect(body.language).toBe("pt-BR");
   });
 });
 

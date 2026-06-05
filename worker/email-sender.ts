@@ -1,9 +1,20 @@
 // HTML templates are bundled as strings at build time via Vite's ?raw import.
 // https://vite.dev/guide/assets#importing-a-file-as-string
 import verificationTemplate from "./emails/verification.html?raw";
+import verificationPtBRTemplate from "./emails/verification.pt-BR.html?raw";
 import loginTemplate from "./emails/login.html?raw";
+import loginPtBRTemplate from "./emails/login.pt-BR.html?raw";
 import { Resend } from "resend";
 import type { EmailSender } from "./auth";
+import { t } from "../shared/t";
+
+const verificationTemplates: Record<string, string> = {
+  "pt-BR": verificationPtBRTemplate,
+};
+
+const loginTemplates: Record<string, string> = {
+  "pt-BR": loginPtBRTemplate,
+};
 
 function renderTemplate(
   template: string,
@@ -31,12 +42,14 @@ function makeResendEmailSender(apiKey: string, appUrl: string): EmailSender {
   }
 
   return {
-    async sendVerificationEmail(to, token, pin) {
+    async sendVerificationEmail(to, token, pin, language) {
       const fallbackLink = `${appUrl}/enter-code?token=${token}&pin=${pin}`;
+      const template =
+        (language && verificationTemplates[language]) || verificationTemplate;
       await send(
         to,
-        "Verify your Pillbug account",
-        renderTemplate(verificationTemplate, {
+        t("email.verificationSubject", language),
+        renderTemplate(template, {
           pin,
           fallback_link: fallbackLink,
           login_link: `${appUrl}/login?email=${encodeURIComponent(to)}`,
@@ -44,12 +57,13 @@ function makeResendEmailSender(apiKey: string, appUrl: string): EmailSender {
       );
     },
 
-    async sendLoginEmail(to, token, pin) {
+    async sendLoginEmail(to, token, pin, language) {
       const fallbackLink = `${appUrl}/enter-code?token=${token}&pin=${pin}`;
+      const template = (language && loginTemplates[language]) || loginTemplate;
       await send(
         to,
-        "Your Pillbug sign-in link",
-        renderTemplate(loginTemplate, {
+        t("email.loginSubject", language),
+        renderTemplate(template, {
           pin,
           fallback_link: fallbackLink,
           login_link: `${appUrl}/login?email=${encodeURIComponent(to)}`,
