@@ -1,3 +1,7 @@
+.login {
+  max-width: 26rem;
+}
+
 .login h1 {
   font-family: var(--font-body);
   font-size: var(--text-display);

@@ -1,3 +1,7 @@
+.register {
+  max-width: 26rem;
+}
+
 .register h1 {
   font-family: var(--font-body);
   font-size: var(--text-display);
@@ -31,10 +35,14 @@
 
 .register .terms-field {
   display: flex;
-  flex-direction: row;
   gap: 0.5rem;
   align-items: flex-start;
   font-size: var(--text-sm);
+}
+
+.register .terms-field input[type="checkbox"] {
+  flex-shrink: 0;
+  margin-top: 0.15em;
 }
 
 .register [role="alert"] {

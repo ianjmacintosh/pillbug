@@ -1,8 +1,13 @@
 .footer {
-  display: flex;
-  gap: 1.5rem;
-  padding: 1rem 1.5rem;
   border-top: 1px solid var(--gray-70);
+}
+
+.footer-inner {
+  display: flex;
+  gap: var(--space-lg);
+  width: var(--page-width);
+  margin: 0 auto;
+  padding: var(--space-md) var(--space-lg);
 }
 
 .footer a {

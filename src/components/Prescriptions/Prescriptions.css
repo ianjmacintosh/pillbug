@@ -97,7 +97,7 @@
 .prescriptions form {
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
+  gap: var(--space-md);
 }
 
 .prescriptions .field {
@@ -513,10 +513,10 @@
 /* ── Routine blocks (form) ──────────────────────────────────── */
 
 .routine-block {
-  background: #f5f6f8;
-  border: 1px solid #d0d5dd;
+  background: oklch(0.97 0 0);
+  border: 1px solid var(--gray-70);
   border-radius: 8px;
-  padding: 1rem;
+  padding: var(--space-md);
 }
 
 .routine-block + .routine-block {
@@ -534,5 +534,5 @@
   font-family: system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #344054;
+  color: var(--gray-30);
 }

@@ -1,8 +1,12 @@
+.finish-setup {
+  max-width: 30rem;
+}
+
 .finish-setup form {
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
-  margin-top: 1.5rem;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
 }
 
 .finish-setup .field {

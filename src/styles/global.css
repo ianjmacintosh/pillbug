@@ -3,8 +3,8 @@
 
 /* Metric-matched fallbacks — reduce layout shift while web fonts load */
 @font-face {
-  font-family: 'Short Stack Fallback';
-  src: local('Comic Sans MS'), local('Chalkboard SE'), local('cursive');
+  font-family: "Short Stack Fallback";
+  src: local("Comic Sans MS"), local("Chalkboard SE"), local("cursive");
   size-adjust: 98%;
   ascent-override: 92%;
   descent-override: 22%;
@@ -12,8 +12,8 @@
 }
 
 @font-face {
-  font-family: 'Prompt Fallback';
-  src: local('Trebuchet MS'), local('system-ui');
+  font-family: "Prompt Fallback";
+  src: local("Trebuchet MS"), local("system-ui");
   size-adjust: 100%;
   ascent-override: 95%;
   descent-override: 22%;
@@ -41,9 +41,10 @@ h6 {
 }
 
 main {
+  flex: 1;
   width: var(--page-width);
   margin: 0 auto;
-  padding: 2rem 1.5rem;
+  padding: var(--space-xl) var(--space-lg);
 }
 
 .button-primary {

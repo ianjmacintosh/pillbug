@@ -1,8 +1,12 @@
+.settings {
+  max-width: 30rem;
+}
+
 .settings form {
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
-  margin-top: 1.5rem;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
 }
 
 .settings .field {

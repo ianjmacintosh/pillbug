@@ -1,6 +1,15 @@
 :root {
   --page-width: min(92vw, 80rem);
 
+  /* Spacing (4pt base) */
+  --space-xs: 0.25rem; /*  4px */
+  --space-sm: 0.5rem; /*  8px */
+  --space-3: 0.75rem; /* 12px */
+  --space-md: 1rem; /* 16px */
+  --space-lg: 1.5rem; /* 24px */
+  --space-xl: 2rem; /* 32px */
+  --space-2xl: 3rem; /* 48px */
+
   /* Colors */
   --yellow-20: oklch(0.2 0.06 95);
   --yellow-40: oklch(0.4 0.12 95);
@@ -15,21 +24,21 @@
   --gray-90: oklch(0.9 0 0);
 
   /* Typography — families */
-  --font-display: 'Short Stack', 'Short Stack Fallback', system-ui, sans-serif;
+  --font-display: "Short Stack", "Short Stack Fallback", system-ui, sans-serif;
   --font-ui: system-ui, sans-serif;
-  --font-body: 'Prompt', 'Prompt Fallback', system-ui, sans-serif;
+  --font-body: "Prompt", "Prompt Fallback", system-ui, sans-serif;
 
   /* Typography — size scale (fixed rem; ~1.15 ratio) */
-  --text-xs:      0.75rem;   /* 12px */
-  --text-sm:      0.875rem;  /* 14px */
-  --text-base:    1rem;      /* 16px */
-  --text-lg:      1.125rem;  /* 18px */
-  --text-xl:      1.25rem;   /* 20px */
-  --text-2xl:     1.5rem;    /* 24px */
+  --text-xs: 0.75rem; /* 12px */
+  --text-sm: 0.875rem; /* 14px */
+  --text-base: 1rem; /* 16px */
+  --text-lg: 1.125rem; /* 18px */
+  --text-xl: 1.25rem; /* 20px */
+  --text-2xl: 1.5rem; /* 24px */
   --text-display: clamp(1.75rem, 5vw, 2.75rem); /* brand-screen h1 only */
 
   /* Typography — weights */
-  --weight-regular:  400;
+  --weight-regular: 400;
   --weight-semibold: 600;
-  --weight-bold:     700;
+  --weight-bold: 700;
 }

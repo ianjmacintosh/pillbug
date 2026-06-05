@@ -75,15 +75,18 @@ function Register() {
             Security check failed. Please reload the page and try again.
           </p>
         )}
-        <label className="terms-field">
+        <div className="terms-field">
           <input
+            id="terms-checkbox"
             type="checkbox"
             checked={terms}
             onChange={(e) => setTerms(e.target.checked)}
           />
-          I agree to the <a href="/terms">Terms of Service</a> and{" "}
-          <a href="/privacy">Privacy Policy</a>
-        </label>
+          <label htmlFor="terms-checkbox">
+            I agree to the <a href="/terms">Terms of Service</a> and{" "}
+            <a href="/privacy">Privacy Policy</a>
+          </label>
+        </div>
         {error && <p role="alert">{error}</p>}
         <button type="submit" disabled={submitting} className="button-primary">
           {submitting ? "Sending…" : "Email me a login link"}
