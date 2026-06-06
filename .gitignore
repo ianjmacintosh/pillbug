@@ -37,6 +37,9 @@ dev-dist
 /playwright/.cache/
 /playwright/.auth/
 
+# Claude Code skills (generic built-ins; each developer installs their own)
+.claude/skills/
+
 # Environment Secrets
 .env*
 !.env.EXAMPLE
