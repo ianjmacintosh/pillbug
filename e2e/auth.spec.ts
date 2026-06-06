@@ -272,7 +272,7 @@ test("/register?challenge loads the registration form with the Turnstile interac
   page,
 }) => {
   await page.goto("/register?challenge");
-  await expect(page.getByRole("heading")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByRole("textbox", { name: /email/i })).toBeVisible();
   await expect(page.getByRole("checkbox", { name: /terms/i })).toBeVisible();
   await expect(
@@ -288,7 +288,7 @@ test("/register?challenge loads the registration form with the Turnstile interac
 
 test("/register renders the registration page", async ({ page }) => {
   await page.goto("/register");
-  await expect(page.getByRole("heading")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByRole("textbox", { name: /email/i })).toBeVisible();
   await expect(page.getByRole("checkbox", { name: /terms/i })).toBeVisible();
   await expect(
