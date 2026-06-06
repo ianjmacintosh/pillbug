@@ -1,3 +1,7 @@
+.prescriptions {
+  font-family: var(--font-body);
+}
+
 /* ── Split-panel layout ─────────────────────────────────────── */
 
 .prescriptions-layout {
@@ -166,8 +170,7 @@
 
 .prescriptions .dosage-input-row input {
   flex: 1;
-  min-width: 0;
-  max-width: 5rem;
+  width: 5rem;
 }
 
 .prescriptions .dosage-input-row select {
@@ -199,7 +202,6 @@
 }
 
 .prescriptions .field-hint {
-  font-family: system-ui, sans-serif;
   font-size: 0.75rem;
   color: var(--gray-30, #555);
   margin: 0.125rem 0 0;
@@ -222,7 +224,6 @@
 }
 
 .prescriptions label {
-  font-family: system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -243,7 +244,6 @@
 
 .prescriptions form [role="alert"] {
   color: oklch(0.4 0.15 25);
-  font-family: system-ui, sans-serif;
   font-size: 0.875rem;
 }
 
@@ -256,7 +256,6 @@
 .prescriptions .prescription-list {
   width: 100%;
   border-collapse: collapse;
-  font-family: system-ui, sans-serif;
   font-size: 0.9375rem;
 }
 
@@ -310,7 +309,6 @@
   background: none;
   border: none;
   padding: 0;
-  font-family: system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 400;
   color: oklch(0.45 0.15 250);
@@ -390,7 +388,6 @@
 
 .prescriptions .schedule-error-message {
   color: oklch(0.4 0.15 25);
-  font-family: system-ui, sans-serif;
   font-size: 0.875rem;
   margin-bottom: 0.75rem;
 }
@@ -500,7 +497,7 @@
 }
 
 .date-range-row label {
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-body);
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -526,7 +523,7 @@
 }
 
 .routine-block-label {
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-body);
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--gray-30);
