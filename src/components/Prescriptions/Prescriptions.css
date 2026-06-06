@@ -1,7 +1,4 @@
-.prescriptions,
-.prescriptions h1,
-.prescriptions h2,
-.prescriptions h3 {
+.prescriptions {
   font-family: var(--font-body);
 }
 
