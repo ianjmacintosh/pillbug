@@ -55,25 +55,26 @@ function Register() {
 
   return (
     <main className="register">
-      <div className="rv1-copy">
-        <h2 className="rv1-headline">{t("register.pitch.headline")}</h2>
-        <p className="rv1-body">{t("register.pitch.body")}</p>
-        <ul className="rv1-features">
-          <li className="rv1-feature">
+      <div className="register-story">
+        <p className="register-eyebrow">Pillbug</p>
+        <h2 className="register-headline">{t("register.pitch.headline")}</h2>
+        <ul className="register-features">
+          <li className="register-feature">
             <strong>{t("register.pitch.weekAtAGlanceLabel")}</strong>{" "}
             {t("register.pitch.weekAtAGlance")}
           </li>
-          <li className="rv1-feature">
+          <li className="register-feature">
             <strong>{t("register.pitch.confirmAsYouGoLabel")}</strong>{" "}
             {t("register.pitch.confirmAsYouGo")}
           </li>
-          <li className="rv1-feature">
+          <li className="register-feature">
             <strong>{t("register.pitch.guidedRefillsLabel")}</strong>{" "}
             {t("register.pitch.guidedRefills")}
           </li>
         </ul>
       </div>
-      <div>
+
+      <div className="register-form-col">
         <div className="register-card">
           <h1>{t("register.heading")}</h1>
           <form onSubmit={handleSubmit}>

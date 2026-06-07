@@ -1,7 +1,9 @@
+/* Grid layout */
+
 .register {
   max-width: none;
   display: grid;
-  grid-template-columns: 1fr 24rem;
+  grid-template-columns: 45% 55%;
   gap: var(--space-2xl);
   align-items: start;
 }
@@ -10,13 +12,79 @@
   .register {
     grid-template-columns: 1fr;
   }
+
+  .register-story {
+    order: 0;
+  }
+
+  .register-form-col {
+    order: 1;
+  }
+}
+
+/* Story panel */
+
+.register-story {
+  background-color: var(--yellow-90);
+  border-radius: 8px;
+  padding: var(--space-2xl) var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.register-eyebrow {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--yellow-40);
+}
+
+.register-headline {
+  font-family: var(--font-body);
+  font-size: var(--text-display);
+  font-weight: var(--weight-semibold);
+  color: var(--gray-10);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.register-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.register-feature {
+  font-size: var(--text-sm);
+  color: var(--gray-30);
+  line-height: 1.55;
+}
+
+.register-feature strong {
+  color: var(--gray-10);
+  font-weight: var(--weight-semibold);
+}
+
+/* Form column */
+
+.register-form-col {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-xl) var(--space-xl);
 }
 
 .register-card {
-  background: var(--yellow-90);
-  border: 1px solid var(--yellow-87);
-  border-radius: 8px;
-  padding: var(--space-lg) var(--space-xl);
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  max-width: 400px;
+  width: 100%;
   margin-bottom: var(--space-md);
 }
 
@@ -29,47 +97,6 @@
   text-wrap: balance;
   margin-bottom: var(--space-lg);
 }
-
-/* Sales copy column */
-
-.register .rv1-headline {
-  font-family: var(--font-body);
-  font-size: var(--text-display);
-  font-weight: 600;
-  line-height: 1.15;
-  text-wrap: balance;
-  color: var(--gray-10);
-}
-
-.register .rv1-body {
-  margin-top: var(--space-md);
-  font-size: var(--text-base);
-  line-height: 1.65;
-  color: var(--gray-30);
-  max-width: 52ch;
-}
-
-.register .rv1-features {
-  list-style: none;
-  padding: 0;
-  margin: var(--space-xl) 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-}
-
-.register .rv1-feature {
-  font-size: var(--text-sm);
-  line-height: 1.55;
-  color: var(--gray-30);
-}
-
-.register .rv1-feature strong {
-  color: var(--gray-10);
-  font-weight: 600;
-}
-
-/* Form column */
 
 .register form {
   display: flex;
@@ -87,7 +114,7 @@
 
 .register .email-field input[type="email"] {
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--gray-50);
+  border: 1px solid oklch(0.85 0 0);
   border-radius: 4px;
   font-size: var(--text-base);
   font-weight: var(--weight-regular);
@@ -118,9 +145,25 @@
   font-size: var(--text-sm);
 }
 
+/* Button — dark on white form, high contrast */
+
+.register .button-primary {
+  background-color: var(--gray-10);
+  color: oklch(1 0 0);
+}
+
+.register .button-primary:hover {
+  background-color: var(--gray-30);
+  color: oklch(1 0 0);
+}
+
+/* Login link */
+
 .register .rv1-login {
   margin-top: var(--space-sm);
   font-size: var(--text-sm);
+  max-width: 400px;
+  width: 100%;
 }
 
 .register .rv1-login a {
