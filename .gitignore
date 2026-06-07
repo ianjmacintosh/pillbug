@@ -39,6 +39,7 @@ dev-dist
 
 # Claude Code skills (generic built-ins; each developer installs their own)
 .claude/skills/
+.agents/
 
 # Environment Secrets
 .env*
