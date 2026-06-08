@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { WEEKDAYS } from "../../lib/days";
 import {
   ONE_COMPARTMENT,
   TWO_COMPARTMENTS,
@@ -46,16 +47,6 @@ const ORGANIZER_OPTIONS: {
     compartments: FOUR_COMPARTMENTS,
   },
 ];
-
-const DAYS_OF_WEEK = [
-  "sunday",
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
-  "saturday",
-] as const;
 
 function FillSession() {
   const { t } = useTranslation();
@@ -146,14 +137,14 @@ function FillSession() {
                       className="fill-session-card-grid"
                       style={
                         {
-                          "--day-count": DAYS_OF_WEEK.length,
+                          "--day-count": WEEKDAYS.length,
                           "--comp-count": compartments.length,
                         } as React.CSSProperties
                       }
                     >
                       <div className="fill-session-card-corner" />
 
-                      {DAYS_OF_WEEK.map((day, dayIdx) => (
+                      {WEEKDAYS.map((day, dayIdx) => (
                         <div
                           key={day}
                           className="fill-session-card-day-header"
@@ -184,7 +175,7 @@ function FillSession() {
                                 {comp.startTime}–{comp.endTime}
                               </span>
                             </div>
-                            {DAYS_OF_WEEK.map((day, dayIdx) => {
+                            {WEEKDAYS.map((day, dayIdx) => {
                               const qty = slot.quantities[day] ?? 0;
                               return (
                                 <div

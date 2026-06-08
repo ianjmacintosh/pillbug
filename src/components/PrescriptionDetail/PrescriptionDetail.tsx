@@ -2,15 +2,8 @@ import { useState } from "react";
 import { getRouteApi, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import "./PrescriptionDetail.css";
-
-type DayOfWeek =
-  | "sunday"
-  | "monday"
-  | "tuesday"
-  | "wednesday"
-  | "thursday"
-  | "friday"
-  | "saturday";
+import type { DayOfWeek } from "../../lib/days";
+import { WEEKDAYS } from "../../lib/days";
 
 export interface PerSlotDose {
   time: string;
@@ -33,16 +26,6 @@ export interface Prescription {
   instructions: string | null;
   status: string;
 }
-
-const WEEKDAYS: DayOfWeek[] = [
-  "sunday",
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
-  "saturday",
-];
 
 interface Routine {
   days: DayOfWeek[];
