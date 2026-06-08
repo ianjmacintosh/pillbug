@@ -1,4 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
+import { Button } from "../Button/Button";
 
 function Logout() {
   const navigate = useNavigate();
@@ -12,9 +13,9 @@ function Logout() {
     <main>
       <h1>Log out</h1>
       <p>You're logged in — log out?</p>
-      <button type="button" onClick={handleLogout}>
+      <Button type="button" onClick={handleLogout}>
         Log out
-      </button>
+      </Button>
     </main>
   );
 }

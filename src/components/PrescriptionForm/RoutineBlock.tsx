@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { Button } from "../Button/Button";
 import type { DayOfWeek } from "../../lib/days";
 import { WEEKDAYS } from "../../lib/days";
 import type { DosingSchedule } from "./usePrescriptionForm";
@@ -48,7 +49,7 @@ export function RoutineBlock({
             number: scheduleIndex + 1,
           })}
         </span>
-        <button
+        <Button
           type="button"
           className="routine-remove-btn button-secondary button-sm"
           aria-label={t("prescriptionForm.removeDosingSchedule")}
@@ -56,7 +57,7 @@ export function RoutineBlock({
           onClick={() => removeSchedule(scheduleIndex)}
         >
           {t("prescriptionForm.removeDosingSchedule")}
-        </button>
+        </Button>
       </div>
 
       <fieldset
@@ -67,7 +68,7 @@ export function RoutineBlock({
       >
         <legend>
           {t("prescriptionForm.daysAndTimes")}
-          <button
+          <Button
             type="button"
             className="toggle-all-link"
             onClick={() => toggleAllDays(scheduleIndex)}
@@ -75,7 +76,7 @@ export function RoutineBlock({
             {schedule.days.size === WEEKDAYS.length
               ? t("prescriptionForm.unselectAll")
               : t("prescriptionForm.selectAll")}
-          </button>
+          </Button>
         </legend>
         {schedule.daysError && (
           <p role="alert" className="schedule-error-message">
@@ -150,7 +151,7 @@ export function RoutineBlock({
                   </span>
                 </td>
                 <td className="col-remove">
-                  <button
+                  <Button
                     type="button"
                     className="remove-time"
                     aria-label={t("prescriptionForm.removeDoseTime")}
@@ -158,19 +159,19 @@ export function RoutineBlock({
                     onClick={() => removeDoseTime(scheduleIndex, timeIndex)}
                   >
                     ×
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        <button
+        <Button
           type="button"
           className="add-dose-time"
           onClick={() => addDoseTime(scheduleIndex)}
         >
           {t("prescriptionForm.addDoseTime")}
-        </button>
+        </Button>
       </fieldset>
     </div>
   );

@@ -1,6 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Button } from "../Button/Button";
 import "./CompleteSetup.css";
 
 function CompleteSetup() {
@@ -37,9 +38,9 @@ function CompleteSetup() {
         <div role="alert">
           <p>{t("completeSetup.errorHeading")}</p>
           <pre>{errorMessage}</pre>
-          <button onClick={() => setRetryCount((c) => c + 1)}>
+          <Button type="button" onClick={() => setRetryCount((c) => c + 1)}>
             {t("completeSetup.retry")}
-          </button>
+          </Button>
         </div>
       )}
     </main>

@@ -1,5 +1,6 @@
 import type { TFunction } from "i18next";
 import type { DayOfWeek } from "../../lib/days";
+import { Button } from "../Button/Button";
 import type { DosageUnit } from "./PrescriptionForm.helpers";
 import { detectUnitInQuantity } from "./PrescriptionForm.helpers";
 import { RoutineBlock } from "./RoutineBlock";
@@ -147,7 +148,7 @@ export function FormFields({
                   ? `${dosageQuantity} ${dosageUnit}`
                   : dosageQuantity,
               })}{" "}
-              <button
+              <Button
                 type="button"
                 className="dosage-fix-link"
                 onClick={() => {
@@ -162,7 +163,7 @@ export function FormFields({
               >
                 {dosageQuantity.slice(0, -detectedDuplicateUnit.length).trim()}{" "}
                 {detectedDuplicateUnit}
-              </button>
+              </Button>
               ?
             </p>
           )}
@@ -239,13 +240,13 @@ export function FormFields({
             />
           ))}
 
-          <button
+          <Button
             type="button"
             className="button-secondary button-sm"
             onClick={addSchedule}
           >
             {t("prescriptionForm.addDosingSchedule")}
-          </button>
+          </Button>
         </div>
       </section>
 

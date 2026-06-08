@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { Button } from "../Button/Button";
 import "./Header.css";
 
 const LANGUAGE_OPTIONS = [
@@ -40,13 +41,13 @@ function Header({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
           <a href="/prescriptions">{t("header.nav.prescriptions")}</a>
           <a href="/fill-session">{t("header.nav.fillSession")}</a>
           <a href="/settings">{t("header.nav.settings")}</a>
-          <button
+          <Button
             type="button"
             onClick={handleLogout}
             className="header-logout"
           >
             {t("header.nav.logOut")}
-          </button>
+          </Button>
         </nav>
       )}
     </header>
