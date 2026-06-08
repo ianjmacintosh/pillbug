@@ -2,8 +2,10 @@ import { getPlatformProxy } from "wrangler";
 import type { D1Database } from "@cloudflare/workers-types";
 import { expect, test, type Page } from "@playwright/test";
 import { hashEmail } from "../worker/email-crypto";
-import { setKnownPin, TURNSTILE_DUMMY_TOKEN, TEST_PIN } from "./helpers";
-import { PRESCRIPTIONS_PATIENT_EMAIL } from "./test-accounts";
+import {
+  PRESCRIPTIONS_PATIENT_EMAIL,
+  PRESCRIPTIONS_PATIENT_AUTH_FILE,
+} from "./test-accounts";
 
 interface Env {
   DB: D1Database;
@@ -33,19 +35,6 @@ async function clearPrescriptions(): Promise<void> {
   }
 }
 
-async function login(page: Page): Promise<void> {
-  const res = await page.request.post("/api/v1/login", {
-    data: {
-      email: PRESCRIPTIONS_PATIENT_EMAIL,
-      turnstileToken: TURNSTILE_DUMMY_TOKEN,
-    },
-  });
-  const { token } = (await res.json()) as { token: string };
-  await setKnownPin(token);
-  await page.goto(`/enter-code?token=${token}&pin=${TEST_PIN}`);
-  await expect(page).toHaveURL("/");
-}
-
 const BASE_PRESCRIPTION = {
   drugName: "Metformin",
   dosage: "500 mg",
@@ -56,6 +45,8 @@ const BASE_PRESCRIPTION = {
   startDate: "2024-01-01",
   doseForm: "tablet",
 };
+
+test.use({ storageState: PRESCRIPTIONS_PATIENT_AUTH_FILE });
 
 test.beforeEach(async () => {
   await clearPrescriptions();
@@ -75,7 +66,6 @@ test.describe("Split-panel layout", () => {
   test("list panel and detail panel are both visible at /prescriptions/$id", async ({
     page,
   }) => {
-    await login(page);
     const res = await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
@@ -91,7 +81,6 @@ test.describe("Split-panel layout", () => {
   test("navigates to first prescription detail on /prescriptions load", async ({
     page,
   }) => {
-    await login(page);
     const res = await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
@@ -107,7 +96,6 @@ test.describe("Split-panel layout", () => {
   test("prescription list is visible while create form is open", async ({
     page,
   }) => {
-    await login(page);
     await page.goto("/prescriptions/new");
 
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
@@ -121,7 +109,6 @@ test.describe("Prescription list", () => {
   test("empty state: list is empty and Add Prescription link is present", async ({
     page,
   }) => {
-    await login(page);
     await page.goto("/prescriptions");
 
     await expect(page.getByRole("list")).toBeEmpty();
@@ -131,7 +118,6 @@ test.describe("Prescription list", () => {
   });
 
   test("prescriptions load as links", async ({ page }) => {
-    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
@@ -143,7 +129,6 @@ test.describe("Prescription list", () => {
   });
 
   test("heading shows prescription count", async ({ page }) => {
-    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
@@ -156,7 +141,6 @@ test.describe("Prescription list", () => {
   });
 
   test("Add Prescription link navigates to create form", async ({ page }) => {
-    await login(page);
     await page.goto("/prescriptions");
     await page.getByRole("link", { name: /add prescription/i }).click();
 
@@ -171,7 +155,6 @@ test.describe("Prescription create", () => {
   test("fill and save navigates to the prescription detail view", async ({
     page,
   }) => {
-    await login(page);
     await page.goto("/prescriptions/new");
     await fillCreateForm(page);
 
@@ -184,7 +167,6 @@ test.describe("Prescription create", () => {
   test("new prescription appears in the list after create", async ({
     page,
   }) => {
-    await login(page);
     await page.goto("/prescriptions/new");
     await fillCreateForm(page);
 
@@ -198,7 +180,6 @@ test.describe("Prescription create", () => {
   test("Days and Times fieldset is aria-invalid when submitted without a day selected", async ({
     page,
   }) => {
-    await login(page);
     await page.goto("/prescriptions/new");
     await page.getByLabel(/drug name/i).fill("Aspirin");
     await page.getByLabel("Strength").fill("100");
@@ -215,7 +196,6 @@ test.describe("Prescription create", () => {
   test("Days and Times fieldset is aria-invalid when submitted with a blank time", async ({
     page,
   }) => {
-    await login(page);
     await page.goto("/prescriptions/new");
     await page.getByLabel(/drug name/i).fill("Aspirin");
     await page.getByLabel("Strength").fill("100");
@@ -231,7 +211,6 @@ test.describe("Prescription create", () => {
   });
 
   test("clicking a day pill checks and unchecks it", async ({ page }) => {
-    await login(page);
     await page.goto("/prescriptions/new");
     const monday = page.getByRole("checkbox", { name: "Monday" });
     const mondayPill = monday.locator("..");
@@ -246,7 +225,6 @@ test.describe("Prescription create", () => {
   test("Remove time button is disabled when only one dose time is shown", async ({
     page,
   }) => {
-    await login(page);
     await page.goto("/prescriptions/new");
 
     await expect(
@@ -257,7 +235,6 @@ test.describe("Prescription create", () => {
   test("Remove time button is enabled after a second dose time is added", async ({
     page,
   }) => {
-    await login(page);
     await page.goto("/prescriptions/new");
     await page.getByRole("button", { name: /add new dose time/i }).click();
 
@@ -271,7 +248,6 @@ test.describe("Prescription edit", () => {
   test("edit form pre-populates fields from the prescription", async ({
     page,
   }) => {
-    await login(page);
     const res = await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
@@ -287,7 +263,6 @@ test.describe("Prescription edit", () => {
   });
 
   test("edit form pre-populates scheduled days and times", async ({ page }) => {
-    await login(page);
     const res = await page.request.post("/api/v1/prescriptions", {
       data: {
         ...BASE_PRESCRIPTION,
@@ -316,7 +291,6 @@ test.describe("Prescription edit", () => {
   test("saving an edit navigates to the prescription detail view", async ({
     page,
   }) => {
-    await login(page);
     const res = await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
@@ -337,7 +311,6 @@ test.describe("Prescription detail", () => {
   test("clicking a different prescription in the list updates the detail panel", async ({
     page,
   }) => {
-    await login(page);
     const res1 = await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
@@ -359,7 +332,6 @@ test.describe("Prescription detail", () => {
   test("detail page shows drug name, strength, and start date", async ({
     page,
   }) => {
-    await login(page);
     const res = await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
@@ -376,7 +348,6 @@ test.describe("Prescription detail", () => {
   test("detail page renders the schedule with formatted dose time", async ({
     page,
   }) => {
-    await login(page);
     const res = await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
@@ -387,7 +358,6 @@ test.describe("Prescription detail", () => {
   });
 
   test("Edit button navigates to the edit route", async ({ page }) => {
-    await login(page);
     const res = await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
@@ -402,7 +372,6 @@ test.describe("Prescription detail", () => {
   test("Delete button opens a dialog with permanence and dose history warnings", async ({
     page,
   }) => {
-    await login(page);
     const res = await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
@@ -420,7 +389,6 @@ test.describe("Prescription detail", () => {
   test("cancelling delete closes the dialog and prescription is still present", async ({
     page,
   }) => {
-    await login(page);
     const res = await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
@@ -439,7 +407,6 @@ test.describe("Prescription detail", () => {
   test("confirming delete navigates to /prescriptions and prescription is gone from list", async ({
     page,
   }) => {
-    await login(page);
     const res = await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });

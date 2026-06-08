@@ -1,12 +1,12 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { getPlatformProxy } from "wrangler";
 import type { D1Database } from "@cloudflare/workers-types";
 import { hashEmail } from "../worker/email-crypto";
-import { setKnownPin, TURNSTILE_DUMMY_TOKEN, TEST_PIN } from "./helpers";
 import {
   ALICE_AUTH_FILE,
   ALICE_EMAIL,
   PRESCRIPTIONS_PATIENT_EMAIL,
+  PRESCRIPTIONS_PATIENT_AUTH_FILE,
 } from "./test-accounts";
 
 interface Env {
@@ -53,19 +53,6 @@ async function clearPrescriptions(): Promise<void> {
   }
 }
 
-async function login(page: Page): Promise<void> {
-  const res = await page.request.post("/api/v1/login", {
-    data: {
-      email: PRESCRIPTIONS_PATIENT_EMAIL,
-      turnstileToken: TURNSTILE_DUMMY_TOKEN,
-    },
-  });
-  const { token } = (await res.json()) as { token: string };
-  await setKnownPin(token);
-  await page.goto(`/enter-code?token=${token}&pin=${TEST_PIN}`);
-  await expect(page).toHaveURL("/");
-}
-
 test.describe("Home screen week navigation", () => {
   test.use({ storageState: ALICE_AUTH_FILE });
 
@@ -105,12 +92,13 @@ test.describe("Home screen week navigation", () => {
 });
 
 test.describe("Home screen doses", () => {
+  test.use({ storageState: PRESCRIPTIONS_PATIENT_AUTH_FILE });
+
   test.beforeEach(async () => {
     await clearPrescriptions();
   });
 
   test("dose label shows 'count form × drug dosage'", async ({ page }) => {
-    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: {
         drugName: "Metformin",
@@ -131,7 +119,6 @@ test.describe("Home screen doses", () => {
   test("two prescriptions at the same time are grouped under one time header", async ({
     page,
   }) => {
-    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: {
         drugName: "Metformin",
@@ -169,7 +156,6 @@ test.describe("Home screen doses", () => {
   test("drug name and dosage link navigates to the prescription detail page", async ({
     page,
   }) => {
-    await login(page);
     const res = await page.request.post("/api/v1/prescriptions", {
       data: {
         drugName: "Metformin",
@@ -194,7 +180,6 @@ test.describe("Home screen doses", () => {
   test("two prescriptions at different times each get their own time header", async ({
     page,
   }) => {
-    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: {
         drugName: "Metformin",
@@ -230,6 +215,8 @@ test.describe("Home screen doses", () => {
 });
 
 test.describe("scheduled-doses timezone conversion", () => {
+  test.use({ storageState: PRESCRIPTIONS_PATIENT_AUTH_FILE });
+
   test.beforeEach(async () => {
     await clearPrescriptions();
   });
@@ -237,8 +224,6 @@ test.describe("scheduled-doses timezone conversion", () => {
   test("scheduledAt is real UTC based on the patient's stored timezone", async ({
     page,
   }) => {
-    await login(page);
-
     // Create a prescription with a 2:00 PM Monday slot
     await page.request.post("/api/v1/prescriptions", {
       data: {

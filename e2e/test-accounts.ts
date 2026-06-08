@@ -17,3 +17,5 @@ export const PRESCRIPTIONS_PATIENT_EMAIL =
   "delivered+e2e-prescriptions@resend.dev";
 
 export const ALICE_AUTH_FILE = "playwright/.auth/alice.json";
+export const PRESCRIPTIONS_PATIENT_AUTH_FILE =
+  "playwright/.auth/prescriptions-patient.json";
