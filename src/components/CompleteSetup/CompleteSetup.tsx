@@ -29,7 +29,7 @@ function CompleteSetup() {
       }
     }
     run();
-  }, [navigate, retryCount]);
+  }, [navigate, retryCount, i18n.language]);
 
   return (
     <main className="finish-setup">
