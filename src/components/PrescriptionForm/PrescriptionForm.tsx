@@ -1,5 +1,6 @@
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Button } from "../Button/Button";
 import { FormFields } from "./FormFields";
 import { usePrescriptionForm } from "./usePrescriptionForm";
 import type { PrescriptionFormData } from "./PrescriptionForm.types";
@@ -51,7 +52,7 @@ export function NewPrescriptionForm() {
         {form.error && <p role="alert">{form.error}</p>}
         <FormFields t={t} idPrefix="create" {...form} />
         <div className="form-actions">
-          <button
+          <Button
             type="submit"
             disabled={form.submitting}
             className="button-primary"
@@ -59,7 +60,7 @@ export function NewPrescriptionForm() {
             {form.submitting
               ? t("prescriptionForm.saving")
               : t("prescriptionForm.save")}
-          </button>
+          </Button>
         </div>
       </form>
     </section>
@@ -111,7 +112,7 @@ export function EditPrescriptionForm() {
         {form.error && <p role="alert">{form.error}</p>}
         <FormFields t={t} idPrefix="edit" {...form} />
         <div className="form-actions">
-          <button
+          <Button
             type="submit"
             disabled={form.submitting}
             className="button-primary"
@@ -119,7 +120,7 @@ export function EditPrescriptionForm() {
             {form.submitting
               ? t("prescriptionForm.saving")
               : t("prescriptionForm.save")}
-          </button>
+          </Button>
         </div>
       </form>
     </section>

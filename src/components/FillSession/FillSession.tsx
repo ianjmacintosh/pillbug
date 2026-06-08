@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Select } from "../Select/Select";
 import {
   ONE_COMPARTMENT,
   TWO_COMPARTMENTS,
@@ -84,19 +85,17 @@ function FillSession() {
       <h1>{t("fillSession.heading")}</h1>
 
       <div className="fill-session-controls">
-        <label>
-          {t("fillSession.pillOrganizerLabel")}
-          <select
-            value={organizerType}
-            onChange={(e) => setOrganizerType(e.target.value)}
-          >
-            {ORGANIZER_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {t(opt.labelKey)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <Select
+          label={t("fillSession.pillOrganizerLabel")}
+          value={organizerType}
+          onChange={(e) => setOrganizerType(e.target.value)}
+        >
+          {ORGANIZER_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {t(opt.labelKey)}
+            </option>
+          ))}
+        </Select>
       </div>
 
       {prescriptions.length === 0 ? (
