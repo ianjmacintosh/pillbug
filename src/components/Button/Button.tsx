@@ -16,19 +16,20 @@ type AsLink = { as: "link" } & ComponentProps<typeof Link>;
 
 type ButtonProps = AsButton | AsAnchor | AsInput | AsLink;
 
-export function Button(props: ButtonProps) {
-  if (props.as === "a") {
-    const { as, ...rest } = props;
-    return <a {...rest} />;
+export function Button({ as, ...rest }: ButtonProps) {
+  if (as === "a") {
+    return <a {...(rest as AnchorHTMLAttributes<HTMLAnchorElement>)} />;
   }
-  if (props.as === "input") {
-    const { as, ...rest } = props;
-    return <input type="submit" {...rest} />;
+  if (as === "input") {
+    return (
+      <input
+        type="submit"
+        {...(rest as Omit<InputHTMLAttributes<HTMLInputElement>, "type">)}
+      />
+    );
   }
-  if (props.as === "link") {
-    const { as, ...rest } = props;
-    return <Link {...rest} />;
+  if (as === "link") {
+    return <Link {...(rest as ComponentProps<typeof Link>)} />;
   }
-  const { as, ...rest } = props;
-  return <button {...rest} />;
+  return <button {...(rest as ButtonHTMLAttributes<HTMLButtonElement>)} />;
 }
