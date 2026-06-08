@@ -67,6 +67,24 @@ function formatDate(dateStr: string): string {
   return `${month}/${day}/${year}`;
 }
 
+interface DeleteDialogProps {
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+function DeleteDialog({ onConfirm, onCancel }: DeleteDialogProps) {
+  const { t } = useTranslation();
+  return (
+    <dialog open>
+      <p>{t("prescriptionDetail.deleteWarning")}</p>
+      <button onClick={onCancel}>{t("prescriptionDetail.cancel")}</button>
+      <button onClick={onConfirm}>
+        {t("prescriptionDetail.confirmDelete")}
+      </button>
+    </dialog>
+  );
+}
+
 const routeApi = getRouteApi("/layout/prescriptions/$id");
 
 function PrescriptionDetail() {
@@ -160,15 +178,10 @@ function PrescriptionDetail() {
         </section>
       </article>
       {showDeleteDialog && (
-        <dialog open>
-          <p>{t("prescriptionDetail.deleteWarning")}</p>
-          <button onClick={() => setShowDeleteDialog(false)}>
-            {t("prescriptionDetail.cancel")}
-          </button>
-          <button onClick={handleConfirmDelete}>
-            {t("prescriptionDetail.confirmDelete")}
-          </button>
-        </dialog>
+        <DeleteDialog
+          onCancel={() => setShowDeleteDialog(false)}
+          onConfirm={handleConfirmDelete}
+        />
       )}
     </>
   );

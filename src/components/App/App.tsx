@@ -1,5 +1,5 @@
 import { getRouteApi, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { useTranslation } from "react-i18next";
 import { weekBoundaries } from "../../../shared/week-boundaries";
 import "./App.css";
@@ -60,6 +60,76 @@ function addDays(dateStr: string, days: number): string {
   const d = new Date(dateStr + "T00:00:00Z");
   d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().slice(0, 10);
+}
+
+interface DoseItemProps {
+  dose: ScheduledDose;
+  setDoses: Dispatch<SetStateAction<ScheduledDose[]>>;
+}
+
+function DoseItem({ dose, setDoses }: DoseItemProps) {
+  const checked = dose.resolvedDose !== null;
+
+  async function handleToggle() {
+    if (dose.resolvedDose) {
+      const res = await fetch(`/api/v1/doses/${dose.resolvedDose.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setDoses((prev) =>
+          prev.map((d) =>
+            d.prescriptionId === dose.prescriptionId &&
+            d.scheduledAt === dose.scheduledAt
+              ? { ...d, resolvedDose: null }
+              : d,
+          ),
+        );
+      }
+    } else {
+      const res = await fetch("/api/v1/doses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prescriptionId: dose.prescriptionId,
+          scheduledAt: dose.scheduledAt,
+          status: "taken",
+        }),
+      });
+      if (res.ok) {
+        const created = (await res.json()) as { id: string };
+        setDoses((prev) =>
+          prev.map((d) =>
+            d.prescriptionId === dose.prescriptionId &&
+            d.scheduledAt === dose.scheduledAt
+              ? {
+                  ...d,
+                  resolvedDose: { id: created.id, status: "taken" as const },
+                }
+              : d,
+          ),
+        );
+      }
+    }
+  }
+
+  return (
+    <li>
+      <label>
+        <input
+          type="checkbox"
+          checked={checked}
+          disabled={!dose.actionable}
+          onChange={handleToggle}
+        />
+        <span>
+          {dose.quantity} {dose.doseForm} ×{" "}
+          <Link to="/prescriptions/$id" params={{ id: dose.prescriptionId }}>
+            {dose.drugName} {dose.dosage}
+          </Link>
+        </span>
+      </label>
+    </li>
+  );
 }
 
 const Route = getRouteApi("/layout/");
@@ -154,81 +224,13 @@ function App({ today: todayProp }: { today?: string }) {
                     <li key={time}>
                       <h3 className="dose-time">{time}</h3>
                       <ul>
-                        {dosesForTime.map((dose) => {
-                          const checked = dose.resolvedDose !== null;
-
-                          async function handleToggle() {
-                            if (dose.resolvedDose) {
-                              const res = await fetch(
-                                `/api/v1/doses/${dose.resolvedDose.id}`,
-                                { method: "DELETE" },
-                              );
-                              if (res.ok) {
-                                setDoses((prev) =>
-                                  prev.map((d) =>
-                                    d.prescriptionId === dose.prescriptionId &&
-                                    d.scheduledAt === dose.scheduledAt
-                                      ? { ...d, resolvedDose: null }
-                                      : d,
-                                  ),
-                                );
-                              }
-                            } else {
-                              const res = await fetch("/api/v1/doses", {
-                                method: "POST",
-                                headers: {
-                                  "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({
-                                  prescriptionId: dose.prescriptionId,
-                                  scheduledAt: dose.scheduledAt,
-                                  status: "taken",
-                                }),
-                              });
-                              if (res.ok) {
-                                const created = (await res.json()) as {
-                                  id: string;
-                                };
-                                setDoses((prev) =>
-                                  prev.map((d) =>
-                                    d.prescriptionId === dose.prescriptionId &&
-                                    d.scheduledAt === dose.scheduledAt
-                                      ? {
-                                          ...d,
-                                          resolvedDose: {
-                                            id: created.id,
-                                            status: "taken" as const,
-                                          },
-                                        }
-                                      : d,
-                                  ),
-                                );
-                              }
-                            }
-                          }
-
-                          return (
-                            <li key={dose.prescriptionId}>
-                              <label>
-                                <input
-                                  type="checkbox"
-                                  checked={checked}
-                                  disabled={!dose.actionable}
-                                  onChange={handleToggle}
-                                />
-                                <span>
-                                  {dose.quantity} {dose.doseForm} ×{" "}
-                                  <Link
-                                    to="/prescriptions/$id"
-                                    params={{ id: dose.prescriptionId }}
-                                  >
-                                    {dose.drugName} {dose.dosage}
-                                  </Link>
-                                </span>
-                              </label>
-                            </li>
-                          );
-                        })}
+                        {dosesForTime.map((dose) => (
+                          <DoseItem
+                            key={dose.prescriptionId}
+                            dose={dose}
+                            setDoses={setDoses}
+                          />
+                        ))}
                       </ul>
                     </li>
                   ),
