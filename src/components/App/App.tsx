@@ -1,19 +1,12 @@
-import { getRouteApi, Link } from "@tanstack/react-router";
+import { getRouteApi } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { addDays, formatShortDate } from "../../lib/dates";
 import { weekBoundaries } from "../../../shared/week-boundaries";
+import { DaySection } from "./DaySection";
+import { type ScheduledDose } from "./DoseItem";
+import { WeekNav } from "./WeekNav";
 import "./App.css";
-
-interface ScheduledDose {
-  prescriptionId: string;
-  drugName: string;
-  dosage: string;
-  quantity: number;
-  doseForm: string;
-  scheduledAt: string;
-  actionable: boolean;
-  resolvedDose: { id: string; status: "taken" } | null;
-}
 
 const WEEK_DAY_KEYS = [
   "monday",
@@ -24,43 +17,6 @@ const WEEK_DAY_KEYS = [
   "saturday",
   "sunday",
 ] as const;
-
-function formatShortDate(dateStr: string, locale: string): string {
-  return new Date(dateStr + "T00:00:00Z").toLocaleDateString(locale, {
-    month: "numeric",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-}
-
-function formatTime(
-  scheduledAt: string,
-  timezone: string,
-  locale: string,
-): string {
-  return new Date(scheduledAt).toLocaleTimeString(locale, {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-    timeZone: timezone,
-  });
-}
-
-function formatDate(dateStr: string, locale: string): string {
-  return new Date(dateStr + "T00:00:00Z").toLocaleDateString(locale, {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-}
-
-function addDays(dateStr: string, days: number): string {
-  const d = new Date(dateStr + "T00:00:00Z");
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
-}
 
 const Route = getRouteApi("/layout/");
 
@@ -88,21 +44,14 @@ function App({ today: todayProp }: { today?: string }) {
   const atCeiling = displayedMonday >= currentWeekMonday;
 
   useEffect(() => {
-    const weekSunday = addDays(displayedMonday, 6);
-    fetch(`/api/v1/scheduled-doses?start=${displayedMonday}&end=${weekSunday}`)
+    fetch(
+      `/api/v1/scheduled-doses?start=${displayedMonday}&end=${addDays(displayedMonday, 6)}`,
+    )
       .then(async (res) => {
         if (res.ok) setDoses((await res.json()) as ScheduledDose[]);
       })
       .catch(() => {});
   }, [displayedMonday]);
-
-  function handlePreviousWeek() {
-    setDisplayedMonday(addDays(displayedMonday, -7));
-  }
-
-  function handleNextWeek() {
-    setDisplayedMonday(addDays(displayedMonday, 7));
-  }
 
   const dosesByDate = new Map<string, ScheduledDose[]>();
   for (const dose of doses) {
@@ -113,8 +62,6 @@ function App({ today: todayProp }: { today?: string }) {
     dosesByDate.get(date)!.push(dose);
   }
 
-  const hasAnyDoses = doses.length > 0;
-
   return (
     <main className="home">
       <h1>{t("app.heading")}</h1>
@@ -123,141 +70,27 @@ function App({ today: todayProp }: { today?: string }) {
         {formatShortDate(sunday, i18n.language)}
       </h2>
 
-      {!hasAnyDoses && <p>{t("app.noDoses")}</p>}
+      {doses.length === 0 && <p>{t("app.noDoses")}</p>}
 
-      {weekDates.map((date, i) => {
-        const dayName = t(`days.full.${WEEK_DAY_KEYS[i]}`);
-        const isToday = date === today;
-        const dayDoses = dosesByDate.get(date) ?? [];
+      {weekDates.map((date, i) => (
+        <DaySection
+          key={date}
+          date={date}
+          dayName={t(`days.full.${WEEK_DAY_KEYS[i]}`)}
+          isToday={date === today}
+          dayDoses={dosesByDate.get(date) ?? []}
+          timezone={timezone ?? "UTC"}
+          locale={i18n.language}
+          setDoses={setDoses}
+        />
+      ))}
 
-        const timeGroups = new Map<string, ScheduledDose[]>();
-        for (const dose of [...dayDoses].sort((a, b) =>
-          a.scheduledAt.localeCompare(b.scheduledAt),
-        )) {
-          const time = formatTime(
-            dose.scheduledAt,
-            timezone ?? "UTC",
-            i18n.language,
-          );
-          if (!timeGroups.has(time)) timeGroups.set(time, []);
-          timeGroups.get(time)!.push(dose);
-        }
-
-        return (
-          <section key={date} aria-current={isToday ? "date" : undefined}>
-            <h2>{dayName}</h2>
-            <time dateTime={date}>{formatDate(date, i18n.language)}</time>
-            {dayDoses.length > 0 && (
-              <ul>
-                {Array.from(timeGroups.entries()).map(
-                  ([time, dosesForTime]) => (
-                    <li key={time}>
-                      <h3 className="dose-time">{time}</h3>
-                      <ul>
-                        {dosesForTime.map((dose) => {
-                          const checked = dose.resolvedDose !== null;
-
-                          async function handleToggle() {
-                            if (dose.resolvedDose) {
-                              const res = await fetch(
-                                `/api/v1/doses/${dose.resolvedDose.id}`,
-                                { method: "DELETE" },
-                              );
-                              if (res.ok) {
-                                setDoses((prev) =>
-                                  prev.map((d) =>
-                                    d.prescriptionId === dose.prescriptionId &&
-                                    d.scheduledAt === dose.scheduledAt
-                                      ? { ...d, resolvedDose: null }
-                                      : d,
-                                  ),
-                                );
-                              }
-                            } else {
-                              const res = await fetch("/api/v1/doses", {
-                                method: "POST",
-                                headers: {
-                                  "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({
-                                  prescriptionId: dose.prescriptionId,
-                                  scheduledAt: dose.scheduledAt,
-                                  status: "taken",
-                                }),
-                              });
-                              if (res.ok) {
-                                const created = (await res.json()) as {
-                                  id: string;
-                                };
-                                setDoses((prev) =>
-                                  prev.map((d) =>
-                                    d.prescriptionId === dose.prescriptionId &&
-                                    d.scheduledAt === dose.scheduledAt
-                                      ? {
-                                          ...d,
-                                          resolvedDose: {
-                                            id: created.id,
-                                            status: "taken" as const,
-                                          },
-                                        }
-                                      : d,
-                                  ),
-                                );
-                              }
-                            }
-                          }
-
-                          return (
-                            <li key={dose.prescriptionId}>
-                              <label>
-                                <input
-                                  type="checkbox"
-                                  checked={checked}
-                                  disabled={!dose.actionable}
-                                  onChange={handleToggle}
-                                />
-                                <span>
-                                  {dose.quantity} {dose.doseForm} ×{" "}
-                                  <Link
-                                    to="/prescriptions/$id"
-                                    params={{ id: dose.prescriptionId }}
-                                  >
-                                    {dose.drugName} {dose.dosage}
-                                  </Link>
-                                </span>
-                              </label>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </li>
-                  ),
-                )}
-              </ul>
-            )}
-          </section>
-        );
-      })}
-
-      <div className="week-nav">
-        <button
-          type="button"
-          onClick={handlePreviousWeek}
-          disabled={atFloor}
-          className="button-secondary"
-        >
-          {t("app.previousWeek")}
-        </button>
-
-        <button
-          type="button"
-          onClick={handleNextWeek}
-          disabled={atCeiling}
-          className="button-secondary"
-        >
-          {t("app.nextWeek")}
-        </button>
-      </div>
+      <WeekNav
+        onPrevious={() => setDisplayedMonday(addDays(displayedMonday, -7))}
+        onNext={() => setDisplayedMonday(addDays(displayedMonday, 7))}
+        previousDisabled={atFloor}
+        nextDisabled={atCeiling}
+      />
     </main>
   );
 }

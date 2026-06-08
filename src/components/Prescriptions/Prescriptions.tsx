@@ -1,11 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  Link,
-  Outlet,
-  useNavigate,
-  useRouterState,
-} from "@tanstack/react-router";
+import { Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Button } from "../Button/Button";
+import { PrescriptionList } from "./PrescriptionList";
 import "./Prescriptions.css";
 
 interface Prescription {
@@ -39,9 +36,7 @@ function Prescriptions() {
   useEffect(() => {
     fetch("/api/v1/prescriptions")
       .then((res) => (res.ok ? res.json() : []))
-      .then((data: Prescription[]) => {
-        setPrescriptions(data);
-      })
+      .then((data: Prescription[]) => setPrescriptions(data))
       .catch(() => {});
   }, [location.pathname]);
 
@@ -62,37 +57,15 @@ function Prescriptions() {
 
   return (
     <main className={`prescriptions prescriptions-layout ${mobileClass}`}>
-      <div className="prescriptions-list-panel">
-        <h1>{t("prescriptions.heading", { count: prescriptions.length })}</h1>
-
-        <ul className="prescription-list">
-          {prescriptions.map((p) => (
-            <li
-              key={p.id}
-              className={`prescription-item${selectedId === p.id ? " prescription-item--selected" : ""}`}
-            >
-              <Link
-                to="/prescriptions/$id"
-                params={{ id: p.id }}
-                className="prescription-item__name"
-              >
-                {p.drugName}
-              </Link>
-            </li>
-          ))}
-        </ul>
-
-        <Link to="/prescriptions/new" className="button-secondary button-sm">
-          {t("prescriptions.addPrescription")}
-        </Link>
-      </div>
+      <PrescriptionList prescriptions={prescriptions} selectedId={selectedId} />
       <div className="prescriptions-form-panel">
-        <button
+        <Button
+          type="button"
           className="prescriptions-back-btn"
           onClick={() => navigate({ to: "/prescriptions" })}
         >
           {t("prescriptions.back")}
-        </button>
+        </Button>
         <Outlet />
       </div>
     </main>

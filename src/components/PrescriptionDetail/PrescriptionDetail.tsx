@@ -2,15 +2,10 @@ import { useState } from "react";
 import { getRouteApi, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import "./PrescriptionDetail.css";
-
-type DayOfWeek =
-  | "sunday"
-  | "monday"
-  | "tuesday"
-  | "wednesday"
-  | "thursday"
-  | "friday"
-  | "saturday";
+import type { DayOfWeek } from "../../lib/days";
+import { WEEKDAYS } from "../../lib/days";
+import { Button } from "../Button/Button";
+import { DeleteDialog } from "./DeleteDialog";
 
 export interface PerSlotDose {
   time: string;
@@ -33,16 +28,6 @@ export interface Prescription {
   instructions: string | null;
   status: string;
 }
-
-const WEEKDAYS: DayOfWeek[] = [
-  "sunday",
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
-  "saturday",
-];
 
 interface Routine {
   days: DayOfWeek[];
@@ -109,9 +94,9 @@ function PrescriptionDetail() {
               {t("prescriptionDetail.edit")}
             </Link>
             <span aria-hidden="true"> | </span>
-            <button onClick={() => setShowDeleteDialog(true)}>
+            <Button type="button" onClick={() => setShowDeleteDialog(true)}>
               {t("prescriptionDetail.delete")}
-            </button>
+            </Button>
           </div>
         </div>
         <dl className="prescription-detail-meta">
@@ -177,15 +162,10 @@ function PrescriptionDetail() {
         </section>
       </article>
       {showDeleteDialog && (
-        <dialog open>
-          <p>{t("prescriptionDetail.deleteWarning")}</p>
-          <button onClick={() => setShowDeleteDialog(false)}>
-            {t("prescriptionDetail.cancel")}
-          </button>
-          <button onClick={handleConfirmDelete}>
-            {t("prescriptionDetail.confirmDelete")}
-          </button>
-        </dialog>
+        <DeleteDialog
+          onCancel={() => setShowDeleteDialog(false)}
+          onConfirm={handleConfirmDelete}
+        />
       )}
     </>
   );

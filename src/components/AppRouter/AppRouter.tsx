@@ -21,10 +21,7 @@ import Settings from "../Settings";
 import Terms from "../Terms";
 import EnterCode from "../EnterCode";
 import PrescriptionDetail from "../PrescriptionDetail";
-import {
-  EditPrescriptionForm,
-  NewPrescriptionForm,
-} from "../PrescriptionForm/PrescriptionForm";
+import { EditPrescriptionForm, NewPrescriptionForm } from "../PrescriptionForm";
 
 const rootRoute = createRootRoute({
   component: Outlet,

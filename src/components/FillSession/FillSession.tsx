@@ -1,5 +1,6 @@
-import { Fragment, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Select } from "../Select/Select";
 import {
   ONE_COMPARTMENT,
   TWO_COMPARTMENTS,
@@ -9,6 +10,7 @@ import {
   type Compartment,
   type Schedule,
 } from "../../lib/fill-session";
+import { MedicineCard } from "./MedicineCard";
 import "./FillSession.css";
 
 interface Prescription {
@@ -47,16 +49,6 @@ const ORGANIZER_OPTIONS: {
   },
 ];
 
-const DAYS_OF_WEEK = [
-  "sunday",
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
-  "saturday",
-] as const;
-
 function FillSession() {
   const { t } = useTranslation();
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
@@ -93,19 +85,17 @@ function FillSession() {
       <h1>{t("fillSession.heading")}</h1>
 
       <div className="fill-session-controls">
-        <label>
-          {t("fillSession.pillOrganizerLabel")}
-          <select
-            value={organizerType}
-            onChange={(e) => setOrganizerType(e.target.value)}
-          >
-            {ORGANIZER_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {t(opt.labelKey)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <Select
+          label={t("fillSession.pillOrganizerLabel")}
+          value={organizerType}
+          onChange={(e) => setOrganizerType(e.target.value)}
+        >
+          {ORGANIZER_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {t(opt.labelKey)}
+            </option>
+          ))}
+        </Select>
       </div>
 
       {prescriptions.length === 0 ? (
@@ -115,102 +105,14 @@ function FillSession() {
           <div className="fill-session-cards">
             {cards.map((card) => {
               const cardKey = `${card.drugName}-${card.dosage}`;
-              const isOpen = openCardKey === cardKey;
               return (
-                <div key={cardKey} className="fill-session-card">
-                  <button
-                    type="button"
-                    className={`fill-session-card-header${isOpen ? " fill-session-card-header--open" : ""}`}
-                    onClick={() => toggleCard(cardKey)}
-                    aria-expanded={isOpen}
-                  >
-                    <span className="fill-session-card-drug-name">
-                      {card.drugName}
-                    </span>
-                    <span className="fill-session-card-drug-dosage">
-                      {card.dosage}
-                    </span>
-                    <span className="fill-session-card-drug-total">
-                      {t("doseForm.pill", { count: card.weeklyTotal })}
-                    </span>
-                    <span
-                      className="fill-session-card-caret"
-                      aria-hidden="true"
-                    >
-                      ▾
-                    </span>
-                  </button>
-
-                  {isOpen && (
-                    <div
-                      className="fill-session-card-grid"
-                      style={
-                        {
-                          "--day-count": DAYS_OF_WEEK.length,
-                          "--comp-count": compartments.length,
-                        } as React.CSSProperties
-                      }
-                    >
-                      <div className="fill-session-card-corner" />
-
-                      {DAYS_OF_WEEK.map((day, dayIdx) => (
-                        <div
-                          key={day}
-                          className="fill-session-card-day-header"
-                          style={{ "--day-idx": dayIdx } as React.CSSProperties}
-                        >
-                          {t(`days.abbr.${day}`)}
-                        </div>
-                      ))}
-
-                      {compartments.map((comp, compIdx) => {
-                        const slot = card.slots.find(
-                          (s) => s.compartmentLabel === comp.label,
-                        )!;
-                        return (
-                          <Fragment key={comp.label}>
-                            <div
-                              className="fill-session-card-slot-label"
-                              style={
-                                {
-                                  "--comp-idx": compIdx,
-                                } as React.CSSProperties
-                              }
-                            >
-                              <span className="fill-session-card-slot-name">
-                                {comp.label}
-                              </span>
-                              <span className="fill-session-card-slot-time">
-                                {comp.startTime}–{comp.endTime}
-                              </span>
-                            </div>
-                            {DAYS_OF_WEEK.map((day, dayIdx) => {
-                              const qty = slot.quantities[day] ?? 0;
-                              return (
-                                <div
-                                  key={day}
-                                  className={`fill-session-card-cell${qty === 0 ? " fill-session-card-cell--empty" : ""}`}
-                                  style={
-                                    {
-                                      "--day-idx": dayIdx,
-                                      "--comp-idx": compIdx,
-                                    } as React.CSSProperties
-                                  }
-                                >
-                                  {qty > 0 && (
-                                    <span className="fill-session-card-cell-count">
-                                      {qty}
-                                    </span>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </Fragment>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+                <MedicineCard
+                  key={cardKey}
+                  card={card}
+                  compartments={compartments}
+                  isOpen={openCardKey === cardKey}
+                  onToggle={() => toggleCard(cardKey)}
+                />
               );
             })}
           </div>
