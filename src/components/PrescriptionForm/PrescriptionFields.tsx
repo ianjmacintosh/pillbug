@@ -6,7 +6,7 @@ import { detectUnitInQuantity } from "./PrescriptionForm.helpers";
 import { RoutineBlock } from "./RoutineBlock";
 import type { DosingSchedule } from "./usePrescriptionForm";
 
-interface FormFieldsProps {
+interface PrescriptionFieldsProps {
   t: TFunction;
   idPrefix: string;
   doseForm: string;
@@ -46,7 +46,7 @@ interface FormFieldsProps {
   removeDoseTime: (scheduleIndex: number, timeIndex: number) => void;
 }
 
-export function FormFields({
+export function PrescriptionFields({
   t,
   idPrefix,
   doseForm,
@@ -76,7 +76,7 @@ export function FormFields({
   updateDoseTime,
   updateSlotQuantity,
   removeDoseTime,
-}: FormFieldsProps) {
+}: PrescriptionFieldsProps) {
   return (
     <>
       <div className="drug-info-row">

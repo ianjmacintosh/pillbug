@@ -1,7 +1,7 @@
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Button } from "../Button/Button";
-import { FormFields } from "./FormFields";
+import { PrescriptionFields } from "./PrescriptionFields";
 import { usePrescriptionForm } from "./usePrescriptionForm";
 import type { PrescriptionFormData } from "./PrescriptionForm.types";
 
@@ -50,7 +50,7 @@ export function NewPrescriptionForm() {
       <h2>{t("prescriptionForm.addHeading")}</h2>
       <form onSubmit={handleCreate}>
         {form.error && <p role="alert">{form.error}</p>}
-        <FormFields t={t} idPrefix="create" {...form} />
+        <PrescriptionFields t={t} idPrefix="create" {...form} />
         <div className="form-actions">
           <Button
             type="submit"
@@ -110,7 +110,7 @@ export function EditPrescriptionForm() {
       <h2>{t("prescriptionForm.editHeading")}</h2>
       <form onSubmit={handleSaveEdit}>
         {form.error && <p role="alert">{form.error}</p>}
-        <FormFields t={t} idPrefix="edit" {...form} />
+        <PrescriptionFields t={t} idPrefix="edit" {...form} />
         <div className="form-actions">
           <Button
             type="submit"
