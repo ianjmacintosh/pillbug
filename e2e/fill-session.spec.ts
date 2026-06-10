@@ -1,41 +1,31 @@
-import { getPlatformProxy } from "wrangler";
-import type { D1Database } from "@cloudflare/workers-types";
-import { expect, test, type Browser } from "@playwright/test";
+import { expect, test, type Browser, type Page } from "@playwright/test";
 import { hashEmail } from "../worker/email-crypto";
 import {
   PRESCRIPTIONS_PATIENT_EMAIL,
   PRESCRIPTIONS_PATIENT_AUTH_FILE,
 } from "./test-accounts";
+import { getDB, disposeDB } from "./db";
 
-let db: D1Database;
 let emailLookup: string;
-let proxyDispose: () => Promise<void>;
 
 test.beforeAll(async () => {
-  const { env, dispose } = await getPlatformProxy<{ DB: D1Database }>({
-    environment: "staging",
-  });
-  db = env.DB;
   emailLookup = await hashEmail(
     PRESCRIPTIONS_PATIENT_EMAIL,
     process.env.EMAIL_SECRET!,
   );
-  proxyDispose = dispose;
 });
 
 test.afterAll(async () => {
-  await proxyDispose();
+  await disposeDB();
 });
 
 test.use({ storageState: PRESCRIPTIONS_PATIENT_AUTH_FILE });
 
-// Clears DB state and seeds the given prescriptions via authenticated API calls.
-// Each describe block calls this in beforeAll so it owns its state regardless
-// of what ran before or in what order.
 async function resetState(
   browser: Browser,
   ...prescriptions: object[]
 ): Promise<void> {
+  const db = await getDB();
   await db
     .prepare("UPDATE patients SET timezone = ? WHERE email_lookup = ?")
     .bind("America/Chicago", emailLookup)
@@ -49,7 +39,6 @@ async function resetState(
   if (prescriptions.length === 0) return;
   const context = await browser.newContext({
     storageState: PRESCRIPTIONS_PATIENT_AUTH_FILE,
-    baseURL: "http://localhost:5173",
   });
   try {
     for (const data of prescriptions) {
@@ -114,127 +103,90 @@ test.describe("Fill Session", () => {
       await resetState(browser);
     });
 
-    test("shows heading", async ({ page }) => {
+    test("shows heading and no active prescriptions message", async ({
+      page,
+    }) => {
       await page.goto("/fill-session");
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    });
-
-    test("shows no active prescriptions message", async ({ page }) => {
-      await page.goto("/fill-session");
       await expect(page.getByText(/no active prescriptions/i)).toBeVisible();
     });
   });
 
-  test.describe("card list", () => {
+  test.describe("loaded state", () => {
+    let sharedPage: Page;
+
     test.beforeAll(async ({ browser }) => {
       await resetState(browser, METFORMIN, LISINOPRIL);
+      const context = await browser.newContext({
+        storageState: PRESCRIPTIONS_PATIENT_AUTH_FILE,
+      });
+      sharedPage = await context.newPage();
+      await sharedPage.goto("/fill-session");
     });
 
-    test("shows one card per active prescription", async ({ page }) => {
-      await page.goto("/fill-session");
-      await expect(page.getByText("Metformin")).toBeVisible();
-      await expect(page.getByText("Lisinopril")).toBeVisible();
+    test.afterAll(async () => {
+      await sharedPage.context().close();
     });
 
-    test("card header shows drug name, dosage, and weekly pill count", async ({
-      page,
-    }) => {
-      await page.goto("/fill-session");
-      await expect(page.getByText("Metformin")).toBeVisible();
-      await expect(page.getByText("500 mg")).toBeVisible();
-      await expect(page.getByText(/7 pills/)).toBeVisible();
+    test("shows drug names, dosage, and weekly pill count", async () => {
+      await expect(sharedPage.getByText("Metformin")).toBeVisible();
+      await expect(sharedPage.getByText("Lisinopril")).toBeVisible();
+      await expect(sharedPage.getByText("500 mg")).toBeVisible();
+      await expect(sharedPage.getByText(/7 pills/)).toBeVisible();
     });
 
-    test("drug name and dosage are visible on closed cards", async ({
-      page,
-    }) => {
-      await page.goto("/fill-session");
-      await page.getByRole("button", { name: /metformin/i }).click();
-      await expect(page.getByText("Metformin")).toBeVisible();
-      await expect(page.getByText("Lisinopril")).toBeVisible();
-    });
-  });
-
-  test.describe("accordion", () => {
-    test.beforeAll(async ({ browser }) => {
-      await resetState(browser, METFORMIN, LISINOPRIL);
-    });
-
-    test("first card is open on load", async ({ page }) => {
-      await page.goto("/fill-session");
+    test("accordion initial state: first card open, all day headers visible", async () => {
       await expect(
-        page.getByRole("button", { name: /metformin/i }),
+        sharedPage.getByRole("button", { name: /metformin/i }),
       ).toHaveAttribute("aria-expanded", "true");
-    });
-
-    test("subsequent cards are closed on load", async ({ page }) => {
-      await page.goto("/fill-session");
       await expect(
-        page.getByRole("button", { name: /lisinopril/i }),
+        sharedPage.getByRole("button", { name: /lisinopril/i }),
       ).toHaveAttribute("aria-expanded", "false");
-    });
-
-    test("open card shows the organizer grid with day headers", async ({
-      page,
-    }) => {
-      await page.goto("/fill-session");
       for (const day of ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]) {
-        await expect(page.getByText(day)).toBeVisible();
+        await expect(sharedPage.getByText(day)).toBeVisible();
       }
     });
 
-    test("clicking a closed card opens it and closes the previously open card", async ({
-      page,
-    }) => {
-      await page.goto("/fill-session");
-      await page.getByRole("button", { name: /lisinopril/i }).click();
+    test("organizer selector defaults to Simple 7-day", async () => {
       await expect(
-        page.getByRole("button", { name: /lisinopril/i }),
-      ).toHaveAttribute("aria-expanded", "true");
-      await expect(
-        page.getByRole("button", { name: /metformin/i }),
-      ).toHaveAttribute("aria-expanded", "false");
-    });
-
-    test("clicking an open card closes it", async ({ page }) => {
-      await page.goto("/fill-session");
-      const header = page.getByRole("button", { name: /metformin/i });
-      await header.click();
-      await expect(header).toHaveAttribute("aria-expanded", "false");
-    });
-  });
-
-  test.describe("organizer selector", () => {
-    test.beforeAll(async ({ browser }) => {
-      await resetState(browser, METFORMIN, LISINOPRIL);
-    });
-
-    test("defaults to Simple 7-day organizer", async ({ page }) => {
-      await page.goto("/fill-session");
-      await expect(
-        page.getByRole("combobox", { name: /pill organizer/i }),
+        sharedPage.getByRole("combobox", { name: /pill organizer/i }),
       ).toHaveValue("1");
     });
 
-    test("switching to AM/PM shows AM and PM slot labels", async ({ page }) => {
-      await page.goto("/fill-session");
-      await page
+    test("switching organizer shows correct slot labels", async () => {
+      await sharedPage
         .getByRole("combobox", { name: /pill organizer/i })
         .selectOption("2");
-      await expect(page.getByText("AM", { exact: true })).toBeVisible();
-      await expect(page.getByText("PM", { exact: true })).toBeVisible();
-    });
+      await expect(sharedPage.getByText("AM", { exact: true })).toBeVisible();
+      await expect(sharedPage.getByText("PM", { exact: true })).toBeVisible();
 
-    test("switching to Morn/Noon/Night shows three slot labels", async ({
-      page,
-    }) => {
-      await page.goto("/fill-session");
-      await page
+      await sharedPage
         .getByRole("combobox", { name: /pill organizer/i })
         .selectOption("3");
-      await expect(page.getByText("Morn", { exact: true })).toBeVisible();
-      await expect(page.getByText("Noon", { exact: true })).toBeVisible();
-      await expect(page.getByText("Night", { exact: true })).toBeVisible();
+      await expect(sharedPage.getByText("Morn", { exact: true })).toBeVisible();
+      await expect(sharedPage.getByText("Noon", { exact: true })).toBeVisible();
+      await expect(
+        sharedPage.getByText("Night", { exact: true }),
+      ).toBeVisible();
+    });
+
+    test("clicking a different card opens it and closes the current", async () => {
+      await sharedPage.getByRole("button", { name: /lisinopril/i }).click();
+      await expect(
+        sharedPage.getByRole("button", { name: /lisinopril/i }),
+      ).toHaveAttribute("aria-expanded", "true");
+      await expect(
+        sharedPage.getByRole("button", { name: /metformin/i }),
+      ).toHaveAttribute("aria-expanded", "false");
+    });
+
+    test("clicking an open card closes it, both cards remain in the list", async () => {
+      await sharedPage.getByRole("button", { name: /lisinopril/i }).click();
+      await expect(
+        sharedPage.getByRole("button", { name: /lisinopril/i }),
+      ).toHaveAttribute("aria-expanded", "false");
+      await expect(sharedPage.getByText("Metformin")).toBeVisible();
+      await expect(sharedPage.getByText("Lisinopril")).toBeVisible();
     });
   });
 });
