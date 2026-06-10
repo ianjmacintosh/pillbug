@@ -39,6 +39,7 @@ test.use({ storageState: PRESCRIPTIONS_PATIENT_AUTH_FILE });
 
 test.beforeEach(async () => {
   await clearPrescriptions();
+  await disposeDB();
 });
 
 test.afterAll(async () => {
