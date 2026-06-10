@@ -1,70 +1,43 @@
-import { expect, test, type Page } from "@playwright/test";
-import { getPlatformProxy } from "wrangler";
-import type { D1Database } from "@cloudflare/workers-types";
+import { expect, test } from "@playwright/test";
 import { hashEmail } from "../worker/email-crypto";
-import { setKnownPin, TURNSTILE_DUMMY_TOKEN, TEST_PIN } from "./helpers";
 import {
   ALICE_AUTH_FILE,
   ALICE_EMAIL,
   PRESCRIPTIONS_PATIENT_EMAIL,
+  PRESCRIPTIONS_PATIENT_AUTH_FILE,
 } from "./test-accounts";
-
-interface Env {
-  DB: D1Database;
-}
+import { getDB, disposeDB } from "./db";
 
 async function resetAliceLanguage(): Promise<void> {
-  const { env, dispose } = await getPlatformProxy<Env>({
-    environment: "staging",
-  });
-  try {
-    const emailLookup = await hashEmail(ALICE_EMAIL, process.env.EMAIL_SECRET!);
-    await env.DB.prepare(
-      "UPDATE patients SET language = NULL WHERE email_lookup = ?",
-    )
-      .bind(emailLookup)
-      .run();
-  } finally {
-    await dispose();
-  }
+  const db = await getDB();
+  const emailLookup = await hashEmail(ALICE_EMAIL, process.env.EMAIL_SECRET!);
+  await db
+    .prepare("UPDATE patients SET language = NULL WHERE email_lookup = ?")
+    .bind(emailLookup)
+    .run();
 }
 
 async function clearPrescriptions(): Promise<void> {
-  const { env, dispose } = await getPlatformProxy<Env>({
-    environment: "staging",
-  });
-  try {
-    const emailLookup = await hashEmail(
-      PRESCRIPTIONS_PATIENT_EMAIL,
-      process.env.EMAIL_SECRET!,
-    );
-    await env.DB.prepare(
-      "UPDATE patients SET timezone = ? WHERE email_lookup = ?",
-    )
-      .bind("America/Chicago", emailLookup)
-      .run();
-    await env.DB.prepare(
+  const db = await getDB();
+  const emailLookup = await hashEmail(
+    PRESCRIPTIONS_PATIENT_EMAIL,
+    process.env.EMAIL_SECRET!,
+  );
+  await db
+    .prepare("UPDATE patients SET timezone = ? WHERE email_lookup = ?")
+    .bind("America/Chicago", emailLookup)
+    .run();
+  await db
+    .prepare(
       "DELETE FROM prescriptions WHERE patient_id IN (SELECT id FROM patients WHERE email_lookup = ?)",
     )
-      .bind(emailLookup)
-      .run();
-  } finally {
-    await dispose();
-  }
+    .bind(emailLookup)
+    .run();
 }
 
-async function login(page: Page): Promise<void> {
-  const res = await page.request.post("/api/v1/login", {
-    data: {
-      email: PRESCRIPTIONS_PATIENT_EMAIL,
-      turnstileToken: TURNSTILE_DUMMY_TOKEN,
-    },
-  });
-  const { token } = (await res.json()) as { token: string };
-  await setKnownPin(token);
-  await page.goto(`/enter-code?token=${token}&pin=${TEST_PIN}`);
-  await expect(page).toHaveURL("/");
-}
+test.afterAll(async () => {
+  await disposeDB();
+});
 
 test.describe("Home screen week navigation", () => {
   test.use({ storageState: ALICE_AUTH_FILE });
@@ -73,24 +46,16 @@ test.describe("Home screen week navigation", () => {
     await resetAliceLanguage();
   });
 
-  test("Previous week button is enabled", async ({ page }) => {
+  test("Previous week is enabled, Next week disabled on current week, navigation toggles Next week", async ({
+    page,
+  }) => {
     await page.goto("/");
     await expect(
       page.getByRole("button", { name: /previous week/i }),
     ).toBeEnabled();
-  });
-
-  test("Next week button is disabled on the current week", async ({ page }) => {
-    await page.goto("/");
     await expect(
       page.getByRole("button", { name: /next week/i }),
     ).toBeDisabled();
-  });
-
-  test("navigating back one week enables Next week, navigating forward disables it again", async ({
-    page,
-  }) => {
-    await page.goto("/");
 
     await page.getByRole("button", { name: /previous week/i }).click();
     await expect(
@@ -105,13 +70,16 @@ test.describe("Home screen week navigation", () => {
 });
 
 test.describe("Home screen doses", () => {
+  test.use({ storageState: PRESCRIPTIONS_PATIENT_AUTH_FILE });
+
   test.beforeEach(async () => {
     await clearPrescriptions();
   });
 
-  test("dose label shows 'count form × drug dosage'", async ({ page }) => {
-    await login(page);
-    await page.request.post("/api/v1/prescriptions", {
+  test("dose label shows count × drug dosage and links to the prescription detail page", async ({
+    page,
+  }) => {
+    const res = await page.request.post("/api/v1/prescriptions", {
       data: {
         drugName: "Metformin",
         dosage: "500 mg",
@@ -123,15 +91,20 @@ test.describe("Home screen doses", () => {
         startDate: "2024-01-01",
       },
     });
+    const { id } = (await res.json()) as { id: string };
     await page.goto("/");
 
     await expect(page.getByText("2 tablet × Metformin 500 mg")).toBeVisible();
+
+    const drugLink = page.getByRole("link", { name: /metformin 500 mg/i });
+    await expect(drugLink).toBeVisible();
+    await drugLink.click();
+    await expect(page).toHaveURL(`/prescriptions/${id}`);
   });
 
   test("two prescriptions at the same time are grouped under one time header", async ({
     page,
   }) => {
-    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: {
         drugName: "Metformin",
@@ -166,35 +139,9 @@ test.describe("Home screen doses", () => {
     await expect(mondaySection.getByText(/Lisinopril/)).toBeVisible();
   });
 
-  test("drug name and dosage link navigates to the prescription detail page", async ({
-    page,
-  }) => {
-    await login(page);
-    const res = await page.request.post("/api/v1/prescriptions", {
-      data: {
-        drugName: "Metformin",
-        dosage: "500 mg",
-        doseForm: "tablet",
-        schedule: {
-          days: { monday: [{ time: "08:00", quantity: 1 }] },
-          timezoneMode: "local",
-        },
-        startDate: "2024-01-01",
-      },
-    });
-    const { id } = (await res.json()) as { id: string };
-    await page.goto("/");
-
-    const drugLink = page.getByRole("link", { name: /metformin 500 mg/i });
-    await expect(drugLink).toBeVisible();
-    await drugLink.click();
-    await expect(page).toHaveURL(`/prescriptions/${id}`);
-  });
-
   test("two prescriptions at different times each get their own time header", async ({
     page,
   }) => {
-    await login(page);
     await page.request.post("/api/v1/prescriptions", {
       data: {
         drugName: "Metformin",
@@ -230,6 +177,8 @@ test.describe("Home screen doses", () => {
 });
 
 test.describe("scheduled-doses timezone conversion", () => {
+  test.use({ storageState: PRESCRIPTIONS_PATIENT_AUTH_FILE });
+
   test.beforeEach(async () => {
     await clearPrescriptions();
   });
@@ -237,9 +186,6 @@ test.describe("scheduled-doses timezone conversion", () => {
   test("scheduledAt is real UTC based on the patient's stored timezone", async ({
     page,
   }) => {
-    await login(page);
-
-    // Create a prescription with a 2:00 PM Monday slot
     await page.request.post("/api/v1/prescriptions", {
       data: {
         drugName: "Test Drug",
@@ -250,10 +196,8 @@ test.describe("scheduled-doses timezone conversion", () => {
       },
     });
 
-    // 2024-01-08 is a Monday in January (standard time — no DST ambiguity)
     const weekQuery = "start=2024-01-08&end=2024-01-14";
 
-    // Los Angeles is PST (UTC-8) in January: 2:00 PM local = T22:00:00.000Z
     await page.request.patch("/api/v1/account", {
       data: { timezone: "America/Los_Angeles" },
     });
@@ -266,7 +210,6 @@ test.describe("scheduled-doses timezone conversion", () => {
     );
     expect(laMonday?.scheduledAt).toBe("2024-01-08T22:00:00.000Z");
 
-    // New York is EST (UTC-5) in January: 2:00 PM local = T19:00:00.000Z
     await page.request.patch("/api/v1/account", {
       data: { timezone: "America/New_York" },
     });
