@@ -12,6 +12,7 @@ import {
   type Compartment,
   type Schedule,
 } from "../../lib/fill-session";
+import { Button } from "../Button/Button";
 import { MedicineCard } from "./MedicineCard";
 import "./FillSession.css";
 
@@ -94,9 +95,9 @@ function FillSession() {
       </h2>
 
       <div className="fill-session-controls screen-only">
-        <button type="button" onClick={() => window.print()}>
+        <Button type="button" onClick={() => window.print()}>
           {t("fillSession.printButton")}
-        </button>
+        </Button>
         <Select
           label={t("fillSession.pillOrganizerLabel")}
           value={organizerType}

@@ -1,8 +1,9 @@
 .fill-session-controls {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr;
   gap: 1.5rem;
   margin-block-end: 1.5rem;
-  flex-wrap: wrap;
+  align-items: end;
 }
 
 .fill-session-controls label {
@@ -13,6 +14,14 @@
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--gray-30);
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.fill-session-controls .button {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
 }
 
 .fill-session-controls select {
