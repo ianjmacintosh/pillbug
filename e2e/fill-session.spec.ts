@@ -135,9 +135,9 @@ test.describe("Fill Session page", () => {
     });
 
     test("it shows the date range for the current week in the heading", async () => {
-      await expect(
-        sharedPage.getByRole("heading", { level: 1 }),
-      ).toContainText(/\w{3} \d+/);
+      await expect(sharedPage.getByRole("heading", { level: 1 })).toContainText(
+        /\w{3} \d+/,
+      );
     });
 
     test("it shows the total pill count for each prescription", async () => {
@@ -147,10 +147,16 @@ test.describe("Fill Session page", () => {
 
     test("it shows compartment bubbles for all prescriptions", async () => {
       await expect(
-        sharedPage.getByRole("region", { name: /metformin/i }).getByText("1").first(),
+        sharedPage
+          .getByRole("region", { name: /metformin/i })
+          .getByText("1")
+          .first(),
       ).toBeVisible();
       await expect(
-        sharedPage.getByRole("region", { name: /lisinopril/i }).getByText("2").first(),
+        sharedPage
+          .getByRole("region", { name: /lisinopril/i })
+          .getByText("2")
+          .first(),
       ).toBeVisible();
     });
   });

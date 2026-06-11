@@ -207,11 +207,15 @@ describe("FillSession", () => {
     await waitFor(() => screen.getByText("Metformin"));
     // Metformin is open — its cell values are in the DOM
     expect(
-      within(screen.getByRole("region", { name: /metformin/i })).getAllByText("1")[0],
+      within(screen.getByRole("region", { name: /metformin/i })).getAllByText(
+        "1",
+      )[0],
     ).toBeInTheDocument();
     // Lisinopril is closed — its grid is still rendered (needed for print CSS to reveal it)
     expect(
-      within(screen.getByRole("region", { name: /lisinopril/i })).getAllByText("2")[0],
+      within(screen.getByRole("region", { name: /lisinopril/i })).getAllByText(
+        "2",
+      )[0],
     ).toBeInTheDocument();
   });
 
