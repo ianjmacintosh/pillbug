@@ -176,19 +176,11 @@
   color: var(--gray-10);
 }
 
-.fill-session-worksheet-label {
-  display: none;
-}
-
 .fill-session-card-grid--hidden {
   display: none;
 }
 
 @media print {
-  .fill-session-worksheet-label {
-    display: block;
-  }
-
   .fill-session-card-grid--hidden {
     display: grid;
   }

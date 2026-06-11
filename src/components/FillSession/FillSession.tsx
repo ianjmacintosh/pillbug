@@ -88,12 +88,12 @@ function FillSession() {
 
   return (
     <main className="fill-session">
-      <h1>{t("fillSession.headingWithDates", { startDate, endDate })}</h1>
-      <p className="fill-session-worksheet-label">
-        {t("fillSession.worksheetLabel")}
-      </p>
+      <h1>{t("fillSession.heading")}</h1>
+      <h2 className="fill-session-date-range">
+        {startDate}–{endDate}
+      </h2>
 
-      <div className="fill-session-controls">
+      <div className="fill-session-controls screen-only">
         <button type="button" onClick={() => window.print()}>
           {t("fillSession.printButton")}
         </button>

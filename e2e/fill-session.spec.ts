@@ -128,14 +128,11 @@ test.describe("Fill Session page", () => {
       await sharedPage.emulateMedia({ media: null });
     });
 
-    test("it shows a 'Worksheet' label", async () => {
-      await expect(
-        sharedPage.getByText("Worksheet", { exact: true }),
-      ).toBeVisible();
-    });
-
-    test("it shows the date range for the current week in the heading", async () => {
+    test("page heading is 'Fill Session' with the date range in a secondary heading", async () => {
       await expect(sharedPage.getByRole("heading", { level: 1 })).toContainText(
+        /Fill Session/,
+      );
+      await expect(sharedPage.getByRole("heading", { level: 2 })).toContainText(
         /\w{3} \d+/,
       );
     });

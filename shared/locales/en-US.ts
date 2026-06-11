@@ -123,8 +123,6 @@ const enUS = {
   "fillSession.organizerOption.mornNoonNight": "7-day Morn/Noon/Night",
   "fillSession.organizerOption.mornNoonEveNight": "7-day Morn/Noon/Eve/Bed",
   "fillSession.noPrescriptions": "No active prescriptions.",
-  "fillSession.headingWithDates": "Fill Session — {{startDate}}–{{endDate}}",
-  "fillSession.worksheetLabel": "Worksheet",
   "fillSession.printButton": "Print Worksheet",
   "register.heading": "Create your account",
   "register.emailLabel": "Email",

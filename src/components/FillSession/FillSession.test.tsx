@@ -187,15 +187,15 @@ describe("FillSession", () => {
     });
   });
 
-  test("heading shows current week's Mon–Sun date range", () => {
+  test("shows current week's Mon–Sun date range below the heading", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-11T00:00:00Z")); // Thursday → Mon Jun 8, Sun Jun 14
     try {
       mockPrescriptions();
       render(<FillSession />);
-      const heading = screen.getByRole("heading", { level: 1 });
-      expect(heading.textContent).toMatch(/Jun 8/);
-      expect(heading.textContent).toMatch(/Jun 14/);
+      const dateHeading = screen.getByRole("heading", { level: 2 });
+      expect(dateHeading.textContent).toMatch(/Jun 8/);
+      expect(dateHeading.textContent).toMatch(/Jun 14/);
     } finally {
       vi.useRealTimers();
     }
@@ -219,10 +219,10 @@ describe("FillSession", () => {
     ).toBeInTheDocument();
   });
 
-  test("renders a 'Worksheet' label in the document", () => {
+  test("renders the date range as a secondary heading", () => {
     mockPrescriptions();
     render(<FillSession />);
-    expect(screen.getByText("Worksheet", { exact: true })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2 })).toBeTruthy();
   });
 
   test("shows a Print Worksheet button", () => {
