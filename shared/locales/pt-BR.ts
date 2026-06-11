@@ -126,6 +126,9 @@ const ptBR = {
   "fillSession.organizerOption.mornNoonEveNight":
     "7 dias Manhã/Tarde/Noite/Dormir",
   "fillSession.noPrescriptions": "Nenhuma prescrição ativa.",
+  "fillSession.headingWithDates": "Sessão de Separação — {{startDate}}–{{endDate}}",
+  "fillSession.worksheetLabel": "Planilha",
+  "fillSession.printButton": "Imprimir Planilha",
   "register.heading": "Criar sua conta",
   "register.emailLabel": "E-mail",
   "register.turnstileError":

@@ -22,7 +22,7 @@ export function MedicineCard({
   const { t } = useTranslation();
 
   return (
-    <div className="fill-session-card">
+    <section className="fill-session-card" aria-label={card.drugName}>
       <button
         type="button"
         className={`fill-session-card-header${isOpen ? " fill-session-card-header--open" : ""}`}
@@ -39,9 +39,8 @@ export function MedicineCard({
         </span>
       </button>
 
-      {isOpen && (
-        <div
-          className="fill-session-card-grid"
+      <div
+          className={`fill-session-card-grid${isOpen ? "" : " fill-session-card-grid--hidden"}`}
           style={
             {
               "--day-count": WEEKDAYS.length,
@@ -103,7 +102,6 @@ export function MedicineCard({
             );
           })}
         </div>
-      )}
-    </div>
+    </section>
   );
 }

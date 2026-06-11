@@ -97,6 +97,65 @@ const LISINOPRIL = {
   doseForm: "tablet",
 };
 
+test.describe("Fill Session page", () => {
+  let sharedPage: Page;
+
+  test.beforeAll(async ({ browser }) => {
+    await resetState(browser, METFORMIN, LISINOPRIL);
+    const context = await browser.newContext({
+      storageState: PRESCRIPTIONS_PATIENT_AUTH_FILE,
+    });
+    sharedPage = await context.newPage();
+    await sharedPage.goto("/fill-session");
+  });
+
+  test.afterAll(async () => {
+    await sharedPage.context().close();
+  });
+
+  test('has a "Print Worksheet" button', async () => {
+    await expect(
+      sharedPage.getByRole("button", { name: /print worksheet/i }),
+    ).toBeVisible();
+  });
+
+  test.describe("prints as a worksheet", () => {
+    test.beforeAll(async () => {
+      await sharedPage.emulateMedia({ media: "print" });
+    });
+
+    test.afterAll(async () => {
+      await sharedPage.emulateMedia({ media: null });
+    });
+
+    test("it shows a 'Worksheet' label", async () => {
+      await expect(
+        sharedPage.getByText("Worksheet", { exact: true }),
+      ).toBeVisible();
+    });
+
+    test("it shows the date range for the current week in the heading", async () => {
+      await expect(
+        sharedPage.getByRole("heading", { level: 1 }),
+      ).toContainText(/\w{3} \d+/);
+    });
+
+    test("it shows the total pill count for each prescription", async () => {
+      await expect(sharedPage.getByText(/7 pills/)).toBeVisible();
+      await expect(sharedPage.getByText(/14 pills/)).toBeVisible();
+    });
+
+    test("it shows compartment bubbles for all prescriptions", async () => {
+      await expect(
+        sharedPage.getByRole("region", { name: /metformin/i }).getByText("1").first(),
+      ).toBeVisible();
+      await expect(
+        sharedPage.getByRole("region", { name: /lisinopril/i }).getByText("2").first(),
+      ).toBeVisible();
+    });
+  });
+});
+
 test.describe("Fill Session", () => {
   test.describe("empty state", () => {
     test.beforeAll(async ({ browser }) => {

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { formatMonthDay } from "../../lib/dates";
+import { weekBoundaries } from "../../../shared/week-boundaries";
 import { Select } from "../Select/Select";
 import {
   ONE_COMPARTMENT,
@@ -50,7 +52,11 @@ const ORGANIZER_OPTIONS: {
 ];
 
 function FillSession() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const today = new Date().toISOString().slice(0, 10);
+  const { monday, sunday } = weekBoundaries(today);
+  const startDate = formatMonthDay(monday, i18n.language);
+  const endDate = formatMonthDay(sunday, i18n.language);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [organizerType, setOrganizerType] = useState("1");
   const [openCardKey, setOpenCardKey] = useState<string | null>(null);
@@ -82,9 +88,15 @@ function FillSession() {
 
   return (
     <main className="fill-session">
-      <h1>{t("fillSession.heading")}</h1>
+      <h1>{t("fillSession.headingWithDates", { startDate, endDate })}</h1>
+      <p className="fill-session-worksheet-label">
+        {t("fillSession.worksheetLabel")}
+      </p>
 
       <div className="fill-session-controls">
+        <button type="button" onClick={() => window.print()}>
+          {t("fillSession.printButton")}
+        </button>
         <Select
           label={t("fillSession.pillOrganizerLabel")}
           value={organizerType}

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test, vi } from "vitest";
 import FillSession from "./FillSession";
@@ -185,6 +185,48 @@ describe("FillSession", () => {
       const metforminHeader = screen.getByText("Metformin").closest("button")!;
       expect(metforminHeader.getAttribute("aria-expanded")).toBe("false");
     });
+  });
+
+  test("heading shows current week's Mon–Sun date range", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-11T00:00:00Z")); // Thursday → Mon Jun 8, Sun Jun 14
+    try {
+      mockPrescriptions();
+      render(<FillSession />);
+      const heading = screen.getByRole("heading", { level: 1 });
+      expect(heading.textContent).toMatch(/Jun 8/);
+      expect(heading.textContent).toMatch(/Jun 14/);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test("medicine card grids render for all cards regardless of open state", async () => {
+    mockPrescriptions(METFORMIN, LISINOPRIL);
+    render(<FillSession />);
+    await waitFor(() => screen.getByText("Metformin"));
+    // Metformin is open — its cell values are in the DOM
+    expect(
+      within(screen.getByRole("region", { name: /metformin/i })).getAllByText("1")[0],
+    ).toBeInTheDocument();
+    // Lisinopril is closed — its grid is still rendered (needed for print CSS to reveal it)
+    expect(
+      within(screen.getByRole("region", { name: /lisinopril/i })).getAllByText("2")[0],
+    ).toBeInTheDocument();
+  });
+
+  test("renders a 'Worksheet' label in the document", () => {
+    mockPrescriptions();
+    render(<FillSession />);
+    expect(screen.getByText("Worksheet", { exact: true })).toBeInTheDocument();
+  });
+
+  test("shows a Print Worksheet button", () => {
+    mockPrescriptions();
+    render(<FillSession />);
+    expect(
+      screen.getByRole("button", { name: /print worksheet/i }),
+    ).toBeTruthy();
   });
 
   test("clicking an open card closes it", async () => {
