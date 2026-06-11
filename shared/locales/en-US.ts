@@ -124,6 +124,7 @@ const enUS = {
   "fillSession.organizerOption.mornNoonEveNight": "7-day Morn/Noon/Eve/Bed",
   "fillSession.noPrescriptions": "No active prescriptions.",
   "fillSession.printButton": "Print Worksheet",
+  "fillSession.savePdfButton": "Save as PDF",
   "register.heading": "Create your account",
   "register.emailLabel": "Email",
   "register.turnstileError":

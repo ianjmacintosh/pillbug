@@ -4,7 +4,7 @@ import { WEEKDAYS } from "../../lib/days";
 import type {
   Compartment,
   MedicineCard as MedicineCardData,
-} from "../../lib/fill-session";
+} from "../../../shared/fill-session";
 
 interface MedicineCardProps {
   card: MedicineCardData;

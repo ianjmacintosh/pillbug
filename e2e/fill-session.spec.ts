@@ -5,6 +5,7 @@ import {
   PRESCRIPTIONS_PATIENT_AUTH_FILE,
 } from "./test-accounts";
 import { getDB, disposeDB } from "./db";
+import { weekBoundaries } from "../shared/week-boundaries";
 
 let emailLookup: string;
 
@@ -172,6 +173,37 @@ test.describe("Fill Session page", () => {
       }
     });
   });
+
+  test.describe("PDF download", () => {
+    let expectedFilename: string;
+
+    test.beforeAll(async () => {
+      // Mirror the worker's filename computation: today in the patient's
+      // timezone (set to America/Chicago by resetState), then week boundaries.
+      const today = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Chicago",
+      }).format(new Date());
+      const { monday, sunday } = weekBoundaries(today);
+      expectedFilename = `Pillbug_Worksheet-${monday.replace(/-/g, "_")}-${sunday.replace(/-/g, "_")}.pdf`;
+    });
+
+    test("'Save as PDF' button downloads a PDF named for the current week", async () => {
+      const [download] = await Promise.all([
+        sharedPage.waitForEvent("download"),
+        sharedPage.getByRole("button", { name: /save as pdf/i }).click(),
+      ]);
+      expect(download.suggestedFilename()).toBe(expectedFilename);
+    });
+
+    test("GET /api/v1/fill-session/pdf returns a PDF with the correct filename", async () => {
+      const response = await sharedPage.request.get("/api/v1/fill-session/pdf");
+      expect(response.status()).toBe(200);
+      expect(response.headers()["content-type"]).toBe("application/pdf");
+      expect(response.headers()["content-disposition"] ?? "").toContain(
+        `filename="${expectedFilename}"`,
+      );
+    });
+  });
 });
 
 test.describe("Fill Session", () => {
@@ -219,8 +251,11 @@ test.describe("Fill Session", () => {
       await expect(
         sharedPage.getByRole("button", { name: /lisinopril/i }),
       ).toHaveAttribute("aria-expanded", "false");
+      // Day headers render in every card, so scope to the open card (Metformin)
+      // to avoid a strict-mode match against the closed card's headers.
+      const openCard = sharedPage.getByRole("region", { name: /metformin/i });
       for (const day of ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]) {
-        await expect(sharedPage.getByText(day)).toBeVisible();
+        await expect(openCard.getByText(day)).toBeVisible();
       }
     });
 
@@ -231,20 +266,21 @@ test.describe("Fill Session", () => {
     });
 
     test("switching organizer shows correct slot labels", async () => {
+      // Slot labels render in every card, so scope to the open card (Metformin)
+      // to avoid a strict-mode match against the closed card's labels.
+      const openCard = sharedPage.getByRole("region", { name: /metformin/i });
       await sharedPage
         .getByRole("combobox", { name: /pill organizer/i })
         .selectOption("2");
-      await expect(sharedPage.getByText("AM", { exact: true })).toBeVisible();
-      await expect(sharedPage.getByText("PM", { exact: true })).toBeVisible();
+      await expect(openCard.getByText("AM", { exact: true })).toBeVisible();
+      await expect(openCard.getByText("PM", { exact: true })).toBeVisible();
 
       await sharedPage
         .getByRole("combobox", { name: /pill organizer/i })
         .selectOption("3");
-      await expect(sharedPage.getByText("Morn", { exact: true })).toBeVisible();
-      await expect(sharedPage.getByText("Noon", { exact: true })).toBeVisible();
-      await expect(
-        sharedPage.getByText("Night", { exact: true }),
-      ).toBeVisible();
+      await expect(openCard.getByText("Morn", { exact: true })).toBeVisible();
+      await expect(openCard.getByText("Noon", { exact: true })).toBeVisible();
+      await expect(openCard.getByText("Night", { exact: true })).toBeVisible();
     });
 
     test("clicking a different card opens it and closes the current", async () => {

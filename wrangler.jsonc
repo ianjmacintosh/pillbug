@@ -2,6 +2,7 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "pillbug",
   "compatibility_date": "2026-02-05",
+  "compatibility_flags": ["nodejs_compat"],
   "main": "worker/worker.ts",
   // Root config has no bindings or routes. Deployments are handled by CI only.
   // Developers use `wrangler dev` locally; the dev token has no deploy permissions.
@@ -37,6 +38,7 @@
           "custom_domain": true,
         },
       ],
+      "browser": { "binding": "BROWSER" },
       "vars": {
         "APP_URL": "https://pillbug.ianjmacintosh.com",
         "CF_TEAM_DOMAIN": "https://banana-squad.cloudflareaccess.com",
@@ -59,6 +61,7 @@
           "custom_domain": true,
         },
       ],
+      "browser": { "binding": "BROWSER" },
       "vars": {
         "APP_URL": "https://pillbug-staging.ianjmacintosh.com",
         "CF_TEAM_DOMAIN": "https://banana-squad.cloudflareaccess.com",

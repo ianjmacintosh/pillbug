@@ -7,7 +7,7 @@ import {
   TWO_COMPARTMENTS,
   THREE_COMPARTMENTS,
   FOUR_COMPARTMENTS,
-} from "./fill-session";
+} from "../../shared/fill-session";
 
 describe("resolveCompartmentLabel", () => {
   describe("1-compartment config", () => {
