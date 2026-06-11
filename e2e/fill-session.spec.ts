@@ -156,6 +156,21 @@ test.describe("Fill Session page", () => {
           .first(),
       ).toBeVisible();
     });
+
+    // Playwright cannot observe actual page-break layout, and JSDOM does not
+    // process external CSS files so computed styles cannot be checked in unit
+    // tests. Checking the computed style here is the closest available proxy
+    // for "medicine boxes do not split across printed pages".
+    test("medicine boxes have break-inside: avoid", async () => {
+      const cards = sharedPage.getByRole("region");
+      const count = await cards.count();
+      for (let i = 0; i < count; i++) {
+        const breakInside = await cards
+          .nth(i)
+          .evaluate((el) => getComputedStyle(el).breakInside);
+        expect(breakInside).toBe("avoid");
+      }
+    });
   });
 });
 
