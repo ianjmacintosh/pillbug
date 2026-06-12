@@ -6,6 +6,8 @@ const ptBR = {
   "header.nav.fillSession": "Sessão de Separação",
   "header.nav.settings": "Configurações",
   "header.nav.logOut": "Sair",
+  "header.nav.openMenu": "Abrir menu",
+  "header.nav.closeMenu": "Fechar menu",
   "footer.termsOfService": "Termos de Serviço",
   "footer.privacyPolicy": "Política de Privacidade",
   "completeSetup.loading": "Configurando sua conta…",
