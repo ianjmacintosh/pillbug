@@ -1,4 +1,12 @@
-import { expect, test, type Browser, type Page } from "@playwright/test";
+import {
+  expect,
+  test,
+  type Browser,
+  type Download,
+  type Page,
+} from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { extractText, getDocumentProxy } from "unpdf";
 import { hashEmail } from "../worker/email-crypto";
 import {
   PRESCRIPTIONS_PATIENT_EMAIL,
@@ -176,6 +184,10 @@ test.describe("Fill Session page", () => {
 
   test.describe("PDF download", () => {
     let expectedFilename: string;
+    let monday: string;
+    let sunday: string;
+    let download: Download;
+    let pdfText: string;
 
     test.beforeAll(async () => {
       // Mirror the worker's filename computation: today in the patient's
@@ -183,25 +195,37 @@ test.describe("Fill Session page", () => {
       const today = new Intl.DateTimeFormat("en-CA", {
         timeZone: "America/Chicago",
       }).format(new Date());
-      const { monday, sunday } = weekBoundaries(today);
+      ({ monday, sunday } = weekBoundaries(today));
       expectedFilename = `Pillbug_Worksheet-${monday.replace(/-/g, "_")}-${sunday.replace(/-/g, "_")}.pdf`;
-    });
 
-    test("'Save as PDF' button downloads a PDF named for the current week", async () => {
-      const [download] = await Promise.all([
+      [download] = await Promise.all([
         sharedPage.waitForEvent("download"),
         sharedPage.getByRole("button", { name: /save as pdf/i }).click(),
       ]);
+
+      const path = await download.path();
+      const buffer = readFileSync(path!);
+      const pdf = await getDocumentProxy(new Uint8Array(buffer));
+      ({ text: pdfText } = await extractText(pdf, { mergePages: true }));
+    });
+
+    test("'Save as PDF' button triggers a file download", async () => {
+      expect(download).toBeDefined();
+    });
+
+    test("downloaded file has the correct filename for the current week", async () => {
       expect(download.suggestedFilename()).toBe(expectedFilename);
     });
 
-    test("GET /api/v1/fill-session/pdf returns a PDF with the correct filename", async () => {
-      const response = await sharedPage.request.get("/api/v1/fill-session/pdf");
-      expect(response.status()).toBe(200);
-      expect(response.headers()["content-type"]).toBe("application/pdf");
-      expect(response.headers()["content-disposition"] ?? "").toContain(
-        `filename="${expectedFilename}"`,
-      );
+    test("downloaded PDF contains the worksheet heading and date range", async () => {
+      expect(pdfText).toContain("Fill Session");
+      expect(pdfText).toContain(monday.replace(/-/g, "/"));
+      expect(pdfText).toContain(sunday.replace(/-/g, "/"));
+    });
+
+    test("downloaded PDF contains the prescription names", async () => {
+      expect(pdfText).toContain("Metformin");
+      expect(pdfText).toContain("Lisinopril");
     });
   });
 });
