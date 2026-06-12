@@ -126,6 +126,8 @@ const ptBR = {
   "fillSession.organizerOption.mornNoonEveNight":
     "7 dias Manhã/Tarde/Noite/Dormir",
   "fillSession.noPrescriptions": "Nenhuma prescrição ativa.",
+  "fillSession.printButton": "Imprimir Planilha",
+  "fillSession.savePdfButton": "Salvar como PDF",
   "register.heading": "Criar sua conta",
   "register.emailLabel": "E-mail",
   "register.turnstileError":

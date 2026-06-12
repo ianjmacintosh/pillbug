@@ -95,6 +95,20 @@ main {
   border-radius: 3px;
 }
 
+.print-only {
+  display: none;
+}
+
+@media print {
+  .print-only {
+    display: revert;
+  }
+
+  .screen-only {
+    display: none;
+  }
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

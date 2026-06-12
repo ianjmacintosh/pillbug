@@ -27,6 +27,7 @@ import { scheduledDoses } from "./scheduled-doses";
 import { isDoseStatus } from "./doses";
 import { validateCfAccessJwt } from "./cf-access";
 import { getAdminStats, renderAdminHtml } from "./admin";
+import { handleFillSessionPdf } from "./fill-session-pdf";
 
 interface Env {
   ASSETS: Fetcher;
@@ -40,6 +41,7 @@ interface Env {
   CF_TEAM_DOMAIN?: string;
   CF_ACCESS_AUD?: string;
   CF_ACCESS_MOCK?: string;
+  BROWSER: Fetcher;
 }
 
 const CORS_HEADERS = {
@@ -245,11 +247,9 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
         headers: { "Content-Type": "application/json" },
       });
     }
-    const [createdAt, timezone, language] = await Promise.all([
-      repo.findPatientCreatedAt(session.patientId),
-      repo.findPatientTimezone(session.patientId),
-      repo.findPatientLanguage(session.patientId),
-    ]);
+    const createdAt = await repo.findPatientCreatedAt(session.patientId);
+    const timezone = await repo.findPatientTimezone(session.patientId);
+    const language = await repo.findPatientLanguage(session.patientId);
     const registrationDate = createdAt ? createdAt.slice(0, 10) : null;
     return new Response(
       JSON.stringify({ timezone, registrationDate, language }),
@@ -299,6 +299,24 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
         "Set-Cookie": clearSessionCookie(secure),
       },
     });
+  }
+
+  if (url.pathname === "/api/v1/fill-session/pdf" && request.method === "GET") {
+    const sessionId = getSessionId(request);
+    const session = sessionId ? await getSession(sessionId, repo) : null;
+    if (!session) {
+      return new Response(JSON.stringify({ error: "not_authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const patientTimezone = await repo.findPatientTimezone(session.patientId);
+    const prescriptions = await listPrescriptions(
+      session.patientId,
+      ["active"],
+      prescriptionRepo,
+    );
+    return handleFillSessionPdf(request, env, prescriptions, patientTimezone);
   }
 
   if (url.pathname === "/api/v1/prescriptions" && request.method === "POST") {

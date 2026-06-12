@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { formatMonthDay } from "../../lib/dates";
+import { weekBoundaries } from "../../../shared/week-boundaries";
 import { Select } from "../Select/Select";
 import {
   ONE_COMPARTMENT,
@@ -9,7 +11,8 @@ import {
   groupByMedicine,
   type Compartment,
   type Schedule,
-} from "../../lib/fill-session";
+} from "../../../shared/fill-session";
+import { Button } from "../Button/Button";
 import { MedicineCard } from "./MedicineCard";
 import "./FillSession.css";
 
@@ -50,10 +53,15 @@ const ORGANIZER_OPTIONS: {
 ];
 
 function FillSession() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const today = new Date().toISOString().slice(0, 10);
+  const { monday, sunday } = weekBoundaries(today);
+  const startDate = formatMonthDay(monday, i18n.language);
+  const endDate = formatMonthDay(sunday, i18n.language);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [organizerType, setOrganizerType] = useState("1");
   const [openCardKey, setOpenCardKey] = useState<string | null>(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   const compartments =
     ORGANIZER_OPTIONS.find((o) => o.value === organizerType)?.compartments ??
@@ -80,11 +88,41 @@ function FillSession() {
     setOpenCardKey((prev) => (prev === key ? null : key));
   };
 
+  const handleSavePdf = async () => {
+    setPdfLoading(true);
+    try {
+      const res = await fetch(
+        `/api/v1/fill-session/pdf?organizer=${organizerType}`,
+      );
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const disposition = res.headers.get("Content-Disposition") ?? "";
+      const match = disposition.match(/filename="([^"]+)"/);
+      a.href = url;
+      a.download = match?.[1] ?? "Pillbug_Worksheet.pdf";
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
   return (
     <main className="fill-session">
       <h1>{t("fillSession.heading")}</h1>
+      <h2 className="fill-session-date-range">
+        {startDate}–{endDate}
+      </h2>
 
-      <div className="fill-session-controls">
+      <div className="fill-session-controls screen-only">
+        <Button type="button" onClick={() => window.print()}>
+          {t("fillSession.printButton")}
+        </Button>
+        <Button type="button" onClick={handleSavePdf} disabled={pdfLoading}>
+          {t("fillSession.savePdfButton")}
+        </Button>
         <Select
           label={t("fillSession.pillOrganizerLabel")}
           value={organizerType}

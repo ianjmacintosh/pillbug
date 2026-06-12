@@ -601,6 +601,37 @@ Empty array if no matching Prescriptions have a `prescribingDoctor` set.
 
 ---
 
+## Fill Session PDF endpoint
+
+### `GET /api/v1/fill-session/pdf`
+
+Generates and returns a PDF worksheet for the authenticated Patient's current week Fill Session. Requires a valid session cookie.
+
+**Query parameters**
+
+| Parameter   | Type   | Default | Description                                                                                                                                                 |
+| ----------- | ------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `organizer` | string | `"1"`   | Pill organizer type: `"1"` = Simple 7-day, `"2"` = AM/PM, `"3"` = Morn/Noon/Night, `"4"` = Morn/Noon/Eve/Bed. Invalid or missing values fall back to `"1"`. |
+
+**Response — 200**
+
+Binary PDF file.
+
+```
+Content-Type: application/pdf
+Content-Disposition: attachment; filename="Pillbug_Worksheet-2026_09_21-2026_09_28.pdf"
+```
+
+Filename format: `Pillbug_Worksheet-{monday_YYYY_MM_DD}-{sunday_YYYY_MM_DD}.pdf`. Week boundaries are computed from the Patient's stored timezone (falls back to UTC if not set).
+
+**Response — 401**
+
+```json
+{ "error": "not_authenticated" }
+```
+
+---
+
 ## Admin endpoints
 
 The Admin Panel is protected by Cloudflare Access. All requests to `/admin` must carry a valid `Cf-Access-Jwt-Assertion` header. The Worker validates this JWT independently against the JWKS at `{CF_TEAM_DOMAIN}/cdn-cgi/access/certs`. Requests without a valid JWT are rejected with 401 even if they somehow bypass Cloudflare Access (e.g. via the `*.workers.dev` URL).

@@ -4,6 +4,14 @@ export function addDays(dateStr: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+export function formatMonthDay(dateStr: string, locale: string): string {
+  return new Date(dateStr + "T00:00:00Z").toLocaleDateString(locale, {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 export function formatShortDate(dateStr: string, locale: string): string {
   return new Date(dateStr + "T00:00:00Z").toLocaleDateString(locale, {
     month: "numeric",

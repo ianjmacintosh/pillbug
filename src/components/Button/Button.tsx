@@ -16,20 +16,34 @@ type AsLink = { as: "link" } & ComponentProps<typeof Link>;
 
 type ButtonProps = AsButton | AsAnchor | AsInput | AsLink;
 
+function mergeClass(base: string, extra?: string) {
+  return extra ? `${base} ${extra}` : base;
+}
+
 export function Button({ as, ...rest }: ButtonProps) {
   if (as === "a") {
-    return <a {...(rest as AnchorHTMLAttributes<HTMLAnchorElement>)} />;
+    const { className, ...props } =
+      rest as AnchorHTMLAttributes<HTMLAnchorElement>;
+    return <a className={mergeClass("button", className)} {...props} />;
   }
   if (as === "input") {
+    const { className, ...props } = rest as Omit<
+      InputHTMLAttributes<HTMLInputElement>,
+      "type"
+    >;
     return (
       <input
         type="submit"
-        {...(rest as Omit<InputHTMLAttributes<HTMLInputElement>, "type">)}
+        className={mergeClass("button", className)}
+        {...props}
       />
     );
   }
   if (as === "link") {
-    return <Link {...(rest as ComponentProps<typeof Link>)} />;
+    const { className, ...props } = rest as ComponentProps<typeof Link>;
+    return <Link className={mergeClass("button", className)} {...props} />;
   }
-  return <button {...(rest as ButtonHTMLAttributes<HTMLButtonElement>)} />;
+  const { className, ...props } =
+    rest as ButtonHTMLAttributes<HTMLButtonElement>;
+  return <button className={mergeClass("button", className)} {...props} />;
 }
