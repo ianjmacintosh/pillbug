@@ -20,8 +20,10 @@ jobs:
         run: npm ci
       - name: Use pre-installed Chromium for miniflare browser binding
         run: |
-          CHROME_PATH=$(find /ms-playwright -name chrome -path "*/chrome-linux/chrome" 2>/dev/null | head -1)
-          [ -n "$CHROME_PATH" ] && echo "MINIFLARE_CHROME_EXECUTABLE=$CHROME_PATH" >> $GITHUB_ENV
+          CHROME_PATH=$(find "${PLAYWRIGHT_BROWSERS_PATH:-/ms-playwright}" -name chrome -path "*/chrome-linux/chrome" -type f 2>/dev/null | head -1)
+          if [ -n "$CHROME_PATH" ]; then
+            echo "MINIFLARE_CHROME_EXECUTABLE=$CHROME_PATH" >> $GITHUB_ENV
+          fi
       - name: Apply D1 migrations (local)
         run: npx wrangler d1 migrations apply pillbug-staging --env staging --local
       - name: Seed test accounts (local)
