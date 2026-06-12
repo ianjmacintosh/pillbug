@@ -183,6 +183,10 @@ test.describe("Fill Session page", () => {
   });
 
   test.describe("PDF download", () => {
+    // Chrome-for-Testing may need to be downloaded on a cold CI cache miss;
+    // 120 s gives the download time to complete before the hook times out.
+    test.describe.configure({ timeout: 120_000 });
+
     let expectedFilename: string;
     let monday: string;
     let sunday: string;

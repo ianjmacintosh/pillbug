@@ -247,11 +247,9 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
         headers: { "Content-Type": "application/json" },
       });
     }
-    const [createdAt, timezone, language] = await Promise.all([
-      repo.findPatientCreatedAt(session.patientId),
-      repo.findPatientTimezone(session.patientId),
-      repo.findPatientLanguage(session.patientId),
-    ]);
+    const createdAt = await repo.findPatientCreatedAt(session.patientId);
+    const timezone = await repo.findPatientTimezone(session.patientId);
+    const language = await repo.findPatientLanguage(session.patientId);
     const registrationDate = createdAt ? createdAt.slice(0, 10) : null;
     return new Response(
       JSON.stringify({ timezone, registrationDate, language }),
