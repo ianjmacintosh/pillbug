@@ -6,6 +6,8 @@ const enUS = {
   "header.nav.fillSession": "Fill Session",
   "header.nav.settings": "Settings",
   "header.nav.logOut": "Log out",
+  "header.nav.openMenu": "Open menu",
+  "header.nav.closeMenu": "Close menu",
   "footer.termsOfService": "Terms of Service",
   "footer.privacyPolicy": "Privacy Policy",
   "completeSetup.loading": "Setting up your account…",

@@ -4,6 +4,7 @@ import Layout from "./Layout";
 
 vi.mock("@tanstack/react-router", () => ({
   Outlet: () => <div data-testid="outlet" />,
+  useLocation: vi.fn(() => ({ pathname: "/" })),
 }));
 
 afterEach(() => vi.unstubAllGlobals());
@@ -30,10 +31,12 @@ describe("Layout", () => {
     expect(screen.getByTestId("outlet")).toBeTruthy();
   });
 
-  test("shows authenticated nav after session check succeeds", async () => {
+  test("shows bottom nav after session check succeeds", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
     render(<Layout />);
-    expect(await screen.findByRole("link", { name: /settings/i })).toBeTruthy();
+    expect(
+      await screen.findByRole("navigation", { name: /main navigation/i }),
+    ).toBeTruthy();
   });
 
   test("hides authenticated nav when session check fails", async () => {
