@@ -6,9 +6,12 @@ import Header from "./Header";
 describe("Header", () => {
   afterEach(() => vi.restoreAllMocks());
 
-  test("renders a link to the home page", () => {
+  test("brand link points to /prescriptions", () => {
     render(<Header />);
-    expect(screen.getByRole("link", { name: /pillbug/i })).toBeTruthy();
+    expect(screen.getByRole("link", { name: /pillbug/i })).toHaveAttribute(
+      "href",
+      "/prescriptions",
+    );
   });
 
   test("shows language selector when not authenticated", () => {
@@ -46,9 +49,9 @@ describe("Header", () => {
     expect(screen.getByRole("link", { name: /settings/i })).toBeTruthy();
   });
 
-  test("shows home link when authenticated", () => {
+  test("does not show home link when authenticated", () => {
     render(<Header isAuthenticated />);
-    expect(screen.getByRole("link", { name: /^home$/i })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: /^home$/i })).toBeNull();
   });
 
   test("shows prescriptions link when authenticated", () => {
