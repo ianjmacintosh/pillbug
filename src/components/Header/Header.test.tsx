@@ -65,44 +65,4 @@ describe("Header", () => {
     render(<Header isAuthenticated />);
     expect(screen.getByRole("button", { name: /log out/i })).toBeTruthy();
   });
-
-  test("shows hamburger button when authenticated", () => {
-    render(<Header isAuthenticated />);
-    expect(screen.getByRole("button", { name: /open menu/i })).toBeTruthy();
-  });
-
-  test("does not show hamburger button when not authenticated", () => {
-    render(<Header />);
-    expect(screen.queryByRole("button", { name: /open menu/i })).toBeNull();
-  });
-
-  test("hamburger button is collapsed by default", () => {
-    render(<Header isAuthenticated />);
-    expect(
-      screen
-        .getByRole("button", { name: /open menu/i })
-        .getAttribute("aria-expanded"),
-    ).toBe("false");
-  });
-
-  test("clicking hamburger expands the nav", () => {
-    render(<Header isAuthenticated />);
-    fireEvent.click(screen.getByRole("button", { name: /open menu/i }));
-    expect(
-      screen
-        .getByRole("button", { name: /close menu/i })
-        .getAttribute("aria-expanded"),
-    ).toBe("true");
-  });
-
-  test("clicking hamburger again collapses the nav", () => {
-    render(<Header isAuthenticated />);
-    fireEvent.click(screen.getByRole("button", { name: /open menu/i }));
-    fireEvent.click(screen.getByRole("button", { name: /close menu/i }));
-    expect(
-      screen
-        .getByRole("button", { name: /open menu/i })
-        .getAttribute("aria-expanded"),
-    ).toBe("false");
-  });
 });

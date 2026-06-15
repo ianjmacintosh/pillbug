@@ -3,7 +3,7 @@ import { ALICE_AUTH_FILE } from "./test-accounts";
 
 const MOBILE_VIEWPORT = { width: 390, height: 844 };
 
-test.describe("Header — mobile nav", () => {
+test.describe("Bottom nav — mobile", () => {
   test.use({ storageState: ALICE_AUTH_FILE, viewport: MOBILE_VIEWPORT });
 
   let sharedPage: Page;
@@ -21,37 +21,36 @@ test.describe("Header — mobile nav", () => {
     await sharedPage.context().close();
   });
 
-  test("hamburger button is visible", async () => {
+  test("tab bar is visible", async () => {
     await expect(
-      sharedPage.getByRole("button", { name: /open menu/i }),
+      sharedPage.getByRole("navigation", { name: /main navigation/i }),
     ).toBeVisible();
   });
 
-  test("nav links are hidden by default", async () => {
+  test("prescriptions tab links to /prescriptions", async () => {
+    await expect(
+      sharedPage.getByRole("link", { name: /prescriptions/i }),
+    ).toHaveAttribute("href", "/prescriptions");
+  });
+
+  test("fill session tab links to /fill-session", async () => {
+    await expect(
+      sharedPage.getByRole("link", { name: /fill session/i }),
+    ).toHaveAttribute("href", "/fill-session");
+  });
+
+  test("settings tab links to /settings", async () => {
     await expect(
       sharedPage.getByRole("link", { name: /settings/i }),
-    ).not.toBeVisible();
+    ).toHaveAttribute("href", "/settings");
   });
 
-  test("opening hamburger reveals nav links", async ({ page }) => {
-    await page.goto("/");
-    await page.getByRole("button", { name: /open menu/i }).click();
-    await expect(page.getByRole("link", { name: /settings/i })).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: /close menu/i }),
-    ).toHaveAttribute("aria-expanded", "true");
-  });
-
-  test("closing hamburger hides nav links again", async ({ page }) => {
-    await page.goto("/");
-    await page.getByRole("button", { name: /open menu/i }).click();
-    await page.getByRole("button", { name: /close menu/i }).click();
-    await expect(
-      page.getByRole("link", { name: /settings/i }),
-    ).not.toBeVisible();
-    await expect(
-      page.getByRole("button", { name: /open menu/i }),
-    ).toHaveAttribute("aria-expanded", "false");
+  test("settings tab is marked active when on /settings", async ({ page }) => {
+    await page.goto("/settings");
+    await expect(page.getByRole("link", { name: /settings/i })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
   });
 });
 
@@ -70,13 +69,13 @@ test.describe("Header — desktop nav", () => {
     await sharedPage.context().close();
   });
 
-  test("hamburger button is not visible", async () => {
+  test("bottom tab bar is not visible on desktop", async () => {
     await expect(
-      sharedPage.getByRole("button", { name: /open menu/i }),
+      sharedPage.getByRole("navigation", { name: /main navigation/i }),
     ).not.toBeVisible();
   });
 
-  test("nav links are visible without hamburger interaction", async () => {
+  test("nav links are visible in the header", async () => {
     await expect(
       sharedPage.getByRole("link", { name: /settings/i }),
     ).toBeVisible();

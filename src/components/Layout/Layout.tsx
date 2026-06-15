@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Outlet } from "@tanstack/react-router";
+import BottomNav from "../BottomNav";
 import Footer from "../Footer";
 import Header from "../Header";
 import "./Layout.css";
@@ -18,6 +19,7 @@ function Layout() {
       <Header isAuthenticated={isAuthenticated} />
       <Outlet />
       <Footer />
+      {isAuthenticated && <BottomNav />}
     </div>
   );
 }
