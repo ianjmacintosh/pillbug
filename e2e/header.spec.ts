@@ -45,12 +45,83 @@ test.describe("Bottom nav — mobile", () => {
     ).toHaveAttribute("href", "/settings");
   });
 
+  test("prescriptions tab is marked active when on /prescriptions", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions");
+    await expect(
+      page.getByRole("link", { name: /prescriptions/i }),
+    ).toHaveAttribute("aria-current", "page");
+  });
+
+  test("fill session tab is marked active when on /fill-session", async ({
+    page,
+  }) => {
+    await page.goto("/fill-session");
+    await expect(
+      page.getByRole("link", { name: /fill session/i }),
+    ).toHaveAttribute("aria-current", "page");
+  });
+
   test("settings tab is marked active when on /settings", async ({ page }) => {
     await page.goto("/settings");
     await expect(page.getByRole("link", { name: /settings/i })).toHaveAttribute(
       "aria-current",
       "page",
     );
+  });
+
+  test("active tab has pill chip class applied", async ({ page }) => {
+    await page.goto("/settings");
+    await expect(page.getByRole("link", { name: /settings/i })).toHaveClass(
+      /bottom-nav-tab--active/,
+    );
+  });
+
+  test("only the active tab has the active class", async ({ page }) => {
+    await page.goto("/settings");
+    await expect(
+      page.getByRole("link", { name: /prescriptions/i }),
+    ).not.toHaveClass(/bottom-nav-tab--active/);
+    await expect(
+      page.getByRole("link", { name: /fill session/i }),
+    ).not.toHaveClass(/bottom-nav-tab--active/);
+    await expect(page.getByRole("link", { name: /settings/i })).toHaveClass(
+      /bottom-nav-tab--active/,
+    );
+  });
+
+  test("clicking prescriptions tab navigates to /prescriptions", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await page.getByRole("link", { name: /prescriptions/i }).click();
+    await expect(page).toHaveURL("/prescriptions");
+  });
+
+  test("clicking fill session tab navigates to /fill-session", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await page.getByRole("link", { name: /fill session/i }).click();
+    await expect(page).toHaveURL("/fill-session");
+  });
+
+  test("clicking settings tab navigates to /settings", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("link", { name: /settings/i }).click();
+    await expect(page).toHaveURL("/settings");
+  });
+});
+
+test.describe("Bottom nav — not authenticated", () => {
+  test.use({ viewport: MOBILE_VIEWPORT });
+
+  test("tab bar is not shown when not logged in", async ({ page }) => {
+    await page.goto("/register");
+    await expect(
+      page.getByRole("navigation", { name: /main navigation/i }),
+    ).not.toBeVisible();
   });
 });
 

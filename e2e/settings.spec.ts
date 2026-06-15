@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { hashEmail } from "../worker/email-crypto";
 import { ALICE_EMAIL, ALICE_AUTH_FILE } from "./test-accounts";
 import { getDB, disposeDB } from "./db";
@@ -23,6 +23,49 @@ async function resetAliceLanguage(): Promise<void> {
 
 test.afterAll(async () => {
   await disposeDB();
+});
+
+test.describe("Settings — log out", () => {
+  test.use({ storageState: ALICE_AUTH_FILE });
+
+  let sharedPage: Page;
+
+  test.beforeAll(async ({ browser }) => {
+    const context = await browser.newContext({ storageState: ALICE_AUTH_FILE });
+    sharedPage = await context.newPage();
+    await sharedPage.goto("/settings");
+  });
+
+  test.afterAll(async () => {
+    await sharedPage.context().close();
+  });
+
+  test("log out button is visible on the settings page", async () => {
+    await expect(
+      sharedPage.getByRole("main").getByRole("button", { name: /log out/i }),
+    ).toBeVisible();
+  });
+
+  test("clicking log out redirects to /register", async ({ page }) => {
+    let afterLogout = false;
+    await page.route("/api/v1/logout", async (route) => {
+      afterLogout = true;
+      await route.fulfill({ status: 200 });
+    });
+    await page.route("/api/v1/session", async (route) => {
+      if (afterLogout) {
+        await route.fulfill({ status: 401 });
+      } else {
+        await route.continue();
+      }
+    });
+    await page.goto("/settings");
+    await page
+      .getByRole("main")
+      .getByRole("button", { name: /log out/i })
+      .click();
+    await expect(page).toHaveURL("/register");
+  });
 });
 
 test.describe("Settings screen", () => {

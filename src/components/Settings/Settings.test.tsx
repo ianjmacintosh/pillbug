@@ -165,4 +165,38 @@ describe("Settings", () => {
       ).value,
     ).toBe("Europe/London");
   });
+
+  test("renders a log out button", () => {
+    render(<Settings />);
+    expect(screen.getByRole("button", { name: /log out/i })).toBeTruthy();
+  });
+
+  test("clicking log out calls POST /api/v1/logout", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(null, { status: 200 }),
+    );
+    render(<Settings />);
+    await userEvent.click(screen.getByRole("button", { name: /log out/i }));
+    await waitFor(() => {
+      const calls = vi.mocked(globalThis.fetch).mock.calls;
+      const logoutCall = calls.find(
+        ([url, init]) =>
+          typeof url === "string" &&
+          url === "/api/v1/logout" &&
+          (init as RequestInit)?.method === "POST",
+      );
+      expect(logoutCall).toBeTruthy();
+    });
+  });
+
+  test("clicking log out navigates to /register", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(null, { status: 200 }),
+    );
+    render(<Settings />);
+    await userEvent.click(screen.getByRole("button", { name: /log out/i }));
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith({ to: "/register" });
+    });
+  });
 });

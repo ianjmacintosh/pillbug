@@ -78,7 +78,9 @@ function BottomNav() {
         className={`bottom-nav-tab${isPrescriptionsActive ? " bottom-nav-tab--active" : ""}`}
         aria-current={isPrescriptionsActive ? "page" : undefined}
       >
-        <IconPrescriptions />
+        <span className="bottom-nav-tab-icon">
+          <IconPrescriptions />
+        </span>
         <span>{t("header.nav.prescriptions")}</span>
       </a>
       <a
@@ -86,7 +88,9 @@ function BottomNav() {
         className={`bottom-nav-tab${path === "/fill-session" ? " bottom-nav-tab--active" : ""}`}
         aria-current={path === "/fill-session" ? "page" : undefined}
       >
-        <IconFillSession />
+        <span className="bottom-nav-tab-icon">
+          <IconFillSession />
+        </span>
         <span>{t("header.nav.fillSession")}</span>
       </a>
       <a
@@ -94,7 +98,9 @@ function BottomNav() {
         className={`bottom-nav-tab${path === "/settings" ? " bottom-nav-tab--active" : ""}`}
         aria-current={path === "/settings" ? "page" : undefined}
       >
-        <IconSettings />
+        <span className="bottom-nav-tab-icon">
+          <IconSettings />
+        </span>
         <span>{t("header.nav.settings")}</span>
       </a>
     </nav>

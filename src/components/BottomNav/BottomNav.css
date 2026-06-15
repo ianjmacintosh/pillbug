@@ -38,6 +38,20 @@
   letter-spacing: 0.01em;
 }
 
+.bottom-nav-tab-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 28px;
+  border-radius: 9999px;
+  transition: background 0.15s ease;
+}
+
+.bottom-nav-tab--active .bottom-nav-tab-icon {
+  background: var(--yellow-87);
+}
+
 .bottom-nav-tab--active {
-  color: var(--yellow-40);
+  color: var(--yellow-20);
 }

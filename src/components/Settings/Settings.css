@@ -33,3 +33,7 @@
   font-family: system-ui, sans-serif;
   font-size: 0.875rem;
 }
+
+.settings-logout {
+  margin-top: 2rem;
+}
