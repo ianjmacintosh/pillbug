@@ -3,19 +3,17 @@
 ```mermaid
 xychart-beta
     title "Prescription Management"
-    x-axis ["Home Screen", "Management Screen", "Privacy Choice", "Prescription List", "Add Prescription"]
+    x-axis ["Nav to Prescriptions", "Prescription List", "Add Prescription"]
     y-axis "Experience" 1 --> 5
-    line [3, 3, 4, 3, 3]
+    line [4, 4, 3]
 ```
 
-| Stage                | Description                                                                               |
-| -------------------- | ----------------------------------------------------------------------------------------- |
-| 1. Home Screen       | Finds navigation to prescription management; few options, not overwhelming                |
-| 2. Management Screen | Sees "View prescriptions" button; clear next step                                         |
-| 3. Privacy Choice    | Chooses All or By Doctor (if multiple prescribers); moment of control over what's visible |
-| 4. Prescription List | Lands on his list; oriented, ready to add                                                 |
-| 5. Add Prescription  | Follows same flow as [Prescription Setup](prescription-setup.md) from stage 3 onward      |
+| Stage                   | Description                                                                                  |
+| ----------------------- | -------------------------------------------------------------------------------------------- |
+| 1. Nav to Prescriptions | Patient navigates to `/prescriptions` — the full list loads immediately, no reveal gate      |
+| 2. Prescription List    | Patient sees their prescriptions; selects one to view its detail, or taps "Add Prescription" |
+| 3. Add Prescription     | Follows the same flow as [Prescription Setup](prescription-setup.md) from stage 3 onward     |
 
-**Note:** "By Doctor" only appears if Denzel has prescriptions from more than one prescriber. If all prescriptions share the same doctor, only "All" is offered — no unnecessary choices.
+**Empty state:** When a Patient has no prescriptions, the Create Prescription form is shown inline at `/prescriptions` — on desktop in the right panel, on mobile as the full-screen view. No redirect occurs. See ADR-0022.
 
-**Privacy design:** The opt-in view is intentional. Prescriptions are not shown by default when the screen opens, giving Denzel control over what is visible when someone else is nearby. See [issue #26](https://github.com/ianjmacintosh/pillbug/issues/26).
+**Privacy design:** The list loads on mount (no reveal gate — see ADR-0016), but the detail of a specific Prescription is never auto-selected. The Patient must deliberately navigate to a Prescription to see its detail. This preserves choice in "over the shoulder" caregiver scenarios. See ADR-0022.

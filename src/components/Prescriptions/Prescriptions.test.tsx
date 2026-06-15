@@ -125,6 +125,20 @@ describe("Prescriptions", () => {
     expect(screen.getByRole("heading", { level: 1 })).toBeTruthy();
   });
 
+  describe("loading state", () => {
+    test("shows a loading indicator while the API fetch is pending", async () => {
+      let resolveFetch!: (v: Response) => void;
+      vi.spyOn(globalThis, "fetch").mockReturnValueOnce(
+        new Promise<Response>((resolve) => {
+          resolveFetch = resolve;
+        }),
+      );
+      await renderList();
+      expect(screen.getByRole("status")).toBeTruthy();
+      resolveFetch(new Response(JSON.stringify([]), { status: 200 }));
+    });
+  });
+
   describe("on mount", () => {
     test("prescriptions load automatically without any button click", async () => {
       vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
@@ -176,20 +190,16 @@ describe("Prescriptions", () => {
     });
   });
 
-  describe("default selection", () => {
-    test("navigates to the first prescription detail on initial pageload at /prescriptions", async () => {
+  describe("navigation stability", () => {
+    test("stays at /prescriptions when prescriptions exist — no auto-navigate", async () => {
       vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
         new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
       );
-      const { router } = await renderWithDetail(
-        SAMPLE_DETAIL,
-        "/prescriptions",
-      );
-      await waitFor(() => {
-        expect(router.state.location.pathname).toBe(
-          `/prescriptions/${SAMPLE_PRESCRIPTION.id}`,
-        );
-      });
+      const router = buildPrescriptionsRouter("/prescriptions");
+      await router.load();
+      render(<RouterProvider router={router} />);
+      await waitFor(() => screen.getByText("Metformin"));
+      expect(router.state.location.pathname).toBe("/prescriptions");
     });
 
     test("does not auto-navigate when already at a specific prescription", async () => {
@@ -200,6 +210,64 @@ describe("Prescriptions", () => {
       await waitFor(() => screen.getByRole("link", { name: "Metformin" }));
       expect(router.state.location.pathname).toBe(
         `/prescriptions/${SAMPLE_PRESCRIPTION.id}`,
+      );
+    });
+  });
+
+  describe("empty state", () => {
+    test("shows Create Prescription form when no prescriptions at /prescriptions", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([]), { status: 200 }),
+      );
+      await renderList();
+      await waitFor(() =>
+        screen.getByRole("heading", { name: /add prescription/i, level: 2 }),
+      );
+    });
+
+    test("back button is not shown when at /prescriptions with no prescriptions", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([]), { status: 200 }),
+      );
+      await renderList();
+      await waitFor(() =>
+        screen.getByRole("heading", { name: /add prescription/i, level: 2 }),
+      );
+      expect(screen.queryByRole("button", { name: /back/i })).toBeNull();
+    });
+
+    test("back button is visible when at /prescriptions/:id", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
+      );
+      await renderWithDetail();
+      await waitFor(() => screen.getByRole("link", { name: "Metformin" }));
+      expect(screen.getByRole("button", { name: /back/i })).toBeTruthy();
+    });
+  });
+
+  describe("mobile panel class", () => {
+    test("applies prescriptions--mobile-form when no prescriptions at /prescriptions", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([]), { status: 200 }),
+      );
+      await renderList();
+      await waitFor(() =>
+        screen.getByRole("heading", { name: /add prescription/i, level: 2 }),
+      );
+      expect(screen.getByRole("main").className).toContain(
+        "prescriptions--mobile-form",
+      );
+    });
+
+    test("applies prescriptions--mobile-list when prescriptions exist at /prescriptions", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
+      );
+      await renderList();
+      await waitFor(() => screen.getByText("Metformin"));
+      expect(screen.getByRole("main").className).toContain(
+        "prescriptions--mobile-list",
       );
     });
   });

@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Button } from "../Button/Button";
+import { NewPrescriptionForm } from "../PrescriptionForm";
 import { PrescriptionList } from "./PrescriptionList";
 import "./Prescriptions.css";
 
@@ -20,6 +21,7 @@ interface Prescription {
 function Prescriptions() {
   const { t } = useTranslation();
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [loading, setLoading] = useState(true);
   const { location } = useRouterState();
   const navigate = useNavigate();
 
@@ -27,46 +29,42 @@ function Prescriptions() {
   const potentialId = idMatch ? idMatch[1] : null;
   const selectedId = potentialId !== "new" ? potentialId : null;
   const atChildRoute = location.pathname !== "/prescriptions";
-  const mobileClass = atChildRoute
+  const showFormPanel =
+    atChildRoute || (!loading && prescriptions.length === 0);
+  const mobileClass = showFormPanel
     ? "prescriptions--mobile-form"
     : "prescriptions--mobile-list";
-
-  const didAutoNavigate = useRef(false);
 
   useEffect(() => {
     fetch("/api/v1/prescriptions")
       .then((res) => (res.ok ? res.json() : []))
       .then((data: Prescription[]) => setPrescriptions(data))
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, [location.pathname]);
-
-  useEffect(() => {
-    if (
-      !didAutoNavigate.current &&
-      location.pathname === "/prescriptions" &&
-      prescriptions.length > 0
-    ) {
-      didAutoNavigate.current = true;
-      void navigate({
-        to: "/prescriptions/$id",
-        params: { id: prescriptions[0].id },
-        replace: true,
-      });
-    }
-  }, [prescriptions, location.pathname, navigate]);
 
   return (
     <main className={`prescriptions prescriptions-layout ${mobileClass}`}>
       <PrescriptionList prescriptions={prescriptions} selectedId={selectedId} />
       <div className="prescriptions-form-panel">
-        <Button
-          type="button"
-          className="prescriptions-back-btn"
-          onClick={() => navigate({ to: "/prescriptions" })}
-        >
-          {t("prescriptions.back")}
-        </Button>
-        <Outlet />
+        {loading && !atChildRoute ? (
+          <p role="status">{t("prescriptions.loading")}</p>
+        ) : !atChildRoute && prescriptions.length === 0 ? (
+          <NewPrescriptionForm />
+        ) : (
+          <>
+            {(atChildRoute || prescriptions.length > 0) && (
+              <Button
+                type="button"
+                className="prescriptions-back-btn"
+                onClick={() => navigate({ to: "/prescriptions" })}
+              >
+                {t("prescriptions.back")}
+              </Button>
+            )}
+            <Outlet />
+          </>
+        )}
       </div>
     </main>
   );

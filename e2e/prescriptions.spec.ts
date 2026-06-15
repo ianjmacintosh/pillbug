@@ -57,20 +57,37 @@ async function fillCreateForm(page: Page) {
 }
 
 test.describe("Split-panel layout", () => {
-  test("list and detail panels are visible, /prescriptions redirects to first prescription", async ({
+  test("list panel shows prescriptions at /prescriptions — no auto-redirect", async ({
     page,
   }) => {
-    const res = await page.request.post("/api/v1/prescriptions", {
+    await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
     });
-    const { id } = (await res.json()) as { id: string };
 
     await page.goto("/prescriptions");
-    await expect(page).toHaveURL(`/prescriptions/${id}`);
+    await expect(page).toHaveURL("/prescriptions");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Metformin", level: 2 }),
+      page.getByRole("link", { name: "Metformin", exact: true }),
     ).toBeVisible();
+  });
+
+  test.describe("mobile back navigation", () => {
+    test.use({ viewport: { width: 390, height: 844 } });
+
+    test("Back button at /prescriptions/:id returns to /prescriptions", async ({
+      page,
+    }) => {
+      const res = await page.request.post("/api/v1/prescriptions", {
+        data: BASE_PRESCRIPTION,
+      });
+      const { id } = (await res.json()) as { id: string };
+
+      await page.goto(`/prescriptions/${id}`);
+      await page.getByRole("button", { name: /back/i }).click();
+      await expect(page).toHaveURL("/prescriptions");
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    });
   });
 
   test("prescription list is visible while create form is open", async ({
@@ -86,21 +103,16 @@ test.describe("Split-panel layout", () => {
 });
 
 test.describe("Prescription list", () => {
-  test("empty state: list is empty, Add Prescription link is present and navigates to create form", async ({
+  test("empty state: Create Prescription form appears inline at /prescriptions", async ({
     page,
   }) => {
     await page.goto("/prescriptions");
 
     await expect(page.getByRole("list")).toBeEmpty();
     await expect(
-      page.getByRole("link", { name: /add prescription/i }),
+      page.getByRole("heading", { name: /add prescription/i, level: 2 }),
     ).toBeVisible();
-
-    await page.getByRole("link", { name: /add prescription/i }).click();
-    await expect(page).toHaveURL("/prescriptions/new");
-    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
-      /add prescription/i,
-    );
+    await expect(page.getByRole("button", { name: /back/i })).not.toBeVisible();
   });
 
   test("prescriptions load as links and heading shows prescription count", async ({
@@ -122,6 +134,40 @@ test.describe("Prescription list", () => {
 });
 
 test.describe("Prescription create", () => {
+  test("empty-state inline form: saving navigates to the new prescription detail", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions");
+    await expect(
+      page.getByRole("heading", { name: /add prescription/i, level: 2 }),
+    ).toBeVisible();
+
+    await fillCreateForm(page);
+
+    await expect(page).toHaveURL(/\/prescriptions\/[^/]+$/);
+    await expect(
+      page.getByRole("heading", { name: "Aspirin", level: 2 }),
+    ).toBeVisible();
+  });
+
+  test("loading: spinner is visible while prescriptions are being fetched", async ({
+    page,
+  }) => {
+    let unblock!: () => void;
+    await page.route("/api/v1/prescriptions", async (route) => {
+      await new Promise<void>((resolve) => {
+        unblock = resolve;
+      });
+      await route.continue();
+    });
+
+    await page.goto("/prescriptions");
+    await expect(page.getByRole("status")).toBeVisible();
+
+    unblock();
+    await expect(page.getByRole("status")).not.toBeVisible();
+  });
+
   test("fill and save navigates to detail view and prescription appears in list", async ({
     page,
   }) => {

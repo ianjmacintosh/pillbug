@@ -66,6 +66,7 @@ const enUS = {
   "prescriptions.heading": "Prescriptions ({{count}})",
   "prescriptions.addPrescription": "+ Add Prescription",
   "prescriptions.back": "← Back",
+  "prescriptions.loading": "Loading…",
   "prescriptionDetail.edit": "edit",
   "prescriptionDetail.delete": "delete",
   "prescriptionDetail.strength": "Strength",

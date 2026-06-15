@@ -25,6 +25,7 @@ setup("authenticate as Alice", async ({ page }) => {
   const { token } = (await res.json()) as { token: string };
   await setKnownPin(token);
   await page.goto(`/enter-code?token=${token}&pin=${TEST_PIN}`);
+  await page.waitForURL((url) => !url.pathname.startsWith("/enter-code"));
   const session = await page.request.get("/api/v1/session");
   expect(session.ok()).toBe(true);
   await page.context().storageState({ path: ALICE_AUTH_FILE });
