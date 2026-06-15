@@ -17,7 +17,7 @@ function Header({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
 
   return (
     <header className="header">
-      <a href="/" className="header-brand">
+      <a href="/prescriptions" className="header-brand">
         {t("header.brand")}
       </a>
       {!isAuthenticated && (
@@ -37,7 +37,6 @@ function Header({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
       )}
       {isAuthenticated && (
         <nav className="header-nav">
-          <a href="/">{t("header.nav.home")}</a>
           <a href="/prescriptions">{t("header.nav.prescriptions")}</a>
           <a href="/fill-session">{t("header.nav.fillSession")}</a>
           <a href="/settings">{t("header.nav.settings")}</a>

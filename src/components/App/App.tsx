@@ -18,7 +18,7 @@ const WEEK_DAY_KEYS = [
   "sunday",
 ] as const;
 
-const Route = getRouteApi("/layout/");
+const Route = getRouteApi("/layout/weekly-doses");
 
 function App({ today: todayProp }: { today?: string }) {
   const { t, i18n } = useTranslation();

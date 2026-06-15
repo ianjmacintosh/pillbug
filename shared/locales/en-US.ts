@@ -1,7 +1,6 @@
 const enUS = {
   "header.brand": "Pillbug",
   "header.language": "Language",
-  "header.nav.home": "Home",
   "header.nav.prescriptions": "Prescriptions",
   "header.nav.fillSession": "Fill Session",
   "header.nav.settings": "Settings",

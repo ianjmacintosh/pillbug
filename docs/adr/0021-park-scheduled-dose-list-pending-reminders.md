@@ -1,0 +1,3 @@
+# Park Scheduled Dose List pending Reminder support
+
+The Scheduled Dose List (Week View) was designed as the Patient's home screen, but its value depends on Reminders arriving at the right time to prompt the Patient to open it. Without Reminder support — which requires a native app or a platform that reliably delivers push notifications — the checklist has no reliable trigger and Patients are unlikely to develop a habit of consulting it. We moved it to `/weekly-doses` and removed it from the nav, making `/prescriptions` the effective home. The page is kept in the router (not deleted) so it can be promoted back to the home position once Reminders are available.
