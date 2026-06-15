@@ -36,7 +36,6 @@ function Prescriptions() {
     : "prescriptions--mobile-list";
 
   useEffect(() => {
-    setLoading(true);
     fetch("/api/v1/prescriptions")
       .then((res) => (res.ok ? res.json() : []))
       .then((data: Prescription[]) => setPrescriptions(data))
