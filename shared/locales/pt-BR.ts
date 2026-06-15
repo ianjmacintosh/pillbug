@@ -67,6 +67,7 @@ const ptBR = {
   "prescriptions.heading": "Prescrições ({{count}})",
   "prescriptions.addPrescription": "+ Adicionar Prescrição",
   "prescriptions.back": "← Voltar",
+  "prescriptions.loading": "Carregando…",
   "prescriptionDetail.edit": "editar",
   "prescriptionDetail.delete": "excluir",
   "prescriptionDetail.strength": "Concentração",

@@ -72,18 +72,22 @@ test.describe("Split-panel layout", () => {
     ).toBeVisible();
   });
 
-  test("Back button at /prescriptions/:id returns to /prescriptions", async ({
-    page,
-  }) => {
-    const res = await page.request.post("/api/v1/prescriptions", {
-      data: BASE_PRESCRIPTION,
-    });
-    const { id } = (await res.json()) as { id: string };
+  test.describe("mobile back navigation", () => {
+    test.use({ viewport: { width: 390, height: 844 } });
 
-    await page.goto(`/prescriptions/${id}`);
-    await page.getByRole("button", { name: /back/i }).click();
-    await expect(page).toHaveURL("/prescriptions");
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    test("Back button at /prescriptions/:id returns to /prescriptions", async ({
+      page,
+    }) => {
+      const res = await page.request.post("/api/v1/prescriptions", {
+        data: BASE_PRESCRIPTION,
+      });
+      const { id } = (await res.json()) as { id: string };
+
+      await page.goto(`/prescriptions/${id}`);
+      await page.getByRole("button", { name: /back/i }).click();
+      await expect(page).toHaveURL("/prescriptions");
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    });
   });
 
   test("prescription list is visible while create form is open", async ({

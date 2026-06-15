@@ -49,7 +49,7 @@ function Prescriptions() {
       <PrescriptionList prescriptions={prescriptions} selectedId={selectedId} />
       <div className="prescriptions-form-panel">
         {loading && !atChildRoute ? (
-          <div role="status" aria-label="Loading" />
+          <p role="status">{t("prescriptions.loading")}</p>
         ) : !atChildRoute && prescriptions.length === 0 ? (
           <NewPrescriptionForm />
         ) : (

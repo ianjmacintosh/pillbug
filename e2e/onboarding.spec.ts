@@ -2,7 +2,7 @@ import { devices, expect, test } from "@playwright/test";
 import { disposeDB } from "./db";
 import { setKnownPin, TEST_PIN, TURNSTILE_DUMMY_TOKEN } from "./helpers";
 
-test.use({ ...devices["iPhone 14"] });
+test.use({ ...devices["iPhone 14"], timezoneId: "America/Chicago" });
 
 test.afterAll(async () => {
   await disposeDB();
