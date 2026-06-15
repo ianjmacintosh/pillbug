@@ -46,7 +46,7 @@ export function SettingsForm({
     setSubmitting(false);
     if (res.ok) {
       await i18n.changeLanguage(selectedLanguage);
-      await navigate({ to: "/" });
+      await navigate({ to: "/prescriptions" });
     } else {
       setStatus("error");
     }

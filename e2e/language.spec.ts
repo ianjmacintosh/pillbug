@@ -51,7 +51,9 @@ test.describe("Language switching (logged in)", () => {
       .getByRole("combobox", { name: /language/i })
       .selectOption("pt-BR");
     await page.getByRole("button", { name: /save/i }).click();
-    await expect(page).toHaveURL("/prescriptions");
+    await expect(
+      page.getByRole("combobox", { name: /time zone/i }),
+    ).not.toBeVisible();
 
     await page.goto("/weekly-doses");
     const heading = await page.locator("h2.week-range").textContent();

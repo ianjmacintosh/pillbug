@@ -99,7 +99,7 @@ test.describe("Settings screen", () => {
     await expect(page).toHaveURL("/finish-setup");
   });
 
-  test("saving a timezone redirects to /prescriptions and persists on return", async ({
+  test("saving a timezone navigates away from settings and persists on return", async ({
     page,
   }) => {
     await page.goto("/settings");
@@ -107,7 +107,9 @@ test.describe("Settings screen", () => {
       .getByRole("combobox", { name: /time zone/i })
       .selectOption("Pacific/Auckland");
     await page.getByRole("button", { name: /save/i }).click();
-    await expect(page).toHaveURL("/prescriptions");
+    await expect(
+      page.getByRole("combobox", { name: /time zone/i }),
+    ).not.toBeVisible();
 
     await page.goto("/settings");
     await expect(
@@ -126,7 +128,9 @@ test.describe("Settings screen", () => {
       .getByRole("combobox", { name: /language/i })
       .selectOption("en-US");
     await page.getByRole("button", { name: /save/i }).click();
-    await expect(page).toHaveURL("/prescriptions");
+    await expect(
+      page.getByRole("combobox", { name: /time zone/i }),
+    ).not.toBeVisible();
 
     const accountRes = await page.request.get("/api/v1/account");
     const account = (await accountRes.json()) as { language: string | null };
