@@ -39,7 +39,7 @@ test.afterAll(async () => {
   await disposeDB();
 });
 
-test.describe("Home screen week navigation", () => {
+test.describe("Weekly Doses screen week navigation", () => {
   test.use({ storageState: ALICE_AUTH_FILE });
 
   test.beforeEach(async () => {
@@ -49,7 +49,7 @@ test.describe("Home screen week navigation", () => {
   test("Previous week is enabled, Next week disabled on current week, navigation toggles Next week", async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto("/weekly-doses");
     await expect(
       page.getByRole("button", { name: /previous week/i }),
     ).toBeEnabled();
@@ -69,7 +69,7 @@ test.describe("Home screen week navigation", () => {
   });
 });
 
-test.describe("Home screen doses", () => {
+test.describe("Weekly Doses screen doses", () => {
   test.use({ storageState: PRESCRIPTIONS_PATIENT_AUTH_FILE });
 
   test.beforeEach(async () => {
@@ -92,7 +92,7 @@ test.describe("Home screen doses", () => {
       },
     });
     const { id } = (await res.json()) as { id: string };
-    await page.goto("/");
+    await page.goto("/weekly-doses");
 
     await expect(page.getByText("2 tablet × Metformin 500 mg")).toBeVisible();
 
@@ -129,7 +129,7 @@ test.describe("Home screen doses", () => {
         startDate: "2024-01-01",
       },
     });
-    await page.goto("/");
+    await page.goto("/weekly-doses");
 
     const mondaySection = page.locator("section").filter({
       has: page.getByRole("heading", { level: 2, name: "Monday" }),
@@ -166,7 +166,7 @@ test.describe("Home screen doses", () => {
         startDate: "2024-01-01",
       },
     });
-    await page.goto("/");
+    await page.goto("/weekly-doses");
 
     const mondaySection = page.locator("section").filter({
       has: page.getByRole("heading", { level: 2, name: "Monday" }),

@@ -22,6 +22,12 @@
             "if": "Bash(git commit*)",
             "command": "npm run typecheck",
             "statusMessage": "Running typecheck before commit..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(git commit*)",
+            "command": "npm run test:unit -- --run",
+            "statusMessage": "Running unit tests before commit..."
           }
         ]
       }

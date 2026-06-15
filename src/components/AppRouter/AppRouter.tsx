@@ -86,6 +86,22 @@ const indexRoute = createRoute({
     try {
       res = await fetch("/api/v1/account");
     } catch {
+      throw redirect({ to: "/prescriptions" }); // offline — best effort
+    }
+    if (!res.ok) throw redirect({ to: "/register" });
+    throw redirect({ to: "/prescriptions" });
+  },
+  component: () => null,
+});
+
+const weeklyDosesRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: "/weekly-doses",
+  loader: async () => {
+    let res: Response;
+    try {
+      res = await fetch("/api/v1/account");
+    } catch {
       return { registrationDate: null };
     }
     if (!res.ok) {
@@ -215,6 +231,7 @@ const enterCodeRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   layoutRoute.addChildren([
     indexRoute,
+    weeklyDosesRoute,
     registerRoute,
     loginRoute,
     termsRoute,

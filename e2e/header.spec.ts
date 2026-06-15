@@ -151,4 +151,17 @@ test.describe("Header — desktop nav", () => {
       sharedPage.getByRole("link", { name: /settings/i }),
     ).toBeVisible();
   });
+
+  test("brand link points to /prescriptions", async () => {
+    await expect(sharedPage.locator(".header-brand")).toHaveAttribute(
+      "href",
+      "/prescriptions",
+    );
+  });
+
+  test("no Home link in the desktop nav", async () => {
+    await expect(
+      sharedPage.getByRole("link", { name: /^home$/i }),
+    ).not.toBeVisible();
+  });
 });
