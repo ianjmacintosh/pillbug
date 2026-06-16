@@ -30,6 +30,17 @@ const SAMPLE: PrescriptionFormData = {
   status: "active",
 };
 
+// Two blocks because monday and friday have different times — initSchedules groups by time signature
+const SAMPLE_MULTI: PrescriptionFormData = {
+  ...SAMPLE,
+  schedule: {
+    days: {
+      monday: [{ time: "08:00", quantity: 1 }],
+      friday: [{ time: "20:00", quantity: 1 }],
+    },
+  },
+};
+
 async function renderNewForm() {
   const rootRoute = createRootRoute({ component: Outlet });
   const layoutRoute = createRoute({
@@ -816,9 +827,81 @@ describe("NewPrescriptionForm", () => {
     });
   });
 
-  describe("dosing schedules", () => {
-    test("'Remove dosing schedule' button is disabled when only one dosing schedule exists", async () => {
+  describe("schedule mode toggle", () => {
+    test("new form opens in Simple mode", async () => {
       await renderNewForm();
+      expect(
+        screen
+          .getByRole("button", { name: /^simple$/i })
+          .getAttribute("aria-pressed"),
+      ).toBe("true");
+    });
+
+    test("Advanced button is not pressed by default", async () => {
+      await renderNewForm();
+      expect(
+        screen
+          .getByRole("button", { name: /^advanced$/i })
+          .getAttribute("aria-pressed"),
+      ).toBe("false");
+    });
+
+    test("'Add dosing schedule' button is not visible in Simple mode", async () => {
+      await renderNewForm();
+      expect(
+        screen.queryByRole("button", { name: /add dosing schedule/i }),
+      ).toBeNull();
+    });
+
+    test("'Remove dosing schedule' button is not visible in Simple mode", async () => {
+      await renderNewForm();
+      expect(
+        screen.queryByRole("button", { name: /remove dosing schedule/i }),
+      ).toBeNull();
+    });
+
+    test("advanced scheduling hint is not visible in Simple mode", async () => {
+      await renderNewForm();
+      expect(
+        screen.queryByText(/different times on different days/i),
+      ).toBeNull();
+    });
+
+    test("clicking Advanced reveals 'Add dosing schedule' button", async () => {
+      await renderNewForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /^advanced$/i }),
+      );
+      expect(
+        screen.getByRole("button", { name: /add dosing schedule/i }),
+      ).toBeTruthy();
+    });
+
+    test("clicking Advanced reveals the advanced scheduling hint", async () => {
+      await renderNewForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /^advanced$/i }),
+      );
+      expect(
+        screen.getByText(/different times on different days/i),
+      ).toBeTruthy();
+    });
+
+    test("clicking Advanced reveals 'Remove dosing schedule' button", async () => {
+      await renderNewForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /^advanced$/i }),
+      );
+      expect(
+        screen.getByRole("button", { name: /remove dosing schedule/i }),
+      ).toBeTruthy();
+    });
+
+    test("'Remove dosing schedule' is disabled when only one schedule exists", async () => {
+      await renderNewForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /^advanced$/i }),
+      );
       expect(
         (
           screen.getByRole("button", {
@@ -828,8 +911,67 @@ describe("NewPrescriptionForm", () => {
       ).toBe(true);
     });
 
+    test("clicking Simple after Advanced hides 'Add dosing schedule'", async () => {
+      await renderNewForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /^advanced$/i }),
+      );
+      await userEvent.click(screen.getByRole("button", { name: /^simple$/i }));
+      expect(
+        screen.queryByRole("button", { name: /add dosing schedule/i }),
+      ).toBeNull();
+    });
+
+    test("switching to Simple collapses multiple schedules to one block", async () => {
+      vi.spyOn(window, "confirm").mockReturnValue(true);
+      await renderNewForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /^advanced$/i }),
+      );
+      await userEvent.click(
+        screen.getByRole("button", { name: /add dosing schedule/i }),
+      );
+      expect(screen.getAllByRole("group", { name: /days/i })).toHaveLength(2);
+      await userEvent.click(screen.getByRole("button", { name: /^simple$/i }));
+      expect(screen.getAllByRole("group", { name: /days/i })).toHaveLength(1);
+    });
+
+    test("no confirmation prompt when switching to Simple with only one schedule", async () => {
+      const confirmSpy = vi.spyOn(window, "confirm");
+      await renderNewForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /^advanced$/i }),
+      );
+      await userEvent.click(screen.getByRole("button", { name: /^simple$/i }));
+      expect(confirmSpy).not.toHaveBeenCalled();
+    });
+
+    test("cancelling the confirmation keeps Advanced mode with both schedules", async () => {
+      vi.spyOn(window, "confirm").mockReturnValue(false);
+      await renderNewForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /^advanced$/i }),
+      );
+      await userEvent.click(
+        screen.getByRole("button", { name: /add dosing schedule/i }),
+      );
+      expect(screen.getAllByRole("group", { name: /days/i })).toHaveLength(2);
+      await userEvent.click(screen.getByRole("button", { name: /^simple$/i }));
+      expect(screen.getAllByRole("group", { name: /days/i })).toHaveLength(2);
+      expect(
+        screen
+          .getByRole("button", { name: /^advanced$/i })
+          .getAttribute("aria-pressed"),
+      ).toBe("true");
+    });
+  });
+
+  describe("dosing schedules", () => {
     test("'+ Add dosing schedule' adds a second dosing schedule block", async () => {
       await renderNewForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /^advanced$/i }),
+      );
       expect(screen.getAllByRole("group", { name: /days/i })).toHaveLength(1);
       await userEvent.click(
         screen.getByRole("button", { name: /add dosing schedule/i }),
@@ -839,6 +981,9 @@ describe("NewPrescriptionForm", () => {
 
     test("clicking 'Remove dosing schedule' removes that dosing schedule", async () => {
       await renderNewForm();
+      await userEvent.click(
+        screen.getByRole("button", { name: /^advanced$/i }),
+      );
       await userEvent.click(
         screen.getByRole("button", { name: /add dosing schedule/i }),
       );
@@ -863,6 +1008,10 @@ describe("NewPrescriptionForm", () => {
       await userEvent.selectOptions(
         screen.getByRole("combobox", { name: /unit/i }),
         "mg",
+      );
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /^advanced$/i }),
       );
 
       // Dosing schedule 1: Monday at default 09:00
@@ -1095,6 +1244,24 @@ describe("EditPrescriptionForm", () => {
       { time: "20:00", quantity: 1 },
     ]);
     expect(body.schedule.days.monday).toBeUndefined();
+  });
+
+  test("edit form opens in Advanced mode when prescription has multiple schedules", async () => {
+    await renderEditForm(SAMPLE_MULTI);
+    expect(
+      screen
+        .getByRole("button", { name: /^advanced$/i })
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
+  });
+
+  test("edit form opens in Simple mode when prescription has one schedule", async () => {
+    await renderEditForm(SAMPLE);
+    expect(
+      screen
+        .getByRole("button", { name: /^simple$/i })
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
   });
 
   test("submitting with no days selected shows an error and does not call PATCH", async () => {

@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import { useState } from "react";
 import type { DayOfWeek } from "../../lib/days";
 import { Button } from "../Button/Button";
 import type { DosageUnit } from "./PrescriptionForm.helpers";
@@ -30,6 +31,7 @@ interface PrescriptionFieldsProps {
   setDetectedDuplicateUnit: (v: DosageUnit | null) => void;
   addSchedule: () => void;
   removeSchedule: (index: number) => void;
+  collapseToOne: () => void;
   toggleAllDays: (scheduleIndex: number) => void;
   toggleDay: (scheduleIndex: number, day: DayOfWeek) => void;
   addDoseTime: (scheduleIndex: number) => void;
@@ -70,6 +72,7 @@ export function PrescriptionFields({
   setDetectedDuplicateUnit,
   addSchedule,
   removeSchedule,
+  collapseToOne,
   toggleAllDays,
   toggleDay,
   addDoseTime,
@@ -77,6 +80,8 @@ export function PrescriptionFields({
   updateSlotQuantity,
   removeDoseTime,
 }: PrescriptionFieldsProps) {
+  const [isAdvanced, setIsAdvanced] = useState(() => schedules.length > 1);
+
   return (
     <>
       <div className="drug-info-row">
@@ -193,7 +198,36 @@ export function PrescriptionFields({
       </div>
 
       <section className="prescription-detail-schedule">
-        <h3>{t("prescriptionForm.schedule")}</h3>
+        <div className="schedule-heading">
+          <h3>{t("prescriptionForm.schedule")}</h3>
+          <span className="schedule-mode-toggle">
+            <button
+              type="button"
+              className="schedule-mode-btn"
+              aria-pressed={!isAdvanced}
+              onClick={() => {
+                if (
+                  schedules.length > 1 &&
+                  !window.confirm(t("prescriptionForm.collapseToSimpleConfirm"))
+                ) {
+                  return;
+                }
+                setIsAdvanced(false);
+                collapseToOne();
+              }}
+            >
+              {t("prescriptionForm.simpleScheduling")}
+            </button>
+            <button
+              type="button"
+              className="schedule-mode-btn"
+              aria-pressed={isAdvanced}
+              onClick={() => setIsAdvanced(true)}
+            >
+              {t("prescriptionForm.advancedScheduling")}
+            </button>
+          </span>
+        </div>
 
         <div className="date-range-row">
           <div>
@@ -222,6 +256,11 @@ export function PrescriptionFields({
           </div>
         </div>
 
+        {isAdvanced && (
+          <p className="advanced-scheduling-hint">
+            {t("prescriptionForm.advancedSchedulingHint")}
+          </p>
+        )}
         <div className="routine-list">
           {schedules.map((schedule, scheduleIndex) => (
             <RoutineBlock
@@ -230,6 +269,7 @@ export function PrescriptionFields({
               schedule={schedule}
               scheduleIndex={scheduleIndex}
               schedulesLength={schedules.length}
+              hideHeader={!isAdvanced}
               removeSchedule={removeSchedule}
               toggleAllDays={toggleAllDays}
               toggleDay={toggleDay}
@@ -240,13 +280,15 @@ export function PrescriptionFields({
             />
           ))}
 
-          <Button
-            type="button"
-            className="button-secondary button-sm"
-            onClick={addSchedule}
-          >
-            {t("prescriptionForm.addDosingSchedule")}
-          </Button>
+          {isAdvanced && (
+            <Button
+              type="button"
+              className="button-secondary button-sm"
+              onClick={addSchedule}
+            >
+              {t("prescriptionForm.addDosingSchedule")}
+            </Button>
+          )}
         </div>
       </section>
 

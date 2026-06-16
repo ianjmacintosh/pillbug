@@ -285,6 +285,155 @@ test.describe("Prescription edit", () => {
   });
 });
 
+test.describe("Schedule mode toggle", () => {
+  test("new form defaults to Simple mode", async ({ page }) => {
+    await page.goto("/prescriptions/new");
+    await expect(
+      page.getByRole("button", { name: /^simple$/i }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expect(
+      page.getByRole("button", { name: /^advanced$/i }),
+    ).toHaveAttribute("aria-pressed", "false");
+    await expect(
+      page.getByRole("button", { name: /add dosing schedule/i }),
+    ).not.toBeVisible();
+  });
+
+  test("switching to Advanced reveals the add button, hint text, and remove button", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+    await page.getByRole("button", { name: /^advanced$/i }).click();
+    await expect(
+      page.getByRole("button", { name: /add dosing schedule/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/different times on different days/i),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /remove dosing schedule/i }),
+    ).toBeVisible();
+  });
+
+  test("switching back to Simple hides the add button and hint", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+    await page.getByRole("button", { name: /^advanced$/i }).click();
+    await page.getByRole("button", { name: /^simple$/i }).click();
+    await expect(
+      page.getByRole("button", { name: /add dosing schedule/i }),
+    ).not.toBeVisible();
+    await expect(
+      page.getByText(/different times on different days/i),
+    ).not.toBeVisible();
+  });
+
+  test("switching to Simple with multiple schedules prompts for confirmation", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+    await page.getByRole("button", { name: /^advanced$/i }).click();
+    await page.getByRole("button", { name: /add dosing schedule/i }).click();
+
+    const dialogPromise = page.waitForEvent("dialog");
+    await page.getByRole("button", { name: /^simple$/i }).click();
+    const dialog = await dialogPromise;
+    expect(dialog.message()).toMatch(/only the first schedule/i);
+    await dialog.dismiss();
+  });
+
+  test("confirming the prompt collapses to one schedule block", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+    await page.getByRole("button", { name: /^advanced$/i }).click();
+    await page.getByRole("button", { name: /add dosing schedule/i }).click();
+    await expect(
+      page.getByRole("group", { name: /days and times/i }),
+    ).toHaveCount(2);
+
+    page.once("dialog", (dialog) => dialog.accept());
+    await page.getByRole("button", { name: /^simple$/i }).click();
+    await expect(
+      page.getByRole("group", { name: /days and times/i }),
+    ).toHaveCount(1);
+  });
+
+  test("dismissing the prompt keeps Advanced mode with both schedules", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+    await page.getByRole("button", { name: /^advanced$/i }).click();
+    await page.getByRole("button", { name: /add dosing schedule/i }).click();
+
+    page.once("dialog", (dialog) => dialog.dismiss());
+    await page.getByRole("button", { name: /^simple$/i }).click();
+    await expect(
+      page.getByRole("group", { name: /days and times/i }),
+    ).toHaveCount(2);
+    await expect(
+      page.getByRole("button", { name: /^advanced$/i }),
+    ).toHaveAttribute("aria-pressed", "true");
+  });
+
+  test("no prompt when switching to Simple with only one schedule", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+    await page.getByRole("button", { name: /^advanced$/i }).click();
+
+    let dialogFired = false;
+    page.once("dialog", () => {
+      dialogFired = true;
+    });
+    await page.getByRole("button", { name: /^simple$/i }).click();
+    expect(dialogFired).toBe(false);
+  });
+
+  test("edit form with one schedule opens in Simple mode", async ({ page }) => {
+    const res = await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    const { id } = (await res.json()) as { id: string };
+    await page.goto(`/prescriptions/${id}/edit`);
+    await expect(
+      page.getByRole("button", { name: /^simple$/i }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expect(
+      page.getByRole("button", { name: /add dosing schedule/i }),
+    ).not.toBeVisible();
+  });
+
+  test("edit form with multiple schedules opens in Advanced mode", async ({
+    page,
+  }) => {
+    const res = await page.request.post("/api/v1/prescriptions", {
+      data: {
+        ...BASE_PRESCRIPTION,
+        schedule: {
+          days: {
+            monday: [{ time: "08:00", quantity: 1 }],
+            friday: [{ time: "20:00", quantity: 1 }],
+          },
+          timezoneMode: "local",
+        },
+      },
+    });
+    const { id } = (await res.json()) as { id: string };
+    await page.goto(`/prescriptions/${id}/edit`);
+    await expect(
+      page.getByRole("button", { name: /^advanced$/i }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expect(
+      page.getByRole("button", { name: /add dosing schedule/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("group", { name: /days and times/i }),
+    ).toHaveCount(2);
+  });
+});
+
 test.describe("Prescription detail", () => {
   test("detail page shows drug info, schedule, and Edit button navigates to edit route", async ({
     page,

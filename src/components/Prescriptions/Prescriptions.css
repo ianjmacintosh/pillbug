@@ -485,8 +485,45 @@
   margin-top: 2rem;
 }
 
-.prescription-detail-schedule > h3 {
+.schedule-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   margin-bottom: 0.75rem;
+}
+
+.schedule-heading h3 {
+  margin: 0;
+}
+
+.schedule-mode-toggle {
+  display: inline-flex;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.schedule-mode-btn {
+  display: flex;
+  align-items: center;
+  padding: 0.2rem 0.75rem;
+  background: transparent;
+  color: #1c1c1e;
+  border: none;
+  cursor: pointer;
+  font-family: system-ui, sans-serif;
+  font-size: 0.8125rem;
+}
+
+.schedule-mode-btn[aria-pressed="true"] {
+  background: #1c1c1e;
+  color: #fff;
+}
+
+.advanced-scheduling-hint {
+  font-size: 0.8125rem;
+  color: #555;
+  margin: 0 0 0.75rem;
 }
 
 /* ── Date range row (form) ──────────────────────────────────── */
