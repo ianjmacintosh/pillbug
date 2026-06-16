@@ -16,6 +16,62 @@ test.afterAll(async () => {
   await disposeDB();
 });
 
+test.describe("Auto language detection (logged out)", () => {
+  test.describe("Brazilian user (pt-BR browser)", () => {
+    test.use({ locale: "pt-BR" });
+
+    test("register page shows in pt-BR automatically", async ({ page }) => {
+      await page.goto("/register");
+      await expect(
+        page.getByRole("heading", { name: /criar sua conta/i }),
+      ).toBeVisible();
+    });
+  });
+
+  test.describe("American user (en-US browser)", () => {
+    test.use({ locale: "en-US" });
+
+    test("register page shows in en-US automatically", async ({ page }) => {
+      await page.goto("/register");
+      await expect(
+        page.getByRole("heading", { name: /create your account/i }),
+      ).toBeVisible();
+    });
+  });
+});
+
+test.describe("Auto language detection (logged in, no stored language)", () => {
+  test.beforeEach(async () => {
+    await resetAliceLanguage();
+  });
+
+  test.describe("Brazilian user (pt-BR browser)", () => {
+    test.use({ storageState: ALICE_AUTH_FILE, locale: "pt-BR" });
+
+    test("prescriptions page shows in pt-BR automatically", async ({
+      page,
+    }) => {
+      await page.goto("/prescriptions");
+      await expect(
+        page.getByRole("heading", { name: /prescrições/i }),
+      ).toBeVisible();
+    });
+  });
+
+  test.describe("American user (en-US browser)", () => {
+    test.use({ storageState: ALICE_AUTH_FILE, locale: "en-US" });
+
+    test("prescriptions page shows in en-US automatically", async ({
+      page,
+    }) => {
+      await page.goto("/prescriptions");
+      await expect(
+        page.getByRole("heading", { name: /prescriptions/i }),
+      ).toBeVisible();
+    });
+  });
+});
+
 test.describe("Language switching (logged out)", () => {
   test("switching to pt-BR from header dropdown translates the page", async ({
     page,
