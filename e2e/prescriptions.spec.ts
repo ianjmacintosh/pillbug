@@ -336,11 +336,13 @@ test.describe("Schedule mode toggle", () => {
     await page.getByRole("button", { name: /^advanced$/i }).click();
     await page.getByRole("button", { name: /add dosing schedule/i }).click();
 
-    const dialogPromise = page.waitForEvent("dialog");
+    let dialogMessage = "";
+    page.once("dialog", async (dialog) => {
+      dialogMessage = dialog.message();
+      await dialog.dismiss();
+    });
     await page.getByRole("button", { name: /^simple$/i }).click();
-    const dialog = await dialogPromise;
-    expect(dialog.message()).toMatch(/only the first schedule/i);
-    await dialog.dismiss();
+    expect(dialogMessage).toMatch(/only the first schedule/i);
   });
 
   test("confirming the prompt collapses to one schedule block", async ({
