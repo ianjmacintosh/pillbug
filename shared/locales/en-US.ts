@@ -67,6 +67,7 @@ const enUS = {
   "prescriptions.addPrescription": "+ Add Prescription",
   "prescriptions.back": "← Back",
   "prescriptions.loading": "Loading…",
+  "prescriptions.selectPrompt": "Select a prescription to view details.",
   "prescriptionDetail.edit": "edit",
   "prescriptionDetail.delete": "delete",
   "prescriptionDetail.strength": "Strength",

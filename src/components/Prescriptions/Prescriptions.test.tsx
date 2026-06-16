@@ -145,7 +145,7 @@ describe("Prescriptions", () => {
         new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
       );
       await renderList();
-      await waitFor(() => screen.getByText("Metformin"));
+      await waitFor(() => screen.getByRole("link", { name: "Metformin" }));
     });
 
     test("heading shows prescription count", async () => {
@@ -167,18 +167,18 @@ describe("Prescriptions", () => {
         new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
       );
       await renderList();
-      await waitFor(() => screen.getByText("Metformin"));
-
-      const link = screen.getByRole("link", { name: "Metformin" });
+      const link = await waitFor(() =>
+        screen.getByRole("link", { name: "Metformin" }),
+      );
       expect(link.getAttribute("href")).toBe("/prescriptions/rx-1");
     });
 
-    test("no delete button appears in the prescription list", async () => {
+    test("no delete button appears when prescriptions exist at /prescriptions", async () => {
       vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
         new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
       );
       await renderList();
-      await waitFor(() => screen.getByText("Metformin"));
+      await waitFor(() => screen.getByRole("link", { name: "Metformin" }));
 
       expect(screen.queryByRole("button", { name: /delete/i })).toBeNull();
     });
@@ -198,7 +198,7 @@ describe("Prescriptions", () => {
       const router = buildPrescriptionsRouter("/prescriptions");
       await router.load();
       render(<RouterProvider router={router} />);
-      await waitFor(() => screen.getByText("Metformin"));
+      await waitFor(() => screen.getByRole("link", { name: "Metformin" }));
       expect(router.state.location.pathname).toBe("/prescriptions");
     });
 
@@ -211,6 +211,17 @@ describe("Prescriptions", () => {
       expect(router.state.location.pathname).toBe(
         `/prescriptions/${SAMPLE_PRESCRIPTION.id}`,
       );
+    });
+  });
+
+  describe("select prompt", () => {
+    test("shows a select prompt when prescriptions exist at /prescriptions", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
+      );
+      await renderList();
+      await waitFor(() => screen.getByRole("link", { name: "Metformin" }));
+      expect(screen.getByText(/select a prescription/i)).toBeTruthy();
     });
   });
 
@@ -265,7 +276,7 @@ describe("Prescriptions", () => {
         new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
       );
       await renderList();
-      await waitFor(() => screen.getByText("Metformin"));
+      await waitFor(() => screen.getByRole("link", { name: "Metformin" }));
       expect(screen.getByRole("main").className).toContain(
         "prescriptions--mobile-list",
       );

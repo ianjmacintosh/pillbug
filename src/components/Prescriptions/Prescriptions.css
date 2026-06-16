@@ -442,6 +442,30 @@
   margin-top: 0.75rem;
 }
 
+/* ── Select prompt ──────────────────────────────────────────── */
+
+.prescriptions-select-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 1rem;
+  color: var(--gray-30, #555);
+  font-family: system-ui, sans-serif;
+  font-size: 1.125rem;
+  text-align: center;
+}
+
+.prescriptions-select-prompt svg {
+  width: 3.5rem;
+  height: 3.5rem;
+  opacity: 0.35;
+}
+
+.prescriptions-select-prompt p {
+  margin: 0;
+}
+
 /* ── Mobile accordion (≤ 640px) ─────────────────────────────── */
 
 @media (max-width: 640px) {
