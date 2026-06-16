@@ -111,6 +111,12 @@ const ptBR = {
   "prescriptionForm.removeDoseTime": "Remover horário",
   "prescriptionForm.addDoseTime": "+ Adicionar novo horário de dose",
   "prescriptionForm.addDosingSchedule": "+ Adicionar esquema de dosagem",
+  "prescriptionForm.collapseToSimpleConfirm":
+    "Mudar para Simples excluirá seus esquemas de dosagem extras — somente o primeiro esquema será mantido. Continuar?",
+  "prescriptionForm.simpleScheduling": "Simples",
+  "prescriptionForm.advancedScheduling": "Avançado",
+  "prescriptionForm.advancedSchedulingHint":
+    "Use o agendamento avançado quando uma prescrição precisar ser tomada em horários diferentes em dias diferentes.",
   "prescriptionForm.instructionsLabel": "Instruções (opcional)",
   "prescriptionForm.addHeading": "Adicionar prescrição",
   "prescriptionForm.editHeading": "Editar prescrição",

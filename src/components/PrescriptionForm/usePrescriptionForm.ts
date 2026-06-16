@@ -153,6 +153,10 @@ export function usePrescriptionForm(prescription?: PrescriptionFormData) {
     setSchedules((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function collapseToOne() {
+    setSchedules((prev) => [prev[0]]);
+  }
+
   function toggleAllDays(scheduleIndex: number) {
     setSchedules((prev) => {
       const allSelected = prev[scheduleIndex].days.size === WEEKDAYS.length;
@@ -285,6 +289,7 @@ export function usePrescriptionForm(prescription?: PrescriptionFormData) {
     validateSchedule,
     addSchedule,
     removeSchedule,
+    collapseToOne,
     toggleAllDays,
     toggleDay,
     addDoseTime,
