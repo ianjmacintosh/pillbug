@@ -51,17 +51,33 @@ function Prescriptions() {
           <p role="status">{t("prescriptions.loading")}</p>
         ) : !atChildRoute && prescriptions.length === 0 ? (
           <NewPrescriptionForm />
+        ) : !atChildRoute && prescriptions.length > 0 ? (
+          <div className="prescriptions-select-prompt">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+              <rect x="9" y="3" width="6" height="4" rx="1" />
+              <line x1="9" y1="12" x2="15" y2="12" />
+              <line x1="9" y1="16" x2="11" y2="16" />
+            </svg>
+            <p>{t("prescriptions.selectPrompt")}</p>
+          </div>
         ) : (
           <>
-            {(atChildRoute || prescriptions.length > 0) && (
-              <Button
-                type="button"
-                className="prescriptions-back-btn"
-                onClick={() => navigate({ to: "/prescriptions" })}
-              >
-                {t("prescriptions.back")}
-              </Button>
-            )}
+            <Button
+              type="button"
+              className="prescriptions-back-btn"
+              onClick={() => navigate({ to: "/prescriptions" })}
+            >
+              {t("prescriptions.back")}
+            </Button>
             <Outlet />
           </>
         )}
