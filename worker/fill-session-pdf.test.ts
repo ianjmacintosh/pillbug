@@ -156,6 +156,117 @@ describe("GET /api/v1/fill-session/pdf", () => {
     expect(html).toContain("PM");
   });
 
+  test("?startDate column headers include the calendar date for each day", async () => {
+    const authRepo = makeInMemoryRepo();
+    const prescriptionRepo = makeInMemoryPrescriptionRepo();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(authRepo);
+    vi.mocked(makeD1PrescriptionRepo).mockReturnValue(prescriptionRepo);
+    mockBrowser.newPage.mockResolvedValue(mockPage);
+    mockPage.pdf.mockResolvedValue(new Uint8Array([0x25, 0x50, 0x44, 0x46]));
+    const { patientId, cookie } = await makeAuthenticatedSession(authRepo);
+
+    await prescriptionRepo.createPrescription({
+      id: crypto.randomUUID(),
+      patientId,
+      drugName: "Metformin",
+      dosage: "500mg",
+      doseForm: "tablet",
+      status: "active",
+      schedule: { days: { tuesday: [{ time: "08:00", quantity: 1 }] } },
+      startDate: "2024-01-01",
+      endDate: null,
+      prescribingDoctor: null,
+      instructions: null,
+      createdAt: new Date().toISOString(),
+    });
+
+    await worker.fetch(
+      new Request(
+        "http://localhost/api/v1/fill-session/pdf?startDate=2024-03-12",
+        { headers: { Cookie: cookie } },
+      ),
+      makeEnv(),
+    );
+
+    const html: string = mockPage.setContent.mock.calls.at(-1)?.[0] ?? "";
+    expect(html).toContain("Mar 12"); // Tuesday — the start date
+    expect(html).toContain("Mar 17"); // Sunday — wrapped to next week
+  });
+
+  test("?startDate on a non-Sunday marks wrapped days with day-header--wrapped class", async () => {
+    const authRepo = makeInMemoryRepo();
+    const prescriptionRepo = makeInMemoryPrescriptionRepo();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(authRepo);
+    vi.mocked(makeD1PrescriptionRepo).mockReturnValue(prescriptionRepo);
+    mockBrowser.newPage.mockResolvedValue(mockPage);
+    mockPage.pdf.mockResolvedValue(new Uint8Array([0x25, 0x50, 0x44, 0x46]));
+    const { patientId, cookie } = await makeAuthenticatedSession(authRepo);
+
+    await prescriptionRepo.createPrescription({
+      id: crypto.randomUUID(),
+      patientId,
+      drugName: "Lisinopril",
+      dosage: "10mg",
+      doseForm: "tablet",
+      status: "active",
+      schedule: { days: { tuesday: [{ time: "08:00", quantity: 1 }] } },
+      startDate: "2024-01-01",
+      endDate: null,
+      prescribingDoctor: null,
+      instructions: null,
+      createdAt: new Date().toISOString(),
+    });
+
+    await worker.fetch(
+      new Request(
+        "http://localhost/api/v1/fill-session/pdf?startDate=2024-03-12",
+        { headers: { Cookie: cookie } },
+      ),
+      makeEnv(),
+    );
+
+    const html: string = mockPage.setContent.mock.calls.at(-1)?.[0] ?? "";
+    // Check for the class on an element, not in the CSS definition
+    expect(html).toContain('class="day-header day-header--wrapped"');
+  });
+
+  test("?startDate on a Sunday has no wrapped day elements", async () => {
+    const authRepo = makeInMemoryRepo();
+    const prescriptionRepo = makeInMemoryPrescriptionRepo();
+    vi.mocked(makeD1AuthRepo).mockReturnValue(authRepo);
+    vi.mocked(makeD1PrescriptionRepo).mockReturnValue(prescriptionRepo);
+    mockBrowser.newPage.mockResolvedValue(mockPage);
+    mockPage.pdf.mockResolvedValue(new Uint8Array([0x25, 0x50, 0x44, 0x46]));
+    const { patientId, cookie } = await makeAuthenticatedSession(authRepo);
+
+    await prescriptionRepo.createPrescription({
+      id: crypto.randomUUID(),
+      patientId,
+      drugName: "Lisinopril",
+      dosage: "10mg",
+      doseForm: "tablet",
+      status: "active",
+      schedule: { days: { sunday: [{ time: "08:00", quantity: 1 }] } },
+      startDate: "2024-01-01",
+      endDate: null,
+      prescribingDoctor: null,
+      instructions: null,
+      createdAt: new Date().toISOString(),
+    });
+
+    await worker.fetch(
+      new Request(
+        "http://localhost/api/v1/fill-session/pdf?startDate=2024-03-17",
+        { headers: { Cookie: cookie } },
+      ),
+      makeEnv(),
+    );
+
+    const html: string = mockPage.setContent.mock.calls.at(-1)?.[0] ?? "";
+    // No element should carry the wrapped class (the CSS def is in <style> but no element should have it)
+    expect(html).not.toContain('class="day-header day-header--wrapped"');
+  });
+
   test("missing organizer param defaults to single Daily compartment", async () => {
     const authRepo = makeInMemoryRepo();
     const prescriptionRepo = makeInMemoryPrescriptionRepo();

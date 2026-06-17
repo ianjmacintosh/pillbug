@@ -310,13 +310,22 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
         headers: { "Content-Type": "application/json" },
       });
     }
-    const patientTimezone = await repo.findPatientTimezone(session.patientId);
+    const [patientTimezone, patientLanguage] = await Promise.all([
+      repo.findPatientTimezone(session.patientId),
+      repo.findPatientLanguage(session.patientId),
+    ]);
     const prescriptions = await listPrescriptions(
       session.patientId,
       ["active"],
       prescriptionRepo,
     );
-    return handleFillSessionPdf(request, env, prescriptions, patientTimezone);
+    return handleFillSessionPdf(
+      request,
+      env,
+      prescriptions,
+      patientTimezone,
+      patientLanguage,
+    );
   }
 
   if (url.pathname === "/api/v1/prescriptions" && request.method === "POST") {

@@ -138,6 +138,12 @@ const ptBR = {
   "fillSession.noPrescriptions": "Nenhuma prescrição ativa.",
   "fillSession.printButton": "Imprimir Planilha",
   "fillSession.savePdfButton": "Salvar como PDF",
+  "fillSession.prevWeek": "Semana anterior",
+  "fillSession.nextWeek": "Próxima semana",
+  "fillSession.startDateLabel": "Data de início",
+  "fillSession.wrapWarning":
+    "Algumas colunas mostram datas da semana seguinte.",
+  "fillSession.wrapColumnTooltip": "Data da semana seguinte",
   "register.heading": "Criar sua conta",
   "register.emailLabel": "E-mail",
   "register.turnstileError":

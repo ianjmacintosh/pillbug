@@ -8,7 +8,7 @@ import {
   type Compartment,
   type MedicineCard,
 } from "../shared/fill-session";
-import { weekBoundaries } from "../shared/week-boundaries";
+import { nearestSunday, sessionDates } from "../shared/week-boundaries";
 
 const WEEK_DAYS = [
   "sunday",
@@ -47,6 +47,20 @@ function formatFilenameDate(iso: string): string {
   return iso.replace(/-/g, "_");
 }
 
+function formatMonthDay(iso: string, locale: string): string {
+  return new Date(iso + "T00:00:00Z").toLocaleDateString(locale, {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+function addDays(iso: string, days: number): string {
+  const d = new Date(iso + "T00:00:00Z");
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
 function escapeHtml(str: string): string {
   return str
     .replace(/&/g, "&amp;")
@@ -58,11 +72,13 @@ function escapeHtml(str: string): string {
 function buildHtml(
   cards: MedicineCard[],
   compartments: Compartment[],
-  monday: string,
-  sunday: string,
+  startDate: string,
+  sessionDatesMap: Record<string, { date: string; wrapped: boolean }>,
+  locale: string,
 ): string {
-  const mondayFmt = monday.replace(/-/g, "/");
-  const sundayFmt = sunday.replace(/-/g, "/");
+  const endDate = addDays(startDate, 6);
+  const startFmt = formatMonthDay(startDate, locale);
+  const endFmt = formatMonthDay(endDate, locale);
 
   const cardRows = cards
     .map((card) => {
@@ -76,9 +92,11 @@ function buildHtml(
         })
         .join("");
 
-      const dayHeaders = WEEK_DAYS.map(
-        (day) => `<th class="day-header">${DAY_ABBR[day]}</th>`,
-      ).join("");
+      const dayHeaders = WEEK_DAYS.map((day) => {
+        const { date, wrapped } = sessionDatesMap[day];
+        const wrappedClass = wrapped ? " day-header--wrapped" : "";
+        return `<th class="day-header${wrappedClass}">${DAY_ABBR[day]}<br><span class="day-date">${formatMonthDay(date, locale)}</span></th>`;
+      }).join("");
 
       return `
         <div class="card">
@@ -112,6 +130,8 @@ function buildHtml(
   .grid { width: 100%; border-collapse: collapse; }
   .grid th, .grid td { border: none; padding: 4px 6px; text-align: center; }
   .day-header { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #888; }
+  .day-header--wrapped { color: #b45309; }
+  .day-date { font-size: 9px; font-weight: 400; text-transform: none; letter-spacing: 0; display: block; }
   .slot-label { text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #555; width: 60px; }
   .slot-time { font-size: 9px; font-weight: 400; text-transform: none; letter-spacing: 0; color: #aaa; }
   .cell { border: 1.5px solid #aaa; border-radius: 4px; width: 28px; height: 28px; font-size: 13px; font-weight: 700; }
@@ -120,7 +140,7 @@ function buildHtml(
 </head>
 <body>
   <h1>Fill Session Worksheet</h1>
-  <p class="date-range">${mondayFmt} – ${sundayFmt}</p>
+  <p class="date-range">${startFmt} – ${endFmt}</p>
   ${cardRows}
 </body>
 </html>`;
@@ -141,7 +161,9 @@ export async function handleFillSessionPdf(
     };
   }>,
   patientTimezone: string | null,
+  patientLanguage: string | null,
 ): Promise<Response> {
+  const locale = patientLanguage ?? "en-US";
   const url = new URL(request.url);
   const organizerParam = url.searchParams.get("organizer");
   const compartments = resolveCompartments(organizerParam);
@@ -150,10 +172,22 @@ export async function handleFillSessionPdf(
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(
     new Date(),
   );
-  const { monday, sunday } = weekBoundaries(today);
+  const startDateParam = url.searchParams.get("startDate");
+  const startDate =
+    startDateParam && /^\d{4}-\d{2}-\d{2}$/.test(startDateParam)
+      ? startDateParam
+      : nearestSunday(today);
+  const sessionDatesMap = sessionDates(startDate);
+  const endDate = addDays(startDate, 6);
 
   const cards = groupByMedicine(prescriptions, compartments);
-  const html = buildHtml(cards, compartments, monday, sunday);
+  const html = buildHtml(
+    cards,
+    compartments,
+    startDate,
+    sessionDatesMap,
+    locale,
+  );
 
   const browser = await puppeteer.launch(
     env.BROWSER as Parameters<typeof puppeteer.launch>[0],
@@ -164,9 +198,9 @@ export async function handleFillSessionPdf(
   await page.close();
   await browser.close();
 
-  const monday_ = formatFilenameDate(monday);
-  const sunday_ = formatFilenameDate(sunday);
-  const filename = `Pillbug_Worksheet-${monday_}-${sunday_}.pdf`;
+  const startDate_ = formatFilenameDate(startDate);
+  const endDate_ = formatFilenameDate(endDate);
+  const filename = `Pillbug_Worksheet-${startDate_}-${endDate_}.pdf`;
 
   return new Response(pdfBuffer, {
     status: 200,

@@ -1,3 +1,60 @@
+.fill-session-wrap-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: system-ui, sans-serif;
+  font-size: 0.875rem;
+  color: var(--yellow-20, #92400e);
+  background: var(--yellow-95, #fefce8);
+  border: 1px solid var(--yellow-80, #fde68a);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  margin-block-end: 1rem;
+  max-width: 40rem;
+}
+
+.fill-session-date-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  margin-block-start: 2rem;
+  margin-block-end: 1rem;
+}
+
+.fill-session-date-picker-label {
+  font-family: system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--gray-30);
+}
+
+.fill-session-date-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fill-session-date-picker-row button,
+.fill-session-date-picker-row input[type="date"] {
+  height: 2.25rem;
+  box-sizing: border-box;
+  font-size: 1rem;
+  border: 1px solid var(--gray-70);
+  border-radius: 4px;
+  padding-inline: 0.5rem;
+  color: var(--gray-10);
+}
+
+.fill-session-date-picker-row button {
+  background: none;
+  cursor: pointer;
+}
+
+.fill-session-date-picker-row input[type="date"] {
+  background: transparent;
+}
+
 .fill-session-controls {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -131,6 +188,28 @@
   letter-spacing: 0.06em;
   color: var(--gray-50);
   padding-block-end: 0.25rem;
+}
+
+.fill-session-card-day-header--wrapped {
+  color: var(--yellow-20, #92400e);
+}
+
+.fill-session-card-wrap-icon {
+  font-size: 0.6rem;
+  display: block;
+}
+
+.fill-session-card-day-date {
+  display: block;
+  font-size: 0.5625rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--gray-50);
+}
+
+.fill-session-card-day-header--wrapped .fill-session-card-day-date {
+  color: inherit;
 }
 
 .fill-session-card-slot-label {

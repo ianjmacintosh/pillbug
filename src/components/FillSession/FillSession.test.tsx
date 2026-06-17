@@ -187,15 +187,15 @@ describe("FillSession", () => {
     });
   });
 
-  test("shows current week's Mon–Sun date range below the heading", () => {
+  test("shows nearest-Sunday-anchored date range below the heading", () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-06-11T00:00:00Z")); // Thursday → Mon Jun 8, Sun Jun 14
+    vi.setSystemTime(new Date("2026-06-11T00:00:00Z")); // Thursday → nearest Sunday is Jun 14
     try {
       mockPrescriptions();
       render(<FillSession />);
       const dateHeading = screen.getByRole("heading", { level: 2 });
-      expect(dateHeading.textContent).toMatch(/Jun 8/);
-      expect(dateHeading.textContent).toMatch(/Jun 14/);
+      expect(dateHeading.textContent).toMatch(/Jun 14/); // start: nearest Sunday
+      expect(dateHeading.textContent).toMatch(/Jun 20/); // end: startDate + 6
     } finally {
       vi.useRealTimers();
     }
