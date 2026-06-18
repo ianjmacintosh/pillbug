@@ -13,7 +13,7 @@ import {
   PRESCRIPTIONS_PATIENT_AUTH_FILE,
 } from "./test-accounts";
 import { getDB, disposeDB } from "./db";
-import { weekBoundaries } from "../shared/week-boundaries";
+import { nearestSunday } from "../shared/week-boundaries";
 
 let emailLookup: string;
 
@@ -188,19 +188,32 @@ test.describe("Fill Session page", () => {
     test.describe.configure({ timeout: 120_000 });
 
     let expectedFilename: string;
-    let monday: string;
-    let sunday: string;
+    let startDate: string;
+    let endDate: string;
+    let startDateFmt: string;
+    let endDateFmt: string;
     let download: Download;
     let pdfText: string;
 
     test.beforeAll(async () => {
-      // Mirror the worker's filename computation: today in the patient's
-      // timezone (set to America/Chicago by resetState), then week boundaries.
+      // Mirror the worker's filename computation: nearest Sunday from today
+      // in the patient's timezone (set to America/Chicago by resetState).
       const today = new Intl.DateTimeFormat("en-CA", {
         timeZone: "America/Chicago",
       }).format(new Date());
-      ({ monday, sunday } = weekBoundaries(today));
-      expectedFilename = `Pillbug_Worksheet-${monday.replace(/-/g, "_")}-${sunday.replace(/-/g, "_")}.pdf`;
+      startDate = nearestSunday(today);
+      const d = new Date(startDate + "T00:00:00Z");
+      d.setUTCDate(d.getUTCDate() + 6);
+      endDate = d.toISOString().slice(0, 10);
+      expectedFilename = `Pillbug_Worksheet-${startDate.replace(/-/g, "_")}-${endDate.replace(/-/g, "_")}.pdf`;
+      const fmt = (iso: string) =>
+        new Date(iso + "T00:00:00Z").toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          timeZone: "UTC",
+        });
+      startDateFmt = fmt(startDate);
+      endDateFmt = fmt(endDate);
 
       [download] = await Promise.all([
         sharedPage.waitForEvent("download"),
@@ -223,8 +236,8 @@ test.describe("Fill Session page", () => {
 
     test("downloaded PDF contains the worksheet heading and date range", async () => {
       expect(pdfText).toContain("Fill Session");
-      expect(pdfText).toContain(monday.replace(/-/g, "/"));
-      expect(pdfText).toContain(sunday.replace(/-/g, "/"));
+      expect(pdfText).toContain(startDateFmt);
+      expect(pdfText).toContain(endDateFmt);
     });
 
     test("downloaded PDF contains the prescription names", async () => {
