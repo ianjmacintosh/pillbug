@@ -1,1 +1,6 @@
-export { weekBoundaries, navigationFloor } from "../shared/week-boundaries";
+export {
+  weekBoundaries,
+  navigationFloor,
+  nearestSunday,
+  sessionDates,
+} from "../shared/week-boundaries";

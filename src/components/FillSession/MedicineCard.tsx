@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import { useTranslation } from "react-i18next";
 import { WEEKDAYS } from "../../lib/days";
+import { formatMonthDay } from "../../lib/dates";
 import type {
   Compartment,
   MedicineCard as MedicineCardData,
@@ -9,6 +10,7 @@ import type {
 interface MedicineCardProps {
   card: MedicineCardData;
   compartments: Compartment[];
+  columnDates: Record<string, { date: string; wrapped: boolean }>;
   isOpen: boolean;
   onToggle: () => void;
 }
@@ -16,10 +18,11 @@ interface MedicineCardProps {
 export function MedicineCard({
   card,
   compartments,
+  columnDates,
   isOpen,
   onToggle,
 }: MedicineCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   return (
     <section className="fill-session-card" aria-label={card.drugName}>
@@ -50,15 +53,30 @@ export function MedicineCard({
       >
         <div className="fill-session-card-corner" />
 
-        {WEEKDAYS.map((day, dayIdx) => (
-          <div
-            key={day}
-            className="fill-session-card-day-header"
-            style={{ "--day-idx": dayIdx } as React.CSSProperties}
-          >
-            {t(`days.abbr.${day}`)}
-          </div>
-        ))}
+        {WEEKDAYS.map((day, dayIdx) => {
+          const { date, wrapped } = columnDates[day];
+          return (
+            <div
+              key={day}
+              className={`fill-session-card-day-header${wrapped ? " fill-session-card-day-header--wrapped" : ""}`}
+              style={{ "--day-idx": dayIdx } as React.CSSProperties}
+            >
+              {wrapped && (
+                <span
+                  className="fill-session-card-wrap-icon"
+                  title={t("fillSession.wrapColumnTooltip")}
+                  aria-label={t("fillSession.wrapColumnTooltip")}
+                >
+                  ⚠
+                </span>
+              )}
+              <span>{t(`days.abbr.${day}`)}</span>
+              <span className="fill-session-card-day-date">
+                {formatMonthDay(date, i18n.language)}
+              </span>
+            </div>
+          );
+        })}
 
         {compartments.map((comp, compIdx) => {
           const slot = card.slots.find(

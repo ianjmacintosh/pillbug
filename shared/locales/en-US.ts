@@ -134,6 +134,11 @@ const enUS = {
   "fillSession.noPrescriptions": "No active prescriptions.",
   "fillSession.printButton": "Print Worksheet",
   "fillSession.savePdfButton": "Save as PDF",
+  "fillSession.prevWeek": "Previous week",
+  "fillSession.nextWeek": "Next week",
+  "fillSession.startDateLabel": "Start date",
+  "fillSession.wrapWarning": "Some columns show dates from the following week.",
+  "fillSession.wrapColumnTooltip": "Date from the following week",
   "register.heading": "Create your account",
   "register.emailLabel": "Email",
   "register.turnstileError":

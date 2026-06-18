@@ -609,9 +609,10 @@ Generates and returns a PDF worksheet for the authenticated Patient's current we
 
 **Query parameters**
 
-| Parameter   | Type   | Default | Description                                                                                                                                                 |
-| ----------- | ------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `organizer` | string | `"1"`   | Pill organizer type: `"1"` = Simple 7-day, `"2"` = AM/PM, `"3"` = Morn/Noon/Night, `"4"` = Morn/Noon/Eve/Bed. Invalid or missing values fall back to `"1"`. |
+| Parameter   | Type         | Default                   | Description                                                                                                                                                                                                                                                                          |
+| ----------- | ------------ | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `organizer` | string       | `"1"`                     | Pill organizer type: `"1"` = Simple 7-day, `"2"` = AM/PM, `"3"` = Morn/Noon/Night, `"4"` = Morn/Noon/Eve/Bed. Invalid or missing values fall back to `"1"`.                                                                                                                          |
+| `startDate` | `YYYY-MM-DD` | nearest Sunday from today | Anchor date for the 7-day grid. The grid always runs Sunday → Saturday; days before `startDate` in that order wrap forward to the following week. Missing or invalid values fall back to the nearest Sunday relative to today (using the Patient's stored timezone, UTC if not set). |
 
 **Response — 200**
 
@@ -619,10 +620,10 @@ Binary PDF file.
 
 ```
 Content-Type: application/pdf
-Content-Disposition: attachment; filename="Pillbug_Worksheet-2026_09_21-2026_09_28.pdf"
+Content-Disposition: attachment; filename="Pillbug_Worksheet-2026_09_21-2026_09_27.pdf"
 ```
 
-Filename format: `Pillbug_Worksheet-{monday_YYYY_MM_DD}-{sunday_YYYY_MM_DD}.pdf`. Week boundaries are computed from the Patient's stored timezone (falls back to UTC if not set).
+Filename format: `Pillbug_Worksheet-{startDate_YYYY_MM_DD}-{endDate_YYYY_MM_DD}.pdf` where `endDate` is `startDate + 6 days` (the chronological span of the session).
 
 **Response — 401**
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { formatMonthDay } from "../../lib/dates";
-import { weekBoundaries } from "../../../shared/week-boundaries";
+import { addDays, formatMonthDay } from "../../lib/dates";
+import { nearestSunday, sessionDates } from "../../../shared/week-boundaries";
 import { Select } from "../Select/Select";
 import {
   ONE_COMPARTMENT,
@@ -55,13 +55,17 @@ const ORGANIZER_OPTIONS: {
 function FillSession() {
   const { t, i18n } = useTranslation();
   const today = new Date().toISOString().slice(0, 10);
-  const { monday, sunday } = weekBoundaries(today);
-  const startDate = formatMonthDay(monday, i18n.language);
-  const endDate = formatMonthDay(sunday, i18n.language);
+  const [startDate, setStartDate] = useState(() => nearestSunday(today));
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [organizerType, setOrganizerType] = useState("1");
   const [openCardKey, setOpenCardKey] = useState<string | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
+
+  const sessionDatesMap = sessionDates(startDate);
+  const endDate = addDays(startDate, 6);
+  const hasWrap = Object.values(sessionDatesMap).some((d) => d.wrapped);
+  const startDateFmt = formatMonthDay(startDate, i18n.language);
+  const endDateFmt = formatMonthDay(endDate, i18n.language);
 
   const compartments =
     ORGANIZER_OPTIONS.find((o) => o.value === organizerType)?.compartments ??
@@ -92,7 +96,7 @@ function FillSession() {
     setPdfLoading(true);
     try {
       const res = await fetch(
-        `/api/v1/fill-session/pdf?organizer=${organizerType}`,
+        `/api/v1/fill-session/pdf?organizer=${organizerType}&startDate=${startDate}`,
       );
       if (!res.ok) return;
       const blob = await res.blob();
@@ -113,8 +117,44 @@ function FillSession() {
     <main className="fill-session">
       <h1>{t("fillSession.heading")}</h1>
       <h2 className="fill-session-date-range">
-        {startDate}–{endDate}
+        {startDateFmt}–{endDateFmt}
       </h2>
+      <div className="fill-session-date-picker screen-only">
+        <label
+          htmlFor="fill-session-start-date"
+          className="fill-session-date-picker-label"
+        >
+          {t("fillSession.startDateLabel")}
+        </label>
+        <div className="fill-session-date-picker-row">
+          <button
+            type="button"
+            aria-label={t("fillSession.prevWeek")}
+            onClick={() => setStartDate((d) => addDays(d, -7))}
+          >
+            ←
+          </button>
+          <input
+            id="fill-session-start-date"
+            type="date"
+            value={startDate}
+            onChange={(e) => e.target.value && setStartDate(e.target.value)}
+          />
+          <button
+            type="button"
+            aria-label={t("fillSession.nextWeek")}
+            onClick={() => setStartDate((d) => addDays(d, 7))}
+          >
+            →
+          </button>
+        </div>
+      </div>
+
+      {hasWrap && (
+        <p className="fill-session-wrap-warning">
+          ⚠ {t("fillSession.wrapWarning")}
+        </p>
+      )}
 
       <div className="fill-session-controls screen-only">
         <Button type="button" onClick={() => window.print()}>
@@ -148,6 +188,7 @@ function FillSession() {
                   key={cardKey}
                   card={card}
                   compartments={compartments}
+                  columnDates={sessionDatesMap}
                   isOpen={openCardKey === cardKey}
                   onToggle={() => toggleCard(cardKey)}
                 />
