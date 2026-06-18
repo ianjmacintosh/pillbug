@@ -13,9 +13,9 @@ setup("authenticate as Alice", async ({ page }) => {
   const emailLookup = await hashEmail(ALICE_EMAIL, process.env.EMAIL_SECRET!);
   await db
     .prepare(
-      "UPDATE patients SET created_at = ?, timezone = ? WHERE email_lookup = ?",
+      "UPDATE patients SET created_at = ?, timezone = ?, language = ? WHERE email_lookup = ?",
     )
-    .bind("2020-01-01T00:00:00.000Z", "America/Chicago", emailLookup)
+    .bind("2020-01-01T00:00:00.000Z", "America/Chicago", "en-US", emailLookup)
     .run();
   await disposeDB();
 
@@ -28,5 +28,6 @@ setup("authenticate as Alice", async ({ page }) => {
   await page.waitForURL((url) => !url.pathname.startsWith("/enter-code"));
   const session = await page.request.get("/api/v1/session");
   expect(session.ok()).toBe(true);
+  await page.evaluate(() => localStorage.setItem("i18nextLng", "en-US"));
   await page.context().storageState({ path: ALICE_AUTH_FILE });
 });

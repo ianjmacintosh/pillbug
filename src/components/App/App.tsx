@@ -1,7 +1,7 @@
 import { getRouteApi } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { addDays, formatShortDate } from "../../lib/dates";
+import { addDays, formatShortDate } from "../../utils/dates";
 import { weekBoundaries } from "../../../shared/week-boundaries";
 import { DaySection } from "./DaySection";
 import { type ScheduledDose } from "./DoseItem";

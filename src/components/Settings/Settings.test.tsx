@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import i18next from "../../lib/i18n";
+import i18next from "../../utils/i18n";
 import Settings from "./Settings";
 
 let mockTimezone: string | null = "America/New_York";

@@ -3,9 +3,7 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
 import enUS from "../../shared/locales/en-US";
 import ptBR from "../../shared/locales/pt-BR";
-
-export const supportedLngs = ["en-US", "pt-BR"] as const;
-export const fallbackLng = "en-US" as const;
+import { supportedLngs, fallbackLng } from "./constants";
 
 i18next
   .use(LanguageDetector)
@@ -19,5 +17,9 @@ i18next
     fallbackLng,
     interpolation: { escapeValue: false },
   });
+
+i18next.on("languageChanged", (lng) => {
+  document.documentElement.lang = lng;
+});
 
 export default i18next;

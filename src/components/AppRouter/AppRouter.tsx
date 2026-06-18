@@ -6,7 +6,7 @@ import {
   redirect,
   RouterProvider,
 } from "@tanstack/react-router";
-import { applyStoredLanguage } from "../../lib/applyStoredLanguage";
+import { applyStoredLanguage } from "../../utils/applyStoredLanguage";
 import App from "../App";
 import FillSession from "../FillSession";
 import Layout from "../Layout";

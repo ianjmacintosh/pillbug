@@ -1,5 +1,5 @@
 import { createInstance } from "i18next";
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test } from "vitest";
 import i18next from "./i18n";
 
 // Creates a fresh isolated instance with the same config as the app.
@@ -28,6 +28,22 @@ describe("i18n initialization", () => {
 
   test("pt-BR resource bundle is registered", () => {
     expect(i18next.hasResourceBundle("pt-BR", "translation")).toBe(true);
+  });
+});
+
+describe("document.documentElement.lang", () => {
+  afterEach(async () => {
+    await i18next.changeLanguage("en-US");
+  });
+
+  test("sets document lang when language changes to pt-BR", async () => {
+    await i18next.changeLanguage("pt-BR");
+    expect(document.documentElement.lang).toBe("pt-BR");
+  });
+
+  test("sets document lang when language changes to en-US", async () => {
+    await i18next.changeLanguage("en-US");
+    expect(document.documentElement.lang).toBe("en-US");
   });
 });
 

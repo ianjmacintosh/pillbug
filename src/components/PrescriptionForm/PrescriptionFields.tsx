@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
 import { useState } from "react";
-import type { DayOfWeek } from "../../lib/days";
+import type { DayOfWeek } from "../../utils/constants";
 import { Button } from "../Button/Button";
 import type { DosageUnit } from "./PrescriptionForm.helpers";
 import { detectUnitInQuantity } from "./PrescriptionForm.helpers";
