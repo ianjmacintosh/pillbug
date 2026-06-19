@@ -147,6 +147,9 @@ const ptBR = {
   "register.heading": "Criar sua conta",
   "register.intro":
     "Uma ferramenta simples para gerenciar suas prescrições e cronograma de medicamentos.",
+  "register.feature1": "Seus dados permanecem privados.",
+  "register.feature2":
+    "Separação guiada de medicamentos no organizador, passo a passo.",
   "register.emailLabel": "E-mail",
   "register.turnstileError":
     "Verificação de segurança falhou. Por favor, recarregue a página e tente novamente.",

@@ -142,6 +142,8 @@ const enUS = {
   "register.heading": "Create your account",
   "register.intro":
     "A simple tool for managing your prescriptions and medication schedule.",
+  "register.feature1": "Your data stays private.",
+  "register.feature2": "Guided pill organizer filling, step by step.",
   "register.emailLabel": "Email",
   "register.turnstileError":
     "Security check failed. Please reload the page and try again.",
