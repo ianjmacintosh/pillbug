@@ -8,6 +8,7 @@ function Register() {
   return (
     <main className="register">
       <h1>{t("register.heading")}</h1>
+      <p className="register-intro">{t("register.intro")}</p>
       <RegistrationForm />
       <p>
         {t("register.alreadyHaveAccount")}{" "}

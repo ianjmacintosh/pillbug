@@ -145,6 +145,8 @@ const ptBR = {
     "Algumas colunas mostram datas da semana seguinte.",
   "fillSession.wrapColumnTooltip": "Data da semana seguinte",
   "register.heading": "Criar sua conta",
+  "register.intro":
+    "Uma ferramenta simples para gerenciar suas prescrições e cronograma de medicamentos.",
   "register.emailLabel": "E-mail",
   "register.turnstileError":
     "Verificação de segurança falhou. Por favor, recarregue a página e tente novamente.",
