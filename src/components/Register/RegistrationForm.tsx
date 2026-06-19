@@ -81,9 +81,12 @@ export function RegistrationForm() {
         checked={terms}
         onChange={(e) => setTerms(e.target.checked)}
       >
-        {t("register.iAgreeToThe")}{" "}
-        <a href="/terms">{t("register.termsOfService")}</a> {t("register.and")}{" "}
-        <a href="/privacy">{t("register.privacyPolicy")}</a>
+        <span>
+          {t("register.iAgreeToThe")}{" "}
+          <a href="/terms">{t("register.termsOfService")}</a>{" "}
+          {t("register.and")}{" "}
+          <a href="/privacy">{t("register.privacyPolicy")}</a>
+        </span>
       </Checkbox>
       {error && <p role="alert">{error}</p>}
       <Button type="submit" disabled={submitting} className="button-primary">

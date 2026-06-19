@@ -139,7 +139,7 @@ const enUS = {
   "fillSession.startDateLabel": "Start date",
   "fillSession.wrapWarning": "Some columns show dates from the following week.",
   "fillSession.wrapColumnTooltip": "Date from the following week",
-  "register.heading": "Create your account",
+  "register.heading": "All your medicine in order",
   "register.intro":
     "A simple tool for managing your prescriptions and medication schedule.",
   "register.feature1": "Your data stays private.",

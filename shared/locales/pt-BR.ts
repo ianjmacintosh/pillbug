@@ -144,7 +144,7 @@ const ptBR = {
   "fillSession.wrapWarning":
     "Algumas colunas mostram datas da semana seguinte.",
   "fillSession.wrapColumnTooltip": "Data da semana seguinte",
-  "register.heading": "Criar sua conta",
+  "register.heading": "Todos os seus medicamentos em ordem",
   "register.intro":
     "Uma ferramenta simples para gerenciar suas prescrições e cronograma de medicamentos.",
   "register.feature1": "Seus dados permanecem privados.",
