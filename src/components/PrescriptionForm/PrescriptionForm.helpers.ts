@@ -1,5 +1,5 @@
-export const DOSAGE_UNITS = ["mg", "g", "mcg"] as const;
-export type DosageUnit = (typeof DOSAGE_UNITS)[number];
+export { DOSAGE_UNITS, type DosageUnit } from "../../utils/constants";
+import { DOSAGE_UNITS, type DosageUnit } from "../../utils/constants";
 
 export function detectUnitInQuantity(quantity: string): DosageUnit | null {
   const sorted = ([...DOSAGE_UNITS] as string[]).sort(

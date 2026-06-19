@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { addDays, formatMonthDay } from "../../lib/dates";
+import { addDays, formatMonthDay } from "../../utils/dates";
 import { nearestSunday, sessionDates } from "../../../shared/week-boundaries";
 import { Select } from "../Select/Select";
 import {

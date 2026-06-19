@@ -1,4 +1,4 @@
-import type { DayOfWeek } from "../../lib/days";
+import type { DayOfWeek } from "../../utils/constants";
 
 export interface PrescriptionFormData {
   id: string;

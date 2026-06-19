@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import { useTranslation } from "react-i18next";
-import { WEEKDAYS } from "../../lib/days";
-import { formatMonthDay } from "../../lib/dates";
+import { WEEKDAYS } from "../../utils/constants";
+import { formatMonthDay } from "../../utils/dates";
 import type {
   Compartment,
   MedicineCard as MedicineCardData,

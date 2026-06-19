@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { formatDate, formatTime } from "../../lib/dates";
+import { formatDate, formatTime } from "../../utils/dates";
 import { DoseItem, type ScheduledDose } from "./DoseItem";
 
 interface DaySectionProps {

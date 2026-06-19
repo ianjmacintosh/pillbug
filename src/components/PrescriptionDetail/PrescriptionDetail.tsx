@@ -2,8 +2,9 @@ import { useState } from "react";
 import { getRouteApi, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import "./PrescriptionDetail.css";
-import type { DayOfWeek } from "../../lib/days";
-import { WEEKDAYS } from "../../lib/days";
+import { formatTimeOfDay } from "../../utils/dates";
+import type { DayOfWeek } from "../../utils/constants";
+import { WEEKDAYS } from "../../utils/constants";
 import { Button } from "../Button/Button";
 import { DeleteDialog } from "./DeleteDialog";
 
@@ -56,14 +57,6 @@ function groupRoutines(
   }));
 }
 
-function formatTime(time: string): string {
-  const [hourStr, minute] = time.split(":");
-  const hour = parseInt(hourStr, 10);
-  const period = hour < 12 ? "AM" : "PM";
-  const hour12 = hour % 12 || 12;
-  return `${hour12}:${minute} ${period}`;
-}
-
 function formatDate(dateStr: string): string {
   const [year, month, day] = dateStr.split("-");
   return `${month}/${day}/${year}`;
@@ -72,7 +65,7 @@ function formatDate(dateStr: string): string {
 const routeApi = getRouteApi("/layout/prescriptions/$id");
 
 function PrescriptionDetail() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const prescription = routeApi.useLoaderData() as Prescription;
   const { id } = routeApi.useParams();
   const routines = groupRoutines(prescription.schedule.days);
@@ -144,7 +137,7 @@ function PrescriptionDetail() {
                       <tr key={slot.time}>
                         <td>
                           <time dateTime={slot.time}>
-                            {formatTime(slot.time)}
+                            {formatTimeOfDay(slot.time, i18n.language)}
                           </time>
                         </td>
                         <td>

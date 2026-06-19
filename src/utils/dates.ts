@@ -30,6 +30,12 @@ export function formatDate(dateStr: string, locale: string): string {
   });
 }
 
+export function formatTimeOfDay(time: string, locale: string): string {
+  const [hours, minutes] = time.split(":");
+  const d = new Date(2000, 0, 1, parseInt(hours, 10), parseInt(minutes, 10));
+  return d.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" });
+}
+
 export function formatTime(
   scheduledAt: string,
   timezone: string,
@@ -38,7 +44,6 @@ export function formatTime(
   return new Date(scheduledAt).toLocaleTimeString(locale, {
     hour: "numeric",
     minute: "2-digit",
-    hour12: true,
     timeZone: timezone,
   });
 }

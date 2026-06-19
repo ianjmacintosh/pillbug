@@ -8,7 +8,8 @@ import {
 } from "@tanstack/react-router";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import i18next from "../../utils/i18n";
 import PrescriptionDetail from "./PrescriptionDetail";
 import type { Prescription } from "./PrescriptionDetail";
 
@@ -141,9 +142,19 @@ describe("PrescriptionDetail", () => {
   });
 
   describe("dose slots table", () => {
+    afterEach(async () => {
+      await i18next.changeLanguage("en-US");
+    });
+
     test("shows time formatted as 12-hour with AM/PM (no leading zero)", async () => {
       await renderDetail();
       expect(screen.getByText("9:00 AM")).toBeTruthy();
+    });
+
+    test("shows time without AM/PM for pt-BR", async () => {
+      await i18next.changeLanguage("pt-BR");
+      await renderDetail();
+      expect(screen.queryByText(/AM|PM/)).toBeNull();
     });
 
     test("shows quantity with form factor", async () => {

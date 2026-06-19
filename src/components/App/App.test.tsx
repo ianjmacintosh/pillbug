@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import i18next from "../../lib/i18n";
+import i18next from "../../utils/i18n";
 import App from "./App";
 
 // Wednesday — Monday of the week is 2024-03-11, Sunday is 2024-03-17

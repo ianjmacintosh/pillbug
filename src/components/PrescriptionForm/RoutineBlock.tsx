@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "../Button/Button";
-import type { DayOfWeek } from "../../lib/days";
-import { WEEKDAYS } from "../../lib/days";
+import type { DayOfWeek } from "../../utils/constants";
+import { WEEKDAYS } from "../../utils/constants";
 import type { DosingSchedule } from "./usePrescriptionForm";
 
 interface RoutineBlockProps {

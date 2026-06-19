@@ -1,4 +1,5 @@
-import i18next, { fallbackLng, supportedLngs } from "./i18n";
+import i18next from "./i18n";
+import { fallbackLng, supportedLngs } from "./constants";
 import { resolveLanguage } from "./resolveLanguage";
 
 export async function applyStoredLanguage(language: string | null) {
