@@ -98,7 +98,7 @@ export function PrescriptionFields({
           />
         </div>
 
-        <div className="field">
+        <div className="field drug-dosage-field">
           <label htmlFor={`${idPrefix}-dosage`}>
             {t("prescriptionForm.strengthLabel")}
           </label>
