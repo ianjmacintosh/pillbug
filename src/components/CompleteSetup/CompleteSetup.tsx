@@ -38,7 +38,11 @@ function CompleteSetup() {
         <div role="alert">
           <p>{t("completeSetup.errorHeading")}</p>
           <pre>{errorMessage}</pre>
-          <Button type="button" onClick={() => setRetryCount((c) => c + 1)}>
+          <Button
+            type="button"
+            className="button-primary"
+            onClick={() => setRetryCount((c) => c + 1)}
+          >
             {t("completeSetup.retry")}
           </Button>
         </div>

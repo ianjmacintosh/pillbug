@@ -27,6 +27,7 @@ const ptBR = {
   "login.newHere": "Novo por aqui?",
   "login.createAccount": "Criar uma conta",
   "enterCode.heading": "Digite seu código",
+  "enterCode.intro": "Enviamos um código de 4 dígitos para o seu e-mail.",
   "enterCode.codeLabel": "Código de 4 dígitos",
   "enterCode.error.invalid": "Código incorreto. Por favor, tente novamente.",
   "enterCode.error.expired":
@@ -144,7 +145,12 @@ const ptBR = {
   "fillSession.wrapWarning":
     "Algumas colunas mostram datas da semana seguinte.",
   "fillSession.wrapColumnTooltip": "Data da semana seguinte",
-  "register.heading": "Criar sua conta",
+  "register.heading": "Todos os seus medicamentos em ordem",
+  "register.intro":
+    "Uma ferramenta simples para gerenciar suas prescrições e cronograma de medicamentos.",
+  "register.feature1": "Seus dados permanecem privados.",
+  "register.feature2":
+    "Separação guiada de medicamentos no organizador, passo a passo.",
   "register.emailLabel": "E-mail",
   "register.turnstileError":
     "Verificação de segurança falhou. Por favor, recarregue a página e tente novamente.",

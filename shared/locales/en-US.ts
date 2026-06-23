@@ -27,6 +27,7 @@ const enUS = {
   "login.newHere": "New here?",
   "login.createAccount": "Create an account",
   "enterCode.heading": "Enter your code",
+  "enterCode.intro": "We sent a 4-digit code to your email.",
   "enterCode.codeLabel": "4-digit code",
   "enterCode.error.invalid": "Incorrect code. Please try again.",
   "enterCode.error.expired":
@@ -139,7 +140,11 @@ const enUS = {
   "fillSession.startDateLabel": "Start date",
   "fillSession.wrapWarning": "Some columns show dates from the following week.",
   "fillSession.wrapColumnTooltip": "Date from the following week",
-  "register.heading": "Create your account",
+  "register.heading": "All your medicine in order",
+  "register.intro":
+    "A simple tool for managing your prescriptions and medication schedule.",
+  "register.feature1": "Your data stays private.",
+  "register.feature2": "Guided pill organizer filling, step by step.",
   "register.emailLabel": "Email",
   "register.turnstileError":
     "Security check failed. Please reload the page and try again.",
