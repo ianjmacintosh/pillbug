@@ -23,7 +23,9 @@ test.describe("Auto language detection (logged out)", () => {
     test("register page shows in pt-BR automatically", async ({ page }) => {
       await page.goto("/register");
       await expect(
-        page.getByRole("heading", { name: /criar sua conta/i }),
+        page.getByRole("heading", {
+          name: /todos os seus medicamentos em ordem/i,
+        }),
       ).toBeVisible();
     });
   });
