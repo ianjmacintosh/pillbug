@@ -27,6 +27,7 @@ const enUS = {
   "login.newHere": "New here?",
   "login.createAccount": "Create an account",
   "enterCode.heading": "Enter your code",
+  "enterCode.intro": "We sent a 4-digit code to your email.",
   "enterCode.codeLabel": "4-digit code",
   "enterCode.error.invalid": "Incorrect code. Please try again.",
   "enterCode.error.expired":

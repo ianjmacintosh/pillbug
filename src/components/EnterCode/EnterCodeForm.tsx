@@ -77,7 +77,11 @@ export function EnterCodeForm() {
           <a href="/login">{t("enterCode.requestNewCode")}</a>.
         </p>
       )}
-      <Button type="submit" disabled={submitting || pin.length !== 4}>
+      <Button
+        type="submit"
+        disabled={submitting || pin.length !== 4}
+        className="button-primary"
+      >
         {submitting ? t("enterCode.submitting") : t("enterCode.submit")}
       </Button>
     </form>

@@ -27,6 +27,7 @@ const ptBR = {
   "login.newHere": "Novo por aqui?",
   "login.createAccount": "Criar uma conta",
   "enterCode.heading": "Digite seu código",
+  "enterCode.intro": "Enviamos um código de 4 dígitos para o seu e-mail.",
   "enterCode.codeLabel": "Código de 4 dígitos",
   "enterCode.error.invalid": "Código incorreto. Por favor, tente novamente.",
   "enterCode.error.expired":
