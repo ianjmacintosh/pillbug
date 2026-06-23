@@ -39,14 +39,14 @@
 }
 
 .enter-code input[type="text"] {
-  width: 6rem;
-  padding: 0.5rem 0.75rem;
+  width: 100%;
+  padding: 0.625rem 0.75rem;
   border: 1px solid var(--gray-50);
   border-radius: 4px;
   font-size: 1.5rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.3em;
   text-align: center;
 }
 
