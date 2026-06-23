@@ -44,6 +44,11 @@
   gap: 0.5rem;
   border-radius: 4px;
   padding: 0.125rem 0.25rem;
+  transition: background-color 0.1s;
+}
+
+.prescription-item:hover {
+  background-color: var(--gray-90);
 }
 
 .prescription-item--selected {
@@ -56,6 +61,8 @@
   padding: 0.375rem 0.25rem;
   font-size: 0.9375rem;
   text-align: left;
+  text-decoration: none;
+  color: inherit;
   cursor: pointer;
   flex: 1;
   min-width: 0;
@@ -63,10 +70,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   border-radius: 3px;
-}
-
-.prescription-item__name:hover {
-  text-decoration: underline;
 }
 
 .prescription-item__name:focus-visible {
@@ -349,7 +352,7 @@
   padding: 0.4rem 0.125rem;
   border-radius: 4px;
   border: 1px solid var(--gray-70, #999);
-  background-color: oklch(0.97 0 0);
+  background-color: var(--gray-97);
   color: oklch(0.3 0 0);
   font-size: 0.75rem;
   font-weight: 500;
@@ -522,7 +525,7 @@
 
 .schedule-mode-toggle {
   display: inline-flex;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--gray-70);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -532,7 +535,7 @@
   align-items: center;
   padding: 0.2rem 0.75rem;
   background: transparent;
-  color: #1c1c1e;
+  color: var(--gray-10);
   border: none;
   cursor: pointer;
   font-family: system-ui, sans-serif;
@@ -540,13 +543,13 @@
 }
 
 .schedule-mode-btn[aria-pressed="true"] {
-  background: #1c1c1e;
+  background: var(--gray-10);
   color: #fff;
 }
 
 .advanced-scheduling-hint {
   font-size: 0.8125rem;
-  color: #555;
+  color: var(--gray-50);
   margin: 0 0 0.75rem;
 }
 
@@ -574,8 +577,8 @@
 /* ── Routine blocks (form) ──────────────────────────────────── */
 
 .routine-block {
-  background: #f5f6f8;
-  border: 1px solid #d0d5dd;
+  background: var(--gray-97);
+  border: 1px solid var(--gray-70);
   border-radius: 8px;
   padding: 1rem;
 }
@@ -595,5 +598,5 @@
   font-family: system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #344054;
+  color: var(--gray-30);
 }

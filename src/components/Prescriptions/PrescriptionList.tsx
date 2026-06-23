@@ -36,11 +36,7 @@ export function PrescriptionList({
           </li>
         ))}
       </ul>
-      <Button
-        as="link"
-        to="/prescriptions/new"
-        className="button-secondary button-sm"
-      >
+      <Button as="link" to="/prescriptions/new" className="button-primary">
         {t("prescriptions.addPrescription")}
       </Button>
     </div>

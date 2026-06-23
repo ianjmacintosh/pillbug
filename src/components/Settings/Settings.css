@@ -1,8 +1,24 @@
+/* ── Layout ─────────────────────────────────────────────── */
+
+.settings {
+  max-width: 24rem;
+}
+
+.settings h1 {
+  margin-top: 0;
+}
+
+/* ── Form card ───────────────────────────────────────────── */
+
 .settings form {
+  margin-top: 1.25rem;
+  background: #fff;
+  border: 1px solid var(--gray-90);
+  border-radius: 8px;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
-  margin-top: 1.5rem;
+  gap: 1rem;
 }
 
 .settings .field {
@@ -28,6 +44,10 @@
   cursor: pointer;
 }
 
+.settings form button[type="submit"] {
+  align-self: flex-start;
+}
+
 .settings [role="alert"] {
   color: oklch(0.4 0.15 25);
   font-family: system-ui, sans-serif;
@@ -35,5 +55,5 @@
 }
 
 .settings-logout {
-  margin-top: 2rem;
+  margin-top: 1.5rem;
 }
