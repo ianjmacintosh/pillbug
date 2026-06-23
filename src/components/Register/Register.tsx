@@ -7,23 +7,21 @@ function Register() {
 
   return (
     <main className="register">
-      <div className="register-content">
+      <section className="register-content">
         <h1>{t("register.heading")}</h1>
         <p className="register-intro">{t("register.intro")}</p>
         <ul className="register-features">
           <li>{t("register.feature1")}</li>
           <li>{t("register.feature2")}</li>
         </ul>
-      </div>
-      <div className="register-form-panel">
-        <div className="register-form-card">
-          <RegistrationForm />
-        </div>
+      </section>
+      <section className="register-form-panel">
+        <RegistrationForm />
         <p className="register-login-link">
           {t("register.alreadyHaveAccount")}{" "}
           <a href="/login">{t("register.logIn")}</a>
         </p>
-      </div>
+      </section>
     </main>
   );
 }

@@ -6,10 +6,10 @@ function Footer() {
 
   return (
     <footer className="footer">
-      <div className="footer-inner">
+      <nav className="footer-inner" aria-label="Legal">
         <a href="/terms">{t("footer.termsOfService")}</a>
         <a href="/privacy">{t("footer.privacyPolicy")}</a>
-      </div>
+      </nav>
     </footer>
   );
 }

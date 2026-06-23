@@ -57,11 +57,14 @@
 
 /* ── Form panel ──────────────────────────────────────────── */
 
-.register-form-card {
+.register-form-panel form {
   background: #fff;
   border: 1px solid var(--gray-90);
   border-radius: 8px;
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .register-login-link {
@@ -72,12 +75,6 @@
 }
 
 /* ── Form controls ───────────────────────────────────────── */
-
-.register-form-card form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
 
 .register .email-field {
   display: flex;
@@ -106,7 +103,7 @@
   font-size: 0.9rem;
 }
 
-.register-form-card form button[type="submit"] {
+.register-form-panel form button[type="submit"] {
   align-self: flex-start;
 }
 
