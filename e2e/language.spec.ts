@@ -2,6 +2,16 @@ import { expect, test } from "@playwright/test";
 import { hashEmail } from "../worker/email-crypto";
 import { ALICE_EMAIL, ALICE_AUTH_FILE } from "./test-accounts";
 import { getDB, disposeDB } from "./db";
+import enUS from "../shared/locales/en-US";
+import ptBR from "../shared/locales/pt-BR";
+
+// Returns the locale string directly, or a regex with the interpolation
+// stripped — Playwright can't match "Prescriptions ({{count}})" against
+// the rendered "Prescriptions (3)".
+function heading(str: string): string | RegExp {
+  if (!str.includes("{{")) return str;
+  return new RegExp(str.replace(/\s*\(?\{\{[^}]+\}\}\)?/g, "").trim(), "i");
+}
 
 async function resetAliceLanguage(): Promise<void> {
   const db = await getDB();
@@ -23,9 +33,7 @@ test.describe("Auto language detection (logged out)", () => {
     test("register page shows in pt-BR automatically", async ({ page }) => {
       await page.goto("/register");
       await expect(
-        page.getByRole("heading", {
-          name: /todos os seus medicamentos em ordem/i,
-        }),
+        page.getByRole("heading", { name: heading(ptBR["register.heading"]) }),
       ).toBeVisible();
     });
   });
@@ -36,7 +44,7 @@ test.describe("Auto language detection (logged out)", () => {
     test("register page shows in en-US automatically", async ({ page }) => {
       await page.goto("/register");
       await expect(
-        page.getByRole("heading", { name: /create your account/i }),
+        page.getByRole("heading", { name: heading(enUS["register.heading"]) }),
       ).toBeVisible();
     });
   });
@@ -55,7 +63,9 @@ test.describe("Auto language detection (logged in, no stored language)", () => {
     }) => {
       await page.goto("/prescriptions");
       await expect(
-        page.getByRole("heading", { name: /prescrições/i }),
+        page.getByRole("heading", {
+          name: heading(ptBR["prescriptions.heading"]),
+        }),
       ).toBeVisible();
     });
   });
@@ -68,7 +78,9 @@ test.describe("Auto language detection (logged in, no stored language)", () => {
     }) => {
       await page.goto("/prescriptions");
       await expect(
-        page.getByRole("heading", { name: /prescriptions/i }),
+        page.getByRole("heading", {
+          name: heading(enUS["prescriptions.heading"]),
+        }),
       ).toBeVisible();
     });
   });
@@ -80,13 +92,13 @@ test.describe("Language switching (logged out)", () => {
   }) => {
     await page.goto("/register");
     await expect(
-      page.getByRole("heading", { name: /create your account/i }),
+      page.getByRole("heading", { name: heading(enUS["register.heading"]) }),
     ).toBeVisible();
 
     await page.locator("header").getByRole("combobox").selectOption("pt-BR");
 
     await expect(
-      page.getByRole("heading", { name: /criar sua conta/i }),
+      page.getByRole("heading", { name: heading(ptBR["register.heading"]) }),
     ).toBeVisible();
   });
 });
@@ -114,12 +126,12 @@ test.describe("Language switching (logged in)", () => {
     ).not.toBeVisible();
 
     await page.goto("/weekly-doses");
-    const heading = await page.locator("h2.week-range").textContent();
-    expect(heading).toMatch(/^\d{2}\/\d{2}\/\d{4}–\d{2}\/\d{2}\/\d{4}$/);
+    const weekHeading = await page.locator("h2.week-range").textContent();
+    expect(weekHeading).toMatch(/^\d{2}\/\d{2}\/\d{4}–\d{2}\/\d{2}\/\d{4}$/);
 
     await page.goto("/settings");
     await expect(
-      page.getByRole("heading", { name: /configurações/i }),
+      page.getByRole("heading", { name: heading(ptBR["settings.heading"]) }),
     ).toBeVisible();
   });
 });
