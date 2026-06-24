@@ -1,13 +1,11 @@
 import { getAdminStats, renderAdminHtml } from "../admin";
 import { validateCfAccessJwt } from "../cf-access";
 import { SECURITY_HEADERS, HTTPS_SECURITY_HEADERS } from "../security-headers";
-import { type Repos } from "../session";
 import type { Env } from "../env";
 
 export async function handleGetAdmin(
   request: Request,
   env: Env,
-  _repos: Repos,
 ): Promise<Response> {
   const url = new URL(request.url);
   const secure = url.protocol === "https:";

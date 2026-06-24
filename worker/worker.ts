@@ -11,7 +11,7 @@ import {
   SECURITY_HEADERS,
   HTTPS_SECURITY_HEADERS,
 } from "./security-headers";
-import { withSession, json, type Repos } from "./session";
+import { withSession, type Repos } from "./session";
 import type { Env } from "./env";
 import {
   handleRegister,
@@ -163,7 +163,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   }
 
   if (url.pathname === "/admin" && request.method === "GET") {
-    return handleGetAdmin(request, env, repos);
+    return handleGetAdmin(request, env);
   }
 
   if (url.pathname === "/") {
