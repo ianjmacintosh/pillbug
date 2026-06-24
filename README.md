@@ -87,6 +87,20 @@ npx skills@latest add mattpocock/skills
 # Restart Claude
 ```
 
+This repository uses [gstack](https://github.com/garrytan/gstack) for browser automation and AI workflows. Install it once per machine:
+
+```bash
+git clone --single-branch --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack && cd ~/.claude/skills/gstack && ./setup
+```
+
+> **Note:** gstack requires [bun](https://bun.sh). If not installed, run:
+>
+> ```bash
+> curl -fsSL https://bun.sh/install | bash
+> ```
+>
+> then re-run the gstack setup command above.
+
 ## Deployment
 
 Two named environments are configured in `wrangler.jsonc`. Always deploy with an explicit `--env` flag — bare `wrangler deploy` has no database binding and will crash at runtime.
