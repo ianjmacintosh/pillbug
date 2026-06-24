@@ -15,7 +15,7 @@ export function NewPrescriptionForm() {
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     form.setError(null);
-    if (!form.validateSchedule()) return;
+    if (!form.scheduleEditor.validateSchedule()) return;
 
     form.setSubmitting(true);
     const res = await fetch("/api/v1/prescriptions", {
@@ -25,7 +25,7 @@ export function NewPrescriptionForm() {
         doseForm: form.doseForm,
         drugName: form.drugName,
         dosage: form.buildDosage(),
-        schedule: form.buildSchedule(),
+        schedule: form.scheduleEditor.buildSchedule(),
         startDate: form.startDate,
         endDate: form.endDate || null,
         instructions: form.instructions || null,
@@ -50,7 +50,28 @@ export function NewPrescriptionForm() {
       <h2>{t("prescriptionForm.addHeading")}</h2>
       <form onSubmit={handleCreate}>
         {form.error && <p role="alert">{form.error}</p>}
-        <PrescriptionFields idPrefix="create" {...form} />
+        <PrescriptionFields
+          idPrefix="create"
+          scheduleEditor={form.scheduleEditor}
+          doseForm={form.doseForm}
+          setDoseForm={form.setDoseForm}
+          drugName={form.drugName}
+          setDrugName={form.setDrugName}
+          dosageQuantity={form.dosageQuantity}
+          setDosageQuantity={form.setDosageQuantity}
+          dosageUnit={form.dosageUnit}
+          setDosageUnit={form.setDosageUnit}
+          dosageFallback={form.dosageFallback}
+          setDosageFallback={form.setDosageFallback}
+          startDate={form.startDate}
+          setStartDate={form.setStartDate}
+          endDate={form.endDate}
+          setEndDate={form.setEndDate}
+          instructions={form.instructions}
+          setInstructions={form.setInstructions}
+          detectedDuplicateUnit={form.detectedDuplicateUnit}
+          setDetectedDuplicateUnit={form.setDetectedDuplicateUnit}
+        />
         <div className="form-actions">
           <Button
             type="submit"
@@ -79,7 +100,7 @@ export function EditPrescriptionForm() {
   async function handleSaveEdit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     form.setError(null);
-    if (!form.validateSchedule()) return;
+    if (!form.scheduleEditor.validateSchedule()) return;
 
     form.setSubmitting(true);
     const res = await fetch(`/api/v1/prescriptions/${id}`, {
@@ -89,7 +110,7 @@ export function EditPrescriptionForm() {
         doseForm: form.doseForm,
         drugName: form.drugName,
         dosage: form.buildDosage(),
-        schedule: form.buildSchedule(),
+        schedule: form.scheduleEditor.buildSchedule(),
         startDate: form.startDate,
         endDate: form.endDate || null,
         instructions: form.instructions || null,
@@ -110,7 +131,28 @@ export function EditPrescriptionForm() {
       <h2>{t("prescriptionForm.editHeading")}</h2>
       <form onSubmit={handleSaveEdit}>
         {form.error && <p role="alert">{form.error}</p>}
-        <PrescriptionFields idPrefix="edit" {...form} />
+        <PrescriptionFields
+          idPrefix="edit"
+          scheduleEditor={form.scheduleEditor}
+          doseForm={form.doseForm}
+          setDoseForm={form.setDoseForm}
+          drugName={form.drugName}
+          setDrugName={form.setDrugName}
+          dosageQuantity={form.dosageQuantity}
+          setDosageQuantity={form.setDosageQuantity}
+          dosageUnit={form.dosageUnit}
+          setDosageUnit={form.setDosageUnit}
+          dosageFallback={form.dosageFallback}
+          setDosageFallback={form.setDosageFallback}
+          startDate={form.startDate}
+          setStartDate={form.setStartDate}
+          endDate={form.endDate}
+          setEndDate={form.setEndDate}
+          instructions={form.instructions}
+          setInstructions={form.setInstructions}
+          detectedDuplicateUnit={form.detectedDuplicateUnit}
+          setDetectedDuplicateUnit={form.setDetectedDuplicateUnit}
+        />
         <div className="form-actions">
           <Button
             type="submit"

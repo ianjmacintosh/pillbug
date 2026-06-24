@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { DayOfWeek } from "../../utils/constants";
 import { Button } from "../Button/Button";
 import type { DosageUnit } from "./PrescriptionForm.helpers";
 import { detectUnitInQuantity } from "./PrescriptionForm.helpers";
 import { RoutineBlock } from "./RoutineBlock";
-import type { DosingSchedule } from "./usePrescriptionForm";
+import type { ScheduleEditor } from "./usePrescriptionForm";
 
 interface PrescriptionFieldsProps {
   idPrefix: string;
+  scheduleEditor: ScheduleEditor;
   doseForm: string;
   setDoseForm: (v: string) => void;
   drugName: string;
@@ -25,30 +25,13 @@ interface PrescriptionFieldsProps {
   setEndDate: (v: string) => void;
   instructions: string;
   setInstructions: (v: string) => void;
-  schedules: DosingSchedule[];
   detectedDuplicateUnit: DosageUnit | null;
   setDetectedDuplicateUnit: (v: DosageUnit | null) => void;
-  addSchedule: () => void;
-  removeSchedule: (index: number) => void;
-  collapseToOne: () => void;
-  toggleAllDays: (scheduleIndex: number) => void;
-  toggleDay: (scheduleIndex: number, day: DayOfWeek) => void;
-  addDoseTime: (scheduleIndex: number) => void;
-  updateDoseTime: (
-    scheduleIndex: number,
-    timeIndex: number,
-    value: string,
-  ) => void;
-  updateSlotQuantity: (
-    scheduleIndex: number,
-    timeIndex: number,
-    value: string,
-  ) => void;
-  removeDoseTime: (scheduleIndex: number, timeIndex: number) => void;
 }
 
 export function PrescriptionFields({
   idPrefix,
+  scheduleEditor,
   doseForm,
   setDoseForm,
   drugName,
@@ -65,21 +48,26 @@ export function PrescriptionFields({
   setEndDate,
   instructions,
   setInstructions,
-  schedules,
   detectedDuplicateUnit,
   setDetectedDuplicateUnit,
-  addSchedule,
-  removeSchedule,
-  collapseToOne,
-  toggleAllDays,
-  toggleDay,
-  addDoseTime,
-  updateDoseTime,
-  updateSlotQuantity,
-  removeDoseTime,
 }: PrescriptionFieldsProps) {
   const { t } = useTranslation();
-  const [isAdvanced, setIsAdvanced] = useState(() => schedules.length > 1);
+  const [isAdvanced, setIsAdvanced] = useState(
+    () => scheduleEditor.schedules.length > 1,
+  );
+
+  const {
+    schedules,
+    addSchedule,
+    removeSchedule,
+    collapseToOne,
+    toggleAllDays,
+    toggleDay,
+    addDoseTime,
+    updateDoseTime,
+    updateSlotQuantity,
+    removeDoseTime,
+  } = scheduleEditor;
 
   return (
     <>
