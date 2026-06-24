@@ -1,6 +1,8 @@
 :root {
   --page-width: min(92vw, 80rem);
 
+  /* ── Palette ──────────────────────────────────────────────── */
+
   --yellow-20: oklch(0.2 0.06 95);
   --yellow-40: oklch(0.4 0.12 95);
   --yellow-80: oklch(0.88 0.14 95);
@@ -14,4 +16,38 @@
   --gray-70: oklch(0.7 0 0);
   --gray-90: oklch(0.9 0 0);
   --gray-97: oklch(0.97 0 0);
+
+  /* ── Semantic color tokens ────────────────────────────────── */
+
+  --color-action: var(--yellow-87);
+  --color-action-hover: oklch(0.82 0.34 95);
+  --color-action-text: var(--color-contrast);
+  --color-brand-bg: var(--yellow-90);
+  --color-surface-tinted: oklch(0.97 0.04 95);
+  --color-surface-raised: #fff;
+  --color-contrast: oklch(0.22 0.04 60);
+  --color-text-primary: oklch(0.22 0.04 60);
+  --color-text-muted: var(--gray-50);
+  --color-link: oklch(0.42 0.1 55);
+  --color-link-hover: oklch(0.3 0.1 55);
+  --color-error: oklch(0.4 0.15 25);
+  --color-focus-ring: var(--yellow-87);
+
+  /* ── Typography ───────────────────────────────────────────── */
+
+  --font-serif: "Lora", Georgia, serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+
+  /* ── Spacing scale (4px grid) ─────────────────────────────── */
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 1.75rem;
+  --space-8: 2rem;
+  --space-9: 2.5rem;
+  --space-10: 3rem;
 }
