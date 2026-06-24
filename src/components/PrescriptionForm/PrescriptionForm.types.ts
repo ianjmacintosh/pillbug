@@ -1,13 +1,11 @@
-import type { DayOfWeek } from "../../utils/constants";
+import type { Schedule } from "../../../shared/schedule";
 
 export interface PrescriptionFormData {
   id: string;
   doseForm: string;
   drugName: string;
   dosage: string;
-  schedule: {
-    days: Partial<Record<DayOfWeek, { time: string; quantity: number }[]>>;
-  };
+  schedule: Schedule;
   startDate: string;
   endDate: string | null;
   prescribingDoctor: string | null;

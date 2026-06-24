@@ -9,6 +9,7 @@ import {
   type MedicineCard,
 } from "../shared/fill-session";
 import { nearestSunday, sessionDates } from "../shared/week-boundaries";
+import { addDays, formatMonthDay } from "../shared/dates";
 
 const WEEK_DAYS = [
   "sunday",
@@ -45,20 +46,6 @@ function resolveCompartments(organizerParam: string | null): Compartment[] {
 
 function formatFilenameDate(iso: string): string {
   return iso.replace(/-/g, "_");
-}
-
-function formatMonthDay(iso: string, locale: string): string {
-  return new Date(iso + "T00:00:00Z").toLocaleDateString(locale, {
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
-  });
-}
-
-function addDays(iso: string, days: number): string {
-  const d = new Date(iso + "T00:00:00Z");
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
 }
 
 function escapeHtml(str: string): string {

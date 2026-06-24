@@ -4,6 +4,7 @@ import { WEEKDAYS } from "../../utils/constants";
 import type { DosageUnit } from "./PrescriptionForm.helpers";
 import { parseDosage } from "./PrescriptionForm.helpers";
 import type { PrescriptionFormData } from "./PrescriptionForm.types";
+import type { Schedule } from "../../../shared/schedule";
 
 export interface TimeSlot {
   time: string;
@@ -15,6 +16,29 @@ export interface DosingSchedule {
   times: TimeSlot[];
   daysError: boolean;
   timesError: boolean;
+}
+
+export interface ScheduleEditor {
+  schedules: DosingSchedule[];
+  buildSchedule: () => Schedule;
+  validateSchedule: () => boolean;
+  addSchedule: () => void;
+  removeSchedule: (index: number) => void;
+  collapseToOne: () => void;
+  toggleAllDays: (scheduleIndex: number) => void;
+  toggleDay: (scheduleIndex: number, day: DayOfWeek) => void;
+  addDoseTime: (scheduleIndex: number) => void;
+  updateDoseTime: (
+    scheduleIndex: number,
+    timeIndex: number,
+    value: string,
+  ) => void;
+  updateSlotQuantity: (
+    scheduleIndex: number,
+    timeIndex: number,
+    value: string,
+  ) => void;
+  removeDoseTime: (scheduleIndex: number, timeIndex: number) => void;
 }
 
 export function initSchedules(
@@ -64,67 +88,26 @@ export function initSchedules(
       ];
 }
 
-export function usePrescriptionForm(prescription?: PrescriptionFormData) {
-  const [doseForm, setDoseForm] = useState(() =>
-    prescription ? (prescription.doseForm ?? "tablet") : "tablet",
-  );
-  const [drugName, setDrugName] = useState(() =>
-    prescription ? prescription.drugName : "",
-  );
-  const [dosageQuantity, setDosageQuantity] = useState(() => {
-    if (!prescription) return "";
-    const parsed = parseDosage(prescription.dosage);
-    return parsed ? parsed.quantity : "";
-  });
-  const [dosageUnit, setDosageUnit] = useState<DosageUnit | "">(() => {
-    if (!prescription) return "mg";
-    const parsed = parseDosage(prescription.dosage);
-    return parsed ? parsed.unit : "";
-  });
-  const [dosageFallback, setDosageFallback] = useState<string | null>(() => {
-    if (!prescription) return null;
-    return parseDosage(prescription.dosage) ? null : prescription.dosage;
-  });
-  const [startDate, setStartDate] = useState(() =>
-    prescription
-      ? prescription.startDate
-      : new Date().toISOString().slice(0, 10),
-  );
-  const [endDate, setEndDate] = useState(() =>
-    prescription ? (prescription.endDate ?? "") : "",
-  );
-  const [instructions, setInstructions] = useState(() =>
-    prescription ? (prescription.instructions ?? "") : "",
-  );
+export function buildSchedule(schedules: DosingSchedule[]): Schedule {
+  const days: Partial<Record<DayOfWeek, { time: string; quantity: number }[]>> =
+    {};
+  for (const schedule of schedules) {
+    for (const day of schedule.days) {
+      days[day] = schedule.times.map((slot) => ({
+        time: slot.time,
+        quantity: parseFloat(slot.quantity) || 1,
+      }));
+    }
+  }
+  return { days };
+}
+
+export function useScheduleEditor(
+  prescription?: PrescriptionFormData,
+): ScheduleEditor {
   const [schedules, setSchedules] = useState<DosingSchedule[]>(() =>
     initSchedules(prescription),
   );
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [detectedDuplicateUnit, setDetectedDuplicateUnit] =
-    useState<DosageUnit | null>(null);
-
-  function buildDosage(): string {
-    if (dosageFallback !== null) return dosageFallback;
-    return dosageUnit === ""
-      ? dosageQuantity
-      : `${dosageQuantity} ${dosageUnit}`;
-  }
-
-  function buildSchedule() {
-    const days: Partial<
-      Record<DayOfWeek, { time: string; quantity: number }[]>
-    > = {};
-    for (const schedule of schedules) {
-      for (const day of schedule.days) {
-        days[day] = schedule.times.map((slot) => ({
-          time: slot.time,
-          quantity: parseFloat(slot.quantity) || 1,
-        }));
-      }
-    }
-    return { days };
-  }
 
   function validateSchedule(): boolean {
     const next = schedules.map((s) => ({
@@ -261,6 +244,69 @@ export function usePrescriptionForm(prescription?: PrescriptionFormData) {
   }
 
   return {
+    schedules,
+    buildSchedule: () => buildSchedule(schedules),
+    validateSchedule,
+    addSchedule,
+    removeSchedule,
+    collapseToOne,
+    toggleAllDays,
+    toggleDay,
+    addDoseTime,
+    updateDoseTime,
+    updateSlotQuantity,
+    removeDoseTime,
+  };
+}
+
+export function usePrescriptionForm(prescription?: PrescriptionFormData) {
+  const scheduleEditor = useScheduleEditor(prescription);
+
+  const [doseForm, setDoseForm] = useState(() =>
+    prescription ? (prescription.doseForm ?? "tablet") : "tablet",
+  );
+  const [drugName, setDrugName] = useState(() =>
+    prescription ? prescription.drugName : "",
+  );
+  const [dosageQuantity, setDosageQuantity] = useState(() => {
+    if (!prescription) return "";
+    const parsed = parseDosage(prescription.dosage);
+    return parsed ? parsed.quantity : "";
+  });
+  const [dosageUnit, setDosageUnit] = useState<DosageUnit | "">(() => {
+    if (!prescription) return "mg";
+    const parsed = parseDosage(prescription.dosage);
+    return parsed ? parsed.unit : "";
+  });
+  const [dosageFallback, setDosageFallback] = useState<string | null>(() => {
+    if (!prescription) return null;
+    return parseDosage(prescription.dosage) ? null : prescription.dosage;
+  });
+  const [startDate, setStartDate] = useState(() =>
+    prescription
+      ? prescription.startDate
+      : new Date().toISOString().slice(0, 10),
+  );
+  const [endDate, setEndDate] = useState(() =>
+    prescription ? (prescription.endDate ?? "") : "",
+  );
+  const [instructions, setInstructions] = useState(() =>
+    prescription ? (prescription.instructions ?? "") : "",
+  );
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [detectedDuplicateUnit, setDetectedDuplicateUnit] =
+    useState<DosageUnit | null>(null);
+
+  function buildDosage(): string {
+    if (dosageFallback !== null) return dosageFallback;
+    return dosageUnit === ""
+      ? dosageQuantity
+      : `${dosageQuantity} ${dosageUnit}`;
+  }
+
+  return {
+    scheduleEditor,
     doseForm,
     setDoseForm,
     drugName,
@@ -277,7 +323,6 @@ export function usePrescriptionForm(prescription?: PrescriptionFormData) {
     setEndDate,
     instructions,
     setInstructions,
-    schedules,
     submitting,
     setSubmitting,
     error,
@@ -285,16 +330,5 @@ export function usePrescriptionForm(prescription?: PrescriptionFormData) {
     detectedDuplicateUnit,
     setDetectedDuplicateUnit,
     buildDosage,
-    buildSchedule,
-    validateSchedule,
-    addSchedule,
-    removeSchedule,
-    collapseToOne,
-    toggleAllDays,
-    toggleDay,
-    addDoseTime,
-    updateDoseTime,
-    updateSlotQuantity,
-    removeDoseTime,
   };
 }

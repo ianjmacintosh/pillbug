@@ -88,7 +88,7 @@ test.describe("Settings screen", () => {
       page.locator("header").getByRole("combobox", { name: /language/i }),
     ).not.toBeAttached();
     await expect(
-      page.getByRole("combobox", { name: /language/i }),
+      page.getByRole("main").getByRole("combobox", { name: /language/i }),
     ).toBeVisible();
   });
 
@@ -125,6 +125,7 @@ test.describe("Settings screen", () => {
       .getByRole("combobox", { name: /time zone/i })
       .selectOption("America/Chicago");
     await page
+      .getByRole("main")
       .getByRole("combobox", { name: /language/i })
       .selectOption("en-US");
     await page.getByRole("button", { name: /save/i }).click();
@@ -137,8 +138,8 @@ test.describe("Settings screen", () => {
     expect(account.language).toBe("en-US");
 
     await page.goto("/settings");
-    await expect(page.getByRole("combobox", { name: /language/i })).toHaveValue(
-      "en-US",
-    );
+    await expect(
+      page.getByRole("main").getByRole("combobox", { name: /language/i }),
+    ).toHaveValue("en-US");
   });
 });

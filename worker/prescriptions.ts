@@ -1,11 +1,6 @@
-export type DayOfWeek =
-  | "sunday"
-  | "monday"
-  | "tuesday"
-  | "wednesday"
-  | "thursday"
-  | "friday"
-  | "saturday";
+import type { DayOfWeek, PerSlotDose, Schedule } from "../shared/schedule";
+
+export type { DayOfWeek, PerSlotDose, Schedule };
 
 const VALID_WEEKDAYS: DayOfWeek[] = [
   "sunday",
@@ -17,15 +12,6 @@ const VALID_WEEKDAYS: DayOfWeek[] = [
   "saturday",
 ];
 const HH_MM = /^([01]\d|2[0-3]):[0-5]\d$/;
-
-export interface PerSlotDose {
-  time: string;
-  quantity: number;
-}
-
-export interface Schedule {
-  days: Partial<Record<DayOfWeek, PerSlotDose[]>>;
-}
 
 export type PrescriptionStatus =
   | "active"

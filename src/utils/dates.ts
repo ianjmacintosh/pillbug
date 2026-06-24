@@ -1,15 +1,8 @@
-export function addDays(dateStr: string, days: number): string {
-  const d = new Date(dateStr + "T00:00:00Z");
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
-}
+export { addDays, formatMonthDay } from "../../shared/dates";
 
-export function formatMonthDay(dateStr: string, locale: string): string {
-  return new Date(dateStr + "T00:00:00Z").toLocaleDateString(locale, {
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
-  });
+export function formatNumericDate(dateStr: string): string {
+  const [year, month, day] = dateStr.split("-");
+  return `${month}/${day}/${year}`;
 }
 
 export function formatShortDate(dateStr: string, locale: string): string {

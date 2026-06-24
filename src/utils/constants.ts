@@ -1,11 +1,6 @@
-export type DayOfWeek =
-  | "sunday"
-  | "monday"
-  | "tuesday"
-  | "wednesday"
-  | "thursday"
-  | "friday"
-  | "saturday";
+export type { DayOfWeek } from "../../shared/schedule";
+
+import type { DayOfWeek } from "../../shared/schedule";
 
 export const WEEKDAYS: DayOfWeek[] = [
   "sunday",

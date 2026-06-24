@@ -1,3 +1,7 @@
+import type { Schedule } from "./schedule";
+
+export type { Schedule };
+
 const HH_MM = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 export interface Compartment {
@@ -27,10 +31,6 @@ export const FOUR_COMPARTMENTS: Compartment[] = [
   { label: "Eve", startTime: "12:00", endTime: "17:59" },
   { label: "Bed", startTime: "18:00", endTime: "23:59" },
 ];
-
-export interface Schedule {
-  days: Partial<Record<string, { time: string; quantity: number }[]>>;
-}
 
 export function pillsNeeded(schedule: Schedule, spanDays: number): number {
   const weeks = spanDays / 7;
