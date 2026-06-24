@@ -3,15 +3,10 @@ import { getRouteApi, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import "./PrescriptionDetail.css";
 import { formatTimeOfDay, formatNumericDate } from "../../utils/dates";
-import type { DayOfWeek } from "../../utils/constants";
+import type { DayOfWeek, PerSlotDose } from "../../../shared/schedule";
 import { WEEKDAYS } from "../../utils/constants";
 import { Button } from "../Button/Button";
 import { DeleteDialog } from "./DeleteDialog";
-
-export interface PerSlotDose {
-  time: string;
-  quantity: number;
-}
 
 interface Schedule {
   days: Partial<Record<DayOfWeek, (PerSlotDose | string)[]>>;
