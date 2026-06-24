@@ -2,7 +2,7 @@ import { useState } from "react";
 import { getRouteApi, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import "./PrescriptionDetail.css";
-import { formatTimeOfDay } from "../../utils/dates";
+import { formatTimeOfDay, formatShortDate } from "../../utils/dates";
 import type { DayOfWeek } from "../../utils/constants";
 import { WEEKDAYS } from "../../utils/constants";
 import { Button } from "../Button/Button";
@@ -57,11 +57,6 @@ function groupRoutines(
   }));
 }
 
-function formatDate(dateStr: string): string {
-  const [year, month, day] = dateStr.split("-");
-  return `${month}/${day}/${year}`;
-}
-
 const routeApi = getRouteApi("/layout/prescriptions/$id");
 
 function PrescriptionDetail() {
@@ -98,14 +93,14 @@ function PrescriptionDetail() {
           <dt>{t("prescriptionDetail.startDate")}</dt>
           <dd>
             <time dateTime={prescription.startDate}>
-              {formatDate(prescription.startDate)}
+              {formatShortDate(prescription.startDate, i18n.language)}
             </time>
           </dd>
           <dt>{t("prescriptionDetail.endDate")}</dt>
           <dd>
             {prescription.endDate ? (
               <time dateTime={prescription.endDate}>
-                {formatDate(prescription.endDate)}
+                {formatShortDate(prescription.endDate, i18n.language)}
               </time>
             ) : (
               t("prescriptionDetail.endDateNa")

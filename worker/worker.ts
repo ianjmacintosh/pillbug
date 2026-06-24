@@ -5,6 +5,7 @@ import {
   createSession,
   getSession,
   deleteSession,
+  type AuthRepository,
 } from "./auth";
 import { hashPin as hashPinFn } from "./email-crypto";
 import { deleteStaleUnverifiedPatients, deleteExpiredTokens } from "./cron";
@@ -82,6 +83,23 @@ function clearSessionCookie(secure: boolean): string {
   return `${SESSION_COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${secureFlag}`;
 }
 
+function json(data: unknown, status = 200): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+async function requireSession(
+  request: Request,
+  repo: AuthRepository,
+): Promise<{ patientId: string } | Response> {
+  const sessionId = getSessionId(request);
+  const session = sessionId ? await getSession(sessionId, repo) : null;
+  if (!session) return json({ error: "not_authenticated" }, 401);
+  return session;
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     try {
@@ -150,10 +168,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       env.TURNSTILE_SECRET_KEY,
     );
     if (!tokenValid) {
-      return new Response(
-        JSON.stringify({ error: "invalid_turnstile_token" }),
-        { status: 403, headers: { "Content-Type": "application/json" } },
-      );
+      return json({ error: "invalid_turnstile_token" }, 403);
     }
     const language = resolveLanguage(rawLanguage);
     const emailSender = makeEmailSender(
@@ -168,9 +183,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       hashPin,
       language,
     );
-    return new Response(JSON.stringify({ ok: true, token }), {
-      headers: { "Content-Type": "application/json" },
-    });
+    return json({ ok: true, token });
   }
 
   if (url.pathname === "/api/v1/login" && request.method === "POST") {
@@ -183,10 +196,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       env.TURNSTILE_SECRET_KEY,
     );
     if (!tokenValid) {
-      return new Response(
-        JSON.stringify({ error: "invalid_turnstile_token" }),
-        { status: 403, headers: { "Content-Type": "application/json" } },
-      );
+      return json({ error: "invalid_turnstile_token" }, 403);
     }
     const emailSender = makeEmailSender(
       env.EMAIL_MOCK,
@@ -199,19 +209,14 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       emailSender,
       hashPin,
     );
-    return new Response(JSON.stringify({ ok: true, token }), {
-      headers: { "Content-Type": "application/json" },
-    });
+    return json({ ok: true, token });
   }
 
   if (url.pathname === "/api/v1/auth/verify-pin" && request.method === "POST") {
     const { token, pin } = await request.json<{ token: string; pin: string }>();
     const result = await verifyPin(token, pin, repo, hashPin);
     if ("error" in result) {
-      return new Response(JSON.stringify({ error: result.error }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return json({ error: result.error }, 400);
     }
     const sessionId = await createSession(result.patientId, repo);
     return new Response(JSON.stringify({ ok: true }), {
@@ -224,57 +229,32 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   }
 
   if (url.pathname === "/api/v1/session" && request.method === "GET") {
-    const sessionId = getSessionId(request);
-    const session = sessionId ? await getSession(sessionId, repo) : null;
-    if (!session) {
-      return new Response(JSON.stringify({ error: "not_authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    return new Response(
-      JSON.stringify({ ok: true, patientId: session.patientId }),
-      { headers: { "Content-Type": "application/json" } },
-    );
+    const session = await requireSession(request, repo);
+    if (session instanceof Response) return session;
+    return json({ ok: true, patientId: session.patientId });
   }
 
   if (url.pathname === "/api/v1/account" && request.method === "GET") {
-    const sessionId = getSessionId(request);
-    const session = sessionId ? await getSession(sessionId, repo) : null;
-    if (!session) {
-      return new Response(JSON.stringify({ error: "not_authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    const createdAt = await repo.findPatientCreatedAt(session.patientId);
-    const timezone = await repo.findPatientTimezone(session.patientId);
-    const language = await repo.findPatientLanguage(session.patientId);
+    const session = await requireSession(request, repo);
+    if (session instanceof Response) return session;
+    const [createdAt, timezone, language] = await Promise.all([
+      repo.findPatientCreatedAt(session.patientId),
+      repo.findPatientTimezone(session.patientId),
+      repo.findPatientLanguage(session.patientId),
+    ]);
     const registrationDate = createdAt ? createdAt.slice(0, 10) : null;
-    return new Response(
-      JSON.stringify({ timezone, registrationDate, language }),
-      { headers: { "Content-Type": "application/json" } },
-    );
+    return json({ timezone, registrationDate, language });
   }
 
   if (url.pathname === "/api/v1/account" && request.method === "PATCH") {
-    const sessionId = getSessionId(request);
-    const session = sessionId ? await getSession(sessionId, repo) : null;
-    if (!session) {
-      return new Response(JSON.stringify({ error: "not_authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const session = await requireSession(request, repo);
+    if (session instanceof Response) return session;
     const body = await request.json<Record<string, unknown>>();
     const { timezone, language } = body;
     if (typeof timezone === "string") {
       const validZones = new Set(Intl.supportedValuesOf("timeZone"));
       if (!validZones.has(timezone)) {
-        return new Response(JSON.stringify({ error: "invalid_timezone" }), {
-          status: 422,
-          headers: { "Content-Type": "application/json" },
-        });
+        return json({ error: "invalid_timezone" }, 422);
       }
       await repo.updatePatientTimezone(session.patientId, timezone);
     }
@@ -284,9 +264,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
         resolveLanguage(language),
       );
     }
-    return new Response(JSON.stringify({ ok: true }), {
-      headers: { "Content-Type": "application/json" },
-    });
+    return json({ ok: true });
   }
 
   if (url.pathname === "/api/v1/logout" && request.method === "POST") {
@@ -302,14 +280,8 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   }
 
   if (url.pathname === "/api/v1/fill-session/pdf" && request.method === "GET") {
-    const sessionId = getSessionId(request);
-    const session = sessionId ? await getSession(sessionId, repo) : null;
-    if (!session) {
-      return new Response(JSON.stringify({ error: "not_authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const session = await requireSession(request, repo);
+    if (session instanceof Response) return session;
     const [patientTimezone, patientLanguage] = await Promise.all([
       repo.findPatientTimezone(session.patientId),
       repo.findPatientLanguage(session.patientId),
@@ -329,30 +301,18 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   }
 
   if (url.pathname === "/api/v1/prescriptions" && request.method === "POST") {
-    const sessionId = getSessionId(request);
-    const session = sessionId ? await getSession(sessionId, repo) : null;
-    if (!session) {
-      return new Response(JSON.stringify({ error: "not_authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const session = await requireSession(request, repo);
+    if (session instanceof Response) return session;
     const body = await request.json<Record<string, unknown>>();
     const required = ["drugName", "dosage", "schedule", "startDate"];
     for (const field of required) {
       if (!body[field]) {
-        return new Response(
-          JSON.stringify({ error: "missing_required_field" }),
-          { status: 400, headers: { "Content-Type": "application/json" } },
-        );
+        return json({ error: "missing_required_field" }, 400);
       }
     }
     const scheduleError = validateSchedule(body.schedule);
     if (scheduleError) {
-      return new Response(JSON.stringify(scheduleError), {
-        status: 422,
-        headers: { "Content-Type": "application/json" },
-      });
+      return json(scheduleError, 422);
     }
     const result = await createPrescription(
       {
@@ -373,26 +333,14 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       prescriptionRepo,
     );
     if ("error" in result) {
-      return new Response(JSON.stringify(result), {
-        status: 422,
-        headers: { "Content-Type": "application/json" },
-      });
+      return json(result, 422);
     }
-    return new Response(JSON.stringify(toPrescriptionResponse(result)), {
-      status: 201,
-      headers: { "Content-Type": "application/json" },
-    });
+    return json(toPrescriptionResponse(result), 201);
   }
 
   if (url.pathname === "/api/v1/prescriptions" && request.method === "GET") {
-    const sessionId = getSessionId(request);
-    const session = sessionId ? await getSession(sessionId, repo) : null;
-    if (!session) {
-      return new Response(JSON.stringify({ error: "not_authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const session = await requireSession(request, repo);
+    if (session instanceof Response) return session;
     const statusParam = url.searchParams.get("status") ?? "active";
     const statusFilter = statusParam.split(",").map((s) => s.trim());
     const prescriptions = await listPrescriptions(
@@ -400,11 +348,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       statusFilter,
       prescriptionRepo,
     );
-    const body = prescriptions.map(toPrescriptionResponse);
-    return new Response(JSON.stringify(body), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return json(prescriptions.map(toPrescriptionResponse));
   }
 
   const prescriptionMatch = url.pathname.match(
@@ -412,40 +356,22 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   );
 
   if (prescriptionMatch && request.method === "GET") {
-    const sessionId = getSessionId(request);
-    const session = sessionId ? await getSession(sessionId, repo) : null;
-    if (!session) {
-      return new Response(JSON.stringify({ error: "not_authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const session = await requireSession(request, repo);
+    if (session instanceof Response) return session;
     const prescriptionId = prescriptionMatch[1];
     const prescription = await prescriptionRepo.getPrescription(
       prescriptionId,
       session.patientId,
     );
     if (!prescription) {
-      return new Response(JSON.stringify({ error: "not_found" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
+      return json({ error: "not_found" }, 404);
     }
-    return new Response(JSON.stringify(toPrescriptionResponse(prescription)), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return json(toPrescriptionResponse(prescription));
   }
 
   if (prescriptionMatch && request.method === "PATCH") {
-    const sessionId = getSessionId(request);
-    const session = sessionId ? await getSession(sessionId, repo) : null;
-    if (!session) {
-      return new Response(JSON.stringify({ error: "not_authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const session = await requireSession(request, repo);
+    if (session instanceof Response) return session;
     const prescriptionId = prescriptionMatch[1];
     const body = await request.json<Record<string, unknown>>();
     const fields: Record<string, unknown> = {};
@@ -466,10 +392,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     if (fields.schedule) {
       const scheduleError = validateSchedule(fields.schedule);
       if (scheduleError) {
-        return new Response(JSON.stringify(scheduleError), {
-          status: 422,
-          headers: { "Content-Type": "application/json" },
-        });
+        return json(scheduleError, 422);
       }
     }
     const result = await updatePrescription(
@@ -479,27 +402,14 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       prescriptionRepo,
     );
     if ("error" in result) {
-      const status = result.error === "not_found" ? 404 : 422;
-      return new Response(JSON.stringify(result), {
-        status,
-        headers: { "Content-Type": "application/json" },
-      });
+      return json(result, result.error === "not_found" ? 404 : 422);
     }
-    return new Response(JSON.stringify(toPrescriptionResponse(result)), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return json(toPrescriptionResponse(result));
   }
 
   if (prescriptionMatch && request.method === "DELETE") {
-    const sessionId = getSessionId(request);
-    const session = sessionId ? await getSession(sessionId, repo) : null;
-    if (!session) {
-      return new Response(JSON.stringify({ error: "not_authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const session = await requireSession(request, repo);
+    if (session instanceof Response) return session;
     const prescriptionId = prescriptionMatch[1];
     const result = await deletePrescription(
       prescriptionId,
@@ -507,58 +417,31 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       prescriptionRepo,
     );
     if ("error" in result) {
-      return new Response(JSON.stringify(result), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
+      return json(result, 404);
     }
-    return new Response(JSON.stringify({ ok: true }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return json({ ok: true });
   }
 
   const doseMatch = url.pathname.match(/^\/api\/v1\/doses\/([^/]+)$/);
 
   if (doseMatch && request.method === "DELETE") {
-    const sessionId = getSessionId(request);
-    const session = sessionId ? await getSession(sessionId, repo) : null;
-    if (!session) {
-      return new Response(JSON.stringify({ error: "not_authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const session = await requireSession(request, repo);
+    if (session instanceof Response) return session;
     const doseId = doseMatch[1];
     const deleted = await doseRepo.deleteDose(doseId, session.patientId);
     if (!deleted) {
-      return new Response(JSON.stringify({ error: "not_found" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
+      return json({ error: "not_found" }, 404);
     }
-    return new Response(JSON.stringify({ ok: true }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return json({ ok: true });
   }
 
   if (doseMatch && request.method === "PATCH") {
-    const sessionId = getSessionId(request);
-    const session = sessionId ? await getSession(sessionId, repo) : null;
-    if (!session) {
-      return new Response(JSON.stringify({ error: "not_authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const session = await requireSession(request, repo);
+    if (session instanceof Response) return session;
     const body = await request.json<Record<string, unknown>>();
     const patchStatus = body.status;
     if (!isDoseStatus(patchStatus)) {
-      return new Response(JSON.stringify({ error: "missing_required_field" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return json({ error: "missing_required_field" }, 400);
     }
     const doseId = doseMatch[1];
     const updated = await doseRepo.updateDoseStatus(
@@ -567,36 +450,21 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       patchStatus,
     );
     if (!updated) {
-      return new Response(JSON.stringify({ error: "not_found" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
+      return json({ error: "not_found" }, 404);
     }
-    return new Response(JSON.stringify(updated), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return json(updated);
   }
 
   if (url.pathname === "/api/v1/doses" && request.method === "POST") {
-    const sessionId = getSessionId(request);
-    const session = sessionId ? await getSession(sessionId, repo) : null;
-    if (!session) {
-      return new Response(JSON.stringify({ error: "not_authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const session = await requireSession(request, repo);
+    if (session instanceof Response) return session;
     const body = await request.json<Record<string, unknown>>();
     if (
       !body.prescriptionId ||
       !body.scheduledAt ||
       !isDoseStatus(body.status)
     ) {
-      return new Response(JSON.stringify({ error: "missing_required_field" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return json({ error: "missing_required_field" }, 400);
     }
     const now = new Date().toISOString();
     const dose = {
@@ -609,52 +477,28 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       createdAt: now,
     };
     await doseRepo.createDose(dose);
-    return new Response(JSON.stringify(dose), {
-      status: 201,
-      headers: { "Content-Type": "application/json" },
-    });
+    return json(dose, 201);
   }
 
   if (url.pathname === "/api/v1/doses" && request.method === "GET") {
-    const sessionId = getSessionId(request);
-    const session = sessionId ? await getSession(sessionId, repo) : null;
-    if (!session) {
-      return new Response(JSON.stringify({ error: "not_authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const session = await requireSession(request, repo);
+    if (session instanceof Response) return session;
     const start = url.searchParams.get("start");
     const end = url.searchParams.get("end");
     if (!start || !end) {
-      return new Response(JSON.stringify({ error: "missing_required_param" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return json({ error: "missing_required_param" }, 400);
     }
     const doses = await doseRepo.listDoses(session.patientId, start, end);
-    return new Response(JSON.stringify(doses), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return json(doses);
   }
 
   if (url.pathname === "/api/v1/scheduled-doses" && request.method === "GET") {
-    const sessionId = getSessionId(request);
-    const session = sessionId ? await getSession(sessionId, repo) : null;
-    if (!session) {
-      return new Response(JSON.stringify({ error: "not_authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const session = await requireSession(request, repo);
+    if (session instanceof Response) return session;
     const start = url.searchParams.get("start");
     const end = url.searchParams.get("end");
     if (!start || !end) {
-      return new Response(JSON.stringify({ error: "missing_required_param" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return json({ error: "missing_required_param" }, 400);
     }
     const patientTimezone = await repo.findPatientTimezone(session.patientId);
     const today = new Intl.DateTimeFormat("en-CA", {
@@ -674,10 +518,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       doses,
       patientTimezone ?? "UTC",
     );
-    return new Response(JSON.stringify(result), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return json(result);
   }
 
   if (url.pathname === "/admin" && request.method === "GET") {

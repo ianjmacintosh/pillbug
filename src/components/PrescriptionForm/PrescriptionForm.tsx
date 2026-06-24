@@ -50,7 +50,7 @@ export function NewPrescriptionForm() {
       <h2>{t("prescriptionForm.addHeading")}</h2>
       <form onSubmit={handleCreate}>
         {form.error && <p role="alert">{form.error}</p>}
-        <PrescriptionFields t={t} idPrefix="create" {...form} />
+        <PrescriptionFields idPrefix="create" {...form} />
         <div className="form-actions">
           <Button
             type="submit"
@@ -110,7 +110,7 @@ export function EditPrescriptionForm() {
       <h2>{t("prescriptionForm.editHeading")}</h2>
       <form onSubmit={handleSaveEdit}>
         {form.error && <p role="alert">{form.error}</p>}
-        <PrescriptionFields t={t} idPrefix="edit" {...form} />
+        <PrescriptionFields idPrefix="edit" {...form} />
         <div className="form-actions">
           <Button
             type="submit"

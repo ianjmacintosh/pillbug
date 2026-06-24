@@ -34,6 +34,18 @@ const layoutRoute = createRoute({
   component: Layout,
 });
 
+type AccountData = {
+  timezone: string | null;
+  language: string | null;
+  registrationDate: string | null;
+};
+
+async function fetchAccount(): Promise<AccountData | null> {
+  const res = await fetch("/api/v1/account");
+  if (!res.ok) return null;
+  return res.json();
+}
+
 async function requireAuth() {
   let res: Response;
   try {
@@ -47,23 +59,15 @@ async function requireAuth() {
 }
 
 async function requireTimezone() {
-  let res: Response;
+  let data: AccountData | null;
   try {
-    res = await fetch("/api/v1/account");
+    data = await fetchAccount();
   } catch {
     return; // offline — let the app load
   }
-  if (!res.ok) {
-    throw redirect({ to: "/login" });
-  }
-  const data = (await res.json()) as {
-    timezone: string | null;
-    language: string | null;
-  };
+  if (!data) throw redirect({ to: "/login" });
   await applyStoredLanguage(data.language ?? null);
-  if (!data.timezone) {
-    throw redirect({ to: "/finish-setup" });
-  }
+  if (!data.timezone) throw redirect({ to: "/finish-setup" });
 }
 
 async function redirectIfAuthenticated() {
@@ -82,13 +86,13 @@ const indexRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/",
   loader: async () => {
-    let res: Response;
+    let data: AccountData | null;
     try {
-      res = await fetch("/api/v1/account");
+      data = await fetchAccount();
     } catch {
       throw redirect({ to: "/prescriptions" }); // offline — best effort
     }
-    if (!res.ok) throw redirect({ to: "/register" });
+    if (!data) throw redirect({ to: "/register" });
     throw redirect({ to: "/prescriptions" });
   },
   component: () => null,
@@ -98,24 +102,15 @@ const weeklyDosesRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/weekly-doses",
   loader: async () => {
-    let res: Response;
+    let data: AccountData | null;
     try {
-      res = await fetch("/api/v1/account");
+      data = await fetchAccount();
     } catch {
-      return { registrationDate: null };
+      return { registrationDate: null, timezone: null };
     }
-    if (!res.ok) {
-      throw redirect({ to: "/register" });
-    }
-    const data = (await res.json()) as {
-      registrationDate: string | null;
-      timezone: string | null;
-      language: string | null;
-    };
+    if (!data) throw redirect({ to: "/register" });
     await applyStoredLanguage(data.language ?? null);
-    if (!data.timezone) {
-      throw redirect({ to: "/finish-setup" });
-    }
+    if (!data.timezone) throw redirect({ to: "/finish-setup" });
     return { registrationDate: data.registrationDate, timezone: data.timezone };
   },
   component: App,
@@ -159,12 +154,8 @@ const settingsRoute = createRoute({
   path: "/settings",
   beforeLoad: requireAuth,
   loader: async () => {
-    const res = await fetch("/api/v1/account");
-    if (!res.ok) throw redirect({ to: "/login" });
-    const data = (await res.json()) as {
-      timezone: string | null;
-      language: string | null;
-    };
+    const data = await fetchAccount();
+    if (!data) throw redirect({ to: "/login" });
     return { timezone: data.timezone, language: data.language };
   },
   component: Settings,

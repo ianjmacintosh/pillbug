@@ -1,5 +1,5 @@
-import type { TFunction } from "i18next";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { DayOfWeek } from "../../utils/constants";
 import { Button } from "../Button/Button";
 import type { DosageUnit } from "./PrescriptionForm.helpers";
@@ -8,7 +8,6 @@ import { RoutineBlock } from "./RoutineBlock";
 import type { DosingSchedule } from "./usePrescriptionForm";
 
 interface PrescriptionFieldsProps {
-  t: TFunction;
   idPrefix: string;
   doseForm: string;
   setDoseForm: (v: string) => void;
@@ -49,7 +48,6 @@ interface PrescriptionFieldsProps {
 }
 
 export function PrescriptionFields({
-  t,
   idPrefix,
   doseForm,
   setDoseForm,
@@ -80,6 +78,7 @@ export function PrescriptionFields({
   updateSlotQuantity,
   removeDoseTime,
 }: PrescriptionFieldsProps) {
+  const { t } = useTranslation();
   const [isAdvanced, setIsAdvanced] = useState(() => schedules.length > 1);
 
   return (
