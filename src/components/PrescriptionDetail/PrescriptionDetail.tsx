@@ -2,7 +2,7 @@ import { useState } from "react";
 import { getRouteApi, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import "./PrescriptionDetail.css";
-import { formatTimeOfDay, formatShortDate } from "../../utils/dates";
+import { formatTimeOfDay, formatNumericDate } from "../../utils/dates";
 import type { DayOfWeek } from "../../utils/constants";
 import { WEEKDAYS } from "../../utils/constants";
 import { Button } from "../Button/Button";
@@ -93,14 +93,14 @@ function PrescriptionDetail() {
           <dt>{t("prescriptionDetail.startDate")}</dt>
           <dd>
             <time dateTime={prescription.startDate}>
-              {formatShortDate(prescription.startDate, i18n.language)}
+              {formatNumericDate(prescription.startDate)}
             </time>
           </dd>
           <dt>{t("prescriptionDetail.endDate")}</dt>
           <dd>
             {prescription.endDate ? (
               <time dateTime={prescription.endDate}>
-                {formatShortDate(prescription.endDate, i18n.language)}
+                {formatNumericDate(prescription.endDate)}
               </time>
             ) : (
               t("prescriptionDetail.endDateNa")

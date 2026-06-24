@@ -450,7 +450,7 @@ test.describe("Prescription detail", () => {
       "Metformin",
     );
     await expect(page.getByText("500 mg")).toBeVisible();
-    await expect(page.getByText("1/1/2024")).toBeVisible();
+    await expect(page.getByText("01/01/2024")).toBeVisible();
     await expect(page.getByText("8:00 AM")).toBeVisible();
 
     await page.getByRole("link", { name: /edit/i }).click();

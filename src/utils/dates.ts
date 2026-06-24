@@ -12,6 +12,11 @@ export function formatMonthDay(dateStr: string, locale: string): string {
   });
 }
 
+export function formatNumericDate(dateStr: string): string {
+  const [year, month, day] = dateStr.split("-");
+  return `${month}/${day}/${year}`;
+}
+
 export function formatShortDate(dateStr: string, locale: string): string {
   return new Date(dateStr + "T00:00:00Z").toLocaleDateString(locale, {
     month: "numeric",

@@ -65,13 +65,9 @@ async function renderDetail(prescription: Prescription = SAMPLE_PRESCRIPTION) {
 
 describe("PrescriptionDetail", () => {
   describe("dates", () => {
-    test("shows start date in locale-aware short format", async () => {
+    test("shows start date formatted as MM/DD/YYYY", async () => {
       await renderDetail();
-      const expected = new Date("2024-01-15T00:00:00Z").toLocaleDateString(
-        "en-US",
-        { month: "numeric", day: "numeric", year: "numeric", timeZone: "UTC" },
-      );
-      expect(screen.getByText(expected)).toBeTruthy();
+      expect(screen.getByText("01/15/2024")).toBeTruthy();
     });
 
     test("shows 'N/A (On-going)' when end date is null", async () => {
@@ -79,13 +75,9 @@ describe("PrescriptionDetail", () => {
       expect(screen.getByText("N/A (On-going)")).toBeTruthy();
     });
 
-    test("shows end date in locale-aware short format when present", async () => {
+    test("shows end date formatted as MM/DD/YYYY when present", async () => {
       await renderDetail({ ...SAMPLE_PRESCRIPTION, endDate: "2026-12-31" });
-      const expected = new Date("2026-12-31T00:00:00Z").toLocaleDateString(
-        "en-US",
-        { month: "numeric", day: "numeric", year: "numeric", timeZone: "UTC" },
-      );
-      expect(screen.getByText(expected)).toBeTruthy();
+      expect(screen.getByText("12/31/2026")).toBeTruthy();
     });
   });
 
