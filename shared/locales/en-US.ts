@@ -162,6 +162,8 @@ const enUS = {
   "register.serverError": "Something went wrong. Please try again.",
   "register.submitting": "Sending…",
   "register.submit": "Email me a login link",
+  "register.heroLine1": "More health,",
+  "register.heroLine2": "less hassle",
   "register.alreadyHaveAccount": "Already have an account?",
   "register.logIn": "Log in",
   "email.verificationSubject": "Verify your Pillbug account",

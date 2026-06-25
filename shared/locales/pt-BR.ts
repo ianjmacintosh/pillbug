@@ -169,6 +169,8 @@ const ptBR = {
   "register.serverError": "Algo deu errado. Por favor, tente novamente.",
   "register.submitting": "Enviando…",
   "register.submit": "Enviar link de acesso por e-mail",
+  "register.heroLine1": "Mais saúde,",
+  "register.heroLine2": "menos complicação",
   "register.alreadyHaveAccount": "Já tem uma conta?",
   "register.logIn": "Entrar",
   "email.verificationSubject": "Verifique sua conta Pillbug",
