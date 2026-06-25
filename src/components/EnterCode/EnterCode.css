@@ -11,7 +11,7 @@
 .enter-code-intro {
   margin-top: 0.5rem;
   margin-bottom: 0;
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 1rem;
   color: var(--gray-30);
 }
@@ -33,7 +33,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -50,12 +50,17 @@
   text-align: center;
 }
 
+.enter-code input[type="text"]:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
 .enter-code form button[type="submit"] {
   align-self: flex-start;
 }
 
 .enter-code [role="alert"] {
-  color: oklch(0.4 0.15 25);
-  font-family: system-ui, sans-serif;
+  color: var(--color-error);
+  font-family: var(--font-sans);
   font-size: 0.875rem;
 }

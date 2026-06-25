@@ -147,10 +147,15 @@ const ptBR = {
   "fillSession.wrapColumnTooltip": "Data da semana seguinte",
   "register.heading": "Todos os seus medicamentos em ordem",
   "register.intro":
-    "Uma ferramenta simples para gerenciar suas prescrições e cronograma de medicamentos.",
-  "register.feature1": "Seus dados permanecem privados.",
-  "register.feature2":
-    "Separação guiada de medicamentos no organizador, passo a passo.",
+    "Gerencie suas prescrições e receba orientação passo a passo para separar seu organizador de remédios.",
+  "register.feature1Title": "Privado por padrão",
+  "register.feature1Desc":
+    "Seus dados nunca são compartilhados sem sua escolha explícita.",
+  "register.feature2Title": "Separação guiada do organizador",
+  "register.feature2Desc":
+    "Preparação semanal passo a passo para você nunca perder uma dose.",
+  "register.feature3Title": "Todas as prescrições organizadas",
+  "register.feature3Desc": "Dosagem, horário, médico — tudo em um só lugar.",
   "register.emailLabel": "E-mail",
   "register.turnstileError":
     "Verificação de segurança falhou. Por favor, recarregue a página e tente novamente.",
@@ -163,6 +168,8 @@ const ptBR = {
   "register.serverError": "Algo deu errado. Por favor, tente novamente.",
   "register.submitting": "Enviando…",
   "register.submit": "Enviar link de acesso por e-mail",
+  "register.heroLine1": "Mais saúde,",
+  "register.heroLine2": "menos complicação",
   "register.alreadyHaveAccount": "Já tem uma conta?",
   "register.logIn": "Entrar",
   "email.verificationSubject": "Verifique sua conta Pillbug",

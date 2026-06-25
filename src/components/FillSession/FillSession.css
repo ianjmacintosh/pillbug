@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.875rem;
   color: var(--yellow-20, #92400e);
   background: var(--yellow-95, #fefce8);
@@ -23,7 +23,7 @@
 }
 
 .fill-session-date-picker-label {
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--gray-30);
@@ -67,7 +67,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--gray-30);
@@ -130,20 +130,20 @@
 }
 
 .fill-session-card-drug-name {
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 1rem;
   font-weight: 700;
   color: var(--gray-10);
 }
 
 .fill-session-card-drug-dosage {
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.875rem;
   color: var(--gray-50);
 }
 
 .fill-session-card-drug-total {
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 1rem;
   font-weight: 700;
   color: var(--gray-10);
@@ -181,7 +181,7 @@
   display: grid;
   align-content: center;
   text-align: center;
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -223,7 +223,7 @@
 }
 
 .fill-session-card-slot-name {
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--gray-30);
@@ -232,7 +232,7 @@
 }
 
 .fill-session-card-slot-time {
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.625rem;
   color: var(--gray-70);
   margin-block-start: 0.125rem;
@@ -258,7 +258,7 @@
 }
 
 .fill-session-card-cell-count {
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 1rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;

@@ -142,9 +142,14 @@ const enUS = {
   "fillSession.wrapColumnTooltip": "Date from the following week",
   "register.heading": "All your medicine in order",
   "register.intro":
-    "A simple tool for managing your prescriptions and medication schedule.",
-  "register.feature1": "Your data stays private.",
-  "register.feature2": "Guided pill organizer filling, step by step.",
+    "Manage your prescriptions and get step-by-step guidance filling your pill organizer.",
+  "register.feature1Title": "Private by default",
+  "register.feature1Desc":
+    "Your data is never shared without your explicit choice.",
+  "register.feature2Title": "Guided pill organizer filling",
+  "register.feature2Desc": "Step-by-step weekly prep so you never miss a dose.",
+  "register.feature3Title": "All prescriptions in one place",
+  "register.feature3Desc": "Dosage, schedule, doctor — everything organized.",
   "register.emailLabel": "Email",
   "register.turnstileError":
     "Security check failed. Please reload the page and try again.",
@@ -156,6 +161,8 @@ const enUS = {
   "register.serverError": "Something went wrong. Please try again.",
   "register.submitting": "Sending…",
   "register.submit": "Email me a login link",
+  "register.heroLine1": "More health,",
+  "register.heroLine2": "less hassle",
   "register.alreadyHaveAccount": "Already have an account?",
   "register.logIn": "Log in",
   "email.verificationSubject": "Verify your Pillbug account",

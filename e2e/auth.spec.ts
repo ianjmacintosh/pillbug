@@ -175,7 +175,7 @@ test("/register renders the page, shows language selector, and links to /login",
   page,
 }) => {
   await page.goto("/register");
-  await expect(page.getByRole("heading")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByRole("textbox", { name: /email/i })).toBeVisible();
   await expect(page.getByRole("checkbox", { name: /terms/i })).toBeVisible();
   await expect(
@@ -184,7 +184,12 @@ test("/register renders the page, shows language selector, and links to /login",
   await expect(
     page.locator("header").getByRole("combobox", { name: /language/i }),
   ).toBeVisible();
-  await page.getByRole("link", { name: /log in/i }).click();
+  await expect(page.locator('input[name="cf-turnstile-response"]')).toHaveValue(
+    TURNSTILE_DUMMY_TOKEN,
+  );
+  const loginLink = page.getByRole("link", { name: /log in/i });
+  await loginLink.scrollIntoViewIfNeeded();
+  await loginLink.click();
   await expect(page).toHaveURL("/login");
 });
 
@@ -192,7 +197,7 @@ test("/register?challenge loads the registration form with the Turnstile interac
   page,
 }) => {
   await page.goto("/register?challenge");
-  await expect(page.getByRole("heading")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByRole("textbox", { name: /email/i })).toBeVisible();
   await expect(page.getByRole("checkbox", { name: /terms/i })).toBeVisible();
   await expect(

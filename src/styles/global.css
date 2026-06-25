@@ -1,24 +1,77 @@
 @import "./reset.css";
 @import "./tokens.css";
 
+/* ── Self-hosted fonts ────────────────────────────────────── */
+
+@font-face {
+  font-family: "Lora";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/lora-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Lora";
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/lora-latin-italic.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/inter-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+/* ── Base ─────────────────────────────────────────────────── */
+
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 }
 
 body {
-  font-family: Georgia, "Times New Roman", serif;
-  color: var(--gray-10);
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
   background-color: oklch(0.98 0 0);
 }
 
 h1,
-h2,
+h2 {
+  font-family: var(--font-serif);
+  line-height: 1.2;
+  color: var(--color-contrast);
+}
+
 h3,
 h4,
 h5,
 h6 {
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   line-height: 1.2;
+}
+
+a {
+  color: var(--color-link);
+}
+
+a:hover {
+  color: var(--color-link-hover);
 }
 
 main {
@@ -27,13 +80,15 @@ main {
   padding: 2rem 1.5rem;
 }
 
+/* ── Buttons ──────────────────────────────────────────────── */
+
 .button-primary {
-  background-color: var(--gray-90);
-  color: var(--gray-10);
+  background-color: var(--color-action);
+  color: var(--color-action-text);
   border: none;
   padding: 0.625rem 1.5rem;
   border-radius: 4px;
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -41,8 +96,13 @@ main {
 }
 
 .button-primary:hover {
-  background-color: var(--gray-70);
-  color: var(--gray-10);
+  background-color: var(--color-action-hover);
+  color: var(--color-action-text);
+}
+
+.button-primary:focus-visible {
+  outline: 2px solid var(--color-contrast);
+  outline-offset: 2px;
 }
 
 .button-primary:disabled {
@@ -56,7 +116,7 @@ main {
   border: 1px solid var(--gray-70);
   padding: 0.625rem 1.5rem;
   border-radius: 4px;
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -66,6 +126,11 @@ main {
 .button-secondary:hover {
   background-color: var(--gray-90);
   color: var(--gray-10);
+}
+
+.button-secondary:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
 }
 
 .button-secondary:disabled {
@@ -79,7 +144,7 @@ main {
   border: none;
   padding: 0.625rem 1.5rem;
   border-radius: 4px;
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -88,6 +153,11 @@ main {
 
 .button-danger:hover {
   background-color: oklch(0.45 0.22 25);
+}
+
+.button-danger:focus-visible {
+  outline: 2px solid var(--color-danger-focus-ring);
+  outline-offset: 2px;
 }
 
 .button-danger:disabled {
@@ -100,6 +170,8 @@ main {
   font-size: 0.75rem;
   border-radius: 3px;
 }
+
+/* ── Utilities ────────────────────────────────────────────── */
 
 .print-only {
   display: none;

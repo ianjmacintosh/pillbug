@@ -52,7 +52,7 @@
 }
 
 .prescription-item--selected {
-  background-color: oklch(0.93 0.04 250);
+  background-color: var(--color-surface-tinted);
 }
 
 .prescription-item__name {
@@ -198,17 +198,17 @@
   border: none;
   padding: 0;
   font: inherit;
-  color: oklch(0.45 0.15 250);
+  color: var(--color-link);
   text-decoration: underline;
   cursor: pointer;
 }
 
 .prescriptions .dosage-fix-link:hover {
-  color: oklch(0.35 0.15 250);
+  color: var(--color-link-hover);
 }
 
 .prescriptions .field-hint {
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.75rem;
   color: var(--gray-30, #555);
   margin: 0.125rem 0 0;
@@ -231,7 +231,7 @@
 }
 
 .prescriptions label {
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -246,13 +246,13 @@
 }
 
 .prescriptions input:focus-visible {
-  outline: 2px solid var(--gray-30);
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
 }
 
 .prescriptions form [role="alert"] {
-  color: oklch(0.4 0.15 25);
-  font-family: system-ui, sans-serif;
+  color: var(--color-error);
+  font-family: var(--font-sans);
   font-size: 0.875rem;
 }
 
@@ -265,7 +265,7 @@
 .prescriptions .prescription-list {
   width: 100%;
   border-collapse: collapse;
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.9375rem;
 }
 
@@ -319,16 +319,16 @@
   background: none;
   border: none;
   padding: 0;
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.875rem;
   font-weight: 400;
-  color: oklch(0.45 0.15 250);
+  color: var(--color-link);
   text-decoration: underline;
   cursor: pointer;
 }
 
 .prescriptions .toggle-all-link:hover {
-  color: oklch(0.35 0.15 250);
+  color: var(--color-link-hover);
 }
 
 .prescriptions .day-pills-row {
@@ -376,10 +376,10 @@
 }
 
 .prescriptions .day-pill:has(input:checked) span {
-  background-color: oklch(0.45 0.15 250);
-  border-color: oklch(0.45 0.15 250);
-  color: #fff;
-  box-shadow: inset 0 2px 3px oklch(0 0 0 / 0.25);
+  background-color: var(--color-action);
+  border-color: var(--color-action-hover);
+  color: var(--color-action-text);
+  box-shadow: inset 0 2px 3px oklch(0 0 0 / 0.15);
 }
 
 .prescriptions .day-pill:has(input:checked) span::before {
@@ -387,7 +387,7 @@
 }
 
 .prescriptions .day-pill:has(input:focus-visible) span {
-  outline: 2px solid oklch(0.45 0.15 250);
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
 }
 
@@ -398,8 +398,8 @@
 }
 
 .prescriptions .schedule-error-message {
-  color: oklch(0.4 0.15 25);
-  font-family: system-ui, sans-serif;
+  color: var(--color-error);
+  font-family: var(--font-sans);
   font-size: 0.875rem;
   margin-bottom: 0.75rem;
 }
@@ -455,7 +455,7 @@
   gap: 1rem;
   padding: 3rem 1rem;
   color: var(--gray-30, #555);
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 1.125rem;
   text-align: center;
 }
@@ -497,13 +497,13 @@
     border: none;
     padding: 0.5rem 0 0.75rem;
     font-size: 0.875rem;
-    color: oklch(0.45 0.15 250);
+    color: var(--color-link);
     text-decoration: underline;
     cursor: pointer;
   }
 
   .prescriptions-back-btn:hover {
-    color: oklch(0.35 0.15 250);
+    color: var(--color-link-hover);
   }
 }
 
@@ -539,7 +539,7 @@
   color: var(--gray-10);
   border: none;
   cursor: pointer;
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.8125rem;
 }
 
@@ -570,7 +570,7 @@
 }
 
 .date-range-row label {
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -596,7 +596,7 @@
 }
 
 .routine-block-label {
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--gray-30);
