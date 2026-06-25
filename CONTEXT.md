@@ -1,6 +1,6 @@
 # Pillbug
 
-A web app that helps patients track and follow their prescribed medication schedules, with a shareable view for healthcare providers.
+A web app that helps patients track and follow their prescribed medication schedules.
 
 ## Design Principles
 
