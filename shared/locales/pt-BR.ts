@@ -156,7 +156,6 @@ const ptBR = {
     "Preparação semanal passo a passo para você nunca perder uma dose.",
   "register.feature3Title": "Todas as prescrições organizadas",
   "register.feature3Desc": "Dosagem, horário, médico — tudo em um só lugar.",
-  "register.formEyebrow": "Comece de graça",
   "register.emailLabel": "E-mail",
   "register.turnstileError":
     "Verificação de segurança falhou. Por favor, recarregue a página e tente novamente.",

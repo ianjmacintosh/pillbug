@@ -150,7 +150,6 @@ const enUS = {
   "register.feature2Desc": "Step-by-step weekly prep so you never miss a dose.",
   "register.feature3Title": "All prescriptions in one place",
   "register.feature3Desc": "Dosage, schedule, doctor — everything organized.",
-  "register.formEyebrow": "Get started free",
   "register.emailLabel": "Email",
   "register.turnstileError":
     "Security check failed. Please reload the page and try again.",

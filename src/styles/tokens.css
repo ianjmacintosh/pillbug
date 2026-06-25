@@ -24,7 +24,7 @@
   --color-action-text: var(--color-contrast);
   --color-brand-bg: var(--yellow-90);
   --color-surface-tinted: oklch(0.97 0.04 95);
-  --color-surface-raised: #fff;
+  --color-surface-raised: oklch(1 0 0);
   --color-contrast: oklch(0.22 0.04 60);
   --color-text-primary: oklch(0.22 0.04 60);
   --color-text-muted: var(--gray-50);
@@ -32,6 +32,7 @@
   --color-link-hover: oklch(0.3 0.1 55);
   --color-error: oklch(0.4 0.15 25);
   --color-focus-ring: var(--yellow-87);
+  --color-danger-focus-ring: oklch(0.55 0.22 25);
 
   /* ── Typography ───────────────────────────────────────────── */
 

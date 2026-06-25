@@ -156,7 +156,7 @@ main {
 }
 
 .button-danger:focus-visible {
-  outline: 2px solid oklch(0.55 0.22 25);
+  outline: 2px solid var(--color-danger-focus-ring);
   outline-offset: 2px;
 }
 
