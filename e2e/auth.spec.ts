@@ -184,7 +184,12 @@ test("/register renders the page, shows language selector, and links to /login",
   await expect(
     page.locator("header").getByRole("combobox", { name: /language/i }),
   ).toBeVisible();
-  await page.getByRole("link", { name: /log in/i }).click();
+  await expect(page.locator('input[name="cf-turnstile-response"]')).toHaveValue(
+    TURNSTILE_DUMMY_TOKEN,
+  );
+  const loginLink = page.getByRole("link", { name: /log in/i });
+  await loginLink.scrollIntoViewIfNeeded();
+  await loginLink.click();
   await expect(page).toHaveURL("/login");
 });
 

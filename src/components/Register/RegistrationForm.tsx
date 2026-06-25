@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "../Button/Button";
 import { Checkbox } from "../Checkbox/Checkbox";
 import { Field } from "../Field/Field";
+import "./Register.css";
 
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string;
 const TURNSTILE_INTERACTIVE_SITE_KEY = "3x00000000000000000000FF";
@@ -66,15 +67,18 @@ export function RegistrationForm() {
         onChange={(e) => setEmail(e.target.value)}
         required
       />
-      <Turnstile
-        siteKey={siteKey}
-        onSuccess={(token) => {
-          setTurnstileToken(token);
-          setTurnstileError(false);
-        }}
-        onError={() => setTurnstileError(true)}
-        onExpire={() => setTurnstileToken(null)}
-      />
+      <div className="register-turnstile">
+        <Turnstile
+          siteKey={siteKey}
+          options={{ language: i18n.language }}
+          onSuccess={(token) => {
+            setTurnstileToken(token);
+            setTurnstileError(false);
+          }}
+          onError={() => setTurnstileError(true)}
+          onExpire={() => setTurnstileToken(null)}
+        />
+      </div>
       {turnstileError && <p role="alert">{t("register.turnstileError")}</p>}
       <Checkbox
         className="terms-field"

@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { RegistrationForm } from "./RegistrationForm";
 import "./Register.css";
@@ -120,7 +121,7 @@ function Register() {
         <RegistrationForm />
         <p className="register-login-link">
           {t("register.alreadyHaveAccount")}{" "}
-          <a href="/login">{t("register.logIn")}</a>
+          <Link to="/login">{t("register.logIn")}</Link>
         </p>
       </section>
     </main>
