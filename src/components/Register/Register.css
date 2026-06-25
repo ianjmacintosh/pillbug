@@ -104,7 +104,7 @@
   top: 0;
   left: 0;
   bottom: 0;
-  right: calc(-1 * max(4vw, (100vw - 80rem) / 2));
+  right: calc(-1 * max(4vw, (100vw - 56rem) / 2));
   background-color: var(--color-surface-tinted);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='26'%3E%3Crect x='10' y='6' width='32' height='14' rx='7' fill='none' stroke='rgba(160%2C120%2C0%2C0.12)' stroke-width='1.5'/%3E%3Cline x1='26' y1='6' x2='26' y2='20' stroke='rgba(160%2C120%2C0%2C0.12)' stroke-width='1.5'/%3E%3C%2Fsvg%3E");
   background-repeat: repeat;
@@ -212,8 +212,8 @@
 
   /* no bleed on mobile — fill to edge of screen */
   .register-form-panel::before {
-    right: calc(-1 * max(4vw, (100vw - 80rem) / 2));
-    left: calc(-1 * max(4vw, (100vw - 80rem) / 2));
+    right: calc(-1 * max(4vw, (100vw - 56rem) / 2));
+    left: calc(-1 * max(4vw, (100vw - 56rem) / 2));
     border-left: none;
     border-top: 1px solid var(--gray-90);
   }
