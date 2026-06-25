@@ -67,7 +67,7 @@ function Register() {
 
   return (
     <main className="register">
-      <section className="register-content">
+      <section className="register-card">
         <h1>{t("register.heading")}</h1>
         <div className="register-divider" aria-hidden="true" />
         <p className="register-intro">{t("register.intro")}</p>
@@ -112,9 +112,7 @@ function Register() {
             </div>
           </li>
         </ul>
-      </section>
-      <section className="register-form-panel">
-        <p className="register-form-eyebrow">{t("register.formEyebrow")}</p>
+        <div className="register-form-divider" aria-hidden="true" />
         <RegistrationForm />
         <p className="register-login-link">
           {t("register.alreadyHaveAccount")}{" "}
