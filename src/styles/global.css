@@ -173,25 +173,25 @@ main {
 
 /* ── Prose ────────────────────────────────────────────────── */
 
-.prose {
+.legal {
   max-width: 65ch;
 }
 
-.prose h1 {
+.legal h1 {
   margin-bottom: var(--space-6);
 }
 
-.prose p + p,
-.prose ul + p,
-.prose p + ul {
+.legal p + p,
+.legal ul + p,
+.legal p + ul {
   margin-top: var(--space-6);
 }
 
-.prose ul {
+.legal ul {
   padding-left: var(--space-6);
 }
 
-.prose li + li {
+.legal li + li {
   margin-top: var(--space-2);
 }
 
