@@ -40,3 +40,4 @@ dev-dist
 # Environment Secrets
 .env*
 !.env.EXAMPLE
+.gstack/

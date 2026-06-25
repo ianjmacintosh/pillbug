@@ -1,70 +1,136 @@
-/* ── Layout ──────────────────────────────────────────────── */
+/* ── Layout (H variant: 70/30 asymmetric) ────────────────── */
 
 .register {
   display: flex;
-  gap: 3rem;
-  align-items: flex-start;
-  max-width: 52rem;
+  align-items: stretch;
+  padding: 0;
+  max-width: 56rem;
 }
+
+/* ── Content column (~70%) ───────────────────────────────── */
 
 .register-content {
   flex: 1;
   min-width: 0;
-  padding-top: 0.25rem;
+  padding: 2rem 2.25rem 2.5rem 1.5rem;
 }
-
-.register-form-panel {
-  flex: 0 0 22rem;
-}
-
-/* ── Content side ────────────────────────────────────────── */
 
 .register-content h1 {
   margin-top: 0;
+  margin-bottom: 0;
 }
 
-.register .register-intro {
-  margin-top: 0.5rem;
-  margin-bottom: 0;
+.register-divider {
+  width: 36px;
+  height: 4px;
+  background: var(--color-action);
+  border-radius: 99px;
+  margin: 0.875rem 0;
+}
+
+.register-intro {
+  margin: 0 0 1.75rem;
   font-family: var(--font-sans);
   font-size: 1rem;
   color: var(--gray-30);
+  line-height: 1.6;
 }
+
+/* ── Feature list ───────────────────────────────────────── */
 
 .register-features {
   list-style: none;
   padding: 0;
-  margin: 1.25rem 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-}
-
-.register-features li {
-  font-family: var(--font-sans);
-  font-size: 0.9375rem;
-  color: var(--gray-30);
-  padding-left: 1.25rem;
-  position: relative;
-}
-
-.register-features li::before {
-  content: "•";
-  position: absolute;
-  left: 0;
-  color: var(--yellow-40);
-}
-
-/* ── Form panel ──────────────────────────────────────────── */
-
-.register-form-panel form {
-  background: #fff;
-  border: 1px solid var(--gray-90);
-  border-radius: 8px;
-  padding: 1.5rem;
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.register-feature {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.register-feature-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--color-action);
+  color: var(--color-contrast);
+  margin-top: 1px;
+}
+
+.register-feature-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.register-feature-title {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-contrast);
+}
+
+.register-feature-desc {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--gray-50);
+  line-height: 1.45;
+}
+
+/* ── Form panel (~30%) ───────────────────────────────────── */
+
+.register-form-panel {
+  flex: 0 0 280px;
+  position: relative; /* containing block for ::before bleed */
+  padding: 2rem 1.5rem 2.5rem 1.75rem;
+}
+
+/*
+ * Tinted background + pill pattern. Extends past the max-width container to
+ * the viewport right edge using the same margin formula as --page-width.
+ */
+.register-form-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: calc(-1 * max(4vw, (100vw - 80rem) / 2));
+  background-color: var(--color-surface-tinted);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='26'%3E%3Crect x='10' y='6' width='32' height='14' rx='7' fill='none' stroke='rgba(160%2C120%2C0%2C0.12)' stroke-width='1.5'/%3E%3Cline x1='26' y1='6' x2='26' y2='20' stroke='rgba(160%2C120%2C0%2C0.12)' stroke-width='1.5'/%3E%3C%2Fsvg%3E");
+  background-repeat: repeat;
+  background-size: 52px 26px;
+  border-left: 1px solid var(--gray-90);
+  z-index: -1;
+}
+
+.register-form-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gray-50);
+  margin: 0 0 1rem;
+}
+
+.register-form-panel form {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--gray-90);
+  border-radius: 8px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
 }
 
 .register-login-link {
@@ -118,7 +184,7 @@
 }
 
 .register-form-panel form button[type="submit"] {
-  align-self: flex-start;
+  width: 100%;
 }
 
 .register [role="alert"] {
@@ -132,11 +198,32 @@
 @media (max-width: 640px) {
   .register {
     flex-direction: column;
-    gap: 2rem;
+  }
+
+  .register-content {
+    padding: 1.5rem 1.5rem 1.75rem;
   }
 
   .register-form-panel {
     flex: none;
     width: 100%;
+    padding: 1.5rem;
+  }
+
+  /* no bleed on mobile — fill to edge of screen */
+  .register-form-panel::before {
+    right: calc(-1 * max(4vw, (100vw - 80rem) / 2));
+    left: calc(-1 * max(4vw, (100vw - 80rem) / 2));
+    border-left: none;
+    border-top: 1px solid var(--gray-90);
+  }
+
+  .register-form-eyebrow {
+    display: none;
+  }
+
+  .register-form-panel form button[type="submit"] {
+    width: auto;
+    align-self: flex-start;
   }
 }
