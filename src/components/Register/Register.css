@@ -206,13 +206,16 @@
 
 @media (max-width: 640px) {
   .register {
-    justify-content: center;
-    align-items: flex-start;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
     background-position: center top;
   }
 
   .register-hero-text {
-    display: none;
+    flex: none;
+    min-height: 45vh;
+    padding: 2rem 1.5rem;
   }
 
   .register-card {
