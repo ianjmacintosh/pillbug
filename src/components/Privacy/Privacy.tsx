@@ -1,6 +1,6 @@
 function Privacy() {
   return (
-    <main>
+    <main className="prose">
       <h1>Privacy Policy</h1>
       <p>
         We take your rights to privacy extremely seriously and appreciate you

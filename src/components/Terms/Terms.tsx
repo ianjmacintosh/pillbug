@@ -1,6 +1,6 @@
 function Terms() {
   return (
-    <main>
+    <main className="prose">
       <h1>Terms of Service</h1>
       <p>
         Pillbug is a personal wellness tool to help you remember to take your
