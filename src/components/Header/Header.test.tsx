@@ -1,7 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
+import { render, screen } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import i18next from "../../utils/i18n";
 import Header from "./Header";
 
 vi.mock("@tanstack/react-router", () => ({
@@ -11,7 +10,7 @@ vi.mock("@tanstack/react-router", () => ({
     className,
   }: {
     to: string;
-    children: React.ReactNode;
+    children: ReactNode;
     className?: string;
   }) => (
     <a href={to} className={className}>
