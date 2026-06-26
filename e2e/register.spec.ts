@@ -10,30 +10,19 @@ test("register page loads the Simple Analytics script", async ({ page }) => {
 });
 
 test.describe("footer layout on /register", () => {
-  // Regression: footer was visually overlapping the register section instead of
-  // sitting below it. Fixed by switching .layout from display:flex to
-  // display:grid (grid-template-rows: auto minmax(0,1fr) auto).
+  // Regression: on mobile the register card (flex-shrink:0 in a column flex)
+  // overflowed its container and visually covered the footer. The footer was
+  // present in the DOM but hidden behind the card's opaque background.
 
-  async function assertFooterBelowMain(page: import("@playwright/test").Page) {
+  test("register card does not overlap the footer on mobile", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto("/register");
+    const cardBox = await page.locator(".register-card").boundingBox();
     const footerBox = await page.getByRole("contentinfo").boundingBox();
-    const mainBox = await page.getByRole("main").boundingBox();
+    expect(cardBox).not.toBeNull();
     expect(footerBox).not.toBeNull();
-    expect(mainBox).not.toBeNull();
-    expect(footerBox!.y).toBeGreaterThanOrEqual(mainBox!.y + mainBox!.height);
-  }
-
-  test("footer sits below register content at standard desktop viewport", async ({
-    page,
-  }) => {
-    await page.goto("/register");
-    await assertFooterBelowMain(page);
-  });
-
-  test("footer sits below register content at short desktop viewport", async ({
-    page,
-  }) => {
-    await page.setViewportSize({ width: 1280, height: 600 });
-    await page.goto("/register");
-    await assertFooterBelowMain(page);
+    expect(cardBox!.y + cardBox!.height).toBeLessThanOrEqual(footerBox!.y);
   });
 });
