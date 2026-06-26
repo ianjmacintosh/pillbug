@@ -182,7 +182,7 @@ test("/register renders the page, shows language selector, and links to /login",
     page.getByRole("button", { name: /email me a login link/i }),
   ).toBeVisible();
   await expect(
-    page.locator("header").getByRole("combobox", { name: /language/i }),
+    page.locator("footer").getByRole("combobox", { name: /language/i }),
   ).toBeVisible();
   await expect(page.locator('input[name="cf-turnstile-response"]')).toHaveValue(
     TURNSTILE_DUMMY_TOKEN,
@@ -240,7 +240,7 @@ test("/login renders the page, pre-fills email from query param, shows language 
     page.getByRole("button", { name: /email me a login link/i }),
   ).toBeVisible();
   await expect(
-    page.locator("header").getByRole("combobox", { name: /language/i }),
+    page.locator("footer").getByRole("combobox", { name: /language/i }),
   ).toBeVisible();
   await page.getByRole("link", { name: /create an account/i }).click();
   await expect(page).toHaveURL("/register");
