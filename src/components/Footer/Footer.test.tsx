@@ -18,9 +18,14 @@ describe("Footer", () => {
     expect(screen.getByRole("link", { name: /privacy policy/i })).toBeTruthy();
   });
 
-  test("shows language selector", () => {
+  test("shows language selector when not authenticated", () => {
     render(<Footer />);
     expect(screen.getByRole("combobox", { name: /language/i })).toBeTruthy();
+  });
+
+  test("hides language selector when authenticated", () => {
+    render(<Footer isAuthenticated />);
+    expect(screen.queryByRole("combobox", { name: /language/i })).toBeNull();
   });
 
   test("changing language selector calls i18next.changeLanguage", () => {
