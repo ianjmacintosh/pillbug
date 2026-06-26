@@ -16,6 +16,21 @@
   gap: 1.5rem;
 }
 
+/* Desktop: hide "LEGAL" eyebrow — links stand alone */
+.footer-legal .footer-eyebrow {
+  display: none;
+}
+
+.footer-eyebrow {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  font-family: var(--font-sans);
+  cursor: default;
+}
+
 .footer a {
   color: var(--gray-30);
   font-family: var(--font-sans);
@@ -27,15 +42,28 @@
   text-decoration: underline;
 }
 
+/* Desktop: language bar is a plain inline strip, no background */
 .footer-language {
+  width: 100%;
+}
+
+.footer-language-inner {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-left: auto;
-  font-family: var(--font-sans);
+  padding: 0 1.5rem 0.875rem;
+  width: var(--page-width);
+  margin: 0 auto;
+}
+
+/* Desktop: "Language" label shown as normal muted text */
+.footer-language .footer-eyebrow {
+  display: block;
   font-size: 0.875rem;
+  font-weight: normal;
+  letter-spacing: normal;
+  text-transform: none;
   color: var(--gray-30);
-  cursor: pointer;
 }
 
 .footer-language select {
@@ -53,18 +81,42 @@
   .footer-inner {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
+    padding-bottom: 1rem;
   }
 
   .footer-legal {
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.4rem;
+  }
+
+  /* Mobile: show both eyebrows */
+  .footer-legal .footer-eyebrow {
+    display: block;
+    margin-bottom: 0.2rem;
   }
 
   .footer-language {
-    margin-left: 0;
+    background-color: var(--gray-90);
+  }
+
+  .footer-language-inner {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.25rem;
+    gap: 0.4rem;
+    padding: 0.875rem 1.5rem;
+  }
+
+  /* Mobile: "LANGUAGE" eyebrow style */
+  .footer-language .footer-eyebrow {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-bottom: 0.2rem;
+  }
+
+  .footer-language select {
+    background: white;
   }
 }

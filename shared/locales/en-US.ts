@@ -7,6 +7,7 @@ const enUS = {
   "header.nav.logOut": "Log out",
   "header.nav.openMenu": "Open menu",
   "header.nav.closeMenu": "Close menu",
+  "footer.legal": "Legal",
   "footer.language": "Language",
   "footer.termsOfService": "Terms of Service",
   "footer.privacyPolicy": "Privacy Policy",

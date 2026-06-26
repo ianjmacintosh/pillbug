@@ -7,6 +7,7 @@ const ptBR = {
   "header.nav.logOut": "Sair",
   "header.nav.openMenu": "Abrir menu",
   "header.nav.closeMenu": "Fechar menu",
+  "footer.legal": "Legal",
   "footer.language": "Idioma",
   "footer.termsOfService": "Termos de Serviço",
   "footer.privacyPolicy": "Política de Privacidade",

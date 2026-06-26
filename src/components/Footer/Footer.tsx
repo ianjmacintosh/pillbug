@@ -13,13 +13,19 @@ function Footer({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
     <footer className="footer">
       <div className="footer-inner">
         <nav className="footer-legal" aria-label="Legal">
+          <span className="footer-eyebrow">{t("footer.legal")}</span>
           <a href="/terms">{t("footer.termsOfService")}</a>
           <a href="/privacy">{t("footer.privacyPolicy")}</a>
         </nav>
-        {!isAuthenticated && (
-          <label className="footer-language">
-            <span>{t("footer.language")}</span>
+      </div>
+      {!isAuthenticated && (
+        <div className="footer-language">
+          <div className="footer-language-inner">
+            <label className="footer-eyebrow" htmlFor="footer-language-select">
+              {t("footer.language")}
+            </label>
             <select
+              id="footer-language-select"
               value={i18n.language}
               onChange={(e) => i18n.changeLanguage(e.target.value)}
             >
@@ -29,9 +35,9 @@ function Footer({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
                 </option>
               ))}
             </select>
-          </label>
-        )}
-      </div>
+          </div>
+        </div>
+      )}
     </footer>
   );
 }
