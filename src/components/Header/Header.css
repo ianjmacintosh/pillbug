@@ -54,6 +54,13 @@
 
 .header-login {
   margin-left: auto;
+  background: transparent;
+  border: 2px solid var(--color-contrast);
+  color: var(--color-contrast);
+}
+
+.header-login:hover {
+  background: oklch(0 0 0 / 0.08);
 }
 
 @media (max-width: 640px) {
