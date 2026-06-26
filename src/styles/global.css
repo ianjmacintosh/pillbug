@@ -171,6 +171,30 @@ main {
   border-radius: 3px;
 }
 
+/* ── Prose ────────────────────────────────────────────────── */
+
+.legal {
+  max-width: 65ch;
+}
+
+.legal h1 {
+  margin-bottom: var(--space-6);
+}
+
+.legal p + p,
+.legal ul + p,
+.legal p + ul {
+  margin-top: var(--space-6);
+}
+
+.legal ul {
+  padding-left: var(--space-6);
+}
+
+.legal li + li {
+  margin-top: var(--space-2);
+}
+
 /* ── Utilities ────────────────────────────────────────────── */
 
 .print-only {
