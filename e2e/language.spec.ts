@@ -87,7 +87,7 @@ test.describe("Auto language detection (logged in, no stored language)", () => {
 });
 
 test.describe("Language switching (logged out)", () => {
-  test("switching to pt-BR from header dropdown translates the page", async ({
+  test("switching to pt-BR from footer dropdown translates the page", async ({
     page,
   }) => {
     await page.goto("/register");
@@ -95,7 +95,7 @@ test.describe("Language switching (logged out)", () => {
       page.getByRole("heading", { name: heading(enUS["register.heading"]) }),
     ).toBeVisible();
 
-    await page.locator("header").getByRole("combobox").selectOption("pt-BR");
+    await page.locator("footer").getByRole("combobox").selectOption("pt-BR");
 
     await expect(
       page.getByRole("heading", { name: heading(ptBR["register.heading"]) }),

@@ -1,13 +1,35 @@
 .footer {
+  position: relative;
   border-top: 1px solid var(--gray-70);
 }
 
 .footer-inner {
   display: flex;
+  align-items: center;
   gap: 1.5rem;
   padding: 1rem 1.5rem;
   width: var(--page-width);
   margin: 0 auto;
+}
+
+.footer-legal {
+  display: flex;
+  gap: 1.5rem;
+}
+
+/* Desktop: hide "LEGAL" eyebrow — links stand alone */
+.footer-legal .footer-eyebrow {
+  display: none;
+}
+
+.footer-eyebrow {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  font-family: var(--font-sans);
+  cursor: default;
 }
 
 .footer a {
@@ -19,4 +41,90 @@
 
 .footer a:hover {
   text-decoration: underline;
+}
+
+/* Desktop: language floats in the same row as links, right-aligned */
+.footer-language {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: calc((100% - min(92vw, 80rem)) / 2 + 1.5rem);
+  display: flex;
+  align-items: center;
+}
+
+.footer-language-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Desktop: "Language" as plain muted label */
+.footer-language .footer-eyebrow {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: normal;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--gray-30);
+}
+
+.footer-language select {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  color: var(--gray-30);
+  background: transparent;
+  border: 1px solid var(--gray-70);
+  border-radius: 4px;
+  padding: 0.25rem 0.375rem;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-bottom: 1rem;
+  }
+
+  .footer-legal {
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .footer-legal .footer-eyebrow {
+    display: block;
+    margin-bottom: 0.2rem;
+  }
+
+  /* Mobile: language becomes a full-bleed gray bar */
+  .footer-language {
+    position: static;
+    display: block;
+    width: 100%;
+    background-color: var(--gray-90);
+  }
+
+  .footer-language-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+    padding: 0.875rem 1.5rem;
+    width: var(--page-width);
+    margin: 0 auto;
+  }
+
+  .footer-language .footer-eyebrow {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-bottom: 0.2rem;
+  }
+
+  .footer-language select {
+    background: white;
+  }
 }

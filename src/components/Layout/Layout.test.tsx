@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test, vi, afterEach } from "vitest";
 import Layout from "./Layout";
@@ -5,6 +6,19 @@ import Layout from "./Layout";
 vi.mock("@tanstack/react-router", () => ({
   Outlet: () => <div data-testid="outlet" />,
   useLocation: vi.fn(() => ({ pathname: "/" })),
+  Link: ({
+    to,
+    children,
+    className,
+  }: {
+    to: string;
+    children: ReactNode;
+    className?: string;
+  }) => (
+    <a href={to} className={className}>
+      {children}
+    </a>
+  ),
 }));
 
 afterEach(() => vi.unstubAllGlobals());

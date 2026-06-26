@@ -1,7 +1,23 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import i18next from "../../utils/i18n";
 import Header from "./Header";
+
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({
+    to,
+    children,
+    className,
+  }: {
+    to: string;
+    children: ReactNode;
+    className?: string;
+  }) => (
+    <a href={to} className={className}>
+      {children}
+    </a>
+  ),
+}));
 
 describe("Header", () => {
   afterEach(() => vi.restoreAllMocks());
@@ -14,28 +30,22 @@ describe("Header", () => {
     );
   });
 
-  test("shows language selector when not authenticated", () => {
+  test("does not show language selector", () => {
     render(<Header />);
-    expect(screen.getByRole("combobox", { name: /language/i })).toBeTruthy();
-  });
-
-  test("does not show language selector when authenticated", () => {
-    render(<Header isAuthenticated />);
     expect(screen.queryByRole("combobox", { name: /language/i })).toBeNull();
   });
 
-  test("language selector includes English (US) option", () => {
+  test("shows log in link when not authenticated", () => {
     render(<Header />);
-    expect(screen.getByRole("option", { name: "English (US)" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: /log in/i })).toHaveAttribute(
+      "href",
+      "/login",
+    );
   });
 
-  test("changing language selector calls i18next.changeLanguage", () => {
-    const spy = vi.spyOn(i18next, "changeLanguage");
-    render(<Header />);
-    fireEvent.change(screen.getByRole("combobox", { name: /language/i }), {
-      target: { value: "en-US" },
-    });
-    expect(spy).toHaveBeenCalledWith("en-US");
+  test("does not show log in link when authenticated", () => {
+    render(<Header isAuthenticated />);
+    expect(screen.queryByRole("link", { name: /log in/i })).toBeNull();
   });
 
   test("does not show settings or logout when not authenticated", () => {
