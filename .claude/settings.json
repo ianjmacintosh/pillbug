@@ -24,12 +24,15 @@
         "hooks": [
           {
             "type": "command",
-            "if": "Bash(git commit*)",
             "command": "npm run format 2>/dev/null || true && npm run lint && npm run typecheck && npm run test:unit -- --run",
+            "if": "Bash(git commit*)",
             "statusMessage": "Running pre-commit checks..."
           }
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "andrej-karpathy-skills@karpathy-skills": true
   }
 }
