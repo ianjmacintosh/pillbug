@@ -33,9 +33,9 @@ function Terms() {
         review our <a href="/privacy">Privacy Policy</a>.
       </p>
       <p>
-        We have no intention of selling your data to advertisers or business
-        partners and the like. That is not part of our business model and never
-        will be.
+        We have no appetite, desire, or interest in selling your data to
+        advertisers or business partners and the like. That is not part of our
+        business model and never will be.
       </p>
       <p>
         Pillbug is intended for users 18 years of age or older. By creating an
