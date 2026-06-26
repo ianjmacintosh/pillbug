@@ -3,8 +3,11 @@ function Privacy() {
     <main className="legal">
       <h1>Privacy Policy</h1>
       <p>
-        We take your rights to privacy extremely seriously and appreciate you
-        trusting us with your data.
+        We take our security and your privacy extremely seriously and appreciate
+        you trusting us with your data. We encourage everyone to take a more
+        active interest in preserving their personal privacy -- not just with
+        our application, but in all their affairs. Thank you for doing your part
+        to help our application have a well-informed user base.
       </p>
       <p>
         In order to provide useful info for you and authenticate your identity,
@@ -25,8 +28,8 @@ function Privacy() {
         <li>Preferred language</li>
       </ul>
       <p>
-        Some or all of this data will be shared with our infrastructure
-        providers:
+        Some or all of this data will necessarily be shared with these trusted
+        infrastructure providers:
       </p>
       <ul>
         <li>Cloudflare</li>
