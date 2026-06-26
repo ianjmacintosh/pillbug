@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type APIRequestContext } from "@playwright/test";
 import { hashEmail } from "../worker/email-crypto";
 import { setKnownPin, TURNSTILE_DUMMY_TOKEN, TEST_PIN } from "./helpers";
 import { getDB, disposeDB } from "./db";
@@ -19,7 +19,7 @@ test.afterAll(async () => {
 
 async function silentLogin(
   email: string,
-  request: Parameters<Parameters<typeof test>[1]>[0]["request"],
+  request: APIRequestContext,
 ): Promise<{ token: string; pin: string }> {
   const res = await request.post("/api/v1/login", {
     data: { email, turnstileToken: TURNSTILE_DUMMY_TOKEN },
@@ -187,7 +187,9 @@ test("/register renders the page, shows language selector, and links to /login",
   await expect(page.locator('input[name="cf-turnstile-response"]')).toHaveValue(
     TURNSTILE_DUMMY_TOKEN,
   );
-  const loginLink = page.getByRole("link", { name: /log in/i });
+  const loginLink = page
+    .getByRole("main")
+    .getByRole("link", { name: /log in/i });
   await loginLink.scrollIntoViewIfNeeded();
   await loginLink.click();
   await expect(page).toHaveURL("/login");
