@@ -1,4 +1,5 @@
 .footer {
+  position: relative;
   border-top: 1px solid var(--gray-70);
 }
 
@@ -42,21 +43,23 @@
   text-decoration: underline;
 }
 
-/* Desktop: language bar is a plain inline strip, no background */
+/* Desktop: language floats in the same row as links, right-aligned */
 .footer-language {
-  width: 100%;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: calc((100% - min(92vw, 80rem)) / 2 + 1.5rem);
+  display: flex;
+  align-items: center;
 }
 
 .footer-language-inner {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0 1.5rem 0.875rem;
-  width: var(--page-width);
-  margin: 0 auto;
 }
 
-/* Desktop: "Language" label shown as normal muted text */
+/* Desktop: "Language" as plain muted label */
 .footer-language .footer-eyebrow {
   display: block;
   font-size: 0.875rem;
@@ -89,13 +92,16 @@
     gap: 0.4rem;
   }
 
-  /* Mobile: show both eyebrows */
   .footer-legal .footer-eyebrow {
     display: block;
     margin-bottom: 0.2rem;
   }
 
+  /* Mobile: language becomes a full-bleed gray bar */
   .footer-language {
+    position: static;
+    display: block;
+    width: 100%;
     background-color: var(--gray-90);
   }
 
@@ -104,10 +110,12 @@
     align-items: flex-start;
     gap: 0.4rem;
     padding: 0.875rem 1.5rem;
+    width: var(--page-width);
+    margin: 0 auto;
   }
 
-  /* Mobile: "LANGUAGE" eyebrow style */
   .footer-language .footer-eyebrow {
+    display: block;
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.1em;
