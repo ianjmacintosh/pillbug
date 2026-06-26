@@ -4,10 +4,16 @@
 
 .footer-inner {
   display: flex;
+  align-items: center;
   gap: 1.5rem;
   padding: 1rem 1.5rem;
   width: var(--page-width);
   margin: 0 auto;
+}
+
+.footer-legal {
+  display: flex;
+  gap: 1.5rem;
 }
 
 .footer a {
@@ -19,4 +25,26 @@
 
 .footer a:hover {
   text-decoration: underline;
+}
+
+.footer-language {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  color: var(--gray-30);
+  cursor: pointer;
+}
+
+.footer-language select {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  color: var(--gray-30);
+  background: transparent;
+  border: 1px solid var(--gray-70);
+  border-radius: 4px;
+  padding: 0.25rem 0.375rem;
+  cursor: pointer;
 }
