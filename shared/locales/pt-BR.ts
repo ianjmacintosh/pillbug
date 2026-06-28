@@ -25,11 +25,11 @@ const ptBR = {
   "login.turnstileError":
     "Verificação de segurança falhou. Por favor, recarregue a página e tente novamente.",
   "login.submitting": "Enviando…",
-  "login.submit": "Enviar link de acesso por e-mail",
+  "login.submit": "Enviar link de acesso por e‑mail",
   "login.newHere": "Novo por aqui?",
   "login.createAccount": "Criar uma conta",
   "enterCode.heading": "Digite seu código",
-  "enterCode.intro": "Enviamos um código de 4 dígitos para o seu e-mail.",
+  "enterCode.intro": "Enviamos um código de 4 dígitos para o seu e‑mail.",
   "enterCode.codeLabel": "Código de 4 dígitos",
   "enterCode.error.invalid": "Código incorreto. Por favor, tente novamente.",
   "enterCode.error.expired":
@@ -169,7 +169,7 @@ const ptBR = {
     "Você deve aceitar os Termos de Serviço para se registrar.",
   "register.serverError": "Algo deu errado. Por favor, tente novamente.",
   "register.submitting": "Enviando…",
-  "register.submit": "Enviar link de acesso por e-mail",
+  "register.submit": "Enviar link de acesso por e‑mail",
   "register.heroLine1": "Mais saúde,",
   "register.heroLine2": "menos complicação",
   "register.alreadyHaveAccount": "Já tem uma conta?",
