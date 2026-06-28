@@ -153,7 +153,7 @@ test.describe("Header — desktop nav", () => {
   });
 
   test("brand link points to /prescriptions", async () => {
-    await expect(sharedPage.locator(".header-brand")).toHaveAttribute(
+    await expect(sharedPage.locator(".header-brand a")).toHaveAttribute(
       "href",
       "/prescriptions",
     );
