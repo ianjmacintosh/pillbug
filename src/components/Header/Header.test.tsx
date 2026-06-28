@@ -22,8 +22,16 @@ vi.mock("@tanstack/react-router", () => ({
 describe("Header", () => {
   afterEach(() => vi.restoreAllMocks());
 
-  test("brand link points to /prescriptions", () => {
+  test("brand link points to /register when not authenticated", () => {
     render(<Header />);
+    expect(screen.getByRole("link", { name: /pillbug/i })).toHaveAttribute(
+      "href",
+      "/register",
+    );
+  });
+
+  test("brand link points to /prescriptions when authenticated", () => {
+    render(<Header isAuthenticated />);
     expect(screen.getByRole("link", { name: /pillbug/i })).toHaveAttribute(
       "href",
       "/prescriptions",
