@@ -68,10 +68,10 @@ function Register() {
 
   return (
     <main className="register">
-      <h1 className="register-hero-text">
+      <p className="register-hero-text">
         <span>{t("register.heroLine1")}</span>
         <span>{t("register.heroLine2")}</span>
-      </h1>
+      </p>
       <section className="register-card">
         <h2>{t("register.heading")}</h2>
         <div className="register-divider" aria-hidden="true" />
