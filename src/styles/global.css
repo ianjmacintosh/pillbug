@@ -74,18 +74,24 @@ main {
   background-color: var(--color-action);
   color: var(--color-action-text);
   border: none;
-  padding: 0.625rem 1.5rem;
-  border-radius: 4px;
+  padding: 0.6875rem 1.625rem;
+  border-radius: 6px;
   font-family: var(--font-sans);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
+  transition:
+    background-color 0.1s ease-out,
+    transform 0.1s ease-out,
+    box-shadow 0.1s ease-out;
 }
 
 .button-primary:hover {
   background-color: var(--color-action-hover);
   color: var(--color-action-text);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px oklch(0.22 0.04 60 / 0.2);
 }
 
 .button-primary:focus-visible {
@@ -98,26 +104,37 @@ main {
   cursor: not-allowed;
 }
 
+.button-primary:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 .button-secondary {
   background-color: transparent;
-  color: var(--gray-30);
-  border: 1px solid var(--gray-70);
-  padding: 0.625rem 1.5rem;
-  border-radius: 4px;
+  color: var(--blue-50);
+  border: 1.5px solid var(--blue-50);
+  padding: 0.6875rem 1.625rem;
+  border-radius: 6px;
   font-family: var(--font-sans);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
+  transition:
+    background-color 0.1s ease-out,
+    transform 0.1s ease-out,
+    box-shadow 0.1s ease-out;
 }
 
 .button-secondary:hover {
-  background-color: var(--gray-90);
-  color: var(--gray-10);
+  background-color: var(--blue-94);
+  color: var(--blue-50);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px oklch(0.5 0.22 249 / 0.15);
 }
 
 .button-secondary:focus-visible {
-  outline: 2px solid var(--color-focus-ring);
+  outline: 2px solid var(--blue-50);
   outline-offset: 2px;
 }
 
@@ -126,21 +143,32 @@ main {
   cursor: not-allowed;
 }
 
+.button-secondary:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 .button-danger {
   background-color: oklch(0.55 0.22 25);
   color: oklch(1 0 0);
   border: none;
-  padding: 0.625rem 1.5rem;
-  border-radius: 4px;
+  padding: 0.6875rem 1.625rem;
+  border-radius: 6px;
   font-family: var(--font-sans);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
+  transition:
+    background-color 0.1s ease-out,
+    transform 0.1s ease-out,
+    box-shadow 0.1s ease-out;
 }
 
 .button-danger:hover {
   background-color: oklch(0.45 0.22 25);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px oklch(0.55 0.22 25 / 0.3);
 }
 
 .button-danger:focus-visible {
@@ -153,10 +181,22 @@ main {
   cursor: not-allowed;
 }
 
+.button-danger:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 .button-sm {
-  padding: 0.25rem 0.625rem;
-  font-size: 0.75rem;
-  border-radius: 3px;
+  padding: 0.3125rem 0.75rem;
+  font-size: 0.8125rem;
+  border-radius: 4px;
+}
+
+.well {
+  background: var(--color-well-bg);
+  color: var(--color-well-text);
+  border-radius: 8px;
+  padding: var(--space-5) var(--space-6);
 }
 
 /* ── Prose ────────────────────────────────────────────────── */

@@ -10,6 +10,9 @@
   --yellow-90: oklch(0.9 0.4 95);
   --yellow-95: oklch(0.95 0.06 95);
 
+  --blue-50: oklch(0.5 0.22 249);
+  --blue-94: oklch(0.94 0.06 249);
+
   --gray-10: oklch(0.1 0 0);
   --gray-30: oklch(0.3 0 0);
   --gray-50: oklch(0.5 0 0);
@@ -33,6 +36,9 @@
   --color-error: oklch(0.4 0.15 25);
   --color-focus-ring: var(--yellow-87);
   --color-danger-focus-ring: oklch(0.55 0.22 25);
+  --color-well-bg: var(--blue-50);
+  --color-well-text: oklch(1 0 0);
+  --color-well-bg-light: var(--blue-94);
 
   /* ── Typography ───────────────────────────────────────────── */
 

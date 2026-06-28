@@ -1,3 +1,17 @@
+import {
+  Clipboard,
+  CalendarCheck,
+  Settings,
+  Lock,
+  Calendar,
+  Pill,
+  Bell,
+  CheckCircle,
+  Plus,
+  Trash2,
+  LogOut,
+  ChevronRight,
+} from "lucide-react";
 import "./StyleGuide.css";
 
 function Swatch({
@@ -39,135 +53,28 @@ function Section({
   );
 }
 
-function IconPrescriptions() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="24"
-      height="24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
-      <rect x="9" y="3" width="6" height="4" rx="1" />
-      <line x1="9" y1="12" x2="15" y2="12" />
-      <line x1="9" y1="16" x2="11" y2="16" />
-    </svg>
-  );
-}
-
-function IconFillSession() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="24"
-      height="24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <rect x="3" y="4" width="18" height="18" rx="2" />
-      <line x1="16" y1="2" x2="16" y2="6" />
-      <line x1="8" y1="2" x2="8" y2="6" />
-      <line x1="3" y1="10" x2="21" y2="10" />
-      <path d="m9 16 2 2 4-4" />
-    </svg>
-  );
-}
-
-function IconSettings() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="24"
-      height="24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-  );
-}
-
-function IconLock() {
-  return (
-    <svg
-      viewBox="0 0 16 18"
-      width="16"
-      height="18"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <rect x="1" y="8" width="14" height="10" rx="1.5" />
-      <path d="M4 8V5.5a4 4 0 0 1 8 0V8" />
-      <circle cx="8" cy="13" r="1.25" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
-function IconCalendar() {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      width="16"
-      height="16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <rect x="1" y="3" width="14" height="13" rx="1.5" />
-      <path d="M5 1v3.5M11 1v3.5M1 7.5h14" />
-      <path d="M5.5 11l2 2 3.5-3.5" />
-    </svg>
-  );
-}
-
-function IconClipboard() {
-  return (
-    <svg
-      viewBox="0 0 14 16"
-      width="14"
-      height="16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M5 1.5H3.5A1.5 1.5 0 0 0 2 3v11a1.5 1.5 0 0 0 1.5 1.5h7A1.5 1.5 0 0 0 12 14V3a1.5 1.5 0 0 0-1.5-1.5H9" />
-      <rect x="4.5" y="1" width="5" height="3" rx="1" />
-      <path d="M5 8h4M5 11h2.5" />
-    </svg>
-  );
-}
-
 const ICONS = [
-  { name: "Prescriptions", icon: <IconPrescriptions /> },
-  { name: "Fill Session", icon: <IconFillSession /> },
-  { name: "Settings", icon: <IconSettings /> },
-  { name: "Lock", icon: <IconLock /> },
-  { name: "Calendar", icon: <IconCalendar /> },
-  { name: "Clipboard", icon: <IconClipboard /> },
+  { name: "Pill", icon: <Pill size={24} aria-hidden="true" /> },
+  {
+    name: "CalendarCheck",
+    icon: <CalendarCheck size={24} aria-hidden="true" />,
+  },
+  { name: "Settings", icon: <Settings size={24} aria-hidden="true" /> },
+  { name: "Lock", icon: <Lock size={24} aria-hidden="true" /> },
+  { name: "Calendar", icon: <Calendar size={24} aria-hidden="true" /> },
+  { name: "Clipboard", icon: <Clipboard size={24} aria-hidden="true" /> },
+  { name: "Bell", icon: <Bell size={24} aria-hidden="true" /> },
+  {
+    name: "CheckCircle",
+    icon: <CheckCircle size={24} aria-hidden="true" />,
+  },
+  { name: "Plus", icon: <Plus size={24} aria-hidden="true" /> },
+  { name: "Trash2", icon: <Trash2 size={24} aria-hidden="true" /> },
+  { name: "LogOut", icon: <LogOut size={24} aria-hidden="true" /> },
+  {
+    name: "ChevronRight",
+    icon: <ChevronRight size={24} aria-hidden="true" />,
+  },
 ];
 
 const PALETTE = [
@@ -183,8 +90,19 @@ const PALETTE = [
   },
   {
     label: "Gold Tint",
-    value: "oklch(0.95 0.06 95)",
+    value: "oklch(0.97 0.04 95)",
     role: "--color-surface-tinted",
+  },
+  {
+    label: "Sky Blue",
+    value: "oklch(0.50 0.22 249)",
+    role: "--color-well-bg",
+    light: true,
+  },
+  {
+    label: "Sky Tint",
+    value: "oklch(0.94 0.06 249)",
+    role: "--color-well-bg-light",
   },
   {
     label: "Warm Dark",
@@ -255,6 +173,7 @@ export function StyleGuide() {
         <a href="#color">Color</a>
         <a href="#typography">Typography</a>
         <a href="#buttons">Buttons</a>
+        <a href="#wells">Wells</a>
         <a href="#icons">Icons</a>
         <a href="#spacing">Spacing</a>
       </nav>
@@ -384,7 +303,9 @@ export function StyleGuide() {
                 Disabled
               </button>
             </div>
-            <p className="sg-button-note">Border outline, no fill.</p>
+            <p className="sg-button-note">
+              Sky blue border + text, no fill. Hover fills with sky tint.
+            </p>
           </div>
 
           <div className="sg-button-group">
@@ -403,13 +324,37 @@ export function StyleGuide() {
         </div>
       </Section>
 
+      {/* ── Wells ── */}
+      <Section id="wells" label="Wells / callouts">
+        <div className="sg-well-demos">
+          <div className="well">
+            <strong>Reminder set for 8:00 AM daily.</strong> You&apos;ll get a
+            notification before each dose window.
+          </div>
+          <div className="sg-well-light">
+            <strong>No prescriptions yet.</strong> Add your first prescription
+            to get started with reminders.
+          </div>
+        </div>
+        <p className="sg-icon-note" style={{ marginTop: "var(--space-4)" }}>
+          Use <code>.well</code> for high-emphasis callouts: confirmations,
+          onboarding nudges, system status. Sky blue + white text. The light
+          variant (<code>.sg-well-light</code> →{" "}
+          <code>--color-well-bg-light</code>) works for lower-emphasis info
+          blocks.
+        </p>
+      </Section>
+
       {/* ── Icons ── */}
       <Section id="icons" label="Icons">
         <p className="sg-icon-note">
-          All inline SVGs — no library. 24×24 viewBox, stroke-based,{" "}
-          <code>strokeWidth=&quot;2&quot;</code>,{" "}
-          <code>strokeLinecap=&quot;round&quot;</code>,{" "}
-          <code>aria-hidden=&quot;true&quot;</code>.
+          Icon library: <strong>Lucide React</strong>.{" "}
+          <code>import {"{ IconName }"} from &apos;lucide-react&apos;</code>.
+          Stroke-based, 24px grid, <code>strokeWidth=2</code>,{" "}
+          <code>strokeLinecap=&quot;round&quot;</code>. Pass{" "}
+          <code>aria-hidden=&quot;true&quot;</code> on decorative icons; use{" "}
+          <code>aria-label</code> when the icon is the only content of an
+          interactive element.
         </p>
         <div className="sg-icon-grid">
           {ICONS.map(({ name, icon }) => (
@@ -420,8 +365,8 @@ export function StyleGuide() {
           ))}
         </div>
         <p className="sg-icon-note" style={{ marginTop: "1rem" }}>
-          Do not add an icon library without an explicit decision. The current
-          set covers all production use cases.
+          Lucide has 1,000+ icons — use any that fit. Tree-shakeable: only what
+          you import ships in the bundle. MIT license.
         </p>
       </Section>
 

@@ -196,6 +196,22 @@
   color: var(--color-text-muted);
 }
 
+/* ── Wells ── */
+
+.sg-well-demos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.sg-well-light {
+  background: var(--color-well-bg-light);
+  color: var(--color-text-primary);
+  border-radius: 8px;
+  padding: var(--space-5) var(--space-6);
+}
+
 /* ── Icons ── */
 
 .sg-icon-note {
