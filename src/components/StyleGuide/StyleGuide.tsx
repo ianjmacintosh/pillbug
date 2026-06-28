@@ -14,28 +14,6 @@ import {
 } from "lucide-react";
 import "./StyleGuide.css";
 
-function Swatch({
-  label,
-  value,
-  textColor = "var(--color-text-primary)",
-}: {
-  label: string;
-  value: string;
-  textColor?: string;
-}) {
-  return (
-    <div className="sg-swatch">
-      <div className="sg-swatch-block" style={{ background: value }} />
-      <div className="sg-swatch-meta">
-        <div className="sg-swatch-name">{label}</div>
-        <div className="sg-swatch-value" style={{ color: textColor }}>
-          {value}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function Section({
   id,
   label,
@@ -181,7 +159,7 @@ export function StyleGuide() {
       {/* ── Color ── */}
       <Section id="color" label="Color palette">
         <div className="sg-palette">
-          {PALETTE.map(({ label, value, role, light }) => (
+          {PALETTE.map(({ label, value, role }) => (
             <div key={label} className="sg-swatch">
               <div
                 className="sg-swatch-block"
@@ -289,8 +267,9 @@ export function StyleGuide() {
               </button>
             </div>
             <p className="sg-button-note">
-              Gold bg + warm-dark text. On white form panels, use dark bg
-              instead.
+              Gold bg + warm-dark text. 6px bottom border + shadow gives the
+              raised feel; hover depresses 4px. On white form panels, use dark
+              bg instead.
             </p>
           </div>
 
@@ -304,7 +283,8 @@ export function StyleGuide() {
               </button>
             </div>
             <p className="sg-button-note">
-              Sky blue border + text, no fill. Hover fills with sky tint.
+              Sky blue border + text, no fill. Same raised treatment — 6px
+              bottom border, depresses on hover.
             </p>
           </div>
 
@@ -319,6 +299,25 @@ export function StyleGuide() {
             </div>
             <p className="sg-button-note">
               Muted red, white text. Destructive actions only.
+            </p>
+          </div>
+
+          <div className="sg-button-group">
+            <p className="sg-button-group-label">Icon</p>
+            <div className="sg-button-row">
+              <button className="button-icon" aria-label="Add prescription">
+                <Plus size={20} aria-hidden="true" />
+              </button>
+              <button className="button-icon" aria-label="Settings">
+                <Settings size={20} aria-hidden="true" />
+              </button>
+              <button className="button-icon" disabled aria-label="Disabled">
+                <Bell size={20} aria-hidden="true" />
+              </button>
+            </div>
+            <p className="sg-button-note">
+              48×48 icon-only button. Use <code>aria-label</code> when the icon
+              is the only content. Same raised + depress treatment.
             </p>
           </div>
         </div>
