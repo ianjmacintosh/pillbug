@@ -36,7 +36,7 @@
 
   /* ── Typography ───────────────────────────────────────────── */
 
-  --font-serif: "Lora", Georgia, serif;
+  --font-display: "Coiny", system-ui, sans-serif;
   --font-sans: "Inter", system-ui, sans-serif;
 
   /* ── Spacing scale (4px grid) ─────────────────────────────── */

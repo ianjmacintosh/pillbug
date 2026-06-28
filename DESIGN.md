@@ -22,19 +22,20 @@ The design paradox to resolve: serious function (medication compliance matters),
 
 ## Typography
 
-- **Headings (h1, h2):** Lora — literary serif, warmth without whimsy. Self-hosted (`/fonts/lora-latin.woff2`, italic variant also available). Used for page titles and section headers only.
-- **Body / UI / Labels:** Instrument Sans — humanist warmth, solid weight, designed to pair alongside serif display text. More grounded than Inter; not art-deco thin. Load from Google Fonts CDN or self-host.
+- **Headings (h1, h2):** Coiny — rounded display, single weight (400), playful and warm without being childish. Self-hosted (`/fonts/coiny-latin.woff2`). Token: `--font-display`. Used for h1/h2 only; do not use at body sizes.
+- **Body / UI / Labels:** Instrument Sans — humanist warmth, solid weight, designed to pair alongside display text. More grounded than Inter; not art-deco thin. Load from Google Fonts CDN or self-host.
 - **Current implementation:** `--font-sans` is set to `"Inter"` in `tokens.css`. Migration to Instrument Sans is the approved next step — swap the font-face declaration and `--font-sans` value.
 - **Data/Tables:** Instrument Sans with `font-variant-numeric: tabular-nums`
 - **Code:** Not applicable.
+- **Rejected heading fonts:** Lora (too literary/clinical for the playful brief), Plus Jakarta Sans (too rounded and thin — "1920s art deco"), Chango (retro feel liked but weight too heavy).
 
 ### Type Scale
 
 | Role            | Family          | Size     | Weight | Line-height              |
 | --------------- | --------------- | -------- | ------ | ------------------------ |
-| Display/Hero    | Lora            | 3rem     | 700    | 1.1                      |
-| H1              | Lora            | 2.25rem  | 700    | 1.15                     |
-| H2              | Lora            | 1.75rem  | 600    | 1.2                      |
+| Display/Hero    | Coiny           | 3rem     | 400    | 1.1                      |
+| H1              | Coiny           | 2.25rem  | 400    | 1.15                     |
+| H2              | Coiny           | 1.75rem  | 400    | 1.2                      |
 | H3              | Instrument Sans | 1.25rem  | 700    | 1.25                     |
 | Body            | Instrument Sans | 1rem     | 400    | 1.6                      |
 | Small / Caption | Instrument Sans | 0.875rem | 400    | 1.5                      |
@@ -130,11 +131,12 @@ The design paradox to resolve: serious function (medication compliance matters),
 
 ## Decisions Log
 
-| Date       | Decision                                     | Rationale                                                                                             |
-| ---------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| 2026-06-26 | Aesthetic direction: Warm Utilitarian        | Establishes product character — warm but not clinical, precise but not cold                           |
-| 2026-06-26 | OKLCH-native color system                    | More perceptually uniform than HSL; vibrant on wide-gamut displays; future-proof                      |
-| 2026-06-26 | Olive-brown links (`oklch(0.42 0.1 55)`)     | Fits the gold palette; deliberate departure from healthcare-blue                                      |
-| 2026-06-26 | Instrument Sans as the approved body/UI sans | Humanist warmth, solid weight, pairs with Lora; not art-deco thin like PJS; not ubiquitous like Inter |
-| 2026-06-26 | Inline SVG icons (no library)                | Zero dependency cost; full stroke control; current icon set is small and stable                       |
-| 2026-06-26 | Editorial split layout for auth screens      | Register page is a sales page first; must convince before asking for email                            |
+| Date       | Decision                                     | Rationale                                                                                                                                                                                                            |
+| ---------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-06-26 | Aesthetic direction: Warm Utilitarian        | Establishes product character — warm but not clinical, precise but not cold                                                                                                                                          |
+| 2026-06-26 | OKLCH-native color system                    | More perceptually uniform than HSL; vibrant on wide-gamut displays; future-proof                                                                                                                                     |
+| 2026-06-26 | Olive-brown links (`oklch(0.42 0.1 55)`)     | Fits the gold palette; deliberate departure from healthcare-blue                                                                                                                                                     |
+| 2026-06-26 | Instrument Sans as the approved body/UI sans | Humanist warmth, solid weight; not art-deco thin like PJS; not ubiquitous like Inter                                                                                                                                 |
+| 2026-06-27 | Coiny replaces Lora as the heading font      | A patient sick of the struggle deserves something that adds fun and play — life isn't supposed to be a slog. Lora was warm but literary; Coiny is playful without being childish. Single weight (400), display-only. |
+| 2026-06-26 | Inline SVG icons (no library)                | Zero dependency cost; full stroke control; current icon set is small and stable                                                                                                                                      |
+| 2026-06-26 | Editorial split layout for auth screens      | Register page is a sales page first; must convince before asking for email                                                                                                                                           |

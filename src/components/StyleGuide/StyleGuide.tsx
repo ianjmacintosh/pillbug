@@ -247,7 +247,7 @@ export function StyleGuide() {
       <header className="sg-header">
         <h1>Pillbug Design System</h1>
         <p className="sg-header-sub">
-          Warm Utilitarian · Lora + Inter · OKLCH color · 4px grid
+          Warm Utilitarian · Coiny + Inter · OKLCH color · 4px grid
         </p>
       </header>
 
@@ -295,17 +295,17 @@ export function StyleGuide() {
       <Section id="typography" label="Typography">
         <div className="sg-type-stack">
           <div className="sg-type-row">
-            <span className="sg-type-meta">Display · Lora · 3rem · 700</span>
+            <span className="sg-type-meta">Display · Coiny · 3rem · 400</span>
             <p className="sg-type-display">Prescriptions, organized.</p>
           </div>
 
           <div className="sg-type-row">
-            <span className="sg-type-meta">h1 · Lora · 2.25rem · 700</span>
+            <span className="sg-type-meta">h1 · Coiny · 2.25rem · 400</span>
             <h1 style={{ fontSize: "2.25rem" }}>Your medications today</h1>
           </div>
 
           <div className="sg-type-row">
-            <span className="sg-type-meta">h2 · Lora · 1.75rem · 600</span>
+            <span className="sg-type-meta">h2 · Coiny · 1.75rem · 400</span>
             <h2 style={{ fontSize: "1.75rem" }}>Add a prescription</h2>
           </div>
 
@@ -353,7 +353,7 @@ export function StyleGuide() {
         <div className="sg-font-note">
           <strong>Current:</strong> Inter (self-hosted).{" "}
           <strong>Approved next step:</strong> migrate to Instrument Sans — more
-          warmth, less ubiquitous. Lora for h1/h2 is fixed; do not swap.
+          warmth, less ubiquitous.
         </div>
       </Section>
 

@@ -13,7 +13,7 @@
 }
 
 .header-brand {
-  font-family: var(--font-serif);
+  font-family: var(--font-display);
   font-weight: 600;
   font-size: 1.25rem;
   color: var(--color-contrast);
