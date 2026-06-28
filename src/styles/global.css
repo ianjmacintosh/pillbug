@@ -100,7 +100,12 @@ main {
 /* ── Buttons ──────────────────────────────────────────────── */
 
 .button-primary {
-  background-color: var(--color-action);
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 50%,
+    oklch(0.83 0.34 95) 0%,
+    oklch(0.87 0.36 95) 45%,
+    oklch(0.92 0.31 95) 100%
+  );
   color: var(--color-action-text);
   border: none;
   padding: 0.6875rem 1.625rem;
@@ -111,21 +116,33 @@ main {
   letter-spacing: 0.02em;
   cursor: pointer;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   box-shadow:
+    inset 0 1px 0 oklch(0.97 0.26 95 / 0.8),
+    inset 0 -1px 0 oklch(0.55 0.32 95 / 0.4),
     inset 0 0 0px 1px oklch(0.62 0.34 95),
     0 6px 0 oklch(0.48 0.32 95),
     0 8px 12px oklch(0.62 0.34 95 / 0.35);
   transition:
-    background-color 0.08s ease-out,
+    background 0.08s ease-out,
     transform 0.08s ease-out,
     box-shadow 0.08s ease-out;
 }
 
 .button-primary:hover {
-  background-color: var(--color-action-hover);
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 50%,
+    oklch(0.79 0.32 95) 0%,
+    oklch(0.83 0.34 95) 45%,
+    oklch(0.88 0.3 95) 100%
+  );
   color: var(--color-action-text);
   transform: translateY(4px);
   box-shadow:
+    inset 0 1px 0 oklch(0.97 0.26 95 / 0.8),
+    inset 0 -1px 0 oklch(0.55 0.32 95 / 0.4),
     inset 0 0 0px 1px oklch(0.62 0.34 95),
     0 2px 0 oklch(0.48 0.32 95),
     0 2px 4px oklch(0.62 0.34 95 / 0.2);
@@ -142,8 +159,16 @@ main {
 }
 
 .button-primary:disabled:hover {
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 50%,
+    oklch(0.83 0.34 95) 0%,
+    oklch(0.87 0.36 95) 45%,
+    oklch(0.92 0.31 95) 100%
+  );
   transform: none;
   box-shadow:
+    inset 0 1px 0 oklch(0.97 0.26 95 / 0.8),
+    inset 0 -1px 0 oklch(0.55 0.32 95 / 0.4),
     inset 0 0 0px 1px oklch(0.62 0.34 95),
     0 6px 0 oklch(0.48 0.32 95),
     0 8px 12px oklch(0.62 0.34 95 / 0.35);
@@ -161,7 +186,12 @@ main {
   letter-spacing: 0.02em;
   cursor: pointer;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.9),
+    inset 0 -1px 0 oklch(0.4 0.2 249 / 0.25),
     inset 0 0 0px 1px oklch(0.65 0.18 249),
     0 6px 0 oklch(0.28 0.22 249),
     0 8px 12px oklch(0.5 0.22 249 / 0.2);
@@ -176,6 +206,8 @@ main {
   color: var(--blue-50);
   transform: translateY(4px);
   box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.9),
+    inset 0 -1px 0 oklch(0.4 0.2 249 / 0.25),
     inset 0 0 0px 1px oklch(0.65 0.18 249),
     0 2px 0 oklch(0.28 0.22 249),
     0 2px 4px oklch(0.5 0.22 249 / 0.1);
@@ -194,13 +226,20 @@ main {
 .button-secondary:disabled:hover {
   transform: none;
   box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.9),
+    inset 0 -1px 0 oklch(0.4 0.2 249 / 0.25),
     inset 0 0 0px 1px oklch(0.65 0.18 249),
     0 6px 0 oklch(0.28 0.22 249),
     0 8px 12px oklch(0.5 0.22 249 / 0.2);
 }
 
 .button-danger {
-  background-color: oklch(0.55 0.22 25);
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 50%,
+    oklch(0.48 0.22 25) 0%,
+    oklch(0.55 0.22 25) 45%,
+    oklch(0.62 0.2 25) 100%
+  );
   color: oklch(1 0 0);
   border: none;
   padding: 0.6875rem 1.625rem;
@@ -211,20 +250,32 @@ main {
   letter-spacing: 0.02em;
   cursor: pointer;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   box-shadow:
+    inset 0 1px 0 oklch(0.85 0.15 25 / 0.6),
+    inset 0 -1px 0 oklch(0.22 0.18 25 / 0.45),
     inset 0 0 0px 1px oklch(0.38 0.22 25),
     0 6px 0 oklch(0.25 0.22 25),
     0 8px 12px oklch(0.55 0.22 25 / 0.3);
   transition:
-    background-color 0.08s ease-out,
+    background 0.08s ease-out,
     transform 0.08s ease-out,
     box-shadow 0.08s ease-out;
 }
 
 .button-danger:hover {
-  background-color: oklch(0.48 0.22 25);
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 50%,
+    oklch(0.42 0.22 25) 0%,
+    oklch(0.48 0.22 25) 45%,
+    oklch(0.56 0.2 25) 100%
+  );
   transform: translateY(4px);
   box-shadow:
+    inset 0 1px 0 oklch(0.85 0.15 25 / 0.6),
+    inset 0 -1px 0 oklch(0.22 0.18 25 / 0.45),
     inset 0 0 0px 1px oklch(0.38 0.22 25),
     0 2px 0 oklch(0.25 0.22 25),
     0 2px 4px oklch(0.55 0.22 25 / 0.15);
@@ -241,8 +292,16 @@ main {
 }
 
 .button-danger:disabled:hover {
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 50%,
+    oklch(0.48 0.22 25) 0%,
+    oklch(0.55 0.22 25) 45%,
+    oklch(0.62 0.2 25) 100%
+  );
   transform: none;
   box-shadow:
+    inset 0 1px 0 oklch(0.85 0.15 25 / 0.6),
+    inset 0 -1px 0 oklch(0.22 0.18 25 / 0.45),
     inset 0 0 0px 1px oklch(0.38 0.22 25),
     0 6px 0 oklch(0.25 0.22 25),
     0 8px 12px oklch(0.55 0.22 25 / 0.3);
@@ -260,25 +319,39 @@ main {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-action);
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 50%,
+    oklch(0.83 0.34 95) 0%,
+    oklch(0.87 0.36 95) 45%,
+    oklch(0.92 0.31 95) 100%
+  );
   color: var(--color-action-text);
   border: none;
   border-radius: 10px;
   cursor: pointer;
   box-shadow:
+    inset 0 1px 0 oklch(0.97 0.26 95 / 0.8),
+    inset 0 -1px 0 oklch(0.55 0.32 95 / 0.4),
     inset 0 0 0px 1px oklch(0.62 0.34 95),
     0 6px 0 oklch(0.48 0.32 95),
     0 8px 10px oklch(0.62 0.34 95 / 0.3);
   transition:
-    background-color 0.08s ease-out,
+    background 0.08s ease-out,
     transform 0.08s ease-out,
     box-shadow 0.08s ease-out;
 }
 
 .button-icon:hover {
-  background-color: var(--color-action-hover);
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 50%,
+    oklch(0.79 0.32 95) 0%,
+    oklch(0.83 0.34 95) 45%,
+    oklch(0.88 0.3 95) 100%
+  );
   transform: translateY(4px);
   box-shadow:
+    inset 0 1px 0 oklch(0.97 0.26 95 / 0.8),
+    inset 0 -1px 0 oklch(0.55 0.32 95 / 0.4),
     inset 0 0 0px 1px oklch(0.62 0.34 95),
     0 2px 0 oklch(0.48 0.32 95),
     0 2px 4px oklch(0.62 0.34 95 / 0.15);
@@ -295,8 +368,16 @@ main {
 }
 
 .button-icon:disabled:hover {
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 50%,
+    oklch(0.83 0.34 95) 0%,
+    oklch(0.87 0.36 95) 45%,
+    oklch(0.92 0.31 95) 100%
+  );
   transform: none;
   box-shadow:
+    inset 0 1px 0 oklch(0.97 0.26 95 / 0.8),
+    inset 0 -1px 0 oklch(0.55 0.32 95 / 0.4),
     inset 0 0 0px 1px oklch(0.62 0.34 95),
     0 6px 0 oklch(0.48 0.32 95),
     0 8px 10px oklch(0.62 0.34 95 / 0.3);

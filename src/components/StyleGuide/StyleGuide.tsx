@@ -303,7 +303,7 @@ export function StyleGuide() {
           </div>
 
           <div className="sg-button-group">
-            <p className="sg-button-group-label">Icon</p>
+            <p className="sg-button-group-label">Icon (standalone)</p>
             <div className="sg-button-row">
               <button className="button-icon" aria-label="Add prescription">
                 <Plus size={20} aria-hidden="true" />
@@ -318,6 +318,31 @@ export function StyleGuide() {
             <p className="sg-button-note">
               48×48 icon-only button. Use <code>aria-label</code> when the icon
               is the only content. Same raised + depress treatment.
+            </p>
+          </div>
+
+          <div className="sg-button-group">
+            <p className="sg-button-group-label">Icon + text</p>
+            <div className="sg-button-row">
+              <button className="button-primary">
+                <Plus size={18} aria-hidden="true" />
+                Add prescription
+              </button>
+              <button className="button-secondary">
+                <ChevronRight size={18} aria-hidden="true" />
+                View details
+              </button>
+              <button className="button-danger">
+                <Trash2 size={18} aria-hidden="true" />
+                Delete
+              </button>
+            </div>
+            <p className="sg-button-note">
+              All button classes support icon children natively via{" "}
+              <code>inline-flex + gap: 8px</code>. Use Lucide at{" "}
+              <code>size={"{18}"}</code> for inline icons (vs 20–24 for
+              standalone). Icon goes left of label by default; swap order for a
+              trailing chevron.
             </p>
           </div>
         </div>
