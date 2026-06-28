@@ -186,7 +186,7 @@
   flex-direction: row;
   gap: 0.5rem;
   align-items: flex-start;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .register .terms-field input[type="checkbox"] {
