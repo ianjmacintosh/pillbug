@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { getRouteApi, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Pencil, Trash2 } from "lucide-react";
 import "./PrescriptionDetail.css";
 import { formatTimeOfDay, formatNumericDate } from "../../utils/dates";
 import type { DayOfWeek, PerSlotDose } from "../../../shared/schedule";
@@ -73,12 +74,21 @@ function PrescriptionDetail() {
         <div className="prescription-detail-header">
           <h2>{prescription.drugName}</h2>
           <div className="prescription-detail-actions">
-            <Link to="/prescriptions/$id/edit" params={{ id }}>
-              {t("prescriptionDetail.edit")}
+            <Link
+              to="/prescriptions/$id/edit"
+              params={{ id }}
+              className="button-icon"
+              aria-label={t("prescriptionDetail.edit")}
+            >
+              <Pencil size={20} aria-hidden="true" />
             </Link>
-            <span aria-hidden="true"> | </span>
-            <Button type="button" onClick={() => setShowDeleteDialog(true)}>
-              {t("prescriptionDetail.delete")}
+            <Button
+              type="button"
+              className="button-icon button-danger-icon"
+              aria-label={t("prescriptionDetail.delete")}
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              <Trash2 size={20} aria-hidden="true" />
             </Button>
           </div>
         </div>
