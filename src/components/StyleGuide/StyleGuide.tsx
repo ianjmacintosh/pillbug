@@ -11,6 +11,7 @@ import {
   Trash2,
   LogOut,
   ChevronRight,
+  ArrowRight,
 } from "lucide-react";
 import "./StyleGuide.css";
 
@@ -378,11 +379,28 @@ export function StyleGuide() {
               </button>
             </div>
             <p className="sg-button-note">
-              Add <code>button-leading-icon</code> when a button has an icon
-              child. Sets <code>gap: 10px</code> between icon and label. Use
-              Lucide at <code>size={"{18}"}</code> for inline icons (vs 20–24
-              for standalone). Icon goes left of label by default; swap order
-              for a trailing chevron.
+              Add <code>button-leading-icon</code> when the icon goes left of
+              the label. A <code>::after</code> spacer mirrors the icon width so
+              the label stays centered.
+            </p>
+          </div>
+
+          <div className="sg-button-group">
+            <p className="sg-button-group-label">Text + trailing icon</p>
+            <div className="sg-button-row">
+              <button className="button-primary button-trailing-icon">
+                Continue
+                <ArrowRight size={18} aria-hidden="true" />
+              </button>
+              <button className="button-secondary button-trailing-icon">
+                Next step
+                <ArrowRight size={18} aria-hidden="true" />
+              </button>
+            </div>
+            <p className="sg-button-note">
+              Use <code>button-trailing-icon</code> for forward-navigation
+              actions. A <code>::before</code> spacer mirrors the icon so the
+              label centers. Put the icon after the label in markup.
             </p>
           </div>
         </div>

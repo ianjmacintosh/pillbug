@@ -318,6 +318,20 @@ main {
   gap: 10px;
 }
 
+.button-trailing-icon {
+  gap: 10px;
+}
+
+.button-trailing-icon::before {
+  content: "";
+  width: 18px;
+  flex-shrink: 0;
+}
+
+.button-full {
+  width: 100%;
+}
+
 /* ── Brand motif — tilted pill ────────────────────────────── */
 
 .icon-pill {

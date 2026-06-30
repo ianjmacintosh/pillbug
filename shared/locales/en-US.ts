@@ -38,7 +38,7 @@ const enUS = {
   "enterCode.error.locked": "Too many incorrect attempts. This code is locked.",
   "enterCode.requestNewCode": "Request a new code",
   "enterCode.submitting": "Verifying…",
-  "enterCode.submit": "Verify",
+  "enterCode.submit": "Continue",
   "terms.heading": "Terms of Service",
   "terms.placeholder": "Terms of Service content coming soon.",
   "privacy.heading": "Privacy Policy",

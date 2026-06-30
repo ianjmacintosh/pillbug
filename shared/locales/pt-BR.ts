@@ -39,7 +39,7 @@ const ptBR = {
     "Muitas tentativas incorretas. Este código está bloqueado.",
   "enterCode.requestNewCode": "Solicitar um novo código",
   "enterCode.submitting": "Verificando…",
-  "enterCode.submit": "Verificar",
+  "enterCode.submit": "Continuar",
   "terms.heading": "Termos de Serviço",
   "terms.placeholder": "Conteúdo dos Termos de Serviço em breve.",
   "privacy.heading": "Política de Privacidade",
