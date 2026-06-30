@@ -192,27 +192,60 @@ export function StyleGuide() {
       <Section id="typography" label="Typography">
         <div className="sg-type-stack">
           <div className="sg-type-row">
-            <span className="sg-type-meta">Display · Coiny · 3rem · 400</span>
+            <span className="sg-type-meta">
+              --text-hero · clamp(3rem, 12.5vw, 8rem) · Coiny · 400 · Register
+              hero only
+            </span>
+            <p className="sg-type-hero">Take your meds.</p>
+          </div>
+
+          <div className="sg-type-row">
+            <span className="sg-type-meta">
+              --text-display · 3rem · Coiny · 400
+            </span>
             <p className="sg-type-display">Prescriptions, organized.</p>
           </div>
 
           <div className="sg-type-row">
-            <span className="sg-type-meta">h1 · Coiny · 2.25rem · 400</span>
-            <h1 style={{ fontSize: "2.25rem" }}>Your medications today</h1>
+            <span className="sg-type-meta">
+              --text-h1 · 2.25rem · Coiny · 400
+            </span>
+            <h1>Your medications today</h1>
           </div>
 
           <div className="sg-type-row">
-            <span className="sg-type-meta">h2 · Coiny · 1.75rem · 400</span>
-            <h2 style={{ fontSize: "1.75rem" }}>Add a prescription</h2>
+            <span className="sg-type-meta">
+              --text-h2 · 1.75rem · Coiny · 400
+            </span>
+            <h2>Add a prescription</h2>
           </div>
 
           <div className="sg-type-row">
-            <span className="sg-type-meta">h3 · Inter · 1.25rem · 700</span>
-            <h3 style={{ fontSize: "1.25rem" }}>Lisinopril 10mg</h3>
+            <span className="sg-type-meta">
+              --text-xl · 1.5rem · Inter · 600 · tabular-nums · OTP / code
+              inputs
+            </span>
+            <p className="sg-type-xl">ABC-1234</p>
           </div>
 
           <div className="sg-type-row">
-            <span className="sg-type-meta">Body · Inter · 1rem · 400</span>
+            <span className="sg-type-meta">
+              --text-h3 · 1.25rem · Inter · 700
+            </span>
+            <h3>Lisinopril 10mg</h3>
+          </div>
+
+          <div className="sg-type-row">
+            <span className="sg-type-meta">
+              --text-lg · 1.125rem · Inter · 700 · section subheadings
+            </span>
+            <p className="sg-type-lg">My Prescriptions</p>
+          </div>
+
+          <div className="sg-type-row">
+            <span className="sg-type-meta">
+              --text-base · 1rem · Inter · 400
+            </span>
             <p>
               Pillbug tracks your prescriptions and reminds you when it&apos;s
               time to take them — without filling your calendar with alarms you
@@ -221,28 +254,34 @@ export function StyleGuide() {
           </div>
 
           <div className="sg-type-row">
-            <span className="sg-type-meta">Small · Inter · 0.875rem · 400</span>
-            <p
-              style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}
-            >
+            <span className="sg-type-meta">
+              --text-sm · 0.875rem · Inter · 400 · caption / secondary
+            </span>
+            <p className="sg-type-sm">
               Last taken: Thursday at 8:00 AM · Due in 14 hours
             </p>
           </div>
 
           <div className="sg-type-row">
             <span className="sg-type-meta">
-              Label · Inter · 0.75rem · 700 · uppercase
+              --text-xs · 0.75rem · Inter · 700 · uppercase · labels / pills
             </span>
-            <p
-              style={{
-                fontSize: "0.75rem",
-                fontWeight: 700,
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                color: "var(--color-text-muted)",
-              }}
-            >
-              Next dose due
+            <p className="sg-type-xs">Next dose due</p>
+          </div>
+
+          <div className="sg-type-row">
+            <span className="sg-type-meta">
+              --text-2xs · 0.65rem · Inter · 700 · nav tab labels / footer micro
+            </span>
+            <p className="sg-type-2xs">Fill · Prescriptions · Settings</p>
+          </div>
+
+          <div className="sg-type-row">
+            <span className="sg-type-meta">
+              --text-3xs · 0.5625rem · Inter · organizer grid only (FillSession)
+            </span>
+            <p className="sg-type-3xs">
+              Mon · Tue · Wed · Thu · Fri · Sat · Sun
             </p>
           </div>
         </div>

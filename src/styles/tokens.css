@@ -45,6 +45,21 @@
   --font-display: "Coiny", system-ui, sans-serif;
   --font-sans: "Inter", system-ui, sans-serif;
 
+  /* ── Type scale ────────────────────────────────────────────── */
+
+  --text-hero: clamp(3rem, 12.5vw, 8rem); /* Register brand hero (fluid) */
+  --text-display: 3rem; /* Display / Coiny */
+  --text-h1: 2.25rem; /* h1 */
+  --text-h2: 1.75rem; /* h2 */
+  --text-xl: 1.5rem; /* large inputs, OTP display */
+  --text-h3: 1.25rem; /* h3 */
+  --text-lg: 1.125rem; /* subheadings, list titles */
+  --text-base: 1rem; /* body */
+  --text-sm: 0.875rem; /* caption, secondary */
+  --text-xs: 0.75rem; /* labels, pills */
+  --text-2xs: 0.65rem; /* nav tab labels, footer micro */
+  --text-3xs: 0.5625rem; /* organizer grid micro */
+
   /* ── Spacing scale (4px grid) ─────────────────────────────── */
 
   --space-1: 0.25rem;

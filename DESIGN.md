@@ -31,15 +31,22 @@ The design paradox to resolve: serious function (medication compliance matters),
 
 ### Type Scale
 
-| Role            | Family          | Size     | Weight | Line-height              |
-| --------------- | --------------- | -------- | ------ | ------------------------ |
-| Display/Hero    | Coiny           | 3rem     | 400    | 1.1                      |
-| H1              | Coiny           | 2.25rem  | 400    | 1.15                     |
-| H2              | Coiny           | 1.75rem  | 400    | 1.2                      |
-| H3              | Instrument Sans | 1.25rem  | 700    | 1.25                     |
-| Body            | Instrument Sans | 1rem     | 400    | 1.6                      |
-| Small / Caption | Instrument Sans | 0.875rem | 400    | 1.5                      |
-| UI Label        | Instrument Sans | 0.75rem  | 700    | — (uppercase + tracking) |
+All font sizes must use a `--text-*` token. No hard-coded `font-size` values are permitted anywhere in the codebase.
+
+| Token            | Role                                    | Family          | Size                        | Weight  | Line-height              |
+| ---------------- | --------------------------------------- | --------------- | --------------------------- | ------- | ------------------------ |
+| `--text-hero`    | Register brand hero                     | Coiny           | `clamp(3rem, 12.5vw, 8rem)` | 400     | 1.1                      |
+| `--text-display` | Display / style guide                   | Coiny           | 3rem                        | 400     | 1.1                      |
+| `--text-h1`      | H1                                      | Coiny           | 2.25rem                     | 400     | 1.15                     |
+| `--text-h2`      | H2                                      | Coiny           | 1.75rem                     | 400     | 1.2                      |
+| `--text-xl`      | Large inputs / OTP display              | Instrument Sans | 1.5rem                      | 600     | —                        |
+| `--text-h3`      | H3                                      | Instrument Sans | 1.25rem                     | 700     | 1.25                     |
+| `--text-lg`      | Section subheadings / list titles       | Instrument Sans | 1.125rem                    | 700     | —                        |
+| `--text-base`    | Body                                    | Instrument Sans | 1rem                        | 400     | 1.6                      |
+| `--text-sm`      | Caption / secondary                     | Instrument Sans | 0.875rem                    | 400     | 1.5                      |
+| `--text-xs`      | UI labels / pills                       | Instrument Sans | 0.75rem                     | 700     | — (uppercase + tracking) |
+| `--text-2xs`     | Nav tab labels / footer micro           | Instrument Sans | 0.65rem                     | 500–700 | —                        |
+| `--text-3xs`     | Organizer grid micro (FillSession only) | Instrument Sans | 0.5625rem                   | 400–700 | —                        |
 
 ## Color
 

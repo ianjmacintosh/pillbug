@@ -13,12 +13,11 @@
 }
 
 .sg-header h1 {
-  font-size: 2rem;
   margin-bottom: var(--space-2);
 }
 
 .sg-header-sub {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--color-action-text);
   opacity: 0.75;
   font-family: var(--font-sans);
@@ -39,7 +38,7 @@
   display: inline-block;
   padding: var(--space-1) var(--space-3);
   border-radius: var(--space-10);
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-link);
   text-decoration: none;
@@ -59,7 +58,7 @@
 }
 
 .sg-section-label {
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -94,27 +93,27 @@
 }
 
 .sg-swatch-name {
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   font-weight: 700;
   color: var(--color-text-primary);
 }
 
 .sg-swatch-token {
-  font-size: 0.65rem;
+  font-size: var(--text-2xs);
   color: var(--color-text-muted);
   margin-top: 2px;
   font-family: "SF Mono", "Fira Code", monospace;
 }
 
 .sg-swatch-value {
-  font-size: 0.6rem;
+  font-size: var(--text-3xs);
   color: var(--color-text-muted);
   margin-top: 1px;
   font-family: "SF Mono", "Fira Code", monospace;
 }
 
 .sg-color-note {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -142,7 +141,7 @@
 
 .sg-type-meta {
   display: block;
-  font-size: 0.65rem;
+  font-size: var(--text-2xs);
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -150,16 +149,69 @@
   margin-bottom: var(--space-2);
 }
 
-.sg-type-display {
+/* Type specimens — each mirrors actual app usage */
+
+.sg-type-hero {
   font-family: var(--font-display);
-  font-size: 3rem;
-  font-weight: 700;
+  font-size: var(--text-hero);
+  font-weight: 400;
   line-height: 1.1;
   color: var(--color-contrast);
 }
 
+.sg-type-display {
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--color-contrast);
+}
+
+.sg-type-xl {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3em;
+  color: var(--color-text-primary);
+}
+
+.sg-type-lg {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-contrast);
+}
+
+.sg-type-sm {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.sg-type-xs {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.sg-type-2xs {
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.sg-type-3xs {
+  font-size: var(--text-3xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
 .sg-font-note {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
   padding: var(--space-3) var(--space-4);
   background: var(--color-surface-tinted);
@@ -175,7 +227,7 @@
 }
 
 .sg-button-group-label {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -192,7 +244,7 @@
 }
 
 .sg-button-note {
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -215,7 +267,7 @@
 /* ── Icons ── */
 
 .sg-icon-note {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
   margin-bottom: var(--space-4);
 }
@@ -244,7 +296,7 @@
 }
 
 .sg-icon-name {
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   color: var(--color-text-muted);
   text-align: center;
@@ -253,7 +305,7 @@
 /* ── Spacing ── */
 
 .sg-spacing-note {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
   margin-bottom: var(--space-5);
 }
@@ -279,7 +331,7 @@
 }
 
 .sg-spacing-token {
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   font-family: "SF Mono", "Fira Code", monospace;
   color: var(--color-link);
   min-width: 90px;
@@ -287,7 +339,7 @@
 }
 
 .sg-spacing-values {
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
   font-family: "SF Mono", "Fira Code", monospace;
 }
@@ -303,7 +355,8 @@
     grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
   }
 
+  .sg-type-hero,
   .sg-type-display {
-    font-size: 2rem;
+    font-size: var(--text-h1);
   }
 }
