@@ -130,7 +130,7 @@ All buttons have `border-radius: 8px` and a **raised plastic feel**: a 6px dark 
 
 **Surface:** Each variant has a darker `border` for the outer rim (separate from the ledge shadow), plus a bright 2px inset highlight at the top edge that creates a subtle concave lip.
 
-**Icon + text:** All button classes include `display: inline-flex; align-items: center; gap: 8px`. Any button can have an icon child — use Lucide React at `size={18}` for inline use (vs `size={24}` for standalone icon-only buttons). Icon goes left of label by default; trailing icon goes right.
+**Icon + text:** All button classes include `display: inline-flex; align-items: center; justify-content: center; gap: 8px`. Any button can have an icon child — use Lucide React at `size={18}` for inline use (vs `size={24}` for standalone icon-only buttons). Icon goes left of label by default; trailing icon goes right. The `justify-content: center` is required — `inline-flex` drops the browser's native `text-align: center` on `<button>` elements.
 
 | Variant          | Background                              | Text / Border                     | Use                                                                                        |
 | ---------------- | --------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------ |

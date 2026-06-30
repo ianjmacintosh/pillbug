@@ -34,10 +34,14 @@
   font-weight: 400;
   line-height: 1.1;
   text-align: center;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  overflow-x: clip;
 }
 
 .register-hero-text span {
   display: inline-block;
+  max-width: 100%;
   background: rgba(0, 0, 0, 0.55);
   color: #fff;
   padding: 0.08em 0.25em;

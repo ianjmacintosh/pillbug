@@ -64,11 +64,11 @@ function IconClipboard() {
 }
 
 function Register() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   return (
     <main className="register">
-      <p className="register-hero-text">
+      <p className="register-hero-text" lang={i18n.language}>
         <span>{t("register.heroLine1")}</span>
         <span>{t("register.heroLine2")}</span>
       </p>
