@@ -12,7 +12,7 @@
   margin-top: 0.5rem;
   margin-bottom: 0;
   font-family: var(--font-sans);
-  font-size: 1rem;
+  font-size: var(--text-base);
   color: var(--gray-30);
 }
 
@@ -34,7 +34,7 @@
   flex-direction: column;
   gap: 0.25rem;
   font-family: var(--font-sans);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 
@@ -43,7 +43,7 @@
   padding: 0.625rem 0.75rem;
   border: 1px solid var(--gray-50);
   border-radius: 4px;
-  font-size: 1.5rem;
+  font-size: var(--text-xl);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.3em;
@@ -62,5 +62,5 @@
 .enter-code [role="alert"] {
   color: var(--color-error);
   font-family: var(--font-sans);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }

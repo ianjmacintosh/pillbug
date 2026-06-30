@@ -13,7 +13,10 @@ function Header({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
   return (
     <header className="header">
       <div className="header-inner">
-        <a href="/prescriptions" className="header-brand">
+        <a
+          href={isAuthenticated ? "/prescriptions" : "/register"}
+          className="header-brand"
+        >
           {t("header.brand")}
         </a>
         {!isAuthenticated && (

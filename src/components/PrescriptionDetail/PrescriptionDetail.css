@@ -12,7 +12,7 @@
 .prescription-detail-actions {
   display: flex;
   align-items: center;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--gray-50);
   white-space: nowrap;
 }
@@ -46,7 +46,7 @@
 
 .prescription-detail-meta dt {
   font-family: system-ui, sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 

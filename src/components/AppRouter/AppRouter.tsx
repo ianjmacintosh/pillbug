@@ -22,6 +22,7 @@ import Terms from "../Terms";
 import EnterCode from "../EnterCode";
 import PrescriptionDetail from "../PrescriptionDetail";
 import { EditPrescriptionForm, NewPrescriptionForm } from "../PrescriptionForm";
+import StyleGuide from "../StyleGuide";
 
 const rootRoute = createRootRoute({
   component: Outlet,
@@ -219,6 +220,12 @@ const enterCodeRoute = createRoute({
   component: EnterCode,
 });
 
+const styleGuideRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: "/style-guide",
+  component: StyleGuide,
+});
+
 const routeTree = rootRoute.addChildren([
   layoutRoute.addChildren([
     indexRoute,
@@ -237,6 +244,7 @@ const routeTree = rootRoute.addChildren([
     ]),
     logoutRoute,
     enterCodeRoute,
+    styleGuideRoute,
   ]),
 ]);
 

@@ -29,15 +29,19 @@
   padding: 3rem;
   margin: 0;
 
-  font-family: var(--font-serif);
-  font-size: clamp(3rem, 12.5vw, 8rem);
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: var(--text-hero);
+  font-weight: 400;
   line-height: 1.1;
   text-align: center;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  overflow-x: clip;
 }
 
 .register-hero-text span {
   display: inline-block;
+  max-width: 100%;
   background: rgba(0, 0, 0, 0.55);
   color: #fff;
   padding: 0.08em 0.25em;
@@ -59,7 +63,6 @@
 .register-card h2 {
   margin-top: 0;
   margin-bottom: 0;
-  font-size: 1.625rem;
 }
 
 .register-divider {
@@ -73,7 +76,6 @@
 .register-intro {
   margin: 0 0 1.5rem;
   font-family: var(--font-sans);
-  font-size: 0.9375rem;
   color: var(--gray-30);
   line-height: 1.6;
 }
@@ -116,14 +118,13 @@
 
 .register-feature-title {
   font-family: var(--font-sans);
-  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--color-contrast);
 }
 
 .register-feature-desc {
   font-family: var(--font-sans);
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   color: var(--gray-50);
   line-height: 1.45;
 }
@@ -153,7 +154,7 @@
 .register-login-link {
   margin-top: 0.875rem;
   font-family: var(--font-sans);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--gray-30);
 }
 
@@ -162,7 +163,7 @@
   flex-direction: column;
   gap: 0.25rem;
   font-family: var(--font-sans);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 
@@ -172,7 +173,7 @@
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--gray-50);
   border-radius: 4px;
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 400;
 }
 
@@ -186,7 +187,6 @@
   flex-direction: row;
   gap: 0.5rem;
   align-items: flex-start;
-  font-size: 0.9rem;
 }
 
 .register .terms-field input[type="checkbox"] {
@@ -205,7 +205,7 @@
 .register [role="alert"] {
   color: var(--color-error);
   font-family: var(--font-sans);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 /* ── Mobile ──────────────────────────────────────────── */

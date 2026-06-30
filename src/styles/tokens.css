@@ -10,6 +10,9 @@
   --yellow-90: oklch(0.9 0.4 95);
   --yellow-95: oklch(0.95 0.06 95);
 
+  --blue-50: oklch(0.5 0.22 249);
+  --blue-94: oklch(0.94 0.06 249);
+
   --gray-10: oklch(0.1 0 0);
   --gray-30: oklch(0.3 0 0);
   --gray-50: oklch(0.5 0 0);
@@ -33,11 +36,29 @@
   --color-error: oklch(0.4 0.15 25);
   --color-focus-ring: var(--yellow-87);
   --color-danger-focus-ring: oklch(0.55 0.22 25);
+  --color-well-bg: var(--blue-50);
+  --color-well-text: oklch(1 0 0);
+  --color-well-bg-light: var(--blue-94);
 
   /* ── Typography ───────────────────────────────────────────── */
 
-  --font-serif: "Lora", Georgia, serif;
+  --font-display: "Coiny", system-ui, sans-serif;
   --font-sans: "Inter", system-ui, sans-serif;
+
+  /* ── Type scale ────────────────────────────────────────────── */
+
+  --text-hero: clamp(3rem, 12.5vw, 8rem); /* Register brand hero (fluid) */
+  --text-display: 3rem; /* Display / Coiny */
+  --text-h1: 2.25rem; /* h1 */
+  --text-h2: 1.75rem; /* h2 */
+  --text-xl: 1.5rem; /* large inputs, OTP display */
+  --text-h3: 1.25rem; /* h3 */
+  --text-lg: 1.125rem; /* subheadings, list titles */
+  --text-base: 1rem; /* body */
+  --text-sm: 0.875rem; /* caption, secondary */
+  --text-xs: 0.75rem; /* labels, pills */
+  --text-2xs: 0.65rem; /* nav tab labels, footer micro */
+  --text-3xs: 0.5625rem; /* organizer grid micro */
 
   /* ── Spacing scale (4px grid) ─────────────────────────────── */
 

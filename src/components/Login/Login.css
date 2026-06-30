@@ -26,7 +26,7 @@
   flex-direction: column;
   gap: 0.25rem;
   font-family: var(--font-sans);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 
@@ -36,7 +36,7 @@
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--gray-50);
   border-radius: 4px;
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 400;
 }
 
@@ -52,7 +52,7 @@
 .login [role="alert"] {
   color: var(--color-error);
   font-family: var(--font-sans);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 /* ── Footer link ─────────────────────────────────────────── */
@@ -60,6 +60,6 @@
 .login p {
   margin-top: 0.875rem;
   font-family: var(--font-sans);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--gray-30);
 }

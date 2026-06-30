@@ -23,7 +23,7 @@
 }
 
 .footer-eyebrow {
-  font-size: 0.65rem;
+  font-size: var(--text-2xs);
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -35,7 +35,7 @@
 .footer a {
   color: var(--gray-30);
   font-family: var(--font-sans);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   text-decoration: none;
 }
 
@@ -62,7 +62,7 @@
 /* Desktop: "Language" as plain muted label */
 .footer-language .footer-eyebrow {
   display: block;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: normal;
   letter-spacing: normal;
   text-transform: none;
@@ -71,7 +71,7 @@
 
 .footer-language select {
   font-family: var(--font-sans);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--gray-30);
   background: transparent;
   border: 1px solid var(--gray-70);
@@ -116,7 +116,7 @@
 
   .footer-language .footer-eyebrow {
     display: block;
-    font-size: 0.65rem;
+    font-size: var(--text-2xs);
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;

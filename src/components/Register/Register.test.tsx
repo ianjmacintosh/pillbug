@@ -149,7 +149,7 @@ describe("?challenge query param", () => {
 describe("Register", () => {
   test("renders a heading", () => {
     render(<Register />);
-    expect(screen.getByRole("heading", { level: 1 })).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 2 })).toBeTruthy();
   });
 
   test("has an email input", () => {

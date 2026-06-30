@@ -13,9 +13,7 @@
 }
 
 .header-brand {
-  font-family: var(--font-serif);
-  font-weight: 600;
-  font-size: 1.25rem;
+  font-family: var(--font-display);
   color: var(--color-contrast);
   text-decoration: none;
 }
@@ -30,7 +28,7 @@
 .header-nav a {
   color: var(--color-contrast);
   font-family: var(--font-sans);
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
   text-decoration: none;
 }
 
@@ -44,7 +42,7 @@
   cursor: pointer;
   color: var(--color-contrast);
   font-family: var(--font-sans);
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
   padding: 0;
 }
 
@@ -54,13 +52,6 @@
 
 .header-login {
   margin-left: auto;
-  background: transparent;
-  border: 2px solid var(--color-contrast);
-  color: var(--color-contrast);
-}
-
-.header-login:hover {
-  background: oklch(0 0 0 / 0.08);
 }
 
 @media (max-width: 640px) {
