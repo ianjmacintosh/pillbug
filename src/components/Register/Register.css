@@ -231,7 +231,6 @@
   }
 
   .register-card form button[type="submit"] {
-    width: auto;
     align-self: flex-start;
   }
 }
