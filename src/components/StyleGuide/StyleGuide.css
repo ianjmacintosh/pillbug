@@ -266,6 +266,13 @@
 
 /* ── Icons ── */
 
+.sg-motif-row {
+  display: flex;
+  gap: var(--space-10);
+  align-items: center;
+  padding: var(--space-8) 0;
+}
+
 .sg-icon-note {
   font-size: var(--text-sm);
   color: var(--color-text-muted);

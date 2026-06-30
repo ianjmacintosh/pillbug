@@ -314,6 +314,29 @@ main {
     0 8px 10px oklch(0.62 0.34 95 / 0.3);
 }
 
+.button-leading-icon {
+  gap: 10px;
+}
+
+/* ── Brand motif — tilted pill ────────────────────────────── */
+
+.icon-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 16px;
+  border-radius: 99px;
+  background: var(--color-action);
+  color: var(--color-contrast);
+  transform: rotate(var(--pill-angle, 0deg));
+}
+
+.icon-pill > svg {
+  transform: rotate(calc(var(--pill-angle, 0deg) * -1));
+}
+
 .well {
   background: var(--color-well-bg);
   color: var(--color-well-text);

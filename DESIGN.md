@@ -131,13 +131,40 @@ All font sizes must use a `--text-*` token. No hard-coded `font-size` values are
 - **Tree-shakeable:** Only imported icons ship in the bundle — no concern about library size.
 - **Do not revert to hand-rolled inline SVGs** for new icons. If Lucide doesn't have a matching icon, extend the import — it has 1,000+.
 
+## Brand Motif
+
+A motif is a visual idea that recurs in multiple formats and ties a design together — when used consistently it converts a collection of screens into a recognizable brand. See [Erik Kennedy's explanation](https://www.learnui.design/blog/spice-up-designs-create-cohesive-brand.html) for the full theory and examples.
+
+Pillbug's motif is the **tilted gold pill**. The shape is native to the product name and the medication domain, making it doubly meaningful. Tilting it adds energy; the gold fill ties it directly to the brand's primary action color.
+
+### Where it appears
+
+- **Register page** — behind each feature icon at a unique per-item angle (−22°, +14°, −10°)
+- Extend to: empty states, onboarding illustrations, loading indicators, marketing surfaces — any place that needs a visual anchor without adding new shapes
+
+### How to use it
+
+The `.icon-pill` utility class in `global.css` accepts a `--pill-angle` CSS custom property. The icon inside counter-rotates automatically so it stays upright:
+
+```html
+<span class="icon-pill" style="--pill-angle: -22deg">
+  <Lock aria-hidden="true" />
+</span>
+```
+
+Rules:
+
+- Vary the angle per instance — no two adjacent pills should share the same angle
+- Icon size should exceed the pill height (16px) so the pill reads as a band across the icon, not a container around it
+- Use `--color-action` (gold) fill only; do not recolor the pill without a design decision
+
 ## Button Conventions
 
 All buttons have `border-radius: 8px` and a **raised plastic feel**: a 6px dark bottom ledge + stacked drop shadow creates perceived depth. Hover depresses the button `translateY(+4px)` and collapses the ledge to 2px, simulating a physical key press. Transitions: 80ms ease-out on background-color, transform, and box-shadow.
 
 **Surface:** Each variant has a darker `border` for the outer rim (separate from the ledge shadow), plus a bright 2px inset highlight at the top edge that creates a subtle concave lip.
 
-**Icon + text:** All button classes include `display: inline-flex; align-items: center; justify-content: center; gap: 8px`. Any button can have an icon child — use Lucide React at `size={18}` for inline use (vs `size={24}` for standalone icon-only buttons). Icon goes left of label by default; trailing icon goes right. The `justify-content: center` is required — `inline-flex` drops the browser's native `text-align: center` on `<button>` elements.
+**Icon + text:** Add `.button-leading-icon` alongside the variant class when a button has an icon child. It sets `gap: 10px` between icon and label. Use Lucide React at `size={18}` for inline use (vs `size={24}` for standalone icon-only buttons). Icon goes left of label by default; swap order for a trailing chevron.
 
 | Variant          | Background                              | Text / Border                     | Use                                                                                        |
 | ---------------- | --------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------ |
@@ -173,3 +200,5 @@ Do not use `--color-surface-tinted` (gold tint) for callout wells — it is too 
 | 2026-06-28 | Buttons: raised plastic feel (Arcade Punch direction)    | Replaced hover-lift with depress-on-press: 6px dark bottom border + shadow stacking creates perceived depth; translateY(+4px) + border collapse on hover simulates a physical key. More inviting and tactile than a flat lift. `.button-icon` (48×48) added with same treatment.                                                                                                        |
 | 2026-06-28 | Button surface: darker border + top inset highlight      | Real `border` for the rim (one step darker than the face, above the ledge color). Bright 2px inset highlight at top creates a subtle lip/concave feel. Flat background — the highlight alone reads as surface depth without gradient noise. Chosen after a prototype-first exploration of gradient vs inset-shadow approaches; stacking multiple inset shadows produced muddy overlaps. |
 | 2026-06-28 | Icon + text buttons: `inline-flex` on all button classes | All button classes now include `display: inline-flex; align-items: center; gap: 8px`. Any button works with or without an icon child. 18px Lucide icons for inline use, 24px for standalone icon-only.                                                                                                                                                                                  |
+| 2026-06-30 | `.button-leading-icon` modifier for icon + text buttons  | Explicit opt-in class (rather than `:has` selector magic) that sets `gap: 10px` for balanced icon/label spacing. Apply alongside the variant class whenever a button has a leading icon child.                                                                                                                                                                                          |
+| 2026-06-30 | Tilted gold pill established as the brand motif          | The pill shape is native to the product name and medication domain. Tilting it adds energy; varying angle per instance keeps it feeling hand-placed. Implemented as `.icon-pill` + `--pill-angle` CSS custom property. Counter-rotation keeps the icon upright automatically.                                                                                                           |
