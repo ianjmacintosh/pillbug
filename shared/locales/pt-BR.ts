@@ -68,7 +68,7 @@ const ptBR = {
   "doseForm.other_one": "{{count}} outro",
   "doseForm.other_other": "{{count}} outros",
   "prescriptions.heading": "Prescrições ({{count}})",
-  "prescriptions.addPrescription": "+ Adicionar Prescrição",
+  "prescriptions.addPrescription": "Adicionar Prescrição",
   "prescriptions.back": "← Voltar",
   "prescriptions.loading": "Carregando…",
   "prescriptions.selectPrompt":

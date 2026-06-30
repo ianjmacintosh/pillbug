@@ -7,6 +7,7 @@ import {
   Pill,
   Bell,
   CheckCircle,
+  ClipboardPlus,
   Plus,
   Trash2,
   LogOut,
@@ -366,7 +367,7 @@ export function StyleGuide() {
             <p className="sg-button-group-label">Icon + text</p>
             <div className="sg-button-row">
               <button className="button-primary button-leading-icon">
-                <Plus size={18} aria-hidden="true" />
+                <ClipboardPlus size={18} aria-hidden="true" />
                 Add prescription
               </button>
               <button className="button-secondary button-leading-icon">

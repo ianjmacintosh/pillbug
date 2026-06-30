@@ -67,7 +67,7 @@ const enUS = {
   "doseForm.other_one": "{{count}} other",
   "doseForm.other_other": "{{count}} others",
   "prescriptions.heading": "Prescriptions ({{count}})",
-  "prescriptions.addPrescription": "+ Add Prescription",
+  "prescriptions.addPrescription": "Add Prescription",
   "prescriptions.back": "← Back",
   "prescriptions.loading": "Loading…",
   "prescriptions.selectPrompt": "Select a prescription to view details.",
