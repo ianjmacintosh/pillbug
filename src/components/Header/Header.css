@@ -14,10 +14,6 @@
 
 .header-brand {
   font-family: var(--font-display);
-  margin: 0;
-}
-
-.header-brand a {
   color: var(--color-contrast);
   text-decoration: none;
 }
