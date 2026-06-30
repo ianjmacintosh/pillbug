@@ -124,7 +124,6 @@
 
 .register-feature-desc {
   font-family: var(--font-sans);
-  font-size: var(--text-sm);
   color: var(--gray-50);
   line-height: 1.45;
 }
