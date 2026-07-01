@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { ClipboardPlus } from "lucide-react";
+import { Scroll } from "lucide-react";
 import { Button } from "../Button/Button";
 
 interface Prescription {
@@ -42,7 +42,7 @@ export function PrescriptionList({
         to="/prescriptions/new"
         className="button-primary button-leading-icon"
       >
-        <ClipboardPlus size={18} aria-hidden="true" />
+        <Scroll size={18} aria-hidden="true" />
         {t("prescriptions.addPrescription")}
       </Button>
     </div>

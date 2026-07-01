@@ -111,7 +111,7 @@ const enUS = {
   "prescriptionForm.dose": "Dose",
   "prescriptionForm.removeLabel": "Remove",
   "prescriptionForm.removeDoseTime": "Remove time",
-  "prescriptionForm.addDoseTime": "+ Add new dose time",
+  "prescriptionForm.addDoseTime": "Add new dose time",
   "prescriptionForm.addDosingSchedule": "+ Add dosing schedule",
   "prescriptionForm.collapseToSimpleConfirm":
     "Switching to Simple will delete your extra dosing schedules — only the first schedule will be kept. Continue?",

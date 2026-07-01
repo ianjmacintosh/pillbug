@@ -114,7 +114,7 @@ const ptBR = {
   "prescriptionForm.dose": "Dose",
   "prescriptionForm.removeLabel": "Remover",
   "prescriptionForm.removeDoseTime": "Remover horário",
-  "prescriptionForm.addDoseTime": "+ Adicionar novo horário de dose",
+  "prescriptionForm.addDoseTime": "Adicionar novo horário de dose",
   "prescriptionForm.addDosingSchedule": "+ Adicionar esquema de dosagem",
   "prescriptionForm.collapseToSimpleConfirm":
     "Mudar para Simples excluirá seus esquemas de dosagem extras — somente o primeiro esquema será mantido. Continuar?",

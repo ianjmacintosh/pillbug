@@ -417,33 +417,9 @@
   box-sizing: border-box;
 }
 
-.prescriptions .remove-time {
-  box-sizing: border-box;
-  height: 2.5rem;
-  padding: 0 0.6rem;
-  border-radius: 4px;
-  font-size: var(--text-base);
-  line-height: 1;
-  cursor: pointer;
-  background-color: #fff;
-  border: 1px solid var(--gray-70, #999);
-  color: oklch(0.4 0 0);
-}
-
-.prescriptions .remove-time:hover:not(:disabled) {
-  border-color: oklch(0.4 0 0);
-  color: oklch(0.2 0 0);
-}
-
-.prescriptions .remove-time:disabled {
-  border-color: oklch(0.82 0 0);
-  color: oklch(0.65 0 0);
-  background-color: oklch(0.93 0 0);
-  cursor: not-allowed;
-}
-
 .prescriptions .add-dose-time {
-  margin-top: 0.75rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
 }
 
 /* ── Select prompt ──────────────────────────────────────────── */

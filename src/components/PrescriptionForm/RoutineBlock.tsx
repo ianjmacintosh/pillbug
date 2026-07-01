@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { AlarmClockPlus, Trash2 } from "lucide-react";
 import { Button } from "../Button/Button";
 import type { DayOfWeek } from "../../utils/constants";
 import { WEEKDAYS } from "../../utils/constants";
@@ -137,12 +138,12 @@ export function RoutineBlock({
               <td className="col-remove">
                 <Button
                   type="button"
-                  className="remove-time"
+                  className="button-icon button-secondary-icon"
                   aria-label={t("prescriptionForm.removeDoseTime")}
                   disabled={schedule.times.length === 1}
                   onClick={() => removeDoseTime(scheduleIndex, timeIndex)}
                 >
-                  ×
+                  <Trash2 size={20} aria-hidden="true" />
                 </Button>
               </td>
             </tr>
@@ -151,9 +152,10 @@ export function RoutineBlock({
       </table>
       <Button
         type="button"
-        className="add-dose-time"
+        className="button-secondary button-leading-icon add-dose-time"
         onClick={() => addDoseTime(scheduleIndex)}
       >
+        <AlarmClockPlus size={18} aria-hidden="true" />
         {t("prescriptionForm.addDoseTime")}
       </Button>
     </fieldset>
