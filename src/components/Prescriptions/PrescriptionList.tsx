@@ -51,7 +51,7 @@ export function PrescriptionList({
       <Button
         as="link"
         to="/prescriptions/new"
-        className="button-primary button-leading-icon"
+        className="button-primary button-leading-icon prescriptions-add-btn"
       >
         <Scroll size={18} aria-hidden="true" />
         {t("prescriptions.addPrescription")}
