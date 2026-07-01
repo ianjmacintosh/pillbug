@@ -2,6 +2,7 @@ import { useState, type SyntheticEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Turnstile } from "@marsidev/react-turnstile";
 import { useTranslation } from "react-i18next";
+import { Mail } from "lucide-react";
 import { Button } from "../Button/Button";
 import { Checkbox } from "../Checkbox/Checkbox";
 import { Field } from "../Field/Field";
@@ -93,7 +94,12 @@ export function RegistrationForm() {
         </span>
       </Checkbox>
       {error && <p role="alert">{error}</p>}
-      <Button type="submit" disabled={submitting} className="button-primary">
+      <Button
+        type="submit"
+        disabled={submitting}
+        className="button-primary button-leading-icon"
+      >
+        <Mail size={18} aria-hidden="true" />
         {submitting ? t("register.submitting") : t("register.submit")}
       </Button>
     </form>

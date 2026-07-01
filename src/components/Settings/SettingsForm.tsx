@@ -1,6 +1,7 @@
 import { useState, type SyntheticEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Check } from "lucide-react";
 import { Button } from "../Button/Button";
 import { Select } from "../Select/Select";
 
@@ -79,7 +80,12 @@ export function SettingsForm({
         ))}
       </Select>
       {status === "error" && <p role="alert">{t("settings.serverError")}</p>}
-      <Button type="submit" disabled={submitting} className="button-primary">
+      <Button
+        type="submit"
+        disabled={submitting}
+        className="button-primary button-leading-icon button-full"
+      >
+        <Check size={18} aria-hidden="true" />
         {submitting ? t("settings.submitting") : t("settings.submit")}
       </Button>
     </form>

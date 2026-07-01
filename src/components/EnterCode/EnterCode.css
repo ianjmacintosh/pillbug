@@ -55,10 +55,6 @@
   outline-offset: 1px;
 }
 
-.enter-code form button[type="submit"] {
-  align-self: flex-start;
-}
-
 .enter-code [role="alert"] {
   color: var(--color-error);
   font-family: var(--font-sans);

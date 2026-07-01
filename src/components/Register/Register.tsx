@@ -20,7 +20,7 @@ function Register() {
         <ul className="register-features">
           <li className="register-feature">
             <span className="register-feature-icon">
-              <Lock size={16} aria-hidden="true" />
+              <Lock size={38} aria-hidden="true" />
             </span>
             <div className="register-feature-copy">
               <strong className="register-feature-title">
@@ -33,7 +33,7 @@ function Register() {
           </li>
           <li className="register-feature">
             <span className="register-feature-icon">
-              <CalendarCheck size={16} aria-hidden="true" />
+              <CalendarCheck size={38} aria-hidden="true" />
             </span>
             <div className="register-feature-copy">
               <strong className="register-feature-title">
@@ -46,7 +46,7 @@ function Register() {
           </li>
           <li className="register-feature">
             <span className="register-feature-icon">
-              <ClipboardList size={16} aria-hidden="true" />
+              <ClipboardList size={38} aria-hidden="true" />
             </span>
             <div className="register-feature-copy">
               <strong className="register-feature-title">

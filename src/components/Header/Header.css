@@ -13,6 +13,7 @@
 }
 
 .header-brand {
+  font-size: var(--text-h2);
   font-family: var(--font-display);
   color: var(--color-contrast);
   text-decoration: none;

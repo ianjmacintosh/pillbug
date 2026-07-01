@@ -23,9 +23,9 @@ describe("EnterCode", () => {
     expect(screen.getByLabelText(/4-digit code/i)).toBeTruthy();
   });
 
-  test("has a verify button", () => {
+  test("has a continue button", () => {
     render(<EnterCode />);
-    expect(screen.getByRole("button", { name: /verify/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /continue/i })).toBeTruthy();
   });
 });
 
@@ -36,7 +36,7 @@ describe("EnterCode error messages", () => {
 
   async function submitPin(pin: string) {
     await userEvent.type(screen.getByLabelText(/4-digit code/i), pin);
-    await userEvent.click(screen.getByRole("button", { name: /verify/i }));
+    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
   }
 
   test("shows try-again message when server returns invalid", async () => {

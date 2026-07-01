@@ -102,12 +102,33 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
+  width: 44px;
+  height: 16px;
+  border-radius: 99px;
   background: var(--color-action);
   color: var(--color-contrast);
-  margin-top: 1px;
+  margin-top: 2px;
+}
+
+.register-features li:nth-child(1) .register-feature-icon {
+  transform: rotate(-22deg);
+}
+.register-features li:nth-child(1) .register-feature-icon svg {
+  transform: rotate(22deg);
+}
+
+.register-features li:nth-child(2) .register-feature-icon {
+  transform: rotate(14deg);
+}
+.register-features li:nth-child(2) .register-feature-icon svg {
+  transform: rotate(-14deg);
+}
+
+.register-features li:nth-child(3) .register-feature-icon {
+  transform: rotate(-10deg);
+}
+.register-features li:nth-child(3) .register-feature-icon svg {
+  transform: rotate(10deg);
 }
 
 .register-feature-copy {
@@ -124,7 +145,6 @@
 
 .register-feature-desc {
   font-family: var(--font-sans);
-  font-size: var(--text-sm);
   color: var(--gray-50);
   line-height: 1.45;
 }
@@ -231,7 +251,6 @@
   }
 
   .register-card form button[type="submit"] {
-    width: auto;
     align-self: flex-start;
   }
 }

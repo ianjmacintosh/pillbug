@@ -314,6 +314,68 @@ main {
     0 8px 10px oklch(0.62 0.34 95 / 0.3);
 }
 
+.button-secondary-icon {
+  background-color: transparent;
+  border-color: oklch(0.45 0.2 249);
+  color: var(--blue-50);
+  box-shadow:
+    inset 0 2px 0 oklch(1 0 0 / 0.8),
+    0 6px 0 oklch(0.28 0.22 249),
+    0 8px 12px oklch(0.5 0.22 249 / 0.2);
+}
+
+.button-secondary-icon:hover {
+  background-color: var(--blue-94);
+  box-shadow:
+    inset 0 2px 0 oklch(1 0 0 / 0.8),
+    0 2px 0 oklch(0.28 0.22 249),
+    0 2px 4px oklch(0.5 0.22 249 / 0.1);
+}
+
+.button-secondary-icon:disabled:hover {
+  box-shadow:
+    inset 0 2px 0 oklch(1 0 0 / 0.8),
+    0 6px 0 oklch(0.28 0.22 249),
+    0 8px 12px oklch(0.5 0.22 249 / 0.2);
+}
+
+.button-leading-icon {
+  gap: 10px;
+}
+
+.button-trailing-icon {
+  gap: 10px;
+}
+
+.button-trailing-icon::before {
+  content: "";
+  width: 18px;
+  flex-shrink: 0;
+}
+
+.button-full {
+  width: 100%;
+}
+
+/* ── Brand motif — tilted pill ────────────────────────────── */
+
+.icon-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 16px;
+  border-radius: 99px;
+  background: var(--color-action);
+  color: var(--color-contrast);
+  transform: rotate(var(--pill-angle, 0deg));
+}
+
+.icon-pill > svg {
+  transform: rotate(calc(var(--pill-angle, 0deg) * -1));
+}
+
 .well {
   background: var(--color-well-bg);
   color: var(--color-well-text);

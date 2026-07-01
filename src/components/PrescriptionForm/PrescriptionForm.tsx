@@ -1,5 +1,6 @@
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { ScrollText } from "lucide-react";
 import { Button } from "../Button/Button";
 import { PrescriptionFields } from "./PrescriptionFields";
 import { usePrescriptionForm } from "./usePrescriptionForm";
@@ -76,8 +77,9 @@ export function NewPrescriptionForm() {
           <Button
             type="submit"
             disabled={form.submitting}
-            className="button-primary"
+            className="button-primary button-leading-icon"
           >
+            <ScrollText size={18} aria-hidden="true" />
             {form.submitting
               ? t("prescriptionForm.saving")
               : t("prescriptionForm.save")}
@@ -157,8 +159,9 @@ export function EditPrescriptionForm() {
           <Button
             type="submit"
             disabled={form.submitting}
-            className="button-primary"
+            className="button-primary button-leading-icon"
           >
+            <ScrollText size={18} aria-hidden="true" />
             {form.submitting
               ? t("prescriptionForm.saving")
               : t("prescriptionForm.save")}

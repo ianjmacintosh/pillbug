@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Scroll } from "lucide-react";
 import { Button } from "../Button/Button";
 
 interface Prescription {
@@ -36,7 +37,12 @@ export function PrescriptionList({
           </li>
         ))}
       </ul>
-      <Button as="link" to="/prescriptions/new" className="button-primary">
+      <Button
+        as="link"
+        to="/prescriptions/new"
+        className="button-primary button-leading-icon"
+      >
+        <Scroll size={18} aria-hidden="true" />
         {t("prescriptions.addPrescription")}
       </Button>
     </div>

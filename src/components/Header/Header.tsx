@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { LogIn } from "lucide-react";
 import { Button } from "../Button/Button";
 import "./Header.css";
 
@@ -20,7 +21,12 @@ function Header({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
           {t("header.brand")}
         </a>
         {!isAuthenticated && (
-          <Button as="link" to="/login" className="button-primary header-login">
+          <Button
+            as="link"
+            to="/login"
+            className="button-primary button-leading-icon header-login"
+          >
+            <LogIn size={18} aria-hidden="true" />
             {t("header.nav.logIn")}
           </Button>
         )}

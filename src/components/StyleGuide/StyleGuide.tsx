@@ -7,10 +7,12 @@ import {
   Pill,
   Bell,
   CheckCircle,
+  ClipboardPlus,
   Plus,
   Trash2,
   LogOut,
   ChevronRight,
+  ArrowRight,
 } from "lucide-react";
 import "./StyleGuide.css";
 
@@ -153,6 +155,7 @@ export function StyleGuide() {
         <a href="#buttons">Buttons</a>
         <a href="#wells">Wells</a>
         <a href="#icons">Icons</a>
+        <a href="#motif">Motif</a>
         <a href="#spacing">Spacing</a>
       </nav>
 
@@ -363,25 +366,42 @@ export function StyleGuide() {
           <div className="sg-button-group">
             <p className="sg-button-group-label">Icon + text</p>
             <div className="sg-button-row">
-              <button className="button-primary">
-                <Plus size={18} aria-hidden="true" />
+              <button className="button-primary button-leading-icon">
+                <ClipboardPlus size={18} aria-hidden="true" />
                 Add prescription
               </button>
-              <button className="button-secondary">
+              <button className="button-secondary button-leading-icon">
                 <ChevronRight size={18} aria-hidden="true" />
                 View details
               </button>
-              <button className="button-danger">
+              <button className="button-danger button-leading-icon">
                 <Trash2 size={18} aria-hidden="true" />
                 Delete
               </button>
             </div>
             <p className="sg-button-note">
-              All button classes support icon children natively via{" "}
-              <code>inline-flex + gap: 8px</code>. Use Lucide at{" "}
-              <code>size={"{18}"}</code> for inline icons (vs 20–24 for
-              standalone). Icon goes left of label by default; swap order for a
-              trailing chevron.
+              Add <code>button-leading-icon</code> when the icon goes left of
+              the label. A <code>::after</code> spacer mirrors the icon width so
+              the label stays centered.
+            </p>
+          </div>
+
+          <div className="sg-button-group">
+            <p className="sg-button-group-label">Text + trailing icon</p>
+            <div className="sg-button-row">
+              <button className="button-primary button-trailing-icon">
+                Continue
+                <ArrowRight size={18} aria-hidden="true" />
+              </button>
+              <button className="button-secondary button-trailing-icon">
+                Next step
+                <ArrowRight size={18} aria-hidden="true" />
+              </button>
+            </div>
+            <p className="sg-button-note">
+              Use <code>button-trailing-icon</code> for forward-navigation
+              actions. A <code>::before</code> spacer mirrors the icon so the
+              label centers. Put the icon after the label in markup.
             </p>
           </div>
         </div>
@@ -430,6 +450,50 @@ export function StyleGuide() {
         <p className="sg-icon-note" style={{ marginTop: "1rem" }}>
           Lucide has 1,000+ icons — use any that fit. Tree-shakeable: only what
           you import ships in the bundle. MIT license.
+        </p>
+      </Section>
+
+      {/* ── Motif ── */}
+      <Section id="motif" label="Brand motif — tilted pill">
+        <p className="sg-icon-note">
+          The tilted gold pill is Pillbug&apos;s visual motif — a single
+          recurring shape that threads through the product to create brand
+          cohesion. The pill is native to the product name and the medication
+          domain. Tilting it adds energy; varying the angle per instance keeps
+          it feeling hand-placed rather than stamped.
+        </p>
+        <div className="sg-motif-row">
+          <span
+            className="icon-pill"
+            style={{ "--pill-angle": "-22deg" } as React.CSSProperties}
+          >
+            <Lock size={38} aria-hidden="true" />
+          </span>
+          <span
+            className="icon-pill"
+            style={{ "--pill-angle": "14deg" } as React.CSSProperties}
+          >
+            <CalendarCheck size={38} aria-hidden="true" />
+          </span>
+          <span
+            className="icon-pill"
+            style={{ "--pill-angle": "-10deg" } as React.CSSProperties}
+          >
+            <Clipboard size={38} aria-hidden="true" />
+          </span>
+          <span
+            className="icon-pill"
+            style={{ "--pill-angle": "20deg" } as React.CSSProperties}
+          >
+            <Pill size={38} aria-hidden="true" />
+          </span>
+        </div>
+        <p className="sg-icon-note" style={{ marginTop: "1rem" }}>
+          Use <code>.icon-pill</code> with the <code>--pill-angle</code> CSS
+          custom property. The icon counter-rotates automatically via{" "}
+          <code>calc(var(--pill-angle) * -1)</code> so it stays upright. Vary
+          the angle per instance — no two adjacent pills should share the same
+          angle.
         </p>
       </Section>
 

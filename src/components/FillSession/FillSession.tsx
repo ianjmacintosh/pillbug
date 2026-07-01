@@ -12,6 +12,7 @@ import {
   type Compartment,
   type Schedule,
 } from "../../../shared/fill-session";
+import { ChevronLeft, ChevronRight, FileDown, Printer } from "lucide-react";
 import { Button } from "../Button/Button";
 import { MedicineCard } from "./MedicineCard";
 import "./FillSession.css";
@@ -115,38 +116,42 @@ function FillSession() {
 
   return (
     <main className="fill-session">
-      <h1>{t("fillSession.heading")}</h1>
-      <h2 className="fill-session-date-range">
-        {startDateFmt}–{endDateFmt}
-      </h2>
-      <div className="fill-session-date-picker screen-only">
-        <label
-          htmlFor="fill-session-start-date"
-          className="fill-session-date-picker-label"
-        >
-          {t("fillSession.startDateLabel")}
-        </label>
-        <div className="fill-session-date-picker-row">
-          <button
-            type="button"
-            aria-label={t("fillSession.prevWeek")}
-            onClick={() => setStartDate((d) => addDays(d, -7))}
+      <div className="fill-session-header">
+        <h1>{t("fillSession.heading")}</h1>
+        <h2 className="fill-session-date-range">
+          {startDateFmt}–{endDateFmt}
+        </h2>
+        <div className="fill-session-date-picker screen-only">
+          <label
+            htmlFor="fill-session-start-date"
+            className="fill-session-date-picker-label"
           >
-            ←
-          </button>
-          <input
-            id="fill-session-start-date"
-            type="date"
-            value={startDate}
-            onChange={(e) => e.target.value && setStartDate(e.target.value)}
-          />
-          <button
-            type="button"
-            aria-label={t("fillSession.nextWeek")}
-            onClick={() => setStartDate((d) => addDays(d, 7))}
-          >
-            →
-          </button>
+            {t("fillSession.startDateLabel")}
+          </label>
+          <div className="fill-session-date-picker-row">
+            <Button
+              type="button"
+              className="button-icon button-secondary-icon"
+              aria-label={t("fillSession.prevWeek")}
+              onClick={() => setStartDate((d) => addDays(d, -7))}
+            >
+              <ChevronLeft size={20} aria-hidden="true" />
+            </Button>
+            <input
+              id="fill-session-start-date"
+              type="date"
+              value={startDate}
+              onChange={(e) => e.target.value && setStartDate(e.target.value)}
+            />
+            <Button
+              type="button"
+              className="button-icon button-secondary-icon"
+              aria-label={t("fillSession.nextWeek")}
+              onClick={() => setStartDate((d) => addDays(d, 7))}
+            >
+              <ChevronRight size={20} aria-hidden="true" />
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -157,12 +162,6 @@ function FillSession() {
       )}
 
       <div className="fill-session-controls screen-only">
-        <Button type="button" onClick={() => window.print()}>
-          {t("fillSession.printButton")}
-        </Button>
-        <Button type="button" onClick={handleSavePdf} disabled={pdfLoading}>
-          {t("fillSession.savePdfButton")}
-        </Button>
         <Select
           label={t("fillSession.pillOrganizerLabel")}
           value={organizerType}
@@ -179,24 +178,41 @@ function FillSession() {
       {prescriptions.length === 0 ? (
         <p>{t("fillSession.noPrescriptions")}</p>
       ) : (
-        <>
-          <div className="fill-session-cards">
-            {cards.map((card) => {
-              const cardKey = `${card.drugName}-${card.dosage}`;
-              return (
-                <MedicineCard
-                  key={cardKey}
-                  card={card}
-                  compartments={compartments}
-                  columnDates={sessionDatesMap}
-                  isOpen={openCardKey === cardKey}
-                  onToggle={() => toggleCard(cardKey)}
-                />
-              );
-            })}
-          </div>
-        </>
+        <div className="fill-session-cards">
+          {cards.map((card) => {
+            const cardKey = `${card.drugName}-${card.dosage}`;
+            return (
+              <MedicineCard
+                key={cardKey}
+                card={card}
+                compartments={compartments}
+                columnDates={sessionDatesMap}
+                isOpen={openCardKey === cardKey}
+                onToggle={() => toggleCard(cardKey)}
+              />
+            );
+          })}
+        </div>
       )}
+      <div className="fill-session-actions screen-only">
+        <Button
+          type="button"
+          className="button-secondary button-leading-icon"
+          onClick={() => window.print()}
+        >
+          <Printer size={18} aria-hidden="true" />
+          {t("fillSession.printButton")}
+        </Button>
+        <Button
+          type="button"
+          className="button-secondary button-leading-icon"
+          onClick={handleSavePdf}
+          disabled={pdfLoading}
+        >
+          <FileDown size={18} aria-hidden="true" />
+          {t("fillSession.savePdfButton")}
+        </Button>
+      </div>
     </main>
   );
 }

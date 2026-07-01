@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearch } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { ArrowRight } from "lucide-react";
 import { Button } from "../Button/Button";
 import { Field } from "../Field/Field";
 
@@ -80,9 +81,10 @@ export function EnterCodeForm() {
       <Button
         type="submit"
         disabled={submitting || pin.length !== 4}
-        className="button-primary"
+        className="button-primary button-trailing-icon button-full"
       >
         {submitting ? t("enterCode.submitting") : t("enterCode.submit")}
+        <ArrowRight size={18} aria-hidden="true" />
       </Button>
     </form>
   );

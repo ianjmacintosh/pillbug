@@ -72,7 +72,7 @@ test.describe("POST /api/v1/auth/verify-pin", () => {
 
       await page.goto(`/enter-code?token=${token}`);
       await page.getByLabel(/4-digit code/i).fill(pin);
-      await page.getByRole("button", { name: /verify/i }).click();
+      await page.getByRole("button", { name: /continue/i }).click();
 
       await expect(page).toHaveURL("/finish-setup");
     });
@@ -109,7 +109,7 @@ test.describe("POST /api/v1/auth/verify-pin", () => {
     const wrongPin = pin === "0000" ? "1111" : "0000";
     await page.goto(`/enter-code?token=${token}`);
     await page.getByLabel(/4-digit code/i).fill(wrongPin);
-    await page.getByRole("button", { name: /verify/i }).click();
+    await page.getByRole("button", { name: /continue/i }).click();
     await expect(page.getByRole("alert")).toContainText(/incorrect code/i);
   });
 
@@ -127,7 +127,7 @@ test.describe("POST /api/v1/auth/verify-pin", () => {
 
     await page.goto(`/enter-code?token=${token}`);
     await page.getByLabel(/4-digit code/i).fill(pin);
-    await page.getByRole("button", { name: /verify/i }).click();
+    await page.getByRole("button", { name: /continue/i }).click();
 
     await expect(page.getByRole("alert")).toContainText(/already been used/i);
   });
@@ -285,6 +285,6 @@ test("login for unregistered email navigates to /enter-code with a token that re
   await expect(page).toHaveURL(/\/enter-code\?token=/);
 
   await page.getByLabel(/4-digit code/i).fill("1234");
-  await page.getByRole("button", { name: /verify/i }).click();
+  await page.getByRole("button", { name: /continue/i }).click();
   await expect(page.getByRole("alert")).toContainText(/incorrect code/i);
 });
