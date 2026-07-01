@@ -7,11 +7,13 @@ import { NewPrescriptionForm } from "../PrescriptionForm";
 import { PrescriptionList } from "./PrescriptionList";
 import "./Prescriptions.css";
 
+import type { Schedule } from "../../../shared/schedule";
+
 interface Prescription {
   id: string;
   drugName: string;
   dosage: string;
-  schedule: { days: Record<string, unknown> };
+  schedule: Schedule;
   startDate: string;
   endDate: string | null;
   prescribingDoctor: string | null;

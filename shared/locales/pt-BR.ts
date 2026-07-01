@@ -67,6 +67,8 @@ const ptBR = {
   "doseForm.pill_other": "{{count}} pílulas",
   "doseForm.other_one": "{{count}} outro",
   "doseForm.other_other": "{{count}} outros",
+  "prescriptionList.complexSchedule": "Horário complexo ({{days}})",
+  "prescriptionList.scheduleDoses": "{{days}}: {{count}} doses",
   "prescriptions.heading": "Prescrições ({{count}})",
   "prescriptions.addPrescription": "Adicionar Prescrição",
   "prescriptions.back": "← Voltar",

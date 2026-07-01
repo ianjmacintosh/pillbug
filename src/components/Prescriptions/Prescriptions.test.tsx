@@ -17,7 +17,7 @@ const SAMPLE_PRESCRIPTION = {
   id: "rx-1",
   drugName: "Metformin",
   dosage: "500mg",
-  schedule: { days: { monday: ["08:00"] } },
+  schedule: { days: { monday: [{ time: "08:00", quantity: 1 }] } },
   startDate: "2024-01-01",
   endDate: null,
   prescribingDoctor: null,
@@ -145,7 +145,7 @@ describe("Prescriptions", () => {
         new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
       );
       await renderList();
-      await waitFor(() => screen.getByRole("link", { name: "Metformin" }));
+      await waitFor(() => screen.getByRole("link", { name: /metformin/i }));
     });
 
     test("heading shows prescription count", async () => {
@@ -168,7 +168,7 @@ describe("Prescriptions", () => {
       );
       await renderList();
       const link = await waitFor(() =>
-        screen.getByRole("link", { name: "Metformin" }),
+        screen.getByRole("link", { name: /metformin/i }),
       );
       expect(link.getAttribute("href")).toBe("/prescriptions/rx-1");
     });
@@ -178,7 +178,7 @@ describe("Prescriptions", () => {
         new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
       );
       await renderList();
-      await waitFor(() => screen.getByRole("link", { name: "Metformin" }));
+      await waitFor(() => screen.getByRole("link", { name: /metformin/i }));
 
       expect(screen.queryByRole("button", { name: /delete/i })).toBeNull();
     });
@@ -198,7 +198,7 @@ describe("Prescriptions", () => {
       const router = buildPrescriptionsRouter("/prescriptions");
       await router.load();
       render(<RouterProvider router={router} />);
-      await waitFor(() => screen.getByRole("link", { name: "Metformin" }));
+      await waitFor(() => screen.getByRole("link", { name: /metformin/i }));
       expect(router.state.location.pathname).toBe("/prescriptions");
     });
 
@@ -207,7 +207,7 @@ describe("Prescriptions", () => {
         new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
       );
       const { router } = await renderWithDetail();
-      await waitFor(() => screen.getByRole("link", { name: "Metformin" }));
+      await waitFor(() => screen.getByRole("link", { name: /metformin/i }));
       expect(router.state.location.pathname).toBe(
         `/prescriptions/${SAMPLE_PRESCRIPTION.id}`,
       );
@@ -220,7 +220,7 @@ describe("Prescriptions", () => {
         new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
       );
       await renderList();
-      await waitFor(() => screen.getByRole("link", { name: "Metformin" }));
+      await waitFor(() => screen.getByRole("link", { name: /metformin/i }));
       expect(screen.getByText(/select a prescription/i)).toBeTruthy();
     });
   });
@@ -252,7 +252,7 @@ describe("Prescriptions", () => {
         new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
       );
       await renderWithDetail();
-      await waitFor(() => screen.getByRole("link", { name: "Metformin" }));
+      await waitFor(() => screen.getByRole("link", { name: /metformin/i }));
       expect(screen.getByRole("button", { name: /back/i })).toBeTruthy();
     });
   });
@@ -276,7 +276,7 @@ describe("Prescriptions", () => {
         new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
       );
       await renderList();
-      await waitFor(() => screen.getByRole("link", { name: "Metformin" }));
+      await waitFor(() => screen.getByRole("link", { name: /metformin/i }));
       expect(screen.getByRole("main").className).toContain(
         "prescriptions--mobile-list",
       );
@@ -295,7 +295,7 @@ describe("Prescriptions", () => {
       ).toBeTruthy();
       // List panel: link loads after fetch
       await waitFor(() =>
-        expect(screen.getByRole("link", { name: "Metformin" })).toBeTruthy(),
+        expect(screen.getByRole("link", { name: /metformin/i })).toBeTruthy(),
       );
     });
 
@@ -304,11 +304,32 @@ describe("Prescriptions", () => {
         new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
       );
       await renderWithDetail();
-      await waitFor(() => screen.getByRole("link", { name: "Metformin" }));
+      await waitFor(() => screen.getByRole("link", { name: /metformin/i }));
       const item = screen
-        .getByRole("link", { name: "Metformin" })
+        .getByRole("link", { name: /metformin/i })
         .closest("li");
       expect(item?.className).toContain("prescription-item--selected");
+    });
+  });
+
+  describe("prescription list item", () => {
+    test("shows schedule summary as a second line inside the link", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
+      );
+      await renderList();
+      await waitFor(() => screen.getByText("Mon: 8:00 AM"));
+    });
+
+    test("each list item renders a chevron icon", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify([SAMPLE_PRESCRIPTION]), { status: 200 }),
+      );
+      await renderList();
+      await waitFor(() => screen.getByText("Mon: 8:00 AM"));
+      // ChevronRight renders an svg; the list item should contain one
+      const item = screen.getByText("Mon: 8:00 AM").closest("li");
+      expect(item?.querySelector("svg")).toBeTruthy();
     });
   });
 });

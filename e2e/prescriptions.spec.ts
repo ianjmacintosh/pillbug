@@ -67,9 +67,7 @@ test.describe("Split-panel layout", () => {
     await page.goto("/prescriptions");
     await expect(page).toHaveURL("/prescriptions");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: "Metformin", exact: true }),
-    ).toBeVisible();
+    await expect(page.getByRole("link", { name: /metformin/i })).toBeVisible();
   });
 
   test.describe("mobile back navigation", () => {
@@ -127,9 +125,23 @@ test.describe("Prescription list", () => {
     await page.goto("/prescriptions");
 
     await expect(page.getByRole("heading", { level: 1 })).toContainText("(2)");
-    await expect(
-      page.getByRole("link", { name: "Metformin", exact: true }),
-    ).toBeVisible();
+    await expect(page.getByRole("link", { name: /metformin/i })).toBeVisible();
+  });
+
+  test("each list item shows a schedule summary and chevron", async ({
+    page,
+  }) => {
+    await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    await page.goto("/prescriptions");
+
+    const listItem = page.getByRole("link", { name: /metformin/i });
+    await expect(listItem).toBeVisible();
+    // Schedule summary: Monday at 8 AM
+    await expect(listItem.getByText(/mon.*8:00 am/i)).toBeVisible();
+    // Chevron icon present (lucide renders an svg)
+    await expect(listItem.locator("svg")).toBeVisible();
   });
 });
 
@@ -180,9 +192,7 @@ test.describe("Prescription create", () => {
     ).toBeVisible();
 
     await page.goto("/prescriptions");
-    await expect(
-      page.getByRole("link", { name: "Aspirin", exact: true }),
-    ).toBeVisible();
+    await expect(page.getByRole("link", { name: /aspirin/i })).toBeVisible();
   });
 
   test("form interactions: day pill toggles and dose time buttons", async ({
@@ -449,9 +459,10 @@ test.describe("Prescription detail", () => {
     await expect(page.getByRole("heading", { level: 2 })).toHaveText(
       "Metformin",
     );
-    await expect(page.getByText("500 mg")).toBeVisible();
-    await expect(page.getByText("01/01/2024")).toBeVisible();
-    await expect(page.getByText("8:00 AM")).toBeVisible();
+    const detail = page.locator("article");
+    await expect(detail.getByText("500 mg")).toBeVisible();
+    await expect(detail.getByText("01/01/2024")).toBeVisible();
+    await expect(detail.getByText("8:00 AM")).toBeVisible();
 
     await page.getByRole("link", { name: /edit/i }).click();
     await expect(page).toHaveURL(`/prescriptions/${id}/edit`);
@@ -497,7 +508,7 @@ test.describe("Prescription detail", () => {
     const { id: lisinoprilId } = (await res2.json()) as { id: string };
 
     await page.goto(`/prescriptions/${metforminId}`);
-    await page.getByRole("link", { name: "Lisinopril", exact: true }).click();
+    await page.getByRole("link", { name: /lisinopril/i }).click();
 
     await expect(page).toHaveURL(`/prescriptions/${lisinoprilId}`);
     await expect(
