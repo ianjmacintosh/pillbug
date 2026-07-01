@@ -66,6 +66,8 @@ const enUS = {
   "doseForm.pill_other": "{{count}} pills",
   "doseForm.other_one": "{{count}} other",
   "doseForm.other_other": "{{count}} others",
+  "prescriptionList.complexSchedule": "Complex schedule ({{days}})",
+  "prescriptionList.scheduleDoses": "{{days}}: {{count}} doses",
   "prescriptions.heading": "Prescriptions ({{count}})",
   "prescriptions.addPrescription": "Add Prescription",
   "prescriptions.back": "← Back",
