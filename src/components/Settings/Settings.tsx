@@ -1,5 +1,6 @@
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { LogOut } from "lucide-react";
 import { Button } from "../Button/Button";
 import { SettingsForm } from "./SettingsForm";
 import "./Settings.css";
@@ -23,8 +24,9 @@ function Settings() {
       <Button
         type="button"
         onClick={handleLogout}
-        className="button-secondary settings-logout"
+        className="button-secondary button-leading-icon button-full settings-logout"
       >
+        <LogOut size={18} aria-hidden="true" />
         {t("header.nav.logOut")}
       </Button>
     </main>

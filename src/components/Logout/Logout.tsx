@@ -1,4 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
+import { LogOut } from "lucide-react";
 import { Button } from "../Button/Button";
 
 function Logout() {
@@ -13,7 +14,12 @@ function Logout() {
     <main>
       <h1>Log out</h1>
       <p>You're logged in — log out?</p>
-      <Button type="button" onClick={handleLogout}>
+      <Button
+        type="button"
+        className="button-secondary button-leading-icon"
+        onClick={handleLogout}
+      >
+        <LogOut size={18} aria-hidden="true" />
         Log out
       </Button>
     </main>
