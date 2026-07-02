@@ -434,6 +434,56 @@ main {
   }
 }
 
+/* Soft-disabled tooltip wrapper and tooltip */
+.button-tooltip-wrapper {
+  position: relative;
+  display: block;
+}
+
+@keyframes button-tooltip-appear {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.button-tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: oklch(0.22 0.04 60);
+  color: oklch(1 0 0);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+  animation: button-tooltip-appear 0.15s ease-out;
+}
+
+.button-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: oklch(0.22 0.04 60);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button-tooltip {
+    animation: none;
+  }
+}
+
 .button-leading-icon {
   gap: 10px;
 }

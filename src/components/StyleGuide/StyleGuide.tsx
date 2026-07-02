@@ -1,4 +1,3 @@
-import { useCallback, useRef, useState } from "react";
 import {
   Clipboard,
   CalendarCheck,
@@ -142,15 +141,6 @@ const SPACING = [
 ];
 
 function SoftDisabledDemo() {
-  const [hint, setHint] = useState<string | null>(null);
-  const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const showHint = useCallback(() => {
-    setHint("Still needed: drug name, dosing days");
-    if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
-    hintTimerRef.current = setTimeout(() => setHint(null), 4000);
-  }, []);
-
   return (
     <div className="sg-button-group">
       <p className="sg-button-group-label">Soft disabled (blocked)</p>
@@ -158,26 +148,12 @@ function SoftDisabledDemo() {
         className="sg-button-row"
         style={{ flexWrap: "wrap", gap: "0.75rem" }}
       >
-        {hint && (
-          <p
-            style={{
-              width: "100%",
-              margin: 0,
-              fontSize: "var(--text-sm)",
-              color: "var(--color-link)",
-              textAlign: "center",
-            }}
-            role="status"
-          >
-            {hint}
-          </p>
-        )}
         {(["button-primary", "button-secondary", "button-danger"] as const).map(
           (variant) => (
             <Button
               key={variant}
               disabled
-              onDisabledClick={showHint}
+              disabledReason="Still needed: drug name, dosing days"
               className={variant}
             >
               Save prescription
@@ -186,12 +162,11 @@ function SoftDisabledDemo() {
         )}
       </div>
       <p className="sg-button-note">
-        Pass <code>onDisabledClick</code> to <code>Button</code> instead of
-        using the native <code>disabled</code> attribute. The button stays
-        focusable and tabbable; clicking it triggers a spring-back press (2px
-        down then bounce) and calls the callback. Diagonal stripes signal the
-        blocked state at rest. The caller shows a hint explaining what&apos;s
-        needed.
+        Pass <code>disabledReason</code> to <code>Button</code> instead of using
+        the native <code>disabled</code> attribute. The button stays focusable
+        and tabbable; clicking it triggers a spring-back press (2px down then
+        bounce) and shows a tooltip with the reason. Diagonal stripes signal the
+        blocked state at rest.
       </p>
     </div>
   );
