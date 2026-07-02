@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   Clipboard,
   CalendarCheck,
@@ -15,6 +15,7 @@ import {
   ChevronRight,
   ArrowRight,
 } from "lucide-react";
+import { Button } from "../Button/Button";
 import "./StyleGuide.css";
 
 function Section({
@@ -142,6 +143,14 @@ const SPACING = [
 
 function SoftDisabledDemo() {
   const [hint, setHint] = useState<string | null>(null);
+  const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showHint = useCallback(() => {
+    setHint("Still needed: drug name, dosing days");
+    if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+    hintTimerRef.current = setTimeout(() => setHint(null), 4000);
+  }, []);
+
   return (
     <div className="sg-button-group">
       <p className="sg-button-group-label">Soft disabled (blocked)</p>
@@ -158,25 +167,21 @@ function SoftDisabledDemo() {
               color: "var(--color-text-muted)",
               textAlign: "center",
             }}
-            role="alert"
+            role="status"
           >
             {hint}
           </p>
         )}
         {(["button-primary", "button-secondary", "button-danger"] as const).map(
           (variant) => (
-            <button
+            <Button
               key={variant}
+              disabled
+              onDisabledClick={showHint}
               className={variant}
-              aria-disabled="true"
-              onClick={(e) => {
-                e.preventDefault();
-                setHint("Still needed: drug name, dosing days");
-                setTimeout(() => setHint(null), 4000);
-              }}
             >
               Save prescription
-            </button>
+            </Button>
           ),
         )}
       </div>
