@@ -310,7 +310,7 @@ ul.prescription-list {
 
 .prescriptions .form-missing-hint {
   font-size: var(--text-sm);
-  color: var(--color-text-muted);
+  color: var(--color-link);
   width: 100%;
   text-align: center;
   margin: 0;
