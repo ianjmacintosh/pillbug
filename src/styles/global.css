@@ -427,6 +427,12 @@ main {
   transform: none;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .button--shaking {
+    animation: none;
+  }
+}
+
 .button-leading-icon {
   gap: 10px;
 }
