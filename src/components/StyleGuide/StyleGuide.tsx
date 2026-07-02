@@ -362,9 +362,6 @@ export function StyleGuide() {
             <div className="sg-button-row">
               <button className="button-primary">Take medication</button>
               <button className="button-primary button-sm">Add +</button>
-              <button className="button-primary" disabled>
-                Disabled
-              </button>
             </div>
             <p className="sg-button-note">
               Gold bg + warm-dark text. 6px bottom border + shadow gives the
@@ -378,9 +375,6 @@ export function StyleGuide() {
             <div className="sg-button-row">
               <button className="button-secondary">Skip dose</button>
               <button className="button-secondary button-sm">Cancel</button>
-              <button className="button-secondary" disabled>
-                Disabled
-              </button>
             </div>
             <p className="sg-button-note">
               Sky blue border + text, no fill. Same raised treatment — 6px
@@ -393,9 +387,6 @@ export function StyleGuide() {
             <div className="sg-button-row">
               <button className="button-danger">Delete prescription</button>
               <button className="button-danger button-sm">Remove</button>
-              <button className="button-danger" disabled>
-                Disabled
-              </button>
             </div>
             <p className="sg-button-note">
               Muted red, white text. Destructive actions only.
@@ -410,9 +401,6 @@ export function StyleGuide() {
               </button>
               <button className="button-icon" aria-label="Settings">
                 <Settings size={20} aria-hidden="true" />
-              </button>
-              <button className="button-icon" disabled aria-label="Disabled">
-                <Bell size={20} aria-hidden="true" />
               </button>
             </div>
             <p className="sg-button-note">

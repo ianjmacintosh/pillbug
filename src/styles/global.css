@@ -231,8 +231,14 @@ main {
 }
 
 .button-secondary[aria-disabled="true"] {
-  opacity: 0.75;
   cursor: not-allowed;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0,
+    transparent 5px,
+    oklch(0.28 0.22 249 / 0.2) 5px,
+    oklch(0.28 0.22 249 / 0.2) 8px
+  );
 }
 
 .button-secondary[aria-disabled="true"]:hover {
@@ -298,8 +304,14 @@ main {
 }
 
 .button-danger[aria-disabled="true"] {
-  opacity: 0.75;
   cursor: not-allowed;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0,
+    transparent 5px,
+    oklch(0.22 0.15 25 / 0.25) 5px,
+    oklch(0.22 0.15 25 / 0.25) 8px
+  );
 }
 
 .button-danger[aria-disabled="true"]:hover {
