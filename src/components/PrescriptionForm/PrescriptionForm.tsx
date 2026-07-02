@@ -114,26 +114,13 @@ export function NewPrescriptionForm() {
           <Button
             type="submit"
             disabled={form.submitting}
-            className="button-primary button-leading-icon"
+            className="button-primary button-leading-icon button-full"
           >
             <ScrollText size={18} aria-hidden="true" />
             {form.submitting
               ? t("prescriptionForm.saving")
               : t("prescriptionForm.save")}
           </Button>
-          {form.missingFields.length > 0 && (
-            <span
-              className="form-missing-hint"
-              role="status"
-              aria-live="polite"
-            >
-              {t("prescriptionForm.stillNeeded", {
-                fields: form.missingFields
-                  .map((f) => fieldLabels[f])
-                  .join(", "),
-              })}
-            </span>
-          )}
         </div>
       </form>
     </section>
@@ -219,26 +206,13 @@ export function EditPrescriptionForm() {
           <Button
             type="submit"
             disabled={form.submitting}
-            className="button-primary button-leading-icon"
+            className="button-primary button-leading-icon button-full"
           >
             <ScrollText size={18} aria-hidden="true" />
             {form.submitting
               ? t("prescriptionForm.saving")
               : t("prescriptionForm.save")}
           </Button>
-          {form.missingFields.length > 0 && (
-            <span
-              className="form-missing-hint"
-              role="status"
-              aria-live="polite"
-            >
-              {t("prescriptionForm.stillNeeded", {
-                fields: form.missingFields
-                  .map((f) => fieldLabels[f])
-                  .join(", "),
-              })}
-            </span>
-          )}
         </div>
       </form>
     </section>

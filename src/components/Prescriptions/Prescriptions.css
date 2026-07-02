@@ -308,10 +308,6 @@ ul.prescription-list {
   transition: box-shadow 150ms ease-out;
 }
 
-.prescriptions .form-actions--stuck {
-  box-shadow: 0 -8px 24px oklch(0 0 0 / 0.07);
-}
-
 .prescriptions .form-missing-hint {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
