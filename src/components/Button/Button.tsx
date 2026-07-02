@@ -63,7 +63,7 @@ export function Button({ as, ...rest }: ButtonProps) {
           e.preventDefault();
           if (!isShaking) {
             setIsShaking(true);
-            setTimeout(() => setIsShaking(false), 350);
+            setTimeout(() => setIsShaking(false), 300);
           }
           onDisabledClick();
         }}

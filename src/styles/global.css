@@ -419,7 +419,7 @@ main {
 }
 
 .button--shaking {
-  animation: button-blocked-shake 350ms ease-out forwards;
+  animation: button-blocked-shake 300ms ease-out forwards;
   pointer-events: none;
 }
 
