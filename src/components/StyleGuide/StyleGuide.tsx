@@ -164,7 +164,7 @@ function SoftDisabledDemo() {
               width: "100%",
               margin: 0,
               fontSize: "var(--text-sm)",
-              color: "var(--color-text-muted)",
+              color: "var(--color-link)",
               textAlign: "center",
             }}
             role="status"
@@ -188,9 +188,10 @@ function SoftDisabledDemo() {
       <p className="sg-button-note">
         Pass <code>onDisabledClick</code> to <code>Button</code> instead of
         using the native <code>disabled</code> attribute. The button stays
-        focusable and tabbable; clicking it triggers a partial press (2px
-        instead of 4px) + shake animation and calls the callback. The caller
-        shows an inline hint explaining what&apos;s needed.
+        focusable and tabbable; clicking it triggers a spring-back press (2px
+        down then bounce) and calls the callback. Diagonal stripes signal the
+        blocked state at rest. The caller shows a hint explaining what&apos;s
+        needed.
       </p>
     </div>
   );

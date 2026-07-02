@@ -25,7 +25,7 @@ function mergeClass(base: string, extra?: string) {
 }
 
 export function Button({ as, ...rest }: ButtonProps) {
-  const [isShaking, setIsShaking] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   if (as === "a") {
     const { className, ...props } =
@@ -54,16 +54,16 @@ export function Button({ as, ...rest }: ButtonProps) {
 
   if (props.disabled && onDisabledClick) {
     const { disabled: _disabled, onClick: _onClick, ...buttonProps } = props;
-    const shakingClass = isShaking ? " button--shaking" : "";
+    const blockedClass = isBlocked ? " button--blocked" : "";
     return (
       <button
-        className={mergeClass("button", className) + shakingClass}
+        className={mergeClass("button", className) + blockedClass}
         aria-disabled="true"
         onClick={(e) => {
           e.preventDefault();
-          if (!isShaking) {
-            setIsShaking(true);
-            setTimeout(() => setIsShaking(false), 300);
+          if (!isBlocked) {
+            setIsBlocked(true);
+            setTimeout(() => setIsBlocked(false), 300);
           }
           onDisabledClick();
         }}

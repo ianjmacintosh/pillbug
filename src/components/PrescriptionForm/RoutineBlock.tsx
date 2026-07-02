@@ -11,6 +11,7 @@ interface RoutineBlockProps {
   scheduleIndex: number;
   schedulesLength: number;
   hideHeader?: boolean;
+  showDosingDaysError?: boolean;
   removeSchedule: (index: number) => void;
   toggleAllDays: (scheduleIndex: number) => void;
   toggleDay: (scheduleIndex: number, day: DayOfWeek) => void;
@@ -34,6 +35,7 @@ export function RoutineBlock({
   scheduleIndex,
   schedulesLength,
   hideHeader = false,
+  showDosingDaysError = false,
   removeSchedule,
   toggleAllDays,
   toggleDay,
@@ -68,7 +70,9 @@ export function RoutineBlock({
           {t("prescriptionForm.daysError")}
         </p>
       )}
-      <div className="day-pills-row">
+      <div
+        className={`day-pills-row${showDosingDaysError ? " day-pills-row--error" : ""}`}
+      >
         {WEEKDAYS.map((day) => (
           <label key={day} className="day-pill">
             <input

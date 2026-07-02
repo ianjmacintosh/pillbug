@@ -309,12 +309,29 @@ ul.prescription-list {
 }
 
 .prescriptions .form-missing-hint {
+  position: absolute;
+  bottom: calc(100% + 0.25rem);
+  left: 0;
+  right: 0;
   font-size: var(--text-sm);
   color: var(--color-link);
-  width: 100%;
   text-align: center;
   margin: 0;
+  padding: 0.25rem 0;
+  background: var(--color-page-bg);
   animation: form-hint-in 150ms ease-out;
+}
+
+.prescriptions .field--error > input,
+.prescriptions .field--error > .dosage-input-row > input {
+  outline: 2px solid var(--color-error);
+  outline-offset: 1px;
+}
+
+.prescriptions .day-pills-row--error {
+  outline: 2px solid var(--color-error);
+  outline-offset: 4px;
+  border-radius: 4px;
 }
 
 @keyframes form-hint-in {

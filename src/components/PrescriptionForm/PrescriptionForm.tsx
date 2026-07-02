@@ -36,12 +36,15 @@ function useIsFormActionsStuck(
 }
 
 export function NewPrescriptionForm() {
+  const idPrefix = "create";
   const { t } = useTranslation();
   const form = usePrescriptionForm();
   const navigate = useNavigate();
   const formActionsRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const isStuck = useIsFormActionsStuck(formActionsRef);
   const [blockedHint, setBlockedHint] = useState<string | null>(null);
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fieldLabels: Record<"drugName" | "dosingDays", string> = {
@@ -55,8 +58,18 @@ export function NewPrescriptionForm() {
     setBlockedHint(
       t("prescriptionForm.stillNeeded", { fields: names.join(", ") }),
     );
+    setHasAttemptedSubmit(true);
     if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
     hintTimerRef.current = setTimeout(() => setBlockedHint(null), 4000);
+
+    const firstMissing = form.missingFields[0];
+    if (firstMissing) {
+      const target =
+        firstMissing === "drugName"
+          ? document.getElementById(`${idPrefix}-drugName`)
+          : (formRef.current?.querySelector<Element>(".day-pills-row") ?? null);
+      target?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+    }
   }, [form.missingFields, form.scheduleEditor, fieldLabels, t]);
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
@@ -96,13 +109,18 @@ export function NewPrescriptionForm() {
     }
   }
 
+  const highlightedFields = hasAttemptedSubmit
+    ? new Set(form.missingFields)
+    : undefined;
+
   return (
     <section>
       <h2>{t("prescriptionForm.addHeading")}</h2>
-      <form onSubmit={handleCreate}>
+      <form ref={formRef} onSubmit={handleCreate}>
         {form.error && <p role="alert">{form.error}</p>}
         <PrescriptionFields
-          idPrefix="create"
+          idPrefix={idPrefix}
+          highlightedFields={highlightedFields}
           scheduleEditor={form.scheduleEditor}
           doseForm={form.doseForm}
           setDoseForm={form.setDoseForm}
@@ -156,14 +174,17 @@ export function NewPrescriptionForm() {
 const editRouteApi = getRouteApi("/layout/prescriptions/$id/edit");
 
 export function EditPrescriptionForm() {
+  const idPrefix = "edit";
   const { t } = useTranslation();
   const prescription = editRouteApi.useLoaderData() as PrescriptionFormData;
   const { id } = editRouteApi.useParams();
   const form = usePrescriptionForm(prescription);
   const navigate = useNavigate();
   const formActionsRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const isStuck = useIsFormActionsStuck(formActionsRef);
   const [blockedHint, setBlockedHint] = useState<string | null>(null);
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fieldLabels: Record<"drugName" | "dosingDays", string> = {
@@ -177,8 +198,18 @@ export function EditPrescriptionForm() {
     setBlockedHint(
       t("prescriptionForm.stillNeeded", { fields: names.join(", ") }),
     );
+    setHasAttemptedSubmit(true);
     if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
     hintTimerRef.current = setTimeout(() => setBlockedHint(null), 4000);
+
+    const firstMissing = form.missingFields[0];
+    if (firstMissing) {
+      const target =
+        firstMissing === "drugName"
+          ? document.getElementById(`${idPrefix}-drugName`)
+          : (formRef.current?.querySelector<Element>(".day-pills-row") ?? null);
+      target?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+    }
   }, [form.missingFields, form.scheduleEditor, fieldLabels, t]);
 
   async function handleSaveEdit(e: React.FormEvent<HTMLFormElement>) {
@@ -214,13 +245,18 @@ export function EditPrescriptionForm() {
     }
   }
 
+  const highlightedFields = hasAttemptedSubmit
+    ? new Set(form.missingFields)
+    : undefined;
+
   return (
     <section>
       <h2>{t("prescriptionForm.editHeading")}</h2>
-      <form onSubmit={handleSaveEdit}>
+      <form ref={formRef} onSubmit={handleSaveEdit}>
         {form.error && <p role="alert">{form.error}</p>}
         <PrescriptionFields
-          idPrefix="edit"
+          idPrefix={idPrefix}
+          highlightedFields={highlightedFields}
           scheduleEditor={form.scheduleEditor}
           doseForm={form.doseForm}
           setDoseForm={form.setDoseForm}

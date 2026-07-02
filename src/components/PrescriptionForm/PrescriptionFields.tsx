@@ -9,6 +9,7 @@ import type { ScheduleEditor } from "./usePrescriptionForm";
 interface PrescriptionFieldsProps {
   idPrefix: string;
   scheduleEditor: ScheduleEditor;
+  highlightedFields?: ReadonlySet<"drugName" | "dosingDays">;
   doseForm: string;
   setDoseForm: (v: string) => void;
   drugName: string;
@@ -32,6 +33,7 @@ interface PrescriptionFieldsProps {
 export function PrescriptionFields({
   idPrefix,
   scheduleEditor,
+  highlightedFields,
   doseForm,
   setDoseForm,
   drugName,
@@ -72,7 +74,9 @@ export function PrescriptionFields({
   return (
     <>
       <div className="drug-info-row">
-        <div className="field drug-name-field">
+        <div
+          className={`field drug-name-field${highlightedFields?.has("drugName") ? " field--error" : ""}`}
+        >
           <label htmlFor={`${idPrefix}-drugName`}>
             {t("prescriptionForm.drugNameLabel")}
           </label>
@@ -257,6 +261,9 @@ export function PrescriptionFields({
               scheduleIndex={scheduleIndex}
               schedulesLength={schedules.length}
               hideHeader={!isAdvanced}
+              showDosingDaysError={
+                highlightedFields?.has("dosingDays") ?? false
+              }
               removeSchedule={removeSchedule}
               toggleAllDays={toggleAllDays}
               toggleDay={toggleDay}
