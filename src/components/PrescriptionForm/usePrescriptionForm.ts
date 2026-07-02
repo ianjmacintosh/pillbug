@@ -305,6 +305,13 @@ export function usePrescriptionForm(prescription?: PrescriptionFormData) {
       : `${dosageQuantity} ${dosageUnit}`;
   }
 
+  const missingFields: ("drugName" | "dosingDays")[] = [
+    ...(!drugName.trim() ? (["drugName"] as const) : []),
+    ...(!scheduleEditor.schedules.some((s) => s.days.size > 0)
+      ? (["dosingDays"] as const)
+      : []),
+  ];
+
   return {
     scheduleEditor,
     doseForm,
@@ -330,5 +337,6 @@ export function usePrescriptionForm(prescription?: PrescriptionFormData) {
     detectedDuplicateUnit,
     setDetectedDuplicateUnit,
     buildDosage,
+    missingFields,
   };
 }

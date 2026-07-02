@@ -1,3 +1,4 @@
+import { useRef, useState, useEffect } from "react";
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ScrollText } from "lucide-react";
@@ -8,10 +9,38 @@ import type { PrescriptionFormData } from "./PrescriptionForm.types";
 
 export type { PrescriptionFormData } from "./PrescriptionForm.types";
 
+function useIsFormActionsStuck(
+  formActionsRef: React.RefObject<HTMLDivElement | null>,
+) {
+  const [isStuck, setIsStuck] = useState(false);
+  useEffect(() => {
+    const el = formActionsRef.current;
+    if (!el) return;
+    function check() {
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const stickyBottom = parseFloat(getComputedStyle(el).bottom) || 0;
+      setIsStuck(
+        Math.abs(rect.bottom - (window.innerHeight - stickyBottom)) < 2,
+      );
+    }
+    check();
+    window.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check);
+    return () => {
+      window.removeEventListener("scroll", check);
+      window.removeEventListener("resize", check);
+    };
+  }, [formActionsRef]);
+  return isStuck;
+}
+
 export function NewPrescriptionForm() {
   const { t } = useTranslation();
   const form = usePrescriptionForm();
   const navigate = useNavigate();
+  const formActionsRef = useRef<HTMLDivElement>(null);
+  const isStuck = useIsFormActionsStuck(formActionsRef);
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -46,6 +75,11 @@ export function NewPrescriptionForm() {
     }
   }
 
+  const fieldLabels: Record<"drugName" | "dosingDays", string> = {
+    drugName: t("prescriptionForm.fieldDrugName"),
+    dosingDays: t("prescriptionForm.fieldDosingDays"),
+  };
+
   return (
     <section>
       <h2>{t("prescriptionForm.addHeading")}</h2>
@@ -73,7 +107,10 @@ export function NewPrescriptionForm() {
           detectedDuplicateUnit={form.detectedDuplicateUnit}
           setDetectedDuplicateUnit={form.setDetectedDuplicateUnit}
         />
-        <div className="form-actions">
+        <div
+          ref={formActionsRef}
+          className={`form-actions${isStuck ? " form-actions--stuck" : ""}`}
+        >
           <Button
             type="submit"
             disabled={form.submitting}
@@ -84,6 +121,19 @@ export function NewPrescriptionForm() {
               ? t("prescriptionForm.saving")
               : t("prescriptionForm.save")}
           </Button>
+          {form.missingFields.length > 0 && (
+            <span
+              className="form-missing-hint"
+              role="status"
+              aria-live="polite"
+            >
+              {t("prescriptionForm.stillNeeded", {
+                fields: form.missingFields
+                  .map((f) => fieldLabels[f])
+                  .join(", "),
+              })}
+            </span>
+          )}
         </div>
       </form>
     </section>
@@ -98,6 +148,8 @@ export function EditPrescriptionForm() {
   const { id } = editRouteApi.useParams();
   const form = usePrescriptionForm(prescription);
   const navigate = useNavigate();
+  const formActionsRef = useRef<HTMLDivElement>(null);
+  const isStuck = useIsFormActionsStuck(formActionsRef);
 
   async function handleSaveEdit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -128,6 +180,11 @@ export function EditPrescriptionForm() {
     }
   }
 
+  const fieldLabels: Record<"drugName" | "dosingDays", string> = {
+    drugName: t("prescriptionForm.fieldDrugName"),
+    dosingDays: t("prescriptionForm.fieldDosingDays"),
+  };
+
   return (
     <section>
       <h2>{t("prescriptionForm.editHeading")}</h2>
@@ -155,7 +212,10 @@ export function EditPrescriptionForm() {
           detectedDuplicateUnit={form.detectedDuplicateUnit}
           setDetectedDuplicateUnit={form.setDetectedDuplicateUnit}
         />
-        <div className="form-actions">
+        <div
+          ref={formActionsRef}
+          className={`form-actions${isStuck ? " form-actions--stuck" : ""}`}
+        >
           <Button
             type="submit"
             disabled={form.submitting}
@@ -166,6 +226,19 @@ export function EditPrescriptionForm() {
               ? t("prescriptionForm.saving")
               : t("prescriptionForm.save")}
           </Button>
+          {form.missingFields.length > 0 && (
+            <span
+              className="form-missing-hint"
+              role="status"
+              aria-live="polite"
+            >
+              {t("prescriptionForm.stillNeeded", {
+                fields: form.missingFields
+                  .map((f) => fieldLabels[f])
+                  .join(", "),
+              })}
+            </span>
+          )}
         </div>
       </form>
     </section>
