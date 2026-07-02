@@ -73,6 +73,7 @@ All font sizes must use a `--text-*` token. No hard-coded `font-size` values are
 --color-action-hover  → oklch(0.82 0.34 95)
 --color-action-text   → oklch(0.22 0.04 60)   /* text ON gold surfaces */
 --color-brand-bg      → oklch(0.9 0.4 95)     /* header, brand panels */
+--color-page-bg        → oklch(0.98 0 0)      /* page background (body) */
 --color-surface-tinted → oklch(0.97 0.04 95)  /* micro-UI, nav pills */
 --color-surface-raised → oklch(1 0 0)
 --color-contrast      → oklch(0.22 0.04 60)   /* headings */

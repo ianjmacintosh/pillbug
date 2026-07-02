@@ -297,6 +297,12 @@ ul.prescription-list {
   display: flex;
   gap: 0.75rem;
   align-items: center;
+  position: sticky;
+  bottom: 0;
+  background: var(--color-page-bg);
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--gray-90);
+  z-index: 1;
 }
 
 .prescriptions .prescription-list {
@@ -486,6 +492,10 @@ ul.prescription-list {
 /* ── Mobile accordion (≤ 640px) ─────────────────────────────── */
 
 @media (max-width: 640px) {
+  .prescriptions .form-actions {
+    bottom: calc(60px + env(safe-area-inset-bottom, 0));
+  }
+
   .prescriptions-layout {
     flex-direction: column;
     gap: 0;

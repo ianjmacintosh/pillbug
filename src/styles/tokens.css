@@ -19,6 +19,7 @@
   --gray-70: oklch(0.7 0 0);
   --gray-90: oklch(0.9 0 0);
   --gray-97: oklch(0.97 0 0);
+  --gray-98: oklch(0.98 0 0);
 
   /* ── Semantic color tokens ────────────────────────────────── */
 
@@ -26,6 +27,7 @@
   --color-action-hover: oklch(0.82 0.34 95);
   --color-action-text: var(--color-contrast);
   --color-brand-bg: var(--yellow-90);
+  --color-page-bg: var(--gray-98);
   --color-surface-tinted: oklch(0.97 0.04 95);
   --color-surface-raised: oklch(1 0 0);
   --color-contrast: oklch(0.22 0.04 60);
