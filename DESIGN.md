@@ -177,6 +177,37 @@ All buttons have `border-radius: 8px` and a **raised plastic feel**: a 6px dark 
 | Small (modifier) | —                                       | —                                 | Apply `.button-sm` for tighter padding (0.3125rem × 0.75rem)                               |
 | Icon             | `--color-action` (gold, flat), 48×48    | `--color-action-text`             | Icon-only button (`.button-icon`). Requires `aria-label`. Same raised + depress treatment. |
 
+### Soft-disabled buttons (blocked interaction)
+
+When a button cannot proceed because required input is missing — but the reason is explainable — prefer **soft-disable** over the native `disabled` attribute.
+
+**Why:** Native `disabled` removes the element from tab order and hides it from some screen readers. Soft-disabled buttons remain focusable and tabbable; clicking one registers the attempt and gives immediate, specific feedback.
+
+**How:** Pass `onDisabledClick` to the `Button` component alongside `disabled={true}`. The component automatically:
+
+- Renders with `aria-disabled="true"` instead of the native attribute
+- Intercepts clicks: prevents form submission, triggers a 2px partial press + 350ms shake animation
+- Calls your callback so you can surface a hint (use the `form-missing-hint` class + `role="alert"`)
+
+```tsx
+<Button
+  type="submit"
+  disabled={form.submitting || form.missingFields.length > 0}
+  onDisabledClick={
+    form.missingFields.length > 0 && !form.submitting
+      ? showBlockedHint
+      : undefined
+  }
+  className="button-primary button-leading-icon button-full"
+>
+  Save prescription
+</Button>
+```
+
+The hint message uses `t("prescriptionForm.stillNeeded", { fields })` (e.g. "Still needed: drug name, dosing days") and auto-dismisses after 4 seconds.
+
+**When NOT to use:** Actions that are blocked by a system state the user can't affect right now (e.g., loading, permission denied, server error) — use native `disabled` for those. Soft-disable is only for "fill in X to continue."
+
 ## Wells / Callouts
 
 Use `.well` for high-emphasis callout blocks: confirmations, status messages, onboarding nudges. Sky blue background (`--color-well-bg`) with white text (`--color-well-text`). Border radius 8px.
@@ -203,3 +234,4 @@ Do not use `--color-surface-tinted` (gold tint) for callout wells — it is too 
 | 2026-06-28 | Icon + text buttons: `inline-flex` on all button classes | All button classes now include `display: inline-flex; align-items: center; gap: 8px`. Any button works with or without an icon child. 18px Lucide icons for inline use, 24px for standalone icon-only.                                                                                                                                                                                  |
 | 2026-06-30 | `.button-leading-icon` modifier for icon + text buttons  | Explicit opt-in class (rather than `:has` selector magic) that sets `gap: 10px` for balanced icon/label spacing. Apply alongside the variant class whenever a button has a leading icon child.                                                                                                                                                                                          |
 | 2026-06-30 | Tilted gold pill established as the brand motif          | The pill shape is native to the product name and medication domain. Tilting it adds energy; varying angle per instance keeps it feeling hand-placed. Implemented as `.icon-pill` + `--pill-angle` CSS custom property. Counter-rotation keeps the icon upright automatically.                                                                                                           |
+| 2026-07-02 | Soft-disabled buttons via `onDisabledClick` prop         | Native `disabled` removes buttons from tab order and hides intent from screen readers. When the blocking condition is user-fixable (missing required fields), prefer `aria-disabled="true"` + a blocked-click callback. Partial press (2px) + shake animation acknowledges the attempt; an auto-dismissing hint names what's needed. See "Soft-disabled buttons" section above.         |

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Clipboard,
   CalendarCheck,
@@ -138,6 +139,57 @@ const SPACING = [
   { token: "--space-9", px: "40px", rem: "2.5rem" },
   { token: "--space-10", px: "48px", rem: "3rem" },
 ];
+
+function SoftDisabledDemo() {
+  const [hint, setHint] = useState<string | null>(null);
+  return (
+    <div className="sg-button-group">
+      <p className="sg-button-group-label">Soft disabled (blocked)</p>
+      <div
+        className="sg-button-row"
+        style={{ flexWrap: "wrap", gap: "0.75rem" }}
+      >
+        {hint && (
+          <p
+            style={{
+              width: "100%",
+              margin: 0,
+              fontSize: "var(--text-sm)",
+              color: "var(--color-text-muted)",
+              textAlign: "center",
+            }}
+            role="alert"
+          >
+            {hint}
+          </p>
+        )}
+        {(["button-primary", "button-secondary", "button-danger"] as const).map(
+          (variant) => (
+            <button
+              key={variant}
+              className={variant}
+              aria-disabled="true"
+              onClick={(e) => {
+                e.preventDefault();
+                setHint("Still needed: drug name, dosing days");
+                setTimeout(() => setHint(null), 4000);
+              }}
+            >
+              Save prescription
+            </button>
+          ),
+        )}
+      </div>
+      <p className="sg-button-note">
+        Pass <code>onDisabledClick</code> to <code>Button</code> instead of
+        using the native <code>disabled</code> attribute. The button stays
+        focusable and tabbable; clicking it triggers a partial press (2px
+        instead of 4px) + shake animation and calls the callback. The caller
+        shows an inline hint explaining what&apos;s needed.
+      </p>
+    </div>
+  );
+}
 
 export function StyleGuide() {
   return (
@@ -404,6 +456,8 @@ export function StyleGuide() {
               label centers. Put the icon after the label in markup.
             </p>
           </div>
+
+          <SoftDisabledDemo />
         </div>
       </Section>
 

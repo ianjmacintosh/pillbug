@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type {
   AnchorHTMLAttributes,
   ButtonHTMLAttributes,
@@ -6,7 +7,10 @@ import type {
 } from "react";
 import { Link } from "@tanstack/react-router";
 
-type AsButton = { as?: "button" } & ButtonHTMLAttributes<HTMLButtonElement>;
+type AsButton = {
+  as?: "button";
+  onDisabledClick?: () => void;
+} & ButtonHTMLAttributes<HTMLButtonElement>;
 type AsAnchor = { as: "a" } & AnchorHTMLAttributes<HTMLAnchorElement>;
 type AsInput = { as: "input" } & Omit<
   InputHTMLAttributes<HTMLInputElement>,
@@ -21,6 +25,8 @@ function mergeClass(base: string, extra?: string) {
 }
 
 export function Button({ as, ...rest }: ButtonProps) {
+  const [isShaking, setIsShaking] = useState(false);
+
   if (as === "a") {
     const { className, ...props } =
       rest as AnchorHTMLAttributes<HTMLAnchorElement>;
@@ -43,7 +49,28 @@ export function Button({ as, ...rest }: ButtonProps) {
     const { className, ...props } = rest as ComponentProps<typeof Link>;
     return <Link className={mergeClass("button", className)} {...props} />;
   }
-  const { className, ...props } =
-    rest as ButtonHTMLAttributes<HTMLButtonElement>;
+
+  const { className, onDisabledClick, ...props } = rest as AsButton;
+
+  if (props.disabled && onDisabledClick) {
+    const { disabled: _disabled, onClick: _onClick, ...buttonProps } = props;
+    const shakingClass = isShaking ? " button--shaking" : "";
+    return (
+      <button
+        className={mergeClass("button", className) + shakingClass}
+        aria-disabled="true"
+        onClick={(e) => {
+          e.preventDefault();
+          if (!isShaking) {
+            setIsShaking(true);
+            setTimeout(() => setIsShaking(false), 350);
+          }
+          onDisabledClick();
+        }}
+        {...buttonProps}
+      />
+    );
+  }
+
   return <button className={mergeClass("button", className)} {...props} />;
 }

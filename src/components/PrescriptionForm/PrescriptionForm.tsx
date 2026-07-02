@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ScrollText } from "lucide-react";
@@ -41,9 +41,30 @@ export function NewPrescriptionForm() {
   const navigate = useNavigate();
   const formActionsRef = useRef<HTMLDivElement>(null);
   const isStuck = useIsFormActionsStuck(formActionsRef);
+  const [blockedHint, setBlockedHint] = useState<string | null>(null);
+  const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const fieldLabels: Record<"drugName" | "dosingDays", string> = {
+    drugName: t("prescriptionForm.fieldDrugName"),
+    dosingDays: t("prescriptionForm.fieldDosingDays"),
+  };
+
+  const showBlockedHint = useCallback(() => {
+    form.scheduleEditor.validateSchedule();
+    const names = form.missingFields.map((f) => fieldLabels[f]);
+    setBlockedHint(
+      t("prescriptionForm.stillNeeded", { fields: names.join(", ") }),
+    );
+    if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+    hintTimerRef.current = setTimeout(() => setBlockedHint(null), 4000);
+  }, [form.missingFields, form.scheduleEditor, fieldLabels, t]);
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (form.missingFields.length > 0) {
+      showBlockedHint();
+      return;
+    }
     form.setError(null);
     if (!form.scheduleEditor.validateSchedule()) return;
 
@@ -74,11 +95,6 @@ export function NewPrescriptionForm() {
       form.setSubmitting(false);
     }
   }
-
-  const fieldLabels: Record<"drugName" | "dosingDays", string> = {
-    drugName: t("prescriptionForm.fieldDrugName"),
-    dosingDays: t("prescriptionForm.fieldDosingDays"),
-  };
 
   return (
     <section>
@@ -111,9 +127,19 @@ export function NewPrescriptionForm() {
           ref={formActionsRef}
           className={`form-actions${isStuck ? " form-actions--stuck" : ""}`}
         >
+          {blockedHint && (
+            <p className="form-missing-hint" role="status">
+              {blockedHint}
+            </p>
+          )}
           <Button
             type="submit"
-            disabled={form.submitting}
+            disabled={form.submitting || form.missingFields.length > 0}
+            onDisabledClick={
+              form.missingFields.length > 0 && !form.submitting
+                ? showBlockedHint
+                : undefined
+            }
             className="button-primary button-leading-icon button-full"
           >
             <ScrollText size={18} aria-hidden="true" />
@@ -137,9 +163,30 @@ export function EditPrescriptionForm() {
   const navigate = useNavigate();
   const formActionsRef = useRef<HTMLDivElement>(null);
   const isStuck = useIsFormActionsStuck(formActionsRef);
+  const [blockedHint, setBlockedHint] = useState<string | null>(null);
+  const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const fieldLabels: Record<"drugName" | "dosingDays", string> = {
+    drugName: t("prescriptionForm.fieldDrugName"),
+    dosingDays: t("prescriptionForm.fieldDosingDays"),
+  };
+
+  const showBlockedHint = useCallback(() => {
+    form.scheduleEditor.validateSchedule();
+    const names = form.missingFields.map((f) => fieldLabels[f]);
+    setBlockedHint(
+      t("prescriptionForm.stillNeeded", { fields: names.join(", ") }),
+    );
+    if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+    hintTimerRef.current = setTimeout(() => setBlockedHint(null), 4000);
+  }, [form.missingFields, form.scheduleEditor, fieldLabels, t]);
 
   async function handleSaveEdit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (form.missingFields.length > 0) {
+      showBlockedHint();
+      return;
+    }
     form.setError(null);
     if (!form.scheduleEditor.validateSchedule()) return;
 
@@ -166,11 +213,6 @@ export function EditPrescriptionForm() {
       form.setSubmitting(false);
     }
   }
-
-  const fieldLabels: Record<"drugName" | "dosingDays", string> = {
-    drugName: t("prescriptionForm.fieldDrugName"),
-    dosingDays: t("prescriptionForm.fieldDosingDays"),
-  };
 
   return (
     <section>
@@ -203,9 +245,19 @@ export function EditPrescriptionForm() {
           ref={formActionsRef}
           className={`form-actions${isStuck ? " form-actions--stuck" : ""}`}
         >
+          {blockedHint && (
+            <p className="form-missing-hint" role="status">
+              {blockedHint}
+            </p>
+          )}
           <Button
             type="submit"
-            disabled={form.submitting}
+            disabled={form.submitting || form.missingFields.length > 0}
+            onDisabledClick={
+              form.missingFields.length > 0 && !form.submitting
+                ? showBlockedHint
+                : undefined
+            }
             className="button-primary button-leading-icon button-full"
           >
             <ScrollText size={18} aria-hidden="true" />
