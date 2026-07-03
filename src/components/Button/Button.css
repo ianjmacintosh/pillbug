@@ -1,0 +1,337 @@
+/* ── Base — shared layout, typography, and transitions ──────── */
+
+.button {
+  padding: 0.6875rem 1.625rem;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: var(--button-shadow-rest);
+  transition:
+    background-color 0.08s ease-out,
+    transform 0.08s ease-out,
+    box-shadow 0.08s ease-out;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.button:disabled:hover {
+  transform: none;
+  box-shadow: var(--button-shadow-rest);
+}
+
+/* Soft-disabled: aria-disabled="true" — clickable but gives feedback on click.
+   Variants set --button-soft-disabled-glow and --button-soft-disabled-stripe. */
+.button[aria-disabled="true"] {
+  cursor: not-allowed;
+  text-shadow:
+    -1px 0 0 var(--button-soft-disabled-glow, transparent),
+    1px 0 0 var(--button-soft-disabled-glow, transparent),
+    0 -1px 0 var(--button-soft-disabled-glow, transparent),
+    0 1px 0 var(--button-soft-disabled-glow, transparent);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0,
+    transparent 8px,
+    var(--button-soft-disabled-stripe, transparent) 8px,
+    var(--button-soft-disabled-stripe, transparent) 16px
+  );
+}
+
+.button-primary[aria-disabled="true"]:hover,
+.button-secondary[aria-disabled="true"]:hover,
+.button-danger[aria-disabled="true"]:hover {
+  transform: translateY(2px);
+  box-shadow: var(--button-shadow-partial);
+}
+
+/* ── Primary ──────────────────────────────────────────────── */
+
+.button-primary {
+  --button-press-depth: 4px;
+  --button-partial-press: 2px;
+  --button-shadow-rest:
+    inset 0 2px 0 oklch(0.97 0.22 95 / 0.9), 0 6px 0 oklch(0.48 0.32 95),
+    0 8px 12px oklch(0.62 0.34 95 / 0.35);
+  --button-shadow-partial:
+    inset 0 2px 0 oklch(0.97 0.22 95 / 0.9), 0 4px 0 oklch(0.48 0.32 95),
+    0 5px 8px oklch(0.62 0.34 95 / 0.27);
+  --button-soft-disabled-glow: var(--color-action);
+  --button-soft-disabled-stripe: oklch(0.22 0.04 60 / 0.14);
+  background-color: var(--color-action);
+  color: var(--color-action-text);
+  border: 1px solid oklch(0.55 0.32 95);
+}
+
+.button-primary:hover {
+  background-color: var(--color-action-hover);
+  color: var(--color-action-text);
+  transform: translateY(var(--button-press-depth));
+  box-shadow:
+    inset 0 2px 0 oklch(0.97 0.22 95 / 0.9),
+    0 2px 0 oklch(0.48 0.32 95),
+    0 2px 4px oklch(0.62 0.34 95 / 0.2);
+}
+
+.button-primary:focus-visible {
+  outline: 2px solid var(--color-contrast);
+  outline-offset: 2px;
+}
+
+.button-primary[aria-disabled="true"]:hover {
+  background-color: var(--color-action-hover);
+}
+
+/* ── Secondary ────────────────────────────────────────────── */
+
+.button-secondary {
+  --button-shadow-rest:
+    inset 0 2px 0 oklch(1 0 0 / 0.8), 0 6px 0 oklch(0.28 0.22 249),
+    0 8px 12px oklch(0.5 0.22 249 / 0.2);
+  --button-shadow-partial:
+    inset 0 2px 0 oklch(1 0 0 / 0.8), 0 4px 0 oklch(0.28 0.22 249),
+    0 5px 8px oklch(0.5 0.22 249 / 0.15);
+  --button-soft-disabled-glow: var(--color-surface-raised);
+  --button-soft-disabled-stripe: oklch(0.28 0.22 249 / 0.2);
+  background-color: transparent;
+  color: var(--blue-50);
+  border: 1px solid oklch(0.45 0.2 249);
+}
+
+.button-secondary:hover {
+  background-color: var(--blue-94);
+  color: var(--blue-50);
+  transform: translateY(4px);
+  box-shadow:
+    inset 0 2px 0 oklch(1 0 0 / 0.8),
+    0 2px 0 oklch(0.28 0.22 249),
+    0 2px 4px oklch(0.5 0.22 249 / 0.1);
+}
+
+.button-secondary:focus-visible {
+  outline: 2px solid var(--blue-50);
+  outline-offset: 2px;
+}
+
+.button-secondary[aria-disabled="true"]:hover {
+  background-color: var(--blue-94);
+}
+
+/* ── Danger ───────────────────────────────────────────────── */
+
+.button-danger {
+  --button-shadow-rest:
+    inset 0 2px 0 oklch(0.85 0.15 25 / 0.6), 0 6px 0 oklch(0.25 0.22 25),
+    0 8px 12px oklch(0.55 0.22 25 / 0.3);
+  --button-shadow-partial:
+    inset 0 2px 0 oklch(0.85 0.15 25 / 0.6), 0 4px 0 oklch(0.25 0.22 25),
+    0 5px 8px oklch(0.55 0.22 25 / 0.2);
+  --button-soft-disabled-glow: var(--color-danger);
+  --button-soft-disabled-stripe: oklch(0.22 0.15 25 / 0.25);
+  background-color: var(--color-danger);
+  color: oklch(1 0 0);
+  border: 1px solid oklch(0.35 0.22 25);
+}
+
+.button-danger:hover {
+  background-color: oklch(0.48 0.22 25);
+  transform: translateY(4px);
+  box-shadow:
+    inset 0 2px 0 oklch(0.85 0.15 25 / 0.6),
+    0 2px 0 oklch(0.25 0.22 25),
+    0 2px 4px oklch(0.55 0.22 25 / 0.15);
+}
+
+.button-danger:focus-visible {
+  outline: 2px solid var(--color-danger-focus-ring);
+  outline-offset: 2px;
+}
+
+.button-danger[aria-disabled="true"]:hover {
+  background-color: oklch(0.48 0.22 25);
+}
+
+/* ── Size modifier ────────────────────────────────────────── */
+
+.button-sm {
+  padding: 0.3125rem 0.75rem;
+  font-size: var(--text-sm);
+  border-radius: 6px;
+}
+
+/* ── Icon button ──────────────────────────────────────────── */
+
+.button-icon {
+  --button-shadow-rest:
+    inset 0 2px 0 oklch(0.97 0.22 95 / 0.9), 0 6px 0 oklch(0.48 0.32 95),
+    0 8px 10px oklch(0.62 0.34 95 / 0.3);
+  --button-shadow-partial:
+    inset 0 2px 0 oklch(0.97 0.22 95 / 0.9), 0 4px 0 oklch(0.48 0.32 95),
+    0 5px 6px oklch(0.62 0.34 95 / 0.22);
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  background-color: var(--color-action);
+  color: var(--color-action-text);
+  border: 1px solid oklch(0.55 0.32 95);
+  border-radius: 10px;
+}
+
+.button-icon:hover {
+  background-color: var(--color-action-hover);
+  transform: translateY(4px);
+  box-shadow:
+    inset 0 2px 0 oklch(0.97 0.22 95 / 0.9),
+    0 2px 0 oklch(0.48 0.32 95),
+    0 2px 4px oklch(0.62 0.34 95 / 0.15);
+}
+
+.button-icon:focus-visible {
+  outline: 2px solid var(--color-contrast);
+  outline-offset: 2px;
+}
+
+.button-icon[aria-disabled="true"] {
+  opacity: 0.75;
+}
+
+.button-icon[aria-disabled="true"]:hover {
+  background-color: var(--color-action-hover);
+  transform: none;
+  box-shadow: var(--button-shadow-rest);
+}
+
+/* ── Secondary icon button ────────────────────────────────── */
+
+.button-secondary-icon {
+  background-color: transparent;
+  border-color: oklch(0.45 0.2 249);
+  color: var(--blue-50);
+  box-shadow:
+    inset 0 2px 0 oklch(1 0 0 / 0.8),
+    0 6px 0 oklch(0.28 0.22 249),
+    0 8px 12px oklch(0.5 0.22 249 / 0.2);
+}
+
+.button-secondary-icon:hover {
+  background-color: var(--blue-94);
+  box-shadow:
+    inset 0 2px 0 oklch(1 0 0 / 0.8),
+    0 2px 0 oklch(0.28 0.22 249),
+    0 2px 4px oklch(0.5 0.22 249 / 0.1);
+}
+
+.button-secondary-icon:disabled:hover {
+  box-shadow:
+    inset 0 2px 0 oklch(1 0 0 / 0.8),
+    0 6px 0 oklch(0.28 0.22 249),
+    0 8px 12px oklch(0.5 0.22 249 / 0.2);
+}
+
+/* ── Spring-back animation for soft-disabled blocked interaction ── */
+
+@keyframes button-blocked-press {
+  0% {
+    transform: translateY(0);
+    box-shadow: var(--button-shadow-rest);
+  }
+  25% {
+    transform: translateY(var(--button-partial-press, 2px));
+    box-shadow: var(--button-shadow-partial);
+  }
+  100% {
+    transform: translateY(0);
+    box-shadow: var(--button-shadow-rest);
+  }
+}
+
+.button--blocked {
+  animation: button-blocked-press 300ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button--blocked {
+    animation: none;
+  }
+}
+
+/* ── Soft-disabled tooltip ────────────────────────────────── */
+
+.button-tooltip-wrapper {
+  position: relative;
+  display: block;
+}
+
+@keyframes button-tooltip-appear {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.button-tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: oklch(0.22 0.04 60);
+  color: oklch(1 0 0);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+  animation: button-tooltip-appear 0.15s ease-out;
+}
+
+.button-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: oklch(0.22 0.04 60);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button-tooltip {
+    animation: none;
+  }
+}
+
+/* ── Layout modifiers ─────────────────────────────────────── */
+
+.button-leading-icon {
+  gap: 10px;
+}
+
+.button-trailing-icon {
+  gap: 10px;
+}
+
+.button-trailing-icon::before {
+  content: "";
+  width: 18px;
+  flex-shrink: 0;
+}
+
+.button-full {
+  width: 100%;
+}

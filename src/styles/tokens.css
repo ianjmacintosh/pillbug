@@ -37,7 +37,8 @@
   --color-link-hover: oklch(0.3 0.1 55);
   --color-error: oklch(0.4 0.15 25);
   --color-focus-ring: var(--yellow-87);
-  --color-danger-focus-ring: oklch(0.55 0.22 25);
+  --color-danger: oklch(0.55 0.22 25);
+  --color-danger-focus-ring: var(--color-danger);
   --color-well-bg: var(--blue-50);
   --color-well-text: oklch(1 0 0);
   --color-well-bg-light: var(--blue-94);
