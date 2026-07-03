@@ -164,9 +164,8 @@ function SoftDisabledDemo() {
       <p className="sg-button-note">
         Pass <code>disabledReason</code> to <code>Button</code> instead of using
         the native <code>disabled</code> attribute. The button stays focusable
-        and tabbable; clicking it triggers a spring-back press (2px down then
-        bounce) and shows a tooltip with the reason. Diagonal stripes signal the
-        blocked state at rest.
+        and tabbable; hovering nudges it 2px down; clicking it triggers a
+        spring-back press and shows a tooltip with the reason.
       </p>
     </div>
   );
