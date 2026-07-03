@@ -226,7 +226,10 @@ test.describe("Prescription create", () => {
     await page.getByLabel("Strength").fill("100");
     await page.getByLabel(/start date/i).fill("2024-06-01");
     await page.getByLabel(/time 1/i).fill("08:00");
-    await page.getByRole("button", { name: /save prescription/i }).click();
+    // Button is soft-disabled (no day selected); force:true simulates a real user click
+    await page
+      .getByRole("button", { name: /save prescription/i })
+      .click({ force: true });
     await expect(
       page.getByRole("group", { name: /days and times/i }),
     ).toHaveAttribute("aria-invalid", "true");

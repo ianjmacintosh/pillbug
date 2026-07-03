@@ -1,3 +1,4 @@
+import { useRef, useState, useEffect, useCallback } from "react";
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ScrollText } from "lucide-react";
@@ -8,13 +9,66 @@ import type { PrescriptionFormData } from "./PrescriptionForm.types";
 
 export type { PrescriptionFormData } from "./PrescriptionForm.types";
 
+function useIsFormActionsStuck(
+  formActionsRef: React.RefObject<HTMLDivElement | null>,
+) {
+  const [isStuck, setIsStuck] = useState(false);
+  useEffect(() => {
+    const el = formActionsRef.current;
+    if (!el) return;
+    function check() {
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const stickyBottom = parseFloat(getComputedStyle(el).bottom) || 0;
+      setIsStuck(
+        Math.abs(rect.bottom - (window.innerHeight - stickyBottom)) < 2,
+      );
+    }
+    check();
+    window.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check);
+    return () => {
+      window.removeEventListener("scroll", check);
+      window.removeEventListener("resize", check);
+    };
+  }, [formActionsRef]);
+  return isStuck;
+}
+
 export function NewPrescriptionForm() {
+  const idPrefix = "create";
   const { t } = useTranslation();
   const form = usePrescriptionForm();
   const navigate = useNavigate();
+  const formActionsRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const isStuck = useIsFormActionsStuck(formActionsRef);
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+
+  const fieldLabels: Record<"drugName" | "dosingDays", string> = {
+    drugName: t("prescriptionForm.fieldDrugName"),
+    dosingDays: t("prescriptionForm.fieldDosingDays"),
+  };
+
+  const handleBlockedClick = useCallback(() => {
+    form.scheduleEditor.validateSchedule();
+    setHasAttemptedSubmit(true);
+    const firstMissing = form.missingFields[0];
+    if (firstMissing) {
+      const target =
+        firstMissing === "drugName"
+          ? document.getElementById(`${idPrefix}-drugName`)
+          : (formRef.current?.querySelector<Element>(".day-pills-row") ?? null);
+      target?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+    }
+  }, [form.missingFields, form.scheduleEditor, idPrefix]);
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (form.missingFields.length > 0) {
+      handleBlockedClick();
+      return;
+    }
     form.setError(null);
     if (!form.scheduleEditor.validateSchedule()) return;
 
@@ -46,13 +100,18 @@ export function NewPrescriptionForm() {
     }
   }
 
+  const highlightedFields = hasAttemptedSubmit
+    ? new Set(form.missingFields)
+    : undefined;
+
   return (
     <section>
       <h2>{t("prescriptionForm.addHeading")}</h2>
-      <form onSubmit={handleCreate}>
+      <form ref={formRef} onSubmit={handleCreate}>
         {form.error && <p role="alert">{form.error}</p>}
         <PrescriptionFields
-          idPrefix="create"
+          idPrefix={idPrefix}
+          highlightedFields={highlightedFields}
           scheduleEditor={form.scheduleEditor}
           doseForm={form.doseForm}
           setDoseForm={form.setDoseForm}
@@ -73,11 +132,28 @@ export function NewPrescriptionForm() {
           detectedDuplicateUnit={form.detectedDuplicateUnit}
           setDetectedDuplicateUnit={form.setDetectedDuplicateUnit}
         />
-        <div className="form-actions">
+        <div
+          ref={formActionsRef}
+          className={`form-actions${isStuck ? " form-actions--stuck" : ""}`}
+        >
           <Button
             type="submit"
-            disabled={form.submitting}
-            className="button-primary button-leading-icon"
+            disabled={form.submitting || form.missingFields.length > 0}
+            disabledReason={
+              form.missingFields.length > 0 && !form.submitting
+                ? t("prescriptionForm.stillNeeded", {
+                    fields: form.missingFields
+                      .map((f) => fieldLabels[f])
+                      .join(", "),
+                  })
+                : undefined
+            }
+            onDisabledClick={
+              form.missingFields.length > 0 && !form.submitting
+                ? handleBlockedClick
+                : undefined
+            }
+            className="button-primary button-leading-icon button-full"
           >
             <ScrollText size={18} aria-hidden="true" />
             {form.submitting
@@ -93,14 +169,41 @@ export function NewPrescriptionForm() {
 const editRouteApi = getRouteApi("/layout/prescriptions/$id/edit");
 
 export function EditPrescriptionForm() {
+  const idPrefix = "edit";
   const { t } = useTranslation();
   const prescription = editRouteApi.useLoaderData() as PrescriptionFormData;
   const { id } = editRouteApi.useParams();
   const form = usePrescriptionForm(prescription);
   const navigate = useNavigate();
+  const formActionsRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const isStuck = useIsFormActionsStuck(formActionsRef);
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+
+  const fieldLabels: Record<"drugName" | "dosingDays", string> = {
+    drugName: t("prescriptionForm.fieldDrugName"),
+    dosingDays: t("prescriptionForm.fieldDosingDays"),
+  };
+
+  const handleBlockedClick = useCallback(() => {
+    form.scheduleEditor.validateSchedule();
+    setHasAttemptedSubmit(true);
+    const firstMissing = form.missingFields[0];
+    if (firstMissing) {
+      const target =
+        firstMissing === "drugName"
+          ? document.getElementById(`${idPrefix}-drugName`)
+          : (formRef.current?.querySelector<Element>(".day-pills-row") ?? null);
+      target?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+    }
+  }, [form.missingFields, form.scheduleEditor, idPrefix]);
 
   async function handleSaveEdit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (form.missingFields.length > 0) {
+      handleBlockedClick();
+      return;
+    }
     form.setError(null);
     if (!form.scheduleEditor.validateSchedule()) return;
 
@@ -128,13 +231,18 @@ export function EditPrescriptionForm() {
     }
   }
 
+  const highlightedFields = hasAttemptedSubmit
+    ? new Set(form.missingFields)
+    : undefined;
+
   return (
     <section>
       <h2>{t("prescriptionForm.editHeading")}</h2>
-      <form onSubmit={handleSaveEdit}>
+      <form ref={formRef} onSubmit={handleSaveEdit}>
         {form.error && <p role="alert">{form.error}</p>}
         <PrescriptionFields
-          idPrefix="edit"
+          idPrefix={idPrefix}
+          highlightedFields={highlightedFields}
           scheduleEditor={form.scheduleEditor}
           doseForm={form.doseForm}
           setDoseForm={form.setDoseForm}
@@ -155,11 +263,28 @@ export function EditPrescriptionForm() {
           detectedDuplicateUnit={form.detectedDuplicateUnit}
           setDetectedDuplicateUnit={form.setDetectedDuplicateUnit}
         />
-        <div className="form-actions">
+        <div
+          ref={formActionsRef}
+          className={`form-actions${isStuck ? " form-actions--stuck" : ""}`}
+        >
           <Button
             type="submit"
-            disabled={form.submitting}
-            className="button-primary button-leading-icon"
+            disabled={form.submitting || form.missingFields.length > 0}
+            disabledReason={
+              form.missingFields.length > 0 && !form.submitting
+                ? t("prescriptionForm.stillNeeded", {
+                    fields: form.missingFields
+                      .map((f) => fieldLabels[f])
+                      .join(", "),
+                  })
+                : undefined
+            }
+            onDisabledClick={
+              form.missingFields.length > 0 && !form.submitting
+                ? handleBlockedClick
+                : undefined
+            }
+            className="button-primary button-leading-icon button-full"
           >
             <ScrollText size={18} aria-hidden="true" />
             {form.submitting
