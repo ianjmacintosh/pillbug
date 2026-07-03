@@ -44,6 +44,8 @@
   color: var(--color-contrast);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
+  font-weight: inherit;
+  letter-spacing: inherit;
   padding: 0;
 }
 
