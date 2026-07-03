@@ -6,6 +6,7 @@ import "./PrescriptionDetail.css";
 import { formatTimeOfDay, formatNumericDate } from "../../utils/dates";
 import type { DayOfWeek, PerSlotDose } from "../../../shared/schedule";
 import { WEEKDAYS } from "../../utils/constants";
+import { Link } from "@tanstack/react-router";
 import { Button } from "../Button/Button";
 import { DeleteDialog } from "./DeleteDialog";
 
@@ -74,15 +75,14 @@ function PrescriptionDetail() {
         <div className="prescription-detail-header">
           <h2>{prescription.drugName}</h2>
           <div className="prescription-detail-actions">
-            <Button
-              as="link"
+            <Link
               to="/prescriptions/$id/edit"
               params={{ id }}
-              className="button-icon"
+              className="button button-icon"
               aria-label={t("prescriptionDetail.edit")}
             >
               <Pencil size={20} aria-hidden="true" />
-            </Button>
+            </Link>
             <Button
               type="button"
               className="button-icon button-danger-icon"

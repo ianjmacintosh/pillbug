@@ -62,11 +62,16 @@ export function Button({ as, ...rest }: ButtonProps) {
     return <Link className={mergeClass("button", className)} {...props} />;
   }
 
-  const { className, disabledReason, onDisabledClick, ...props } =
-    rest as AsButton;
+  const {
+    className,
+    disabledReason,
+    onDisabledClick,
+    disabled,
+    onClick,
+    ...buttonProps
+  } = rest as AsButton;
 
-  if (props.disabled && (disabledReason !== undefined || onDisabledClick)) {
-    const { disabled: _disabled, onClick: _onClick, ...buttonProps } = props;
+  if (disabled && (disabledReason !== undefined || onDisabledClick)) {
     const blockedClass = isBlocked ? " button--blocked" : "";
     const isFullWidth = !!className?.split(/\s+/).includes("button-full");
     return (
@@ -115,5 +120,12 @@ export function Button({ as, ...rest }: ButtonProps) {
     );
   }
 
-  return <button className={mergeClass("button", className)} {...props} />;
+  return (
+    <button
+      className={mergeClass("button", className)}
+      disabled={disabled}
+      onClick={onClick}
+      {...buttonProps}
+    />
+  );
 }
