@@ -425,7 +425,6 @@ main {
 
 .button--blocked {
   animation: button-blocked-press 300ms ease-out;
-  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

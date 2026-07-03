@@ -28,11 +28,13 @@ function mergeClass(base: string, extra?: string) {
 export function Button({ as, ...rest }: ButtonProps) {
   const [isBlocked, setIsBlocked] = useState(false);
   const [tooltipVisible, setTooltipVisible] = useState(false);
-  const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dismissHandlerRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     return () => {
-      if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
+      if (dismissHandlerRef.current) {
+        document.removeEventListener("click", dismissHandlerRef.current);
+      }
     };
   }, []);
 
@@ -65,8 +67,12 @@ export function Button({ as, ...rest }: ButtonProps) {
   if (props.disabled && (disabledReason !== undefined || onDisabledClick)) {
     const { disabled: _disabled, onClick: _onClick, ...buttonProps } = props;
     const blockedClass = isBlocked ? " button--blocked" : "";
+    const isFullWidth = !!className?.split(/\s+/).includes("button-full");
     return (
-      <span className="button-tooltip-wrapper">
+      <span
+        className="button-tooltip-wrapper"
+        style={isFullWidth ? { width: "100%" } : undefined}
+      >
         {disabledReason && tooltipVisible && (
           <span className="button-tooltip" role="status">
             {disabledReason}
@@ -75,6 +81,7 @@ export function Button({ as, ...rest }: ButtonProps) {
         <button
           className={mergeClass("button", className) + blockedClass}
           aria-disabled="true"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={(e) => {
             e.preventDefault();
             if (!isBlocked) {
@@ -83,12 +90,21 @@ export function Button({ as, ...rest }: ButtonProps) {
             }
             if (disabledReason) {
               setTooltipVisible(true);
-              if (tooltipTimerRef.current)
-                clearTimeout(tooltipTimerRef.current);
-              tooltipTimerRef.current = setTimeout(
-                () => setTooltipVisible(false),
-                3000,
-              );
+              if (dismissHandlerRef.current) {
+                document.removeEventListener(
+                  "click",
+                  dismissHandlerRef.current,
+                );
+              }
+              const dismiss = () => {
+                setTooltipVisible(false);
+                dismissHandlerRef.current = null;
+              };
+              dismissHandlerRef.current = dismiss;
+              // Defer so this click doesn't immediately dismiss the tooltip
+              setTimeout(() => {
+                document.addEventListener("click", dismiss, { once: true });
+              }, 0);
             }
             onDisabledClick?.();
           }}
