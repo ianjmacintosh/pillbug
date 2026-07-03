@@ -335,8 +335,8 @@ export function StyleGuide() {
           <div className="sg-button-group">
             <p className="sg-button-group-label">Primary</p>
             <div className="sg-button-row">
-              <button className="button-primary">Take medication</button>
-              <button className="button-primary button-sm">Add +</button>
+              <Button className="button-primary">Take medication</Button>
+              <Button className="button-primary button-sm">Add +</Button>
             </div>
             <p className="sg-button-note">
               Gold bg + warm-dark text. 6px bottom border + shadow gives the
@@ -348,8 +348,8 @@ export function StyleGuide() {
           <div className="sg-button-group">
             <p className="sg-button-group-label">Secondary</p>
             <div className="sg-button-row">
-              <button className="button-secondary">Skip dose</button>
-              <button className="button-secondary button-sm">Cancel</button>
+              <Button className="button-secondary">Skip dose</Button>
+              <Button className="button-secondary button-sm">Cancel</Button>
             </div>
             <p className="sg-button-note">
               Sky blue border + text, no fill. Same raised treatment — 6px
@@ -360,8 +360,8 @@ export function StyleGuide() {
           <div className="sg-button-group">
             <p className="sg-button-group-label">Danger</p>
             <div className="sg-button-row">
-              <button className="button-danger">Delete prescription</button>
-              <button className="button-danger button-sm">Remove</button>
+              <Button className="button-danger">Delete prescription</Button>
+              <Button className="button-danger button-sm">Remove</Button>
             </div>
             <p className="sg-button-note">
               Muted red, white text. Destructive actions only.
@@ -371,12 +371,12 @@ export function StyleGuide() {
           <div className="sg-button-group">
             <p className="sg-button-group-label">Icon (standalone)</p>
             <div className="sg-button-row">
-              <button className="button-icon" aria-label="Add prescription">
+              <Button className="button-icon" aria-label="Add prescription">
                 <Plus size={20} aria-hidden="true" />
-              </button>
-              <button className="button-icon" aria-label="Settings">
+              </Button>
+              <Button className="button-icon" aria-label="Settings">
                 <Settings size={20} aria-hidden="true" />
-              </button>
+              </Button>
             </div>
             <p className="sg-button-note">
               48×48 icon-only button. Use <code>aria-label</code> when the icon
@@ -387,18 +387,18 @@ export function StyleGuide() {
           <div className="sg-button-group">
             <p className="sg-button-group-label">Icon + text</p>
             <div className="sg-button-row">
-              <button className="button-primary button-leading-icon">
+              <Button className="button-primary button-leading-icon">
                 <ClipboardPlus size={18} aria-hidden="true" />
                 Add prescription
-              </button>
-              <button className="button-secondary button-leading-icon">
+              </Button>
+              <Button className="button-secondary button-leading-icon">
                 <ChevronRight size={18} aria-hidden="true" />
                 View details
-              </button>
-              <button className="button-danger button-leading-icon">
+              </Button>
+              <Button className="button-danger button-leading-icon">
                 <Trash2 size={18} aria-hidden="true" />
                 Delete
-              </button>
+              </Button>
             </div>
             <p className="sg-button-note">
               Add <code>button-leading-icon</code> when the icon goes left of
@@ -410,14 +410,14 @@ export function StyleGuide() {
           <div className="sg-button-group">
             <p className="sg-button-group-label">Text + trailing icon</p>
             <div className="sg-button-row">
-              <button className="button-primary button-trailing-icon">
+              <Button className="button-primary button-trailing-icon">
                 Continue
                 <ArrowRight size={18} aria-hidden="true" />
-              </button>
-              <button className="button-secondary button-trailing-icon">
+              </Button>
+              <Button className="button-secondary button-trailing-icon">
                 Next step
                 <ArrowRight size={18} aria-hidden="true" />
-              </button>
+              </Button>
             </div>
             <p className="sg-button-note">
               Use <code>button-trailing-icon</code> for forward-navigation

@@ -66,8 +66,15 @@
   --button-shadow-partial:
     inset 0 2px 0 oklch(0.97 0.22 95 / 0.9), 0 4px 0 oklch(0.48 0.32 95),
     0 5px 8px oklch(0.62 0.34 95 / 0.27);
+  --button-shadow-pressed:
+    inset 0 2px 0 oklch(0.97 0.22 95 / 0.9), 0 2px 0 oklch(0.48 0.32 95),
+    0 2px 4px oklch(0.62 0.34 95 / 0.2);
   --button-soft-disabled-glow: var(--color-action);
-  --button-soft-disabled-stripe: oklch(0.22 0.04 60 / 0.14);
+  --button-soft-disabled-stripe: color-mix(
+    in oklch,
+    var(--yellow-40) 25%,
+    transparent
+  );
   background-color: var(--color-action);
   color: var(--color-action-text);
   border: 1px solid oklch(0.55 0.32 95);
@@ -101,8 +108,15 @@
   --button-shadow-partial:
     inset 0 2px 0 oklch(1 0 0 / 0.8), 0 4px 0 oklch(0.28 0.22 249),
     0 5px 8px oklch(0.5 0.22 249 / 0.15);
+  --button-shadow-pressed:
+    inset 0 2px 0 oklch(1 0 0 / 0.8), 0 2px 0 oklch(0.28 0.22 249),
+    0 2px 4px oklch(0.5 0.22 249 / 0.1);
   --button-soft-disabled-glow: var(--color-surface-raised);
-  --button-soft-disabled-stripe: oklch(0.28 0.22 249 / 0.2);
+  --button-soft-disabled-stripe: color-mix(
+    in oklch,
+    var(--blue-50) 8%,
+    transparent
+  );
   background-color: transparent;
   color: var(--blue-50);
   border: 1px solid oklch(0.45 0.2 249);
@@ -136,8 +150,15 @@
   --button-shadow-partial:
     inset 0 2px 0 oklch(0.85 0.15 25 / 0.6), 0 4px 0 oklch(0.25 0.22 25),
     0 5px 8px oklch(0.55 0.22 25 / 0.2);
+  --button-shadow-pressed:
+    inset 0 2px 0 oklch(0.85 0.15 25 / 0.6), 0 2px 0 oklch(0.25 0.22 25),
+    0 2px 4px oklch(0.55 0.22 25 / 0.15);
   --button-soft-disabled-glow: var(--color-danger);
-  --button-soft-disabled-stripe: oklch(0.22 0.15 25 / 0.25);
+  --button-soft-disabled-stripe: color-mix(
+    in oklch,
+    var(--color-error) 45%,
+    transparent
+  );
   background-color: var(--color-danger);
   color: oklch(1 0 0);
   border: 1px solid oklch(0.35 0.22 25);
@@ -242,16 +263,16 @@
 
 @keyframes button-blocked-press {
   0% {
-    transform: translateY(0);
-    box-shadow: var(--button-shadow-rest);
-  }
-  25% {
-    transform: translateY(var(--button-partial-press, 2px));
+    transform: translateY(2px);
     box-shadow: var(--button-shadow-partial);
   }
+  25% {
+    transform: translateY(var(--button-press-depth, 4px));
+    box-shadow: var(--button-shadow-pressed);
+  }
   100% {
-    transform: translateY(0);
-    box-shadow: var(--button-shadow-rest);
+    transform: translateY(2px);
+    box-shadow: var(--button-shadow-partial);
   }
 }
 
