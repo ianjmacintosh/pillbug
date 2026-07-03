@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getRouteApi, Link, useNavigate } from "@tanstack/react-router";
+import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Pencil, Trash2 } from "lucide-react";
 import "./PrescriptionDetail.css";
@@ -74,14 +74,15 @@ function PrescriptionDetail() {
         <div className="prescription-detail-header">
           <h2>{prescription.drugName}</h2>
           <div className="prescription-detail-actions">
-            <Link
+            <Button
+              as="link"
               to="/prescriptions/$id/edit"
               params={{ id }}
               className="button-icon"
               aria-label={t("prescriptionDetail.edit")}
             >
               <Pencil size={20} aria-hidden="true" />
-            </Link>
+            </Button>
             <Button
               type="button"
               className="button-icon button-danger-icon"
