@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { DayOfWeek } from "../../utils/constants";
 import { WEEKDAYS } from "../../utils/constants";
 import type { DosageUnit } from "./PrescriptionForm.helpers";
@@ -104,6 +104,7 @@ export function buildSchedule(schedules: DosingSchedule[]): Schedule {
 
 export function useScheduleEditor(
   prescription?: PrescriptionFormData,
+  markDirty?: () => void,
 ): ScheduleEditor {
   const [schedules, setSchedules] = useState<DosingSchedule[]>(() =>
     initSchedules(prescription),
@@ -121,6 +122,7 @@ export function useScheduleEditor(
   }
 
   function addSchedule() {
+    markDirty?.();
     setSchedules((prev) => [
       ...prev,
       {
@@ -133,14 +135,17 @@ export function useScheduleEditor(
   }
 
   function removeSchedule(index: number) {
+    markDirty?.();
     setSchedules((prev) => prev.filter((_, i) => i !== index));
   }
 
   function collapseToOne() {
+    markDirty?.();
     setSchedules((prev) => [prev[0]]);
   }
 
   function toggleAllDays(scheduleIndex: number) {
+    markDirty?.();
     setSchedules((prev) => {
       const allSelected = prev[scheduleIndex].days.size === WEEKDAYS.length;
       return prev.map((s, i) => {
@@ -160,6 +165,7 @@ export function useScheduleEditor(
   }
 
   function toggleDay(scheduleIndex: number, day: DayOfWeek) {
+    markDirty?.();
     setSchedules((prev) =>
       prev.map((s, i) => {
         if (i === scheduleIndex) {
@@ -177,6 +183,7 @@ export function useScheduleEditor(
   }
 
   function addDoseTime(scheduleIndex: number) {
+    markDirty?.();
     setSchedules((prev) =>
       prev.map((s, i) =>
         i === scheduleIndex
@@ -195,6 +202,7 @@ export function useScheduleEditor(
     timeIndex: number,
     value: string,
   ) {
+    markDirty?.();
     setSchedules((prev) =>
       prev.map((s, i) =>
         i === scheduleIndex
@@ -215,6 +223,7 @@ export function useScheduleEditor(
     timeIndex: number,
     value: string,
   ) {
+    markDirty?.();
     setSchedules((prev) =>
       prev.map((s, i) =>
         i === scheduleIndex
@@ -230,6 +239,7 @@ export function useScheduleEditor(
   }
 
   function removeDoseTime(scheduleIndex: number, timeIndex: number) {
+    markDirty?.();
     setSchedules((prev) =>
       prev.map((s, i) =>
         i === scheduleIndex
@@ -260,43 +270,84 @@ export function useScheduleEditor(
 }
 
 export function usePrescriptionForm(prescription?: PrescriptionFormData) {
-  const scheduleEditor = useScheduleEditor(prescription);
+  const dirtyRef = useRef(false);
+  const markDirty = useCallback(() => {
+    dirtyRef.current = true;
+  }, []);
+  const clearDirty = useCallback(() => {
+    dirtyRef.current = false;
+  }, []);
 
-  const [doseForm, setDoseForm] = useState(() =>
+  const scheduleEditor = useScheduleEditor(prescription, markDirty);
+
+  const [doseForm, setDoseFormRaw] = useState(() =>
     prescription ? (prescription.doseForm ?? "tablet") : "tablet",
   );
-  const [drugName, setDrugName] = useState(() =>
+  const [drugName, setDrugNameRaw] = useState(() =>
     prescription ? prescription.drugName : "",
   );
-  const [dosageQuantity, setDosageQuantity] = useState(() => {
+  const [dosageQuantity, setDosageQuantityRaw] = useState(() => {
     if (!prescription) return "";
     const parsed = parseDosage(prescription.dosage);
     return parsed ? parsed.quantity : "";
   });
-  const [dosageUnit, setDosageUnit] = useState<DosageUnit | "">(() => {
+  const [dosageUnit, setDosageUnitRaw] = useState<DosageUnit | "">(() => {
     if (!prescription) return "mg";
     const parsed = parseDosage(prescription.dosage);
     return parsed ? parsed.unit : "";
   });
-  const [dosageFallback, setDosageFallback] = useState<string | null>(() => {
+  const [dosageFallback, setDosageFallbackRaw] = useState<string | null>(() => {
     if (!prescription) return null;
     return parseDosage(prescription.dosage) ? null : prescription.dosage;
   });
-  const [startDate, setStartDate] = useState(() =>
+  const [startDate, setStartDateRaw] = useState(() =>
     prescription
       ? prescription.startDate
       : new Date().toISOString().slice(0, 10),
   );
-  const [endDate, setEndDate] = useState(() =>
+  const [endDate, setEndDateRaw] = useState(() =>
     prescription ? (prescription.endDate ?? "") : "",
   );
-  const [instructions, setInstructions] = useState(() =>
+  const [instructions, setInstructionsRaw] = useState(() =>
     prescription ? (prescription.instructions ?? "") : "",
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [detectedDuplicateUnit, setDetectedDuplicateUnit] =
     useState<DosageUnit | null>(null);
+
+  const setDoseForm: typeof setDoseFormRaw = (value) => {
+    markDirty();
+    setDoseFormRaw(value);
+  };
+  const setDrugName: typeof setDrugNameRaw = (value) => {
+    markDirty();
+    setDrugNameRaw(value);
+  };
+  const setDosageQuantity: typeof setDosageQuantityRaw = (value) => {
+    markDirty();
+    setDosageQuantityRaw(value);
+  };
+  const setDosageUnit: typeof setDosageUnitRaw = (value) => {
+    markDirty();
+    setDosageUnitRaw(value);
+  };
+  const setDosageFallback: typeof setDosageFallbackRaw = (value) => {
+    markDirty();
+    setDosageFallbackRaw(value);
+  };
+  const setStartDate: typeof setStartDateRaw = (value) => {
+    markDirty();
+    setStartDateRaw(value);
+  };
+  const setEndDate: typeof setEndDateRaw = (value) => {
+    markDirty();
+    setEndDateRaw(value);
+  };
+  const setInstructions: typeof setInstructionsRaw = (value) => {
+    markDirty();
+    setInstructionsRaw(value);
+  };
 
   function buildDosage(): string {
     if (dosageFallback !== null) return dosageFallback;
@@ -313,6 +364,8 @@ export function usePrescriptionForm(prescription?: PrescriptionFormData) {
   ];
 
   return {
+    dirtyRef,
+    clearDirty,
     scheduleEditor,
     doseForm,
     setDoseForm,

@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "../Button/Button";
+import { Dialog } from "../Dialog/Dialog";
 
 interface DeleteDialogProps {
   onConfirm: () => void;
@@ -9,7 +10,11 @@ interface DeleteDialogProps {
 export function DeleteDialog({ onConfirm, onCancel }: DeleteDialogProps) {
   const { t } = useTranslation();
   return (
-    <dialog open>
+    <Dialog
+      open
+      onClose={onCancel}
+      title={t("prescriptionDetail.deleteHeading")}
+    >
       <p>{t("prescriptionDetail.deleteWarning")}</p>
       <Button type="button" onClick={onCancel}>
         {t("prescriptionDetail.cancel")}
@@ -17,6 +22,6 @@ export function DeleteDialog({ onConfirm, onCancel }: DeleteDialogProps) {
       <Button type="button" onClick={onConfirm}>
         {t("prescriptionDetail.confirmDelete")}
       </Button>
-    </dialog>
+    </Dialog>
   );
 }

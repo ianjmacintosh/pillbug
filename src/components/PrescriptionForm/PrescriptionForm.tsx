@@ -5,6 +5,8 @@ import { ScrollText } from "lucide-react";
 import { Button } from "../Button/Button";
 import { PrescriptionFields } from "./PrescriptionFields";
 import { usePrescriptionForm } from "./usePrescriptionForm";
+import { useUnsavedChangesGuard } from "./useUnsavedChangesGuard";
+import { UnsavedChangesDialog } from "./UnsavedChangesDialog";
 import type { PrescriptionFormData } from "./PrescriptionForm.types";
 
 export type { PrescriptionFormData } from "./PrescriptionForm.types";
@@ -44,6 +46,7 @@ export function NewPrescriptionForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const isStuck = useIsFormActionsStuck(formActionsRef);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+  const unsavedChangesGuard = useUnsavedChangesGuard(form.dirtyRef);
 
   const fieldLabels: Record<"drugName" | "dosingDays", string> = {
     drugName: t("prescriptionForm.fieldDrugName"),
@@ -89,6 +92,7 @@ export function NewPrescriptionForm() {
 
     if (res.ok) {
       const created = (await res.json()) as PrescriptionFormData;
+      form.clearDirty();
       await navigate({
         to: "/prescriptions/$id",
         params: { id: created.id },
@@ -162,6 +166,11 @@ export function NewPrescriptionForm() {
           </Button>
         </div>
       </form>
+      <UnsavedChangesDialog
+        open={unsavedChangesGuard.isBlocked}
+        onLeave={unsavedChangesGuard.onLeave}
+        onStay={unsavedChangesGuard.onStay}
+      />
     </section>
   );
 }
@@ -179,6 +188,7 @@ export function EditPrescriptionForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const isStuck = useIsFormActionsStuck(formActionsRef);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+  const unsavedChangesGuard = useUnsavedChangesGuard(form.dirtyRef);
 
   const fieldLabels: Record<"drugName" | "dosingDays", string> = {
     drugName: t("prescriptionForm.fieldDrugName"),
@@ -223,6 +233,7 @@ export function EditPrescriptionForm() {
     });
 
     if (res.ok) {
+      form.clearDirty();
       await navigate({ to: "/prescriptions/$id", params: { id } });
     } else {
       const data = (await res.json()) as { error: string };
@@ -293,6 +304,11 @@ export function EditPrescriptionForm() {
           </Button>
         </div>
       </form>
+      <UnsavedChangesDialog
+        open={unsavedChangesGuard.isBlocked}
+        onLeave={unsavedChangesGuard.onLeave}
+        onStay={unsavedChangesGuard.onStay}
+      />
     </section>
   );
 }
