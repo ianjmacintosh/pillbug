@@ -534,7 +534,7 @@ test.describe("Unsaved changes guard", () => {
 
       await page.getByRole("button", { name: /back/i }).click();
 
-      const dialog = page.getByRole("dialog", { name: /unsaved changes/i });
+      const dialog = page.getByRole("dialog", { name: /discard changes/i });
       await expect(dialog).toBeVisible();
       await expect(dialog).toContainText(/lost/i);
       await expect(page).toHaveURL("/prescriptions/new");
@@ -561,7 +561,7 @@ test.describe("Unsaved changes guard", () => {
 
       await page.getByRole("button", { name: /back/i }).click();
       await expect(page.getByRole("dialog")).toBeVisible();
-      await page.getByRole("button", { name: /^leave$/i }).click();
+      await page.getByRole("button", { name: /^discard$/i }).click();
 
       await expect(page).toHaveURL("/prescriptions");
       await expect(page.getByRole("dialog")).not.toBeVisible();
@@ -603,7 +603,7 @@ test.describe("Unsaved changes guard", () => {
       await page.getByRole("button", { name: /back/i }).click();
 
       await expect(
-        page.getByRole("dialog", { name: /unsaved changes/i }),
+        page.getByRole("dialog", { name: /discard changes/i }),
       ).toBeVisible();
       await expect(page).toHaveURL(`/prescriptions/${id}/edit`);
     });
@@ -618,7 +618,7 @@ test.describe("Unsaved changes guard", () => {
 
       await page.getByRole("button", { name: /back/i }).click();
       await expect(page.getByRole("dialog")).toBeVisible();
-      await page.getByRole("button", { name: /^leave$/i }).click();
+      await page.getByRole("button", { name: /^discard$/i }).click();
 
       await expect(page).toHaveURL("/prescriptions");
     });
@@ -671,11 +671,11 @@ test.describe("Unsaved changes guard", () => {
       await page.getByRole("link", { name: /metformin/i }).click();
 
       await expect(
-        page.getByRole("dialog", { name: /unsaved changes/i }),
+        page.getByRole("dialog", { name: /discard changes/i }),
       ).toBeVisible();
       await expect(page).toHaveURL("/prescriptions/new");
 
-      await page.getByRole("button", { name: /^leave$/i }).click();
+      await page.getByRole("button", { name: /^discard$/i }).click();
       await expect(page).toHaveURL(`/prescriptions/${id}`);
     });
   });
