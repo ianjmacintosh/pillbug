@@ -519,3 +519,164 @@ test.describe("Prescription detail", () => {
     ).toBeVisible();
   });
 });
+
+test.describe("Unsaved changes guard", () => {
+  // The "Back" link is a mobile-only affordance (hidden by CSS above 640px);
+  // on desktop the always-visible split-panel list is used to navigate instead.
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test.describe("Add prescription form", () => {
+    test("shows the unsaved changes dialog when navigating away from a dirty form", async ({
+      page,
+    }) => {
+      await page.goto("/prescriptions/new");
+      await page.getByLabel(/drug name/i).fill("Aspirin");
+
+      await page.getByRole("button", { name: /back/i }).click();
+
+      const dialog = page.getByRole("dialog", { name: /unsaved changes/i });
+      await expect(dialog).toBeVisible();
+      await expect(dialog).toContainText(/lost/i);
+      await expect(page).toHaveURL("/prescriptions/new");
+    });
+
+    test("Stay keeps the patient on the form with their data intact", async ({
+      page,
+    }) => {
+      await page.goto("/prescriptions/new");
+      await page.getByLabel(/drug name/i).fill("Aspirin");
+
+      await page.getByRole("button", { name: /back/i }).click();
+      await expect(page.getByRole("dialog")).toBeVisible();
+      await page.getByRole("button", { name: /^stay$/i }).click();
+
+      await expect(page.getByRole("dialog")).not.toBeVisible();
+      await expect(page).toHaveURL("/prescriptions/new");
+      await expect(page.getByLabel(/drug name/i)).toHaveValue("Aspirin");
+    });
+
+    test("Leave navigates away and discards the draft", async ({ page }) => {
+      await page.goto("/prescriptions/new");
+      await page.getByLabel(/drug name/i).fill("Aspirin");
+
+      await page.getByRole("button", { name: /back/i }).click();
+      await expect(page.getByRole("dialog")).toBeVisible();
+      await page.getByRole("button", { name: /^leave$/i }).click();
+
+      await expect(page).toHaveURL("/prescriptions");
+      await expect(page.getByRole("dialog")).not.toBeVisible();
+    });
+
+    test("navigating away from an untouched form shows no dialog", async ({
+      page,
+    }) => {
+      await page.goto("/prescriptions/new");
+
+      await page.getByRole("button", { name: /back/i }).click();
+
+      await expect(page).toHaveURL("/prescriptions");
+      await expect(page.getByRole("dialog")).not.toBeVisible();
+    });
+
+    test("a successful save redirects without showing the dialog", async ({
+      page,
+    }) => {
+      await page.goto("/prescriptions/new");
+      await fillCreateForm(page);
+
+      await expect(page).toHaveURL(/\/prescriptions\/[^/]+$/);
+      await expect(page.getByRole("dialog")).not.toBeVisible();
+    });
+  });
+
+  test.describe("Edit prescription form", () => {
+    test("shows the unsaved changes dialog when navigating away from a dirty form", async ({
+      page,
+    }) => {
+      const res = await page.request.post("/api/v1/prescriptions", {
+        data: BASE_PRESCRIPTION,
+      });
+      const { id } = (await res.json()) as { id: string };
+      await page.goto(`/prescriptions/${id}/edit`);
+      await page.getByLabel(/drug name/i).fill("Metformin XR");
+
+      await page.getByRole("button", { name: /back/i }).click();
+
+      await expect(
+        page.getByRole("dialog", { name: /unsaved changes/i }),
+      ).toBeVisible();
+      await expect(page).toHaveURL(`/prescriptions/${id}/edit`);
+    });
+
+    test("Leave navigates away and discards the edit", async ({ page }) => {
+      const res = await page.request.post("/api/v1/prescriptions", {
+        data: BASE_PRESCRIPTION,
+      });
+      const { id } = (await res.json()) as { id: string };
+      await page.goto(`/prescriptions/${id}/edit`);
+      await page.getByLabel(/drug name/i).fill("Metformin XR");
+
+      await page.getByRole("button", { name: /back/i }).click();
+      await expect(page.getByRole("dialog")).toBeVisible();
+      await page.getByRole("button", { name: /^leave$/i }).click();
+
+      await expect(page).toHaveURL("/prescriptions");
+    });
+
+    test("navigating away from an untouched edit form shows no dialog", async ({
+      page,
+    }) => {
+      const res = await page.request.post("/api/v1/prescriptions", {
+        data: BASE_PRESCRIPTION,
+      });
+      const { id } = (await res.json()) as { id: string };
+      await page.goto(`/prescriptions/${id}/edit`);
+
+      await page.getByRole("button", { name: /back/i }).click();
+
+      await expect(page).toHaveURL("/prescriptions");
+      await expect(page.getByRole("dialog")).not.toBeVisible();
+    });
+
+    test("a successful save redirects without showing the dialog", async ({
+      page,
+    }) => {
+      const res = await page.request.post("/api/v1/prescriptions", {
+        data: BASE_PRESCRIPTION,
+      });
+      const { id } = (await res.json()) as { id: string };
+      await page.goto(`/prescriptions/${id}/edit`);
+      await page.getByLabel(/drug name/i).fill("Metformin XR");
+
+      await page.getByRole("button", { name: /save prescription/i }).click();
+
+      await expect(page).toHaveURL(`/prescriptions/${id}`);
+      await expect(page.getByRole("dialog")).not.toBeVisible();
+    });
+  });
+
+  test.describe("desktop split-panel Link navigation", () => {
+    test.use({ viewport: { width: 1280, height: 800 } });
+
+    test("clicking a different prescription in the list shows the unsaved changes dialog", async ({
+      page,
+    }) => {
+      const res = await page.request.post("/api/v1/prescriptions", {
+        data: BASE_PRESCRIPTION,
+      });
+      const { id } = (await res.json()) as { id: string };
+      await page.goto("/prescriptions/new");
+      await page.getByLabel(/drug name/i).fill("Aspirin");
+
+      await page.getByRole("link", { name: /metformin/i }).click();
+
+      await expect(
+        page.getByRole("dialog", { name: /unsaved changes/i }),
+      ).toBeVisible();
+      await expect(page).toHaveURL("/prescriptions/new");
+
+      await page.getByRole("button", { name: /^leave$/i }).click();
+      await expect(page).toHaveURL(`/prescriptions/${id}`);
+    });
+  });
+});

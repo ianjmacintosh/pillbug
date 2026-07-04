@@ -1,0 +1,26 @@
+.dialog-backdrop {
+  z-index: 100;
+  background-color: oklch(0.22 0.04 60 / 0.5);
+}
+
+.dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 101;
+  background-color: var(--color-surface-raised);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  border-radius: 8px;
+  padding: var(--space-6);
+  max-width: 28rem;
+  width: calc(100% - var(--space-8));
+  box-shadow: 0 20px 40px oklch(0.22 0.04 60 / 0.25);
+}
+
+.dialog-heading {
+  font-size: var(--text-h3);
+  font-weight: 700;
+  margin: 0 0 var(--space-4);
+}

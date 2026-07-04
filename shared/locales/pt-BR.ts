@@ -85,6 +85,7 @@ const ptBR = {
   "prescriptionDetail.scheduleDaily": "Diário",
   "prescriptionDetail.time": "Hora",
   "prescriptionDetail.dose": "Dose",
+  "prescriptionDetail.deleteHeading": "Excluir prescrição",
   "prescriptionDetail.deleteWarning":
     "Esta ação é permanente. Todo o histórico de doses desta prescrição também será excluído.",
   "prescriptionDetail.cancel": "Cancelar",
@@ -132,6 +133,11 @@ const ptBR = {
   "prescriptionForm.stillNeeded": "Ainda falta: {{fields}}",
   "prescriptionForm.fieldDrugName": "nome do medicamento",
   "prescriptionForm.fieldDosingDays": "dias de dosagem",
+  "prescriptionForm.unsavedChangesHeading": "Alterações não salvas",
+  "prescriptionForm.unsavedChangesWarning":
+    "Você tem alterações não salvas. Se sair agora, seu progresso será perdido.",
+  "prescriptionForm.stay": "Permanecer",
+  "prescriptionForm.leave": "Sair",
   "app.heading": "Agenda Semanal de Doses",
   "app.noDoses": "Nenhuma dose agendada para esta semana.",
   "app.previousWeek": "Semana anterior",

@@ -827,6 +827,116 @@ describe("NewPrescriptionForm", () => {
     });
   });
 
+  describe("unsaved changes guard", () => {
+    async function renderNewFormWithOtherRoute() {
+      const rootRoute = createRootRoute({ component: Outlet });
+      const layoutRoute = createRoute({
+        getParentRoute: () => rootRoute,
+        id: "layout",
+        component: Outlet,
+      });
+      const newRoute = createRoute({
+        getParentRoute: () => layoutRoute,
+        path: "/prescriptions/new",
+        component: NewPrescriptionForm,
+      });
+      const otherRoute = createRoute({
+        getParentRoute: () => layoutRoute,
+        path: "/prescriptions",
+        component: () => <div>Prescriptions list</div>,
+      });
+      const router = createRouter({
+        routeTree: rootRoute.addChildren([
+          layoutRoute.addChildren([newRoute, otherRoute]),
+        ]),
+        history: createMemoryHistory({
+          initialEntries: ["/prescriptions/new"],
+        }),
+        defaultNotFoundComponent: () => null,
+      });
+      await router.load();
+      render(<RouterProvider router={router} />);
+      return { router };
+    }
+
+    test("shows the unsaved changes dialog when navigating away from a dirty form", async () => {
+      const { router } = await renderNewFormWithOtherRoute();
+      await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
+
+      router.navigate({ to: "/prescriptions" });
+
+      expect(
+        await screen.findByRole("heading", { name: /unsaved changes/i }),
+      ).toBeTruthy();
+      expect(router.state.location.pathname).toBe("/prescriptions/new");
+    });
+
+    test("clicking Stay keeps the patient on the form", async () => {
+      const { router } = await renderNewFormWithOtherRoute();
+      await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
+
+      router.navigate({ to: "/prescriptions" });
+      await screen.findByRole("heading", { name: /unsaved changes/i });
+      await userEvent.click(screen.getByRole("button", { name: /^stay$/i }));
+
+      await waitFor(() => {
+        expect(
+          screen.queryByRole("heading", { name: /unsaved changes/i }),
+        ).toBeNull();
+      });
+      expect(router.state.location.pathname).toBe("/prescriptions/new");
+    });
+
+    test("clicking Leave proceeds with the navigation", async () => {
+      const { router } = await renderNewFormWithOtherRoute();
+      await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
+
+      router.navigate({ to: "/prescriptions" });
+      await screen.findByRole("heading", { name: /unsaved changes/i });
+      await userEvent.click(screen.getByRole("button", { name: /^leave$/i }));
+
+      await waitFor(() => {
+        expect(router.state.location.pathname).toBe("/prescriptions");
+      });
+    });
+
+    test("does not show the dialog when navigating away from an untouched form", async () => {
+      const { router } = await renderNewFormWithOtherRoute();
+
+      await router.navigate({ to: "/prescriptions" });
+
+      expect(
+        screen.queryByRole("heading", { name: /unsaved changes/i }),
+      ).toBeNull();
+      expect(router.state.location.pathname).toBe("/prescriptions");
+    });
+
+    test("a successful save's own redirect does not trigger the unsaved changes dialog", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify(SAMPLE), { status: 201 }),
+      );
+      const { router } = await renderNewFormWithOtherRoute();
+
+      await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
+      await userEvent.type(screen.getByLabelText(/strength/i), "100");
+      await userEvent.selectOptions(
+        screen.getByRole("combobox", { name: /unit/i }),
+        "mg",
+      );
+      await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      await waitFor(() => {
+        expect(router.state.location.pathname).toBe(
+          `/prescriptions/${SAMPLE.id}`,
+        );
+      });
+      expect(
+        screen.queryByRole("heading", { name: /unsaved changes/i }),
+      ).toBeNull();
+    });
+  });
+
   describe("schedule mode toggle", () => {
     test("new form opens in Simple mode", async () => {
       await renderNewForm();
@@ -1313,6 +1423,70 @@ describe("EditPrescriptionForm", () => {
       expect(router.state.location.pathname).toBe(
         `/prescriptions/${SAMPLE.id}`,
       );
+    });
+  });
+
+  describe("unsaved changes guard", () => {
+    async function renderEditFormWithOtherRoute(prescription = SAMPLE) {
+      const rootRoute = createRootRoute({ component: Outlet });
+      const layoutRoute = createRoute({
+        getParentRoute: () => rootRoute,
+        id: "layout",
+        component: Outlet,
+      });
+      const editRoute = createRoute({
+        getParentRoute: () => layoutRoute,
+        path: "/prescriptions/$id/edit",
+        loader: () => prescription,
+        component: EditPrescriptionForm,
+      });
+      const otherRoute = createRoute({
+        getParentRoute: () => layoutRoute,
+        path: "/prescriptions",
+        component: () => <div>Prescriptions list</div>,
+      });
+      const router = createRouter({
+        routeTree: rootRoute.addChildren([
+          layoutRoute.addChildren([editRoute, otherRoute]),
+        ]),
+        history: createMemoryHistory({
+          initialEntries: [`/prescriptions/${prescription.id}/edit`],
+        }),
+        defaultNotFoundComponent: () => null,
+      });
+      await router.load();
+      render(<RouterProvider router={router} />);
+      return { router };
+    }
+
+    test("shows the unsaved changes dialog when navigating away from a dirty form", async () => {
+      const { router } = await renderEditFormWithOtherRoute();
+      await userEvent.type(screen.getByLabelText(/drug name/i), "!");
+
+      router.navigate({ to: "/prescriptions" });
+
+      expect(
+        await screen.findByRole("heading", { name: /unsaved changes/i }),
+      ).toBeTruthy();
+    });
+
+    test("a successful save's own redirect does not trigger the unsaved changes dialog", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify(SAMPLE), { status: 200 }),
+      );
+      const { router } = await renderEditFormWithOtherRoute();
+
+      await userEvent.type(screen.getByLabelText(/drug name/i), "!");
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      await waitFor(() => {
+        expect(router.state.location.pathname).toBe(
+          `/prescriptions/${SAMPLE.id}`,
+        );
+      });
+      expect(
+        screen.queryByRole("heading", { name: /unsaved changes/i }),
+      ).toBeNull();
     });
   });
 
