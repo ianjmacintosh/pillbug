@@ -22,12 +22,14 @@ export function UnsavedChangesDialog({
       dismissible={false}
     >
       <p>{t("prescriptionForm.unsavedChangesWarning")}</p>
-      <Button type="button" onClick={onStay}>
-        {t("prescriptionForm.stay")}
-      </Button>
-      <Button type="button" onClick={onLeave}>
-        {t("prescriptionForm.leave")}
-      </Button>
+      <div className="dialog-actions">
+        <Button type="button" className="button-secondary" onClick={onStay}>
+          {t("prescriptionForm.stay")}
+        </Button>
+        <Button type="button" className="button-danger" onClick={onLeave}>
+          {t("prescriptionForm.leave")}
+        </Button>
+      </div>
     </Dialog>
   );
 }
