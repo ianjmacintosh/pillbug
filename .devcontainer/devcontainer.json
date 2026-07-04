@@ -15,12 +15,14 @@
 
   // Use 'postCreateCommand' to run commands after the container is created.
   // "onCreateCommand": "curl -fsSL https://claude.ai/install.sh | bash"
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
 
   // Configure tool-specific properties.
   // arm64: point miniflare at Playwright's Chromium instead of downloading x86-64 Chrome-for-Testing
   // Update the version segment (chromium-NNNN) when Playwright is upgraded
   "remoteEnv": {
-    "MINIFLARE_CHROME_EXECUTABLE": "/home/node/.cache/ms-playwright/chromium-1223/chrome-linux/chrome"
+    "MINIFLARE_CHROME_EXECUTABLE": "/home/node/.cache/ms-playwright/chromium-1223/chrome-linux/chrome",
+    "CLAUDE_CODE_DISABLE_MOUSE_CLICKS": "1"
   },
 
   "customizations": {
