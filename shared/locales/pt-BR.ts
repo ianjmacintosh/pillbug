@@ -133,11 +133,11 @@ const ptBR = {
   "prescriptionForm.stillNeeded": "Ainda falta: {{fields}}",
   "prescriptionForm.fieldDrugName": "nome do medicamento",
   "prescriptionForm.fieldDosingDays": "dias de dosagem",
-  "prescriptionForm.unsavedChangesHeading": "Alterações não salvas",
+  "prescriptionForm.unsavedChangesHeading": "Descartar Alterações?",
   "prescriptionForm.unsavedChangesWarning":
     "Você tem alterações não salvas. Se sair agora, seu progresso será perdido.",
   "prescriptionForm.stay": "Permanecer",
-  "prescriptionForm.leave": "Sair",
+  "prescriptionForm.leave": "Descartar",
   "app.heading": "Agenda Semanal de Doses",
   "app.noDoses": "Nenhuma dose agendada para esta semana.",
   "app.previousWeek": "Semana anterior",
