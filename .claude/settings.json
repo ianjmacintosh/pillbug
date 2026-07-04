@@ -7,6 +7,29 @@
     ]
   },
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/tmux-thinking.sh",
+            "statusMessage": "Flagging tmux window as busy..."
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/tmux-permission.sh",
+            "statusMessage": "Flagging tmux window as needing approval..."
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
@@ -32,6 +55,16 @@
             "command": "npm run format 2>/dev/null || true && npm run lint && npm run typecheck && npm run test:unit -- --run",
             "if": "Bash(git commit*)",
             "statusMessage": "Running pre-commit checks..."
+          }
+        ]
+      },
+      {
+        "matcher": "AskUserQuestion|ExitPlanMode",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/tmux-awaiting.sh",
+            "statusMessage": "Flagging tmux window as awaiting input..."
           }
         ]
       }
