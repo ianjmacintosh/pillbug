@@ -51,7 +51,7 @@ if [[ "$TERM_PROGRAM" != "vscode" ]]; then
                 git_part+="\[\033[0;36m\]) "
             fi
         fi
-        PS1="${user_part}${arrow} \[\033[1;34m\]\w \[\033[0m\]${git_part}\$ "
+        PS1="${user_part}${arrow} \[\033[1;34m\]\w \[\033[0m\]${git_part}\[\033[0m\]\$ "
     }
     PROMPT_COMMAND='__ghostty_prompt'
 fi
