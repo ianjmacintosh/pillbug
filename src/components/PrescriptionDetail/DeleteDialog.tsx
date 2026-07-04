@@ -16,12 +16,14 @@ export function DeleteDialog({ onConfirm, onCancel }: DeleteDialogProps) {
       title={t("prescriptionDetail.deleteHeading")}
     >
       <p>{t("prescriptionDetail.deleteWarning")}</p>
-      <Button type="button" onClick={onCancel}>
-        {t("prescriptionDetail.cancel")}
-      </Button>
-      <Button type="button" onClick={onConfirm}>
-        {t("prescriptionDetail.confirmDelete")}
-      </Button>
+      <div className="dialog-actions">
+        <Button type="button" className="button-secondary" onClick={onCancel}>
+          {t("prescriptionDetail.cancel")}
+        </Button>
+        <Button type="button" className="button-danger" onClick={onConfirm}>
+          {t("prescriptionDetail.confirmDelete")}
+        </Button>
+      </div>
     </Dialog>
   );
 }

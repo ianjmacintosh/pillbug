@@ -866,7 +866,7 @@ describe("NewPrescriptionForm", () => {
       router.navigate({ to: "/prescriptions" });
 
       expect(
-        await screen.findByRole("heading", { name: /unsaved changes/i }),
+        await screen.findByRole("heading", { name: /discard changes/i }),
       ).toBeTruthy();
       expect(router.state.location.pathname).toBe("/prescriptions/new");
     });
@@ -876,12 +876,12 @@ describe("NewPrescriptionForm", () => {
       await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
 
       router.navigate({ to: "/prescriptions" });
-      await screen.findByRole("heading", { name: /unsaved changes/i });
+      await screen.findByRole("heading", { name: /discard changes/i });
       await userEvent.click(screen.getByRole("button", { name: /^stay$/i }));
 
       await waitFor(() => {
         expect(
-          screen.queryByRole("heading", { name: /unsaved changes/i }),
+          screen.queryByRole("heading", { name: /discard changes/i }),
         ).toBeNull();
       });
       expect(router.state.location.pathname).toBe("/prescriptions/new");
@@ -892,8 +892,8 @@ describe("NewPrescriptionForm", () => {
       await userEvent.type(screen.getByLabelText(/drug name/i), "Aspirin");
 
       router.navigate({ to: "/prescriptions" });
-      await screen.findByRole("heading", { name: /unsaved changes/i });
-      await userEvent.click(screen.getByRole("button", { name: /^leave$/i }));
+      await screen.findByRole("heading", { name: /discard changes/i });
+      await userEvent.click(screen.getByRole("button", { name: /^discard$/i }));
 
       await waitFor(() => {
         expect(router.state.location.pathname).toBe("/prescriptions");
@@ -906,7 +906,7 @@ describe("NewPrescriptionForm", () => {
       await router.navigate({ to: "/prescriptions" });
 
       expect(
-        screen.queryByRole("heading", { name: /unsaved changes/i }),
+        screen.queryByRole("heading", { name: /discard changes/i }),
       ).toBeNull();
       expect(router.state.location.pathname).toBe("/prescriptions");
     });
@@ -932,7 +932,7 @@ describe("NewPrescriptionForm", () => {
         );
       });
       expect(
-        screen.queryByRole("heading", { name: /unsaved changes/i }),
+        screen.queryByRole("heading", { name: /discard changes/i }),
       ).toBeNull();
     });
   });
@@ -1466,7 +1466,7 @@ describe("EditPrescriptionForm", () => {
       router.navigate({ to: "/prescriptions" });
 
       expect(
-        await screen.findByRole("heading", { name: /unsaved changes/i }),
+        await screen.findByRole("heading", { name: /discard changes/i }),
       ).toBeTruthy();
     });
 
@@ -1485,7 +1485,7 @@ describe("EditPrescriptionForm", () => {
         );
       });
       expect(
-        screen.queryByRole("heading", { name: /unsaved changes/i }),
+        screen.queryByRole("heading", { name: /discard changes/i }),
       ).toBeNull();
     });
   });

@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "../Button/Button";
 import { Dialog } from "../Dialog/Dialog";
 
@@ -22,12 +23,24 @@ export function UnsavedChangesDialog({
       dismissible={false}
     >
       <p>{t("prescriptionForm.unsavedChangesWarning")}</p>
-      <Button type="button" onClick={onStay}>
-        {t("prescriptionForm.stay")}
-      </Button>
-      <Button type="button" onClick={onLeave}>
-        {t("prescriptionForm.leave")}
-      </Button>
+      <div className="dialog-actions">
+        <Button
+          type="button"
+          className="button-danger button-leading-icon"
+          onClick={onLeave}
+        >
+          <Trash2 size={18} aria-hidden="true" />
+          {t("prescriptionForm.leave")}
+        </Button>
+        <Button
+          type="button"
+          className="button-primary button-leading-icon"
+          onClick={onStay}
+        >
+          <Pencil size={18} aria-hidden="true" />
+          {t("prescriptionForm.stay")}
+        </Button>
+      </div>
     </Dialog>
   );
 }

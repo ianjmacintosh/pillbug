@@ -20,7 +20,17 @@
 }
 
 .dialog-heading {
-  font-size: var(--text-h3);
+  font-size: var(--text-h2);
   font-weight: 700;
   margin: 0 0 var(--space-4);
+}
+
+.dialog p {
+  margin: 0 0 var(--space-6);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
 }

@@ -130,11 +130,11 @@ const enUS = {
   "prescriptionForm.stillNeeded": "Still needed: {{fields}}",
   "prescriptionForm.fieldDrugName": "drug name",
   "prescriptionForm.fieldDosingDays": "dosing days",
-  "prescriptionForm.unsavedChangesHeading": "Unsaved changes",
+  "prescriptionForm.unsavedChangesHeading": "Discard Changes?",
   "prescriptionForm.unsavedChangesWarning":
     "You have unsaved changes. If you leave now, your progress will be lost.",
   "prescriptionForm.stay": "Stay",
-  "prescriptionForm.leave": "Leave",
+  "prescriptionForm.leave": "Discard",
   "app.heading": "Weekly Dose Schedule",
   "app.noDoses": "No doses scheduled for this week.",
   "app.previousWeek": "Previous week",

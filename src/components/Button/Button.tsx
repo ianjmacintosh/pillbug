@@ -26,6 +26,14 @@ function mergeClass(base: string, extra?: string) {
   return extra ? `${base} ${extra}` : base;
 }
 
+// "a" is excluded: raw anchors are the one variant genuinely used for plain
+// inline text links (e.g. "Terms of Service"), where a gold button face
+// would be wrong. button/input/link default here because a bare instance of
+// those is always meant to be a styled CTA, never plain text.
+function mergeClassDefaultPrimary(base: string, extra?: string) {
+  return mergeClass(base, extra ?? "button-primary");
+}
+
 export function Button({ as, ...rest }: ButtonProps) {
   const [isBlocked, setIsBlocked] = useState(false);
   const [tooltipVisible, setTooltipVisible] = useState(false);
@@ -52,14 +60,19 @@ export function Button({ as, ...rest }: ButtonProps) {
     return (
       <input
         type="submit"
-        className={mergeClass("button", className)}
+        className={mergeClassDefaultPrimary("button", className)}
         {...props}
       />
     );
   }
   if (as === "link") {
     const { className, ...props } = rest as ComponentProps<typeof Link>;
-    return <Link className={mergeClass("button", className)} {...props} />;
+    return (
+      <Link
+        className={mergeClassDefaultPrimary("button", className)}
+        {...props}
+      />
+    );
   }
 
   const {
@@ -85,7 +98,9 @@ export function Button({ as, ...rest }: ButtonProps) {
           </span>
         )}
         <button
-          className={mergeClass("button", className) + blockedClass}
+          className={
+            mergeClassDefaultPrimary("button", className) + blockedClass
+          }
           aria-disabled="true"
           onMouseDown={(e) => e.preventDefault()}
           onClick={(e) => {
@@ -122,7 +137,7 @@ export function Button({ as, ...rest }: ButtonProps) {
 
   return (
     <button
-      className={mergeClass("button", className)}
+      className={mergeClassDefaultPrimary("button", className)}
       disabled={disabled}
       onClick={onClick}
       {...buttonProps}
