@@ -4,10 +4,7 @@
 # from "awaiting you" (AskUserQuestion/ExitPlanMode).
 set -euo pipefail
 
+start_ns=$(date +%s%N)
 cat > /dev/null
 
-[ -n "${TMUX_PANE:-}" ] || exit 0
-
-tmux rename-window -t "$TMUX_PANE" "🔒 needs approval" 2>/dev/null || true
-
-exit 0
+HOOK_START_NS="$start_ns" "$(dirname "$0")/tmux-rename-if-latest.sh" "🔒 needs approval"

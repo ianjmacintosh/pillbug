@@ -3,10 +3,7 @@
 # blocked on the user, distinct from the general "thinking" state.
 set -euo pipefail
 
+start_ns=$(date +%s%N)
 cat > /dev/null
 
-[ -n "${TMUX_PANE:-}" ] || exit 0
-
-tmux rename-window -t "$TMUX_PANE" "❓ awaiting you" 2>/dev/null || true
-
-exit 0
+HOOK_START_NS="$start_ns" "$(dirname "$0")/tmux-rename-if-latest.sh" "❓ awaiting you"

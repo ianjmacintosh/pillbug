@@ -3,7 +3,10 @@
 # snippet of its last response, instead of leaving it as the process name.
 set -euo pipefail
 
-[ -n "${TMUX_PANE:-}" ] || exit 0
+# Captured before the (transcript-size-dependent) jq parsing below, so the
+# race guard in tmux-rename-if-latest.sh orders by when the turn actually
+# ended, not by how long this script took to compute the name.
+start_ns=$(date +%s%N)
 
 input=$(cat)
 transcript_path=$(echo "$input" | jq -r '.transcript_path')
@@ -24,6 +27,6 @@ clean=$(echo "$first_line" | sed -E 's/[#*`_>]+//g' | tr -s '[:space:]' ' ' | se
 name=$(echo "$clean" | cut -c1-25)
 [ "${#clean}" -gt 25 ] && name="${name}…"
 
-[ -n "$name" ] && tmux rename-window -t "$TMUX_PANE" "$name"
+[ -n "$name" ] && HOOK_START_NS="$start_ns" "$(dirname "$0")/tmux-rename-if-latest.sh" "$name"
 
 exit 0
