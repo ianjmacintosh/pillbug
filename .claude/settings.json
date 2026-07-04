@@ -14,6 +14,11 @@
             "type": "command",
             "command": "for d in .agents/skills/*/; do name=$(basename \"$d\"); [ ! -e \".claude/skills/$name\" ] && ln -sf \"$(pwd)/$d\" \".claude/skills/$name\"; done; exit 0",
             "statusMessage": "Syncing skills from .agents to .claude..."
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/rename-tmux-window.sh",
+            "statusMessage": "Renaming tmux window..."
           }
         ]
       }
