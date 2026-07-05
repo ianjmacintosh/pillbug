@@ -1,3 +1,11 @@
+# Agent instructions
+
+These are common instructions that apply across all scenarios.
+
+## Contribution Guidelines
+
+- All development work (features and bug fixes) must include unit tests. Any user-facing changes must also include or update E2E test coverage using Playwright. Always start by reproducing the bug or missing feature how an end user would experience it. See `.claude/skills/e2e-tests/SKILL.md` for selector strategy, environment setup, and other conventions specific to this project.
+
 ## Agent skills
 
 ### Issue tracker
@@ -56,10 +64,6 @@ Every migration file must begin with `PRAGMA foreign_keys = ON;` so that local S
 **Any PR that includes a migration must be verified against a remote D1 database before merging.** Opening the PR triggers the Cloudflare GitHub integration, which deploys a preview environment connected to D1 and applies migrations there. Confirm the preview environment is healthy before merging.
 
 Do not rely on CI alone to validate migrations. See `docs/testing.md` for full context on local-vs-remote D1 behavioral differences.
-
-## Testing
-
-Any change to user-facing behavior must include or update E2E test coverage. See `.claude/skills/e2e-tests/SKILL.md` for selector strategy, auth setup, state reset, and print-media testing conventions specific to this project.
 
 ## Debugging CI failures
 
