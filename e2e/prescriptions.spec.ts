@@ -238,6 +238,36 @@ test.describe("Prescription create", () => {
     await expect(removeButtons.nth(1)).toBeEnabled();
   });
 
+  test("'Every day' checkbox selects and deselects all 7 day pills", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+
+    const everyDay = page.getByRole("checkbox", { name: /every day/i });
+    const dayNames = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+
+    await expect(everyDay).not.toBeChecked();
+    await everyDay.click();
+    await expect(everyDay).toBeChecked();
+    for (const day of dayNames) {
+      await expect(page.getByRole("checkbox", { name: day })).toBeChecked();
+    }
+
+    await everyDay.click();
+    await expect(everyDay).not.toBeChecked();
+    for (const day of dayNames) {
+      await expect(page.getByRole("checkbox", { name: day })).not.toBeChecked();
+    }
+  });
+
   test("Days and Times fieldset is aria-invalid when submitted without a day or with a blank time", async ({
     page,
   }) => {

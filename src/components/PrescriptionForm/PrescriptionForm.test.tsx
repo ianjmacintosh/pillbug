@@ -738,53 +738,16 @@ describe("NewPrescriptionForm", () => {
     });
   });
 
-  describe("select all / unselect all days", () => {
-    test("'(Select all)' button is visible when not all days are selected", async () => {
+  describe("select all days", () => {
+    test("'Every day' checkbox is visible", async () => {
       await renderNewForm();
-      expect(screen.getByRole("button", { name: /select all/i })).toBeTruthy();
+      expect(screen.getByRole("checkbox", { name: /every day/i })).toBeTruthy();
     });
 
-    test("button label switches to '(Unselect all)' when all 7 days are selected", async () => {
+    test("clicking 'Every day' selects all 7 days and checks itself", async () => {
       await renderNewForm();
       await userEvent.click(
-        screen.getByRole("button", { name: /select all/i }),
-      );
-      expect(
-        screen.getByRole("button", { name: /unselect all/i }),
-      ).toBeTruthy();
-      expect(
-        screen.queryByRole("button", { name: /^\(Select all\)$/i }),
-      ).toBeNull();
-    });
-
-    test("clicking '(Unselect all)' deselects all days", async () => {
-      await renderNewForm();
-      await userEvent.click(
-        screen.getByRole("button", { name: /select all/i }),
-      );
-      await userEvent.click(
-        screen.getByRole("button", { name: /unselect all/i }),
-      );
-      for (const day of [
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-      ]) {
-        expect(
-          (screen.getByRole("checkbox", { name: day }) as HTMLInputElement)
-            .checked,
-        ).toBe(false);
-      }
-    });
-
-    test("clicking '(Select all)' selects all 7 days", async () => {
-      await renderNewForm();
-      await userEvent.click(
-        screen.getByRole("button", { name: /select all/i }),
+        screen.getByRole("checkbox", { name: /every day/i }),
       );
       for (const day of [
         "Sunday",
@@ -799,6 +762,34 @@ describe("NewPrescriptionForm", () => {
           (screen.getByRole("checkbox", { name: day }) as HTMLInputElement)
             .checked,
         ).toBe(true);
+      }
+      expect(
+        (
+          screen.getByRole("checkbox", {
+            name: /every day/i,
+          }) as HTMLInputElement
+        ).checked,
+      ).toBe(true);
+    });
+
+    test("clicking 'Every day' again deselects all 7 days", async () => {
+      await renderNewForm();
+      const selectAll = screen.getByRole("checkbox", { name: /every day/i });
+      await userEvent.click(selectAll);
+      await userEvent.click(selectAll);
+      for (const day of [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ]) {
+        expect(
+          (screen.getByRole("checkbox", { name: day }) as HTMLInputElement)
+            .checked,
+        ).toBe(false);
       }
     });
   });
