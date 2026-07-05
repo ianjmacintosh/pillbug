@@ -71,15 +71,18 @@ test.describe("Settings — log out", () => {
 test.describe("Settings — legal links", () => {
   test.use({ storageState: ALICE_AUTH_FILE });
 
+  // Scoped to main throughout: right after navigation, Layout's auth check
+  // is still in flight and the (soon-to-be-hidden) footer's own Terms/Privacy
+  // links briefly coexist with Settings' own, sharing the same accessible name.
   test("shows Terms of Service and Privacy Policy links to their pages", async ({
     page,
   }) => {
     await page.goto("/settings");
     await expect(
-      page.getByRole("link", { name: /terms of service/i }),
+      page.getByRole("main").getByRole("link", { name: /terms of service/i }),
     ).toHaveAttribute("href", "/terms");
     await expect(
-      page.getByRole("link", { name: /privacy policy/i }),
+      page.getByRole("main").getByRole("link", { name: /privacy policy/i }),
     ).toHaveAttribute("href", "/privacy");
   });
 
@@ -87,7 +90,10 @@ test.describe("Settings — legal links", () => {
     page,
   }) => {
     await page.goto("/settings");
-    await page.getByRole("link", { name: /terms of service/i }).click();
+    await page
+      .getByRole("main")
+      .getByRole("link", { name: /terms of service/i })
+      .click();
     await expect(page).toHaveURL("/terms");
     await expect(
       page.getByRole("heading", { name: /terms of service/i }),
@@ -98,7 +104,10 @@ test.describe("Settings — legal links", () => {
     page,
   }) => {
     await page.goto("/settings");
-    await page.getByRole("link", { name: /privacy policy/i }).click();
+    await page
+      .getByRole("main")
+      .getByRole("link", { name: /privacy policy/i })
+      .click();
     await expect(page).toHaveURL("/privacy");
     await expect(
       page.getByRole("heading", { name: /privacy policy/i }),

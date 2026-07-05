@@ -69,7 +69,11 @@ test.describe("pt-BR translation", () => {
     page,
   }) => {
     await page.goto("/settings");
+    // Scope to main: right after navigation, Layout's auth check is still
+    // in flight and the (soon-to-be-hidden) footer's own language <select>
+    // briefly coexists with Settings' own, which share the same accessible name.
     await page
+      .getByRole("main")
       .getByRole("combobox", { name: /language/i })
       .selectOption("pt-BR");
     await page.getByRole("button", { name: /save/i }).click();
@@ -79,7 +83,9 @@ test.describe("pt-BR translation", () => {
 
     await page.goto("/settings");
     await expect(
-      page.getByText(ptBR["settings.legal"], { exact: true }),
+      page.getByRole("main").getByText(ptBR["settings.legal"], {
+        exact: true,
+      }),
     ).toBeVisible();
   });
 });
