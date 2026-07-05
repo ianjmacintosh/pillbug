@@ -2,6 +2,8 @@
 
 These are common instructions that apply across all scenarios.
 
+When you are working on a task that requires architectural guidance, consult `OPINIONS.md` for a summary of some of Ian's development philosophies
+
 ## Contribution Guidelines
 
 - All development work (features and bug fixes) must include unit tests. Any user-facing changes must also include or update E2E test coverage using Playwright. Always start by reproducing the bug or missing feature how an end user would experience it. See `.claude/skills/e2e-tests/SKILL.md` for selector strategy, environment setup, and other conventions specific to this project.

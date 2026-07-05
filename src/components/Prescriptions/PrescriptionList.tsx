@@ -14,11 +14,13 @@ interface Prescription {
 interface PrescriptionListProps {
   prescriptions: Prescription[];
   selectedId: string | null;
+  hideAddButton?: boolean;
 }
 
 export function PrescriptionList({
   prescriptions,
   selectedId,
+  hideAddButton = false,
 }: PrescriptionListProps) {
   const { t, i18n } = useTranslation();
   return (
@@ -51,7 +53,8 @@ export function PrescriptionList({
       <Button
         as="link"
         to="/prescriptions/new"
-        className="button-primary button-leading-icon prescriptions-add-btn"
+        className={`button-primary button-leading-icon prescriptions-add-btn fade-transition${hideAddButton ? " fade-hidden" : ""}`}
+        tabIndex={hideAddButton ? -1 : undefined}
       >
         <Scroll size={18} aria-hidden="true" />
         {t("prescriptions.addPrescription")}

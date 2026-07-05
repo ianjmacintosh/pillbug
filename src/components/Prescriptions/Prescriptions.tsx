@@ -32,6 +32,9 @@ function Prescriptions() {
   const potentialId = idMatch ? idMatch[1] : null;
   const selectedId = potentialId !== "new" ? potentialId : null;
   const atChildRoute = location.pathname !== "/prescriptions";
+  const addingNew =
+    location.pathname === "/prescriptions/new" ||
+    location.pathname.endsWith("/edit");
   const showFormPanel =
     atChildRoute || (!loading && prescriptions.length === 0);
   const mobileClass = showFormPanel
@@ -48,7 +51,11 @@ function Prescriptions() {
 
   return (
     <main className={`prescriptions prescriptions-layout ${mobileClass}`}>
-      <PrescriptionList prescriptions={prescriptions} selectedId={selectedId} />
+      <PrescriptionList
+        prescriptions={prescriptions}
+        selectedId={selectedId}
+        hideAddButton={addingNew}
+      />
       <div className="prescriptions-form-panel">
         {loading && !atChildRoute ? (
           <p role="status">{t("prescriptions.loading")}</p>
