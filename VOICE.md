@@ -33,7 +33,7 @@ He's also willing to be genuinely vulnerable — recounting sleeping on a strang
 
 ## Admitting ignorance plainly
 
-"Beats me." Full stop. No hedging construction around it, no apology. He'll also write "I haven't found a satisfying answer" or "I'm personally hesitant" on topics where he has real opinions, because he distinguishes between having a view and having certainty.
+Willing to write "Beats me." Full stop — no hedging construction around it, no apology. Also "I haven't found a satisfying answer" and "I'm personally hesitant." The pattern is that he distinguishes between having a view and having certainty, and doesn't pretend to the latter when he only has the former.
 
 ## Direct imperatives
 
