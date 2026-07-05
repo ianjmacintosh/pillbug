@@ -18,7 +18,7 @@ function Layout() {
     <div className="layout">
       <Header isAuthenticated={isAuthenticated} />
       <Outlet />
-      <Footer isAuthenticated={isAuthenticated} />
+      {!isAuthenticated && <Footer />}
       {isAuthenticated && <BottomNav />}
     </div>
   );

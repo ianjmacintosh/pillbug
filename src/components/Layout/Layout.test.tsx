@@ -58,4 +58,16 @@ describe("Layout", () => {
     render(<Layout />);
     expect(screen.queryByRole("link", { name: /settings/i })).toBeNull();
   });
+
+  test("hides the footer after session check succeeds", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
+    render(<Layout />);
+    await screen.findByRole("navigation", { name: /main navigation/i });
+    expect(
+      screen.queryByRole("link", { name: /terms of service/i }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("link", { name: /privacy policy/i }),
+    ).toBeNull();
+  });
 });

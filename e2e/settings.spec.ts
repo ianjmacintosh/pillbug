@@ -68,6 +68,44 @@ test.describe("Settings — log out", () => {
   });
 });
 
+test.describe("Settings — legal links", () => {
+  test.use({ storageState: ALICE_AUTH_FILE });
+
+  test("shows Terms of Service and Privacy Policy links to their pages", async ({
+    page,
+  }) => {
+    await page.goto("/settings");
+    await expect(
+      page.getByRole("link", { name: /terms of service/i }),
+    ).toHaveAttribute("href", "/terms");
+    await expect(
+      page.getByRole("link", { name: /privacy policy/i }),
+    ).toHaveAttribute("href", "/privacy");
+  });
+
+  test("clicking Terms of Service navigates to the Terms page", async ({
+    page,
+  }) => {
+    await page.goto("/settings");
+    await page.getByRole("link", { name: /terms of service/i }).click();
+    await expect(page).toHaveURL("/terms");
+    await expect(
+      page.getByRole("heading", { name: /terms of service/i }),
+    ).toBeVisible();
+  });
+
+  test("clicking Privacy Policy navigates to the Privacy page", async ({
+    page,
+  }) => {
+    await page.goto("/settings");
+    await page.getByRole("link", { name: /privacy policy/i }).click();
+    await expect(page).toHaveURL("/privacy");
+    await expect(
+      page.getByRole("heading", { name: /privacy policy/i }),
+    ).toBeVisible();
+  });
+});
+
 test.describe("Settings screen", () => {
   test.use({ storageState: ALICE_AUTH_FILE });
 

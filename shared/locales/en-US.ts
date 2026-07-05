@@ -20,6 +20,9 @@ const enUS = {
   "settings.serverError": "Something went wrong. Please try again.",
   "settings.submitting": "Saving…",
   "settings.submit": "Save",
+  "settings.legal": "Legal",
+  "settings.termsOfService": "Terms of Service",
+  "settings.privacyPolicy": "Privacy Policy",
   "login.heading": "Log in",
   "login.emailLabel": "Email",
   "login.turnstileError":

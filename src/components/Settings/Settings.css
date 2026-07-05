@@ -59,6 +59,34 @@
   font-size: var(--text-sm);
 }
 
+.settings-legal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 1.5rem;
+}
+
+.settings-legal-eyebrow {
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  font-family: var(--font-sans);
+  cursor: default;
+}
+
+.settings-legal a {
+  color: var(--color-link);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  text-decoration: none;
+}
+
+.settings-legal a:hover {
+  text-decoration: underline;
+}
+
 .settings-logout {
   margin-top: 1.5rem;
 }
