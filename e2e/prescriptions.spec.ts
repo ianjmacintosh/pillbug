@@ -105,8 +105,7 @@ test.describe("Split-panel layout", () => {
     const addBtn = page.getByRole("link", { name: /add prescription/i });
 
     await page.goto("/prescriptions/new");
-    await expect(addBtn).toHaveAttribute("aria-hidden", "true");
-    await expect(addBtn).toHaveAttribute("tabindex", "-1");
+    await expect(addBtn).toHaveAttribute("inert");
 
     const res = await page.request.post("/api/v1/prescriptions", {
       data: BASE_PRESCRIPTION,
@@ -114,12 +113,10 @@ test.describe("Split-panel layout", () => {
     const { id } = (await res.json()) as { id: string };
 
     await page.goto(`/prescriptions/${id}/edit`);
-    await expect(addBtn).toHaveAttribute("aria-hidden", "true");
-    await expect(addBtn).toHaveAttribute("tabindex", "-1");
+    await expect(addBtn).toHaveAttribute("inert");
 
     await page.goto("/prescriptions");
-    await expect(addBtn).not.toHaveAttribute("aria-hidden");
-    await expect(addBtn).not.toHaveAttribute("tabindex", "-1");
+    await expect(addBtn).not.toHaveAttribute("inert");
   });
 });
 
