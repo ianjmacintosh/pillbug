@@ -65,6 +65,13 @@ test.describe("pt-BR translation", () => {
     await resetAliceLanguage();
   });
 
+  // This test saves pt-BR to Alice's account, so reset afterward too —
+  // otherwise the pollution leaks into any later spec file that reuses
+  // ALICE_AUTH_FILE and asserts on English text (e.g. header.spec.ts).
+  test.afterEach(async () => {
+    await resetAliceLanguage();
+  });
+
   test("Settings legal eyebrow shows the corrected pt-BR translation, not the mistranslated 'Legal'", async ({
     page,
   }) => {
