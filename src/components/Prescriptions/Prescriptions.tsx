@@ -32,7 +32,9 @@ function Prescriptions() {
   const potentialId = idMatch ? idMatch[1] : null;
   const selectedId = potentialId !== "new" ? potentialId : null;
   const atChildRoute = location.pathname !== "/prescriptions";
-  const addingNew = location.pathname === "/prescriptions/new";
+  const addingNew =
+    location.pathname === "/prescriptions/new" ||
+    location.pathname.endsWith("/edit");
   const showFormPanel =
     atChildRoute || (!loading && prescriptions.length === 0);
   const mobileClass = showFormPanel
