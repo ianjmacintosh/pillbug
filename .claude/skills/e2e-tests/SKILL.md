@@ -38,9 +38,13 @@ Use these queries in order. Skip down only when the preferred option genuinely d
    ```
 3. **`getByPlaceholder`** — only when no label exists. A placeholder is not a substitute for a label.
 4. **`getByText`** — for non-interactive elements (`div`, `span`, `p`) where text is what the user sees.
-5. **`getByAltText`** — for images and elements that support `alt`.
-6. **`getByTitle`** — `title` is not consistently read by screen readers and is invisible by default.
-7. **`getByTestId`** — only when nothing above applies or the text is dynamic. Users cannot see or hear test IDs.
+5. **`getByDisplayValue`** — useful when navigating a page with filled-in form values.
+   ```ts
+   page.getByDisplayValue("metformin")
+   ```
+6. **`getByAltText`** — for images and elements that support `alt`.
+7. **`getByTitle`** — `title` is not consistently read by screen readers and is invisible by default.
+8. **`getByTestId`** — only when nothing above applies or the text is dynamic. Users cannot see or hear test IDs.
 
 ### Scoping queries to a sub-element
 
