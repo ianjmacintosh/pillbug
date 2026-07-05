@@ -351,7 +351,7 @@ export function StyleGuide() {
               <Button className="button-secondary button-sm">Cancel</Button>
             </div>
             <p className="sg-button-note">
-              Sky blue border + text, no fill. Same raised treatment — 6px
+              White fill, sky blue border + text. Same raised treatment — 6px
               bottom border, depresses on hover.
             </p>
           </div>
@@ -370,16 +370,28 @@ export function StyleGuide() {
           <div className="sg-button-group">
             <p className="sg-button-group-label">Icon (standalone)</p>
             <div className="sg-button-row">
-              <Button className="button-icon" aria-label="Add prescription">
+              <Button
+                className="button-icon button-primary"
+                aria-label="Add prescription"
+              >
                 <Plus size={20} aria-hidden="true" />
               </Button>
-              <Button className="button-icon" aria-label="Settings">
+              <Button
+                className="button-icon button-secondary"
+                aria-label="Settings"
+              >
                 <Settings size={20} aria-hidden="true" />
+              </Button>
+              <Button className="button-icon button-danger" aria-label="Delete">
+                <Trash2 size={20} aria-hidden="true" />
               </Button>
             </div>
             <p className="sg-button-note">
-              48×48 icon-only button. Use <code>aria-label</code> when the icon
-              is the only content. Same raised + depress treatment.
+              48×48 icon-only button. <code>.button-icon</code> is shape only —
+              pair it with <code>.button-primary</code>,{" "}
+              <code>.button-secondary</code>, or <code>.button-danger</code> for
+              color, same as a text button. Use <code>aria-label</code> when the
+              icon is the only content. Same raised + depress treatment.
             </p>
           </div>
 

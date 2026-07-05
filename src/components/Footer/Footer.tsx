@@ -6,7 +6,7 @@ const LANGUAGE_OPTIONS = [
   { value: "pt-BR", label: "Português (Brasil)" },
 ];
 
-function Footer({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
+function Footer() {
   const { t, i18n } = useTranslation();
 
   return (
@@ -18,26 +18,24 @@ function Footer({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
           <a href="/privacy">{t("footer.privacyPolicy")}</a>
         </nav>
       </div>
-      {!isAuthenticated && (
-        <div className="footer-language">
-          <div className="footer-language-inner">
-            <label className="footer-eyebrow" htmlFor="footer-language-select">
-              {t("footer.language")}
-            </label>
-            <select
-              id="footer-language-select"
-              value={i18n.language}
-              onChange={(e) => i18n.changeLanguage(e.target.value)}
-            >
-              {LANGUAGE_OPTIONS.map(({ value, label }) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </div>
+      <div className="footer-language">
+        <div className="footer-language-inner">
+          <label className="footer-eyebrow" htmlFor="footer-language-select">
+            {t("footer.language")}
+          </label>
+          <select
+            id="footer-language-select"
+            value={i18n.language}
+            onChange={(e) => i18n.changeLanguage(e.target.value)}
+          >
+            {LANGUAGE_OPTIONS.map(({ value, label }) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
         </div>
-      )}
+      </div>
     </footer>
   );
 }

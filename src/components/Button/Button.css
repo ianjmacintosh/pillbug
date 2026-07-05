@@ -13,6 +13,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  --button-press-depth: 4px;
   box-shadow: var(--button-shadow-rest);
   transition:
     background-color 0.08s ease-out,
@@ -42,11 +43,18 @@
   box-shadow: var(--button-shadow-partial);
 }
 
+/* Press mechanics are identical across every color variant (including */
+/* `.button-icon`, which supplies shape only) — only the colors below vary. */
+.button-primary:hover,
+.button-secondary:hover,
+.button-danger:hover {
+  transform: translateY(var(--button-press-depth));
+  box-shadow: var(--button-shadow-pressed);
+}
+
 /* ── Primary ──────────────────────────────────────────────── */
 
 .button-primary {
-  --button-press-depth: 4px;
-  --button-partial-press: 2px;
   --button-shadow-rest:
     inset 0 2px 0 oklch(0.97 0.22 95 / 0.9), 0 6px 0 oklch(0.48 0.32 95),
     0 8px 12px oklch(0.62 0.34 95 / 0.35);
@@ -64,11 +72,6 @@
 .button-primary:hover {
   background-color: var(--color-action-hover);
   color: var(--color-action-text);
-  transform: translateY(var(--button-press-depth));
-  box-shadow:
-    inset 0 2px 0 oklch(0.97 0.22 95 / 0.9),
-    0 2px 0 oklch(0.48 0.32 95),
-    0 2px 4px oklch(0.62 0.34 95 / 0.2);
 }
 
 .button-primary:focus-visible {
@@ -92,7 +95,7 @@
   --button-shadow-pressed:
     inset 0 2px 0 oklch(1 0 0 / 0.8), 0 2px 0 oklch(0.28 0.22 249),
     0 2px 4px oklch(0.5 0.22 249 / 0.1);
-  background-color: transparent;
+  background-color: var(--color-surface-raised);
   color: var(--blue-50);
   border: 1px solid oklch(0.45 0.2 249);
 }
@@ -100,11 +103,6 @@
 .button-secondary:hover {
   background-color: var(--blue-94);
   color: var(--blue-50);
-  transform: translateY(4px);
-  box-shadow:
-    inset 0 2px 0 oklch(1 0 0 / 0.8),
-    0 2px 0 oklch(0.28 0.22 249),
-    0 2px 4px oklch(0.5 0.22 249 / 0.1);
 }
 
 .button-secondary:focus-visible {
@@ -135,11 +133,6 @@
 
 .button-danger:hover {
   background-color: oklch(0.48 0.22 25);
-  transform: translateY(4px);
-  box-shadow:
-    inset 0 2px 0 oklch(0.85 0.15 25 / 0.6),
-    0 2px 0 oklch(0.25 0.22 25),
-    0 2px 4px oklch(0.55 0.22 25 / 0.15);
 }
 
 .button-danger:focus-visible {
@@ -159,73 +152,20 @@
   border-radius: 6px;
 }
 
-/* ── Icon button ──────────────────────────────────────────── */
+/* ── Icon button (shape only) ─────────────────────────────── */
+/* Icon-only buttons are square instead of text-padded. They carry no color */
+/* of their own — pair with `.button-primary`, `.button-secondary`, or      */
+/* `.button-danger` for that, e.g. `className="button-icon button-danger"`.*/
 
 .button-icon {
-  --button-shadow-rest:
-    inset 0 2px 0 oklch(0.97 0.22 95 / 0.9), 0 6px 0 oklch(0.48 0.32 95),
-    0 8px 10px oklch(0.62 0.34 95 / 0.3);
-  --button-shadow-partial:
-    inset 0 2px 0 oklch(0.97 0.22 95 / 0.9), 0 4px 0 oklch(0.48 0.32 95),
-    0 5px 6px oklch(0.62 0.34 95 / 0.22);
   width: 48px;
   height: 48px;
   padding: 0;
-  background-color: var(--color-action);
-  color: var(--color-action-text);
-  border: 1px solid oklch(0.55 0.32 95);
   border-radius: 10px;
-}
-
-.button-icon:hover {
-  background-color: var(--color-action-hover);
-  transform: translateY(4px);
-  box-shadow:
-    inset 0 2px 0 oklch(0.97 0.22 95 / 0.9),
-    0 2px 0 oklch(0.48 0.32 95),
-    0 2px 4px oklch(0.62 0.34 95 / 0.15);
-}
-
-.button-icon:focus-visible {
-  outline: 2px solid var(--color-contrast);
-  outline-offset: 2px;
 }
 
 .button-icon[aria-disabled="true"] {
   opacity: 0.75;
-}
-
-.button-icon[aria-disabled="true"]:hover {
-  background-color: var(--color-action-hover);
-  transform: none;
-  box-shadow: var(--button-shadow-rest);
-}
-
-/* ── Secondary icon button ────────────────────────────────── */
-
-.button-secondary-icon {
-  background-color: transparent;
-  border-color: oklch(0.45 0.2 249);
-  color: var(--blue-50);
-  box-shadow:
-    inset 0 2px 0 oklch(1 0 0 / 0.8),
-    0 6px 0 oklch(0.28 0.22 249),
-    0 8px 12px oklch(0.5 0.22 249 / 0.2);
-}
-
-.button-secondary-icon:hover {
-  background-color: var(--blue-94);
-  box-shadow:
-    inset 0 2px 0 oklch(1 0 0 / 0.8),
-    0 2px 0 oklch(0.28 0.22 249),
-    0 2px 4px oklch(0.5 0.22 249 / 0.1);
-}
-
-.button-secondary-icon:disabled:hover {
-  box-shadow:
-    inset 0 2px 0 oklch(1 0 0 / 0.8),
-    0 6px 0 oklch(0.28 0.22 249),
-    0 8px 12px oklch(0.5 0.22 249 / 0.2);
 }
 
 /* ── Spring-back animation for soft-disabled blocked interaction ── */
@@ -308,10 +248,7 @@
 
 /* ── Layout modifiers ─────────────────────────────────────── */
 
-.button-leading-icon {
-  gap: 10px;
-}
-
+.button-leading-icon,
 .button-trailing-icon {
   gap: 10px;
 }

@@ -7,7 +7,7 @@ const ptBR = {
   "header.nav.logOut": "Sair",
   "header.nav.openMenu": "Abrir menu",
   "header.nav.closeMenu": "Fechar menu",
-  "footer.legal": "Legal",
+  "footer.legal": "Jurídico",
   "footer.language": "Idioma",
   "footer.termsOfService": "Termos de Serviço",
   "footer.privacyPolicy": "Política de Privacidade",
@@ -20,6 +20,9 @@ const ptBR = {
   "settings.serverError": "Algo deu errado. Por favor, tente novamente.",
   "settings.submitting": "Salvando…",
   "settings.submit": "Salvar",
+  "settings.legal": "Jurídico",
+  "settings.termsOfService": "Termos de Serviço",
+  "settings.privacyPolicy": "Política de Privacidade",
   "login.heading": "Entrar",
   "login.emailLabel": "Email",
   "login.turnstileError":

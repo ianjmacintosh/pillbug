@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
@@ -17,6 +18,9 @@ vi.mock("@tanstack/react-router", async (importOriginal) => {
       useLoaderData: () => ({ timezone: mockTimezone, language: mockLanguage }),
     }),
     useNavigate: () => mockNavigate,
+    Link: ({ to, children }: { to: string; children: ReactNode }) => (
+      <a href={to}>{children}</a>
+    ),
   };
 });
 
@@ -164,6 +168,18 @@ describe("Settings", () => {
         }) as HTMLSelectElement
       ).value,
     ).toBe("Europe/London");
+  });
+
+  test("renders a link to the Terms of Service page", () => {
+    render(<Settings />);
+    const link = screen.getByRole("link", { name: /terms of service/i });
+    expect(link.getAttribute("href")).toBe("/terms");
+  });
+
+  test("renders a link to the Privacy Policy page", () => {
+    render(<Settings />);
+    const link = screen.getByRole("link", { name: /privacy policy/i });
+    expect(link.getAttribute("href")).toBe("/privacy");
   });
 
   test("renders a log out button", () => {
