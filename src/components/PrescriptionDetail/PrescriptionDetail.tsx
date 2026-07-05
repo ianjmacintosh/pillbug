@@ -78,14 +78,14 @@ function PrescriptionDetail() {
             <Link
               to="/prescriptions/$id/edit"
               params={{ id }}
-              className="button button-icon"
+              className="button button-icon button-primary"
               aria-label={t("prescriptionDetail.edit")}
             >
               <Pencil size={20} aria-hidden="true" />
             </Link>
             <Button
               type="button"
-              className="button-icon button-danger-icon"
+              className="button-icon button-danger"
               aria-label={t("prescriptionDetail.delete")}
               onClick={() => setShowDeleteDialog(true)}
             >

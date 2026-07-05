@@ -142,7 +142,7 @@ export function RoutineBlock({
               <td className="col-remove">
                 <Button
                   type="button"
-                  className="button-icon button-secondary-icon"
+                  className="button-icon button-secondary"
                   aria-label={t("prescriptionForm.removeDoseTime")}
                   disabled={schedule.times.length === 1}
                   onClick={() => removeDoseTime(scheduleIndex, timeIndex)}

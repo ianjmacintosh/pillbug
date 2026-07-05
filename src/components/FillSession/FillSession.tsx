@@ -131,7 +131,7 @@ function FillSession() {
           <div className="fill-session-date-picker-row">
             <Button
               type="button"
-              className="button-icon button-secondary-icon"
+              className="button-icon button-secondary"
               aria-label={t("fillSession.prevWeek")}
               onClick={() => setStartDate((d) => addDays(d, -7))}
             >
@@ -145,7 +145,7 @@ function FillSession() {
             />
             <Button
               type="button"
-              className="button-icon button-secondary-icon"
+              className="button-icon button-secondary"
               aria-label={t("fillSession.nextWeek")}
               onClick={() => setStartDate((d) => addDays(d, 7))}
             >
