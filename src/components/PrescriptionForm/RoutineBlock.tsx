@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { AlarmClockPlus, Trash2 } from "lucide-react";
 import { Button } from "../Button/Button";
+import { Checkbox } from "../Checkbox/Checkbox";
 import type { DayOfWeek } from "../../utils/constants";
 import { WEEKDAYS } from "../../utils/constants";
 import type { DosingSchedule } from "./usePrescriptionForm";
@@ -53,18 +54,15 @@ export function RoutineBlock({
         schedule.daysError || schedule.timesError ? true : undefined
       }
     >
-      <legend>
-        {t("prescriptionForm.daysAndTimes")}
-        <Button
-          type="button"
-          className="toggle-all-link"
-          onClick={() => toggleAllDays(scheduleIndex)}
-        >
-          {schedule.days.size === WEEKDAYS.length
-            ? t("prescriptionForm.unselectAll")
-            : t("prescriptionForm.selectAll")}
-        </Button>
-      </legend>
+      <legend>{t("prescriptionForm.daysAndTimes")}</legend>
+      <Checkbox
+        className="select-all-days"
+        checked={schedule.days.size === WEEKDAYS.length}
+        onChange={() => toggleAllDays(scheduleIndex)}
+      >
+        {t("prescriptionForm.allDays")}
+      </Checkbox>
+      <div className="select-all-divider" />
       {schedule.daysError && (
         <p role="alert" className="schedule-error-message">
           {t("prescriptionForm.daysError")}

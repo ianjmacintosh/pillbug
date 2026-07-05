@@ -111,8 +111,7 @@ const ptBR = {
   "prescriptionForm.dosingSchedule": "Esquema de Dosagem {{number}}",
   "prescriptionForm.removeDosingSchedule": "Remover esquema de dosagem",
   "prescriptionForm.daysAndTimes": "Dias e Horários",
-  "prescriptionForm.unselectAll": "(Desmarcar todos)",
-  "prescriptionForm.selectAll": "(Selecionar todos)",
+  "prescriptionForm.allDays": "Todo dia",
   "prescriptionForm.daysError": "Por favor, selecione pelo menos um dia.",
   "prescriptionForm.timesError":
     "Por favor, adicione pelo menos um horário de dose.",
