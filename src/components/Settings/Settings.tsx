@@ -21,11 +21,6 @@ function Settings() {
     <main className="settings">
       <h1>{t("settings.heading")}</h1>
       <SettingsForm savedTimezone={timezone} savedLanguage={language} />
-      <nav className="settings-legal" aria-label="Legal">
-        <span className="settings-legal-eyebrow">{t("settings.legal")}</span>
-        <Link to="/terms">{t("settings.termsOfService")}</Link>
-        <Link to="/privacy">{t("settings.privacyPolicy")}</Link>
-      </nav>
       <Button
         type="button"
         onClick={handleLogout}
@@ -34,6 +29,11 @@ function Settings() {
         <LogOut size={18} aria-hidden="true" />
         {t("header.nav.logOut")}
       </Button>
+      <nav className="settings-legal" aria-label="Legal">
+        <span className="settings-legal-eyebrow">{t("settings.legal")}</span>
+        <Link to="/terms">{t("settings.termsOfService")}</Link>
+        <Link to="/privacy">{t("settings.privacyPolicy")}</Link>
+      </nav>
     </main>
   );
 }
