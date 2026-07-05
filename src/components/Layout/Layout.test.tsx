@@ -66,8 +66,6 @@ describe("Layout", () => {
     expect(
       screen.queryByRole("link", { name: /terms of service/i }),
     ).toBeNull();
-    expect(
-      screen.queryByRole("link", { name: /privacy policy/i }),
-    ).toBeNull();
+    expect(screen.queryByRole("link", { name: /privacy policy/i })).toBeNull();
   });
 });
