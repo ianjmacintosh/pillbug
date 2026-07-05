@@ -98,6 +98,20 @@ test.describe("Split-panel layout", () => {
       page.getByRole("heading", { name: /add prescription/i, level: 2 }),
     ).toBeVisible();
   });
+
+  test("Add Prescription button is hidden on /prescriptions/new and visible elsewhere", async ({
+    page,
+  }) => {
+    const addBtn = page.getByRole("link", { name: /add prescription/i });
+
+    await page.goto("/prescriptions/new");
+    await expect(addBtn).toHaveAttribute("aria-hidden", "true");
+    await expect(addBtn).toHaveAttribute("tabindex", "-1");
+
+    await page.goto("/prescriptions");
+    await expect(addBtn).not.toHaveAttribute("aria-hidden");
+    await expect(addBtn).not.toHaveAttribute("tabindex", "-1");
+  });
 });
 
 test.describe("Prescription list", () => {

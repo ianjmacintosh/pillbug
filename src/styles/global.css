@@ -174,3 +174,13 @@ main {
   white-space: nowrap;
   border: 0;
 }
+
+/* Apply to any element you want to fade in/out. Pair with .fade-hidden to hide. */
+.fade-transition {
+  transition: opacity 300ms ease;
+}
+
+.fade-transition.fade-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
