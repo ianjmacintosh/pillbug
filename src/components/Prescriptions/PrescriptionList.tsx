@@ -54,7 +54,7 @@ export function PrescriptionList({
         as="link"
         to="/prescriptions/new"
         className={`button-primary button-leading-icon prescriptions-add-btn fade-transition${hideAddButton ? " fade-hidden" : ""}`}
-        inert={hideAddButton || undefined}
+        tabIndex={hideAddButton ? -1 : undefined}
       >
         <Scroll size={18} aria-hidden="true" />
         {t("prescriptions.addPrescription")}
