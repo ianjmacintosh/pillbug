@@ -1,5 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { initSchedules, buildSchedule } from "./usePrescriptionForm";
+import {
+  initSchedules,
+  buildSchedule,
+  validateSchedules,
+} from "./usePrescriptionForm";
 import type { PrescriptionFormData } from "./PrescriptionForm.types";
 
 const BASE: PrescriptionFormData = {
@@ -20,7 +24,9 @@ describe("initSchedules", () => {
     const result = initSchedules();
     expect(result).toHaveLength(1);
     expect(result[0].days.size).toBe(0);
-    expect(result[0].times).toEqual([{ time: "09:00", quantity: "1" }]);
+    expect(result[0].times).toEqual([
+      { time: "09:00", quantity: "1", quantityError: false },
+    ]);
     expect(result[0].daysError).toBe(false);
     expect(result[0].timesError).toBe(false);
   });
@@ -46,7 +52,9 @@ describe("initSchedules", () => {
     const result = initSchedules(rx);
     expect(result).toHaveLength(1);
     expect(result[0].days).toEqual(new Set(["monday", "wednesday", "friday"]));
-    expect(result[0].times).toEqual([{ time: "08:00", quantity: "1" }]);
+    expect(result[0].times).toEqual([
+      { time: "08:00", quantity: "1", quantityError: false },
+    ]);
   });
 
   test("creates separate schedules for days with different times", () => {
@@ -63,8 +71,12 @@ describe("initSchedules", () => {
     expect(result).toHaveLength(2);
     const monday = result.find((s) => s.days.has("monday"));
     const friday = result.find((s) => s.days.has("friday"));
-    expect(monday?.times).toEqual([{ time: "08:00", quantity: "1" }]);
-    expect(friday?.times).toEqual([{ time: "20:00", quantity: "2" }]);
+    expect(monday?.times).toEqual([
+      { time: "08:00", quantity: "1", quantityError: false },
+    ]);
+    expect(friday?.times).toEqual([
+      { time: "20:00", quantity: "2", quantityError: false },
+    ]);
   });
 
   test("maps quantity to a string for form editing", () => {
@@ -116,7 +128,7 @@ describe("buildSchedule", () => {
     const schedules = [
       {
         days: new Set<"monday">(),
-        times: [{ time: "09:00", quantity: "1" }],
+        times: [{ time: "09:00", quantity: "1", quantityError: false }],
         daysError: false,
         timesError: false,
       },
@@ -128,7 +140,7 @@ describe("buildSchedule", () => {
     const schedules = [
       {
         days: new Set(["monday"] as const),
-        times: [{ time: "08:00", quantity: "2" }],
+        times: [{ time: "08:00", quantity: "2", quantityError: false }],
         daysError: false,
         timesError: false,
       },
@@ -137,24 +149,24 @@ describe("buildSchedule", () => {
     expect(result.days.monday?.[0].quantity).toBe(2);
   });
 
-  test("defaults quantity to 1 when quantity string is non-numeric", () => {
+  test("does not coerce a non-numeric quantity to a default", () => {
     const schedules = [
       {
         days: new Set(["monday"] as const),
-        times: [{ time: "08:00", quantity: "" }],
+        times: [{ time: "08:00", quantity: "", quantityError: false }],
         daysError: false,
         timesError: false,
       },
     ];
     const result = buildSchedule(schedules);
-    expect(result.days.monday?.[0].quantity).toBe(1);
+    expect(result.days.monday?.[0].quantity).toBeNaN();
   });
 
   test("assigns the same times to each day in a schedule", () => {
     const schedules = [
       {
         days: new Set(["monday", "wednesday"] as const),
-        times: [{ time: "08:00", quantity: "1" }],
+        times: [{ time: "08:00", quantity: "1", quantityError: false }],
         daysError: false,
         timesError: false,
       },
@@ -162,6 +174,73 @@ describe("buildSchedule", () => {
     const result = buildSchedule(schedules);
     expect(result.days.monday).toEqual([{ time: "08:00", quantity: 1 }]);
     expect(result.days.wednesday).toEqual([{ time: "08:00", quantity: 1 }]);
+  });
+});
+
+describe("validateSchedules", () => {
+  test("flags a quantity of 0 as an error", () => {
+    const schedules = [
+      {
+        days: new Set(["monday"] as const),
+        times: [{ time: "08:00", quantity: "0", quantityError: false }],
+        daysError: false,
+        timesError: false,
+      },
+    ];
+    const result = validateSchedules(schedules);
+    expect(result[0].times[0].quantityError).toBe(true);
+  });
+
+  test("flags a negative quantity as an error", () => {
+    const schedules = [
+      {
+        days: new Set(["monday"] as const),
+        times: [{ time: "08:00", quantity: "-2", quantityError: false }],
+        daysError: false,
+        timesError: false,
+      },
+    ];
+    const result = validateSchedules(schedules);
+    expect(result[0].times[0].quantityError).toBe(true);
+  });
+
+  test("flags an empty quantity as an error", () => {
+    const schedules = [
+      {
+        days: new Set(["monday"] as const),
+        times: [{ time: "08:00", quantity: "", quantityError: false }],
+        daysError: false,
+        timesError: false,
+      },
+    ];
+    const result = validateSchedules(schedules);
+    expect(result[0].times[0].quantityError).toBe(true);
+  });
+
+  test("flags a non-numeric quantity as an error", () => {
+    const schedules = [
+      {
+        days: new Set(["monday"] as const),
+        times: [{ time: "08:00", quantity: "abc", quantityError: false }],
+        daysError: false,
+        timesError: false,
+      },
+    ];
+    const result = validateSchedules(schedules);
+    expect(result[0].times[0].quantityError).toBe(true);
+  });
+
+  test("does not flag a valid positive quantity", () => {
+    const schedules = [
+      {
+        days: new Set(["monday"] as const),
+        times: [{ time: "08:00", quantity: "2", quantityError: false }],
+        daysError: false,
+        timesError: false,
+      },
+    ];
+    const result = validateSchedules(schedules);
+    expect(result[0].times[0].quantityError).toBe(false);
   });
 });
 

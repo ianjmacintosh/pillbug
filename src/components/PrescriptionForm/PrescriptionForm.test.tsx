@@ -634,6 +634,38 @@ describe("NewPrescriptionForm", () => {
       expect(fetchSpy).not.toHaveBeenCalled();
     });
 
+    test("submitting with a dose quantity of 0 shows an error and does not call fetch", async () => {
+      const fetchSpy = vi.spyOn(globalThis, "fetch");
+      await renderNewForm();
+      await fillMinimumFields();
+      await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
+      const qtyInput = screen.getByLabelText(/quantity 1/i) as HTMLInputElement;
+      await userEvent.clear(qtyInput);
+      await userEvent.type(qtyInput, "0");
+
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+      expect(screen.getByRole("alert")).toBeTruthy();
+      expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    test("editing the quantity after a 0-quantity error clears the error", async () => {
+      vi.spyOn(globalThis, "fetch");
+      await renderNewForm();
+      await fillMinimumFields();
+      await userEvent.click(screen.getByRole("checkbox", { name: "Monday" }));
+      const qtyInput = screen.getByLabelText(/quantity 1/i) as HTMLInputElement;
+      await userEvent.clear(qtyInput);
+      await userEvent.type(qtyInput, "0");
+      await userEvent.click(screen.getByRole("button", { name: /save/i }));
+      expect(screen.getByRole("alert")).toBeTruthy();
+
+      await userEvent.clear(qtyInput);
+      await userEvent.type(qtyInput, "2");
+
+      expect(screen.queryByRole("alert")).toBeNull();
+    });
+
     test("submitting with a blank dose time entry shows an error and does not call fetch", async () => {
       const fetchSpy = vi.spyOn(globalThis, "fetch");
       await renderNewForm();

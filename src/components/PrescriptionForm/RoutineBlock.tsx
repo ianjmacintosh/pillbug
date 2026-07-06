@@ -124,6 +124,7 @@ export function RoutineBlock({
                     type="text"
                     inputMode="decimal"
                     aria-label={`Quantity ${timeIndex + 1}`}
+                    aria-invalid={slot.quantityError ? true : undefined}
                     value={slot.quantity}
                     onChange={(e) =>
                       updateSlotQuantity(
@@ -136,6 +137,11 @@ export function RoutineBlock({
                   />
                   {doseForm}
                 </span>
+                {slot.quantityError && (
+                  <p role="alert" className="schedule-error-message">
+                    {t("prescriptionForm.quantityError")}
+                  </p>
+                )}
               </td>
               <td className="col-remove">
                 <Button

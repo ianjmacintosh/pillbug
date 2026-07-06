@@ -9,6 +9,7 @@ import type { Schedule } from "../../../shared/schedule";
 export interface TimeSlot {
   time: string;
   quantity: string;
+  quantityError: boolean;
 }
 
 export interface DosingSchedule {
@@ -48,7 +49,7 @@ export function initSchedules(
     return [
       {
         days: new Set(),
-        times: [{ time: "09:00", quantity: "1" }],
+        times: [{ time: "09:00", quantity: "1", quantityError: false }],
         daysError: false,
         timesError: false,
       },
@@ -67,6 +68,7 @@ export function initSchedules(
           .map((slot) => ({
             time: slot.time,
             quantity: String(slot.quantity),
+            quantityError: false,
           })),
         daysError: false,
         timesError: false,
@@ -88,6 +90,26 @@ export function initSchedules(
       ];
 }
 
+function isValidQuantity(value: string): boolean {
+  const parsed = parseFloat(value);
+  return !Number.isNaN(parsed) && parsed > 0;
+}
+
+export function validateSchedules(
+  schedules: DosingSchedule[],
+): DosingSchedule[] {
+  return schedules.map((s) => ({
+    ...s,
+    daysError: s.days.size === 0,
+    timesError:
+      s.times.length === 0 || s.times.some((slot) => slot.time === ""),
+    times: s.times.map((slot) => ({
+      ...slot,
+      quantityError: !isValidQuantity(slot.quantity),
+    })),
+  }));
+}
+
 export function buildSchedule(schedules: DosingSchedule[]): Schedule {
   const days: Partial<Record<DayOfWeek, { time: string; quantity: number }[]>> =
     {};
@@ -95,7 +117,7 @@ export function buildSchedule(schedules: DosingSchedule[]): Schedule {
     for (const day of schedule.days) {
       days[day] = schedule.times.map((slot) => ({
         time: slot.time,
-        quantity: parseFloat(slot.quantity) || 1,
+        quantity: parseFloat(slot.quantity),
       }));
     }
   }
@@ -111,14 +133,14 @@ export function useScheduleEditor(
   );
 
   function validateSchedule(): boolean {
-    const next = schedules.map((s) => ({
-      ...s,
-      daysError: s.days.size === 0,
-      timesError:
-        s.times.length === 0 || s.times.some((slot) => slot.time === ""),
-    }));
+    const next = validateSchedules(schedules);
     setSchedules(next);
-    return next.every((s) => !s.daysError && !s.timesError);
+    return next.every(
+      (s) =>
+        !s.daysError &&
+        !s.timesError &&
+        !s.times.some((slot) => slot.quantityError),
+    );
   }
 
   function addSchedule() {
@@ -127,7 +149,7 @@ export function useScheduleEditor(
       ...prev,
       {
         days: new Set(),
-        times: [{ time: "09:00", quantity: "1" }],
+        times: [{ time: "09:00", quantity: "1", quantityError: false }],
         daysError: false,
         timesError: false,
       },
@@ -189,7 +211,10 @@ export function useScheduleEditor(
         i === scheduleIndex
           ? {
               ...s,
-              times: [...s.times, { time: "09:00", quantity: "1" }],
+              times: [
+                ...s.times,
+                { time: "09:00", quantity: "1", quantityError: false },
+              ],
               timesError: false,
             }
           : s,
@@ -230,7 +255,9 @@ export function useScheduleEditor(
           ? {
               ...s,
               times: s.times.map((slot, j) =>
-                j === timeIndex ? { ...slot, quantity: value } : slot,
+                j === timeIndex
+                  ? { ...slot, quantity: value, quantityError: false }
+                  : slot,
               ),
             }
           : s,
