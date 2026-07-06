@@ -600,6 +600,74 @@ test.describe("Prescription detail", () => {
   });
 });
 
+test.describe("Add another prompt", () => {
+  test("saving a new prescription shows the prompt; Add Another goes to the new-prescription form", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+    await fillCreateForm(page);
+
+    await expect(page).toHaveURL(/\/prescriptions\/[^/]+$/);
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText(/prescription added/i);
+
+    await page.getByRole("link", { name: /add another/i }).click();
+    await expect(page).toHaveURL("/prescriptions/new");
+  });
+
+  test("No Thanks dismisses the prompt and stays on the detail page", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+    await fillCreateForm(page);
+
+    await expect(page.getByRole("dialog")).toBeVisible();
+    const detailUrl = page.url();
+
+    await page.getByRole("button", { name: /no thanks/i }).click();
+
+    await expect(page.getByRole("dialog")).not.toBeVisible();
+    await expect(page).toHaveURL(detailUrl);
+  });
+
+  test("editing an existing prescription does not show the prompt", async ({
+    page,
+  }) => {
+    const res = await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    const { id } = (await res.json()) as { id: string };
+    await page.goto(`/prescriptions/${id}/edit`);
+
+    await page.getByLabel(/drug name/i).fill("Metformin XR");
+    await page.getByRole("button", { name: /save prescription/i }).click();
+
+    await expect(page).toHaveURL(`/prescriptions/${id}`);
+    await expect(page.getByRole("dialog")).not.toBeVisible();
+  });
+
+  test("clicking a prescription row in the list does not show the prompt", async ({
+    page,
+  }) => {
+    const res1 = await page.request.post("/api/v1/prescriptions", {
+      data: BASE_PRESCRIPTION,
+    });
+    const { id: metforminId } = (await res1.json()) as { id: string };
+    await page.request.post("/api/v1/prescriptions", {
+      data: { ...BASE_PRESCRIPTION, drugName: "Lisinopril" },
+    });
+
+    await page.goto(`/prescriptions/${metforminId}`);
+    await page.getByRole("link", { name: /lisinopril/i }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Lisinopril", level: 2 }),
+    ).toBeVisible();
+    await expect(page.getByRole("dialog")).not.toBeVisible();
+  });
+});
+
 test.describe("Unsaved changes guard", () => {
   // The "Back" link is a mobile-only affordance (hidden by CSS above 640px);
   // on desktop the always-visible split-panel list is used to navigate instead.
