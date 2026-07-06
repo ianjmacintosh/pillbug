@@ -130,6 +130,18 @@ describe("NewPrescriptionForm", () => {
           Node.DOCUMENT_POSITION_FOLLOWING,
       ).toBeTruthy();
     });
+
+    test("drug name field suggests a matching name after typing 2+ characters", async () => {
+      const user = userEvent.setup();
+      await renderNewForm();
+      const drugName = screen.getByLabelText(/drug name/i) as HTMLInputElement;
+      await user.type(drugName, "enala");
+
+      const listId = drugName.getAttribute("list");
+      const datalist = document.getElementById(listId!) as HTMLDataListElement;
+      const optionValues = Array.from(datalist.options).map((o) => o.value);
+      expect(optionValues).toContain("enalapril");
+    });
   });
 
   describe("form factor", () => {

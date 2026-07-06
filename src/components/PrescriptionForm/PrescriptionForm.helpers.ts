@@ -1,5 +1,14 @@
 export { DOSAGE_UNITS, type DosageUnit } from "../../utils/constants";
+import { matchSorter } from "match-sorter";
 import { DOSAGE_UNITS, type DosageUnit } from "../../utils/constants";
+
+export function getDrugNameSuggestions(
+  query: string,
+  names: readonly string[],
+): string[] {
+  if (query.length < 2) return [];
+  return matchSorter(names, query).slice(0, 10);
+}
 
 export function detectUnitInQuantity(quantity: string): DosageUnit | null {
   const sorted = ([...DOSAGE_UNITS] as string[]).sort(

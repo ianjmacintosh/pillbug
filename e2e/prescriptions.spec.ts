@@ -268,6 +268,20 @@ test.describe("Prescription create", () => {
     }
   });
 
+  test("drug name field suggests a matching name from the bundled drug list", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+
+    const drugNameInput = page.getByLabel(/drug name/i);
+    await drugNameInput.fill("enala");
+
+    const listId = await drugNameInput.getAttribute("list");
+    await expect(
+      page.locator(`#${listId} option[value="enalapril"]`),
+    ).toHaveCount(1);
+  });
+
   test("Days and Times fieldset is aria-invalid when submitted without a day or with a blank time", async ({
     page,
   }) => {
