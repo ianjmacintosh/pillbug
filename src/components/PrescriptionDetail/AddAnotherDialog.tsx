@@ -19,9 +19,6 @@ export function AddAnotherDialog({ onClose }: AddAnotherDialogProps) {
     >
       <p>{t("prescriptionDetail.addAnotherBody")}</p>
       <div className="dialog-actions">
-        <Button type="button" className="button-secondary" onClick={onClose}>
-          {t("prescriptionDetail.noThanks")}
-        </Button>
         <Link
           to="/prescriptions/new"
           className="button button-primary button-leading-icon"
@@ -29,6 +26,9 @@ export function AddAnotherDialog({ onClose }: AddAnotherDialogProps) {
           <Scroll size={18} aria-hidden="true" />
           {t("prescriptionDetail.addAnother")}
         </Link>
+        <Button type="button" className="button-secondary" onClick={onClose}>
+          {t("prescriptionDetail.noThanks")}
+        </Button>
       </div>
     </Dialog>
   );
