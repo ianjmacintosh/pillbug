@@ -166,6 +166,10 @@ const fillSessionRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/fill-session",
   beforeLoad: requireTimezone,
+  loader: async () => {
+    const data = await fetchAccount();
+    return { timezone: data?.timezone ?? null };
+  },
   component: FillSession,
 });
 
