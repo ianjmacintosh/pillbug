@@ -1,3 +1,4 @@
+import { getRouteApi } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { addDays, formatMonthDay } from "../../utils/dates";
@@ -53,9 +54,14 @@ const ORGANIZER_OPTIONS: {
   },
 ];
 
+const Route = getRouteApi("/layout/fill-session");
+
 function FillSession() {
   const { t, i18n } = useTranslation();
-  const today = new Date().toISOString().slice(0, 10);
+  const { timezone } = Route.useLoaderData();
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone ?? "UTC",
+  }).format(new Date());
   const [startDate, setStartDate] = useState(() => nearestSunday(today));
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [organizerType, setOrganizerType] = useState("1");

@@ -292,6 +292,36 @@ test.describe("Prescription create", () => {
       page.getByRole("group", { name: /days and times/i }),
     ).toHaveAttribute("aria-invalid", "true");
   });
+
+  test("dose quantity of 0 shows an inline error and blocks submission until corrected", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+    await page.getByLabel(/drug name/i).fill("Aspirin");
+    await page.getByLabel("Strength").fill("100");
+    await page.getByRole("combobox", { name: /unit/i }).selectOption("mg");
+    await page.getByLabel(/start date/i).fill("2024-06-01");
+    await page.getByRole("checkbox", { name: "Monday" }).locator("..").click();
+    await page.getByLabel(/time 1/i).fill("08:00");
+
+    const qtyInput = page.getByLabel(/quantity 1/i);
+    await qtyInput.fill("0");
+    await page.getByRole("button", { name: /save prescription/i }).click();
+
+    await expect(page.getByRole("alert")).toBeVisible();
+    await expect(qtyInput).toHaveAttribute("aria-invalid", "true");
+    // Still on the form — submission was blocked
+    await expect(
+      page.getByRole("heading", { name: /add prescription/i, level: 2 }),
+    ).toBeVisible();
+
+    await qtyInput.fill("2");
+    await page.getByRole("button", { name: /save prescription/i }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Aspirin", level: 2 }),
+    ).toBeVisible();
+  });
 });
 
 test.describe("Prescription edit", () => {

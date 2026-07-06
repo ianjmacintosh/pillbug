@@ -112,6 +112,7 @@ const enUS = {
   "prescriptionForm.allDays": "Every day",
   "prescriptionForm.daysError": "Please select at least one day.",
   "prescriptionForm.timesError": "Please add at least one dose time.",
+  "prescriptionForm.quantityError": "Please enter a quantity greater than 0.",
   "prescriptionForm.time": "Time",
   "prescriptionForm.dose": "Dose",
   "prescriptionForm.removeLabel": "Remove",

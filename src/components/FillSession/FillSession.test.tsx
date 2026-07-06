@@ -1,7 +1,20 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import FillSession from "./FillSession";
+
+let mockTimezone: string | null = null;
+
+vi.mock("@tanstack/react-router", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@tanstack/react-router")>();
+  return {
+    ...actual,
+    getRouteApi: () => ({
+      useLoaderData: () => ({ timezone: mockTimezone }),
+    }),
+  };
+});
 
 const METFORMIN = {
   id: "rx-1",
@@ -71,6 +84,14 @@ function mockPrescriptions(...rxs: object[]) {
     new Response(JSON.stringify(rxs), { status: 200 }),
   );
 }
+
+beforeEach(() => {
+  mockTimezone = null;
+});
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.useRealTimers();
+});
 
 describe("FillSession", () => {
   test("renders a heading", () => {
@@ -196,6 +217,24 @@ describe("FillSession", () => {
       const dateHeading = screen.getByRole("heading", { level: 2 });
       expect(dateHeading.textContent).toMatch(/Jun 14/); // start: nearest Sunday
       expect(dateHeading.textContent).toMatch(/Jun 20/); // end: startDate + 6
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test("computes the current week using the patient's timezone, not UTC", () => {
+    // 2026-07-06T02:58 UTC is Monday in UTC but still Sunday, Jul 5,
+    // 21:58 in America/Chicago (UTC-5 in July). The date range must be
+    // anchored to the patient's local day, not the UTC day.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-06T02:58:00Z"));
+    mockTimezone = "America/Chicago";
+    try {
+      mockPrescriptions();
+      render(<FillSession />);
+      const dateHeading = screen.getByRole("heading", { level: 2 });
+      expect(dateHeading.textContent).toMatch(/Jul 5/);
+      expect(dateHeading.textContent).toMatch(/Jul 11/);
     } finally {
       vi.useRealTimers();
     }

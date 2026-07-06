@@ -115,6 +115,8 @@ const ptBR = {
   "prescriptionForm.daysError": "Por favor, selecione pelo menos um dia.",
   "prescriptionForm.timesError":
     "Por favor, adicione pelo menos um horário de dose.",
+  "prescriptionForm.quantityError":
+    "Por favor, insira uma quantidade maior que 0.",
   "prescriptionForm.time": "Hora",
   "prescriptionForm.dose": "Dose",
   "prescriptionForm.removeLabel": "Remover",
