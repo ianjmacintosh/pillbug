@@ -38,7 +38,10 @@ const SAMPLE_PRESCRIPTION: Prescription = {
   status: "active",
 };
 
-async function renderDetail(prescription: Prescription = SAMPLE_PRESCRIPTION) {
+async function renderDetail(
+  prescription: Prescription = SAMPLE_PRESCRIPTION,
+  locationState?: { justCreated?: boolean },
+) {
   const rootRoute = createRootRoute({ component: Outlet });
   const layoutRoute = createRoute({
     getParentRoute: () => rootRoute,
@@ -51,11 +54,15 @@ async function renderDetail(prescription: Prescription = SAMPLE_PRESCRIPTION) {
     loader: () => prescription,
     component: PrescriptionDetail,
   });
+  const history = createMemoryHistory({
+    initialEntries: ["/prescriptions/rx-1"],
+  });
+  if (locationState) {
+    history.replace("/prescriptions/rx-1", locationState);
+  }
   const router = createRouter({
     routeTree: rootRoute.addChildren([layoutRoute.addChildren([detailRoute])]),
-    history: createMemoryHistory({
-      initialEntries: ["/prescriptions/rx-1"],
-    }),
+    history,
     defaultNotFoundComponent: () => null,
   });
   await router.load();
@@ -285,6 +292,37 @@ describe("PrescriptionDetail", () => {
       );
       expect(router.state.location.pathname).toBe("/prescriptions");
       vi.restoreAllMocks();
+    });
+  });
+
+  describe("add another prompt", () => {
+    test("shows an 'Add another?' dialog when arriving with the justCreated signal", async () => {
+      await renderDetail(SAMPLE_PRESCRIPTION, { justCreated: true });
+      expect(screen.getByRole("dialog").textContent).toMatch(
+        /add another prescription/i,
+      );
+    });
+
+    test("does not show the dialog on a normal visit", async () => {
+      await renderDetail();
+      expect(screen.queryByRole("dialog")).toBeNull();
+    });
+
+    test("clicking 'No Thanks' closes the dialog and stays on Detail", async () => {
+      const { router } = await renderDetail(SAMPLE_PRESCRIPTION, {
+        justCreated: true,
+      });
+      await userEvent.click(screen.getByRole("button", { name: /no thanks/i }));
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(router.state.location.pathname).toBe("/prescriptions/rx-1");
+    });
+
+    test("clicking 'Add Another' navigates to /prescriptions/new", async () => {
+      const { router } = await renderDetail(SAMPLE_PRESCRIPTION, {
+        justCreated: true,
+      });
+      await userEvent.click(screen.getByRole("link", { name: /add another/i }));
+      expect(router.state.location.pathname).toBe("/prescriptions/new");
     });
   });
 });

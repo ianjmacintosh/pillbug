@@ -96,6 +96,7 @@ export function NewPrescriptionForm() {
       await navigate({
         to: "/prescriptions/$id",
         params: { id: created.id },
+        state: { justCreated: true },
       });
     } else {
       const data = (await res.json()) as { error: string };

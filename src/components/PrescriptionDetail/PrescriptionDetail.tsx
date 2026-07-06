@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { getRouteApi, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { getRouteApi, useLocation, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Pencil, Trash2 } from "lucide-react";
 import "./PrescriptionDetail.css";
@@ -9,6 +9,7 @@ import { WEEKDAYS } from "../../utils/constants";
 import { Link } from "@tanstack/react-router";
 import { Button } from "../Button/Button";
 import { DeleteDialog } from "./DeleteDialog";
+import { AddAnotherDialog } from "./AddAnotherDialog";
 
 interface Schedule {
   days: Partial<Record<DayOfWeek, (PerSlotDose | string)[]>>;
@@ -63,6 +64,21 @@ function PrescriptionDetail() {
   const routines = groupRoutines(prescription.schedule.days);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const [showAddAnotherDialog, setShowAddAnotherDialog] = useState(false);
+
+  useEffect(() => {
+    if (location.state.justCreated) {
+      setShowAddAnotherDialog(true);
+      void navigate({
+        to: "/prescriptions/$id",
+        params: { id },
+        replace: true,
+        state: { justCreated: undefined },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleConfirmDelete() {
     await fetch(`/api/v1/prescriptions/${id}`, { method: "DELETE" });
@@ -160,6 +176,9 @@ function PrescriptionDetail() {
           onCancel={() => setShowDeleteDialog(false)}
           onConfirm={handleConfirmDelete}
         />
+      )}
+      {showAddAnotherDialog && (
+        <AddAnotherDialog onClose={() => setShowAddAnotherDialog(false)} />
       )}
     </>
   );

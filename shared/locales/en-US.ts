@@ -91,6 +91,11 @@ const enUS = {
     "This action is permanent. All dose history for this prescription will also be deleted.",
   "prescriptionDetail.cancel": "Cancel",
   "prescriptionDetail.confirmDelete": "Confirm delete",
+  "prescriptionDetail.addAnotherHeading": "Prescription added",
+  "prescriptionDetail.addAnotherBody":
+    "Do you want to add another prescription?",
+  "prescriptionDetail.addAnother": "Add Another",
+  "prescriptionDetail.noThanks": "No Thanks",
   "prescriptionForm.drugNameLabel": "Drug name",
   "prescriptionForm.strengthLabel": "Strength",
   "prescriptionForm.dosageUnitBlank": "(blank)",
