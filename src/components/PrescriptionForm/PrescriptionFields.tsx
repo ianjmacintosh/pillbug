@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import drugNames from "../../data/drug-names.json";
 import { Button } from "../Button/Button";
+import { DrugNameCombobox } from "./DrugNameCombobox";
 import type { DosageUnit } from "./PrescriptionForm.helpers";
 import { detectUnitInQuantity } from "./PrescriptionForm.helpers";
 import { RoutineBlock } from "./RoutineBlock";
@@ -80,11 +82,11 @@ export function PrescriptionFields({
           <label htmlFor={`${idPrefix}-drugName`}>
             {t("prescriptionForm.drugNameLabel")}
           </label>
-          <input
+          <DrugNameCombobox
             id={`${idPrefix}-drugName`}
-            type="text"
             value={drugName}
-            onChange={(e) => setDrugName(e.target.value)}
+            onChange={setDrugName}
+            names={drugNames}
             required
           />
         </div>

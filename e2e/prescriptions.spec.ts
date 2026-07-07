@@ -35,6 +35,37 @@ const BASE_PRESCRIPTION = {
   doseForm: "tablet",
 };
 
+// CDP CPU throttling factor (1 = no throttle, N = Nx slowdown of JS
+// execution) applied to the drug-name low-end-hardware tests. 6
+// approximates a low-end mobile device — beyond Lighthouse's own 4x
+// mobile-throttling preset.
+const LOW_END_CPU_THROTTLE_RATE = 6;
+
+// Ceiling for how long the correct fuzzy-match suggestion is allowed to
+// take to appear after typing stops, under LOW_END_CPU_THROTTLE_RATE.
+// Measured directly: 420-467ms across repeated runs at this throttle rate.
+// 3s leaves ~6x headroom for CI-machine variance while still catching a
+// genuine multi-second regression — unlike a much larger ceiling, which
+// would let the feature get many times slower before the test ever failed.
+const SUGGESTION_VISIBLE_TIMEOUT_MS = 3_000;
+
+// Ceiling on how many times the *rendered* suggestion list is allowed to
+// change to a different set of options while typing a single 11-character
+// typo ("amoxicillan") under LOW_END_CPU_THROTTLE_RATE. This is what the
+// debounce is actually protecting the user from: without it, each keystroke
+// would trigger its own search and re-render, and the user would watch the
+// dropdown's contents flash through a different, mostly-irrelevant set of
+// names on every character — worse than just "slow," actively distracting,
+// and worse still on the low-end hardware this test targets, where each of
+// those extra re-renders competes for an already-scarce main thread.
+// A working debounce settles content at most a couple of times here: once
+// for "amoxicill" (a valid prefix), once more for the final "amoxicillan"
+// fuzzy result. The bound allows slack above that (rather than an exact
+// count) because throttled keystroke timing can occasionally exceed the
+// app's debounce window (DEFAULT_SUGGESTIONS_DEBOUNCE_MS in
+// useDrugNameSuggestions.ts) and force an extra settle.
+const MAX_VISIBLE_SUGGESTION_CHANGES_FOR_ONE_TYPO = 5;
+
 test.use({ storageState: PRESCRIPTIONS_PATIENT_AUTH_FILE });
 
 test.beforeEach(async () => {
@@ -266,6 +297,253 @@ test.describe("Prescription create", () => {
     for (const day of dayNames) {
       await expect(page.getByRole("checkbox", { name: day })).not.toBeChecked();
     }
+  });
+
+  test("drug name field suggests a matching name from the bundled drug list, in display case", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+
+    const drugNameInput = page.getByLabel(/drug name/i);
+    await drugNameInput.pressSequentially("enala");
+
+    await expect(
+      page.getByRole("option", { name: "Enalapril", exact: true }),
+    ).toBeVisible();
+  });
+
+  test("drug name field tolerates a typo by falling back to fuzzy search", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+
+    const drugNameInput = page.getByLabel(/drug name/i);
+    await drugNameInput.pressSequentially("amoxicillan");
+
+    await expect(
+      page.getByRole("option", { name: "Amoxicillin", exact: true }),
+    ).toBeVisible();
+  });
+
+  test("drug name field still resolves a typo on heavily CPU-throttled (low-end) hardware", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+
+    // Applied after navigation, not before: we're testing the fuzzy search
+    // itself under load, not slowing down the page's initial bootstrap too.
+    const client = await page.context().newCDPSession(page);
+    await client.send("Emulation.setCPUThrottlingRate", {
+      rate: LOW_END_CPU_THROTTLE_RATE,
+    });
+
+    const drugNameInput = page.getByLabel(/drug name/i);
+    await drugNameInput.pressSequentially("amoxicillan");
+
+    // The fuzzy search runs in a Worker specifically so it isn't blocked by
+    // main-thread contention (see useDrugNameSearchWorker.ts), but a
+    // throttled CPU still slows down React's rendering of the result once
+    // it arrives.
+    await expect(
+      page.getByRole("option", { name: "Amoxicillin", exact: true }),
+    ).toBeVisible({ timeout: SUGGESTION_VISIBLE_TIMEOUT_MS });
+  });
+
+  test("suggestion list does not visibly thrash through many different option sets while typing a typo under CPU throttling", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+
+    // Records every time the rendered option list settles on a genuinely
+    // different set of names, ignoring re-renders that don't change what's
+    // shown (React re-rendering the same options doesn't count as a
+    // "change" here — only the user-visible content does).
+    await page.evaluate(() => {
+      window.__visibleSuggestionChanges = 0;
+      let lastSignature = "";
+      new MutationObserver(() => {
+        const listbox = document.querySelector('[role="listbox"]');
+        if (!listbox) return;
+        const signature = Array.from(
+          listbox.querySelectorAll('[role="option"]'),
+        )
+          .map((el) => el.textContent?.trim())
+          .join("|");
+        if (signature && signature !== lastSignature) {
+          window.__visibleSuggestionChanges!++;
+          lastSignature = signature;
+        }
+      }).observe(document.body, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
+    });
+
+    const client = await page.context().newCDPSession(page);
+    await client.send("Emulation.setCPUThrottlingRate", {
+      rate: LOW_END_CPU_THROTTLE_RATE,
+    });
+
+    const drugNameInput = page.getByLabel(/drug name/i);
+    await drugNameInput.pressSequentially("amoxicillan");
+
+    await expect(
+      page.getByRole("option", { name: "Amoxicillin", exact: true }),
+    ).toBeVisible({ timeout: SUGGESTION_VISIBLE_TIMEOUT_MS });
+
+    const visibleSuggestionChanges = await page.evaluate(
+      () => window.__visibleSuggestionChanges,
+    );
+    expect(visibleSuggestionChanges).toBeLessThan(
+      MAX_VISIBLE_SUGGESTION_CHANGES_FOR_ONE_TYPO,
+    );
+  });
+
+  test("drug name suggestion popover does not remount (flicker closed and reopen) while typing through a typo", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+
+    const drugNameInput = page.getByLabel(/drug name/i);
+
+    // "amoxicill" is a valid prefix; the remaining "an" diverges from the
+    // real spelling and falls back to the debounced fuzzy worker search.
+    // Both paths wait for typing to pause before showing/updating anything.
+    // Playwright's auto-retrying assertions would tolerate a brief
+    // close-then-reopen (they just wait for the element to reappear), so
+    // instead count how many times the listbox is inserted into the DOM —
+    // it must mount exactly once and never remount.
+    await page.evaluate(() => {
+      window.__listboxMountCount = 0;
+      new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          for (const node of mutation.addedNodes) {
+            if (!(node instanceof Element)) continue;
+            // The popover may be portaled in as a wrapper whose listbox is
+            // a descendant, not the added node itself.
+            if (
+              node.matches('[role="listbox"]') ||
+              node.querySelector('[role="listbox"]')
+            ) {
+              window.__listboxMountCount!++;
+            }
+          }
+        }
+      }).observe(document.body, { childList: true, subtree: true });
+    });
+
+    await drugNameInput.pressSequentially("amoxicill");
+    await expect(
+      page.getByRole("option", { name: "Amoxicillin", exact: true }),
+    ).toBeVisible();
+
+    await drugNameInput.pressSequentially("an", { delay: 20 });
+    // Give the debounced fuzzy search (DEFAULT_SUGGESTIONS_DEBOUNCE_MS in
+    // useDrugNameSuggestions.ts) time to fire and its response to apply, so
+    // a remount here would have already happened.
+    await page.waitForTimeout(800);
+
+    expect(await page.evaluate(() => window.__listboxMountCount)).toBe(1);
+  });
+
+  test("clearing the field and typing a different medicine never briefly shows the previous medicine's suggestion", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+
+    const drugNameInput = page.getByLabel(/drug name/i);
+    await drugNameInput.pressSequentially("enala");
+    await expect(
+      page.getByRole("option", { name: "Enalapril", exact: true }),
+    ).toBeVisible();
+
+    // Clear the whole field (mirrors select-all + delete) and pause well
+    // past the debounce, so the old answer has every chance to have
+    // settled — this isn't a fast-retype timing race.
+    await drugNameInput.fill("");
+    await page.waitForTimeout(2_000);
+    // Scoped to the drug-name popover's listbox specifically — the Unit
+    // and Form fields are native <select> elements, whose <option>
+    // children also carry an implicit role="option" and would otherwise
+    // collide with an unscoped query here.
+    await expect(page.locator('[role="listbox"]')).not.toBeVisible();
+
+    // Watch every option the popover ever renders from this point on: the
+    // previous medicine's name must never appear again, not even briefly,
+    // while typing a completely unrelated one.
+    await page.evaluate(() => {
+      window.__staleOptionSeen = false;
+      new MutationObserver(() => {
+        const listbox = document.querySelector('[role="listbox"]');
+        if (!listbox) return;
+        const optionText = Array.from(
+          listbox.querySelectorAll('[role="option"]'),
+        )
+          .map((el) => el.textContent?.trim())
+          .join("|");
+        if (optionText.includes("Enalapril")) {
+          window.__staleOptionSeen = true;
+        }
+      }).observe(document.body, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
+    });
+
+    await drugNameInput.pressSequentially("meto");
+    await expect(
+      page.getByRole("option", { name: "Metoprolol", exact: true }),
+    ).toBeVisible();
+
+    expect(await page.evaluate(() => window.__staleOptionSeen)).toBe(false);
+  });
+
+  test("drug name suggestion popover aligns with the input's left and right edges", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+
+    const drugNameInput = page.getByLabel(/drug name/i);
+    await drugNameInput.pressSequentially("enala");
+
+    const option = page.getByRole("option", { name: "Enalapril", exact: true });
+    await expect(option).toBeVisible();
+
+    const inputBox = await drugNameInput.boundingBox();
+    const popoverBox = await option
+      .locator("xpath=ancestor::*[@role='listbox']")
+      .boundingBox();
+
+    expect(inputBox).not.toBeNull();
+    expect(popoverBox).not.toBeNull();
+    expect(Math.abs(popoverBox!.x - inputBox!.x)).toBeLessThanOrEqual(2);
+    expect(
+      Math.abs(
+        popoverBox!.x + popoverBox!.width - (inputBox!.x + inputBox!.width),
+      ),
+    ).toBeLessThanOrEqual(2);
+  });
+
+  test("selecting a suggestion with Enter fills the field and does not reopen the suggestion list", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+
+    const drugNameInput = page.getByLabel(/drug name/i);
+    await drugNameInput.pressSequentially("enala");
+    await expect(
+      page.getByRole("option", { name: "Enalapril", exact: true }),
+    ).toBeVisible();
+
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Enter");
+
+    await expect(drugNameInput).toHaveValue("Enalapril");
+    await expect(
+      page.getByRole("option", { name: "Enalapril", exact: true }),
+    ).not.toBeVisible();
   });
 
   test("Days and Times fieldset is aria-invalid when submitted without a day or with a blank time", async ({

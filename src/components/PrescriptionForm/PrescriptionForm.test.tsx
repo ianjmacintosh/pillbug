@@ -130,6 +130,17 @@ describe("NewPrescriptionForm", () => {
           Node.DOCUMENT_POSITION_FOLLOWING,
       ).toBeTruthy();
     });
+
+    test("drug name field suggests a matching name after typing a valid prefix", async () => {
+      const user = userEvent.setup();
+      await renderNewForm();
+      const drugName = screen.getByLabelText(/drug name/i) as HTMLInputElement;
+      await user.type(drugName, "enala");
+
+      expect(
+        await screen.findByRole("option", { name: "Enalapril" }),
+      ).toBeInTheDocument();
+    });
   });
 
   describe("form factor", () => {
