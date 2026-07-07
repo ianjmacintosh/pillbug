@@ -131,7 +131,7 @@ describe("NewPrescriptionForm", () => {
       ).toBeTruthy();
     });
 
-    test("drug name field suggests a matching name after typing 2+ characters", async () => {
+    test("drug name field suggests a matching name after typing a valid prefix", async () => {
       const user = userEvent.setup();
       await renderNewForm();
       const drugName = screen.getByLabelText(/drug name/i) as HTMLInputElement;

@@ -7,7 +7,10 @@ import {
   useComboboxStore,
 } from "@ariakit/react";
 import { toDisplayCase } from "./PrescriptionForm.helpers";
-import { useDrugNameSuggestions } from "./useDrugNameSuggestions";
+import {
+  useDrugNameSuggestions,
+  type DrugNameSuggestionsSettings,
+} from "./useDrugNameSuggestions";
 
 interface DrugNameComboboxProps {
   id: string;
@@ -15,6 +18,8 @@ interface DrugNameComboboxProps {
   onChange: (value: string) => void;
   names: readonly string[];
   required?: boolean;
+  /** Tunes when suggestions appear — see DrugNameSuggestionsSettings. */
+  autocompleteSettings?: DrugNameSuggestionsSettings;
 }
 
 export function DrugNameCombobox({
@@ -23,13 +28,18 @@ export function DrugNameCombobox({
   onChange,
   names,
   required,
+  autocompleteSettings,
 }: DrugNameComboboxProps) {
   const combobox = useComboboxStore({
     value,
     setValue: onChange,
   });
 
-  const suggestions = useDrugNameSuggestions(value, names);
+  const suggestions = useDrugNameSuggestions(
+    value,
+    names,
+    autocompleteSettings,
+  );
 
   return (
     <ComboboxProvider store={combobox}>

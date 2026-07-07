@@ -32,3 +32,11 @@ Each concern lives in exactly one file/hook:
 | Markup / styling                                               | `DrugNameCombobox.tsx`, `Prescriptions.css`                                                                                                                                                    |
 
 Regional/brand names (e.g. Brazilian "Renitec") remain out of scope, per the original issue — autocomplete is advisory only, any free text is still accepted and submittable.
+
+## Update: configurable timing, via a settings object prop
+
+Both timing knobs were originally hardcoded: `SUGGESTIONS_DEBOUNCE_MS = 200` and a `query.length < 2` minimum baked into `getPrefixMatches`/`getDrugNameSuggestions`. Feedback that a suggestion for "omeprazole" appeared after only 2 characters, too soon to be meaningful, and too fast to feel like the UI was waiting for a pause, prompted making both configurable rather than just retuning the constants.
+
+`DrugNameCombobox` takes an optional `autocompleteSettings?: DrugNameSuggestionsSettings` prop — a single grouped object (`{ minChars?, debounceMs? }`) rather than two flat props, chosen so related tuning knobs travel together and the prop list doesn't grow one-at-a-time as more settings are added later. Defaults moved from `useDrugNameSuggestions.ts`'s hardcoded constants to `DEFAULT_MIN_CHARS = 3` and `DEFAULT_SUGGESTIONS_DEBOUNCE_MS = 400`, applied via `settings.minChars ?? DEFAULT_MIN_CHARS` when the caller doesn't override them.
+
+The `< 2` length check was removed entirely from `getPrefixMatches`/`getDrugNameSuggestions` rather than parameterized — those are pure matching primitives with no opinion on how many characters count as "enough to search," which is a UX policy, not a matching-algorithm concern. They now only guard the genuinely degenerate empty-string case; `minChars` is enforced exactly once, in `useDrugNameSuggestions`, which already gates every path (prefix lookup, worker dispatch, and the returned value itself) before those pure functions are ever called.

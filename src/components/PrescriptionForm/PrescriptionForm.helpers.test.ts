@@ -17,9 +17,8 @@ describe("getDrugNameSuggestions", () => {
     expect(getDrugNameSuggestions("enala", names)).toHaveLength(10);
   });
 
-  test("returns no suggestions for fewer than 2 characters", () => {
+  test("returns no suggestions for an empty query", () => {
     const names = ["enalapril", "enoxaparin"];
-    expect(getDrugNameSuggestions("e", names)).toEqual([]);
     expect(getDrugNameSuggestions("", names)).toEqual([]);
   });
 
@@ -96,9 +95,8 @@ describe("getPrefixMatches", () => {
     expect(getPrefixMatches("enala", names)).toHaveLength(10);
   });
 
-  test("returns no matches for fewer than 2 characters", () => {
+  test("returns no matches for an empty query", () => {
     const names = ["enalapril", "enoxaparin"];
-    expect(getPrefixMatches("e", names)).toEqual([]);
     expect(getPrefixMatches("", names)).toEqual([]);
   });
 

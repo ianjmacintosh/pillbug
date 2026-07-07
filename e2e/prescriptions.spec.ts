@@ -62,8 +62,8 @@ const SUGGESTION_VISIBLE_TIMEOUT_MS = 3_000;
 // for "amoxicill" (a valid prefix), once more for the final "amoxicillan"
 // fuzzy result. The bound allows slack above that (rather than an exact
 // count) because throttled keystroke timing can occasionally exceed the
-// app's debounce window (observed up to ~228ms against a 200ms window) and
-// force an extra settle.
+// app's debounce window (DEFAULT_SUGGESTIONS_DEBOUNCE_MS in
+// useDrugNameSuggestions.ts) and force an extra settle.
 const MAX_VISIBLE_SUGGESTION_CHANGES_FOR_ONE_TYPO = 5;
 
 test.use({ storageState: PRESCRIPTIONS_PATIENT_AUTH_FILE });
@@ -439,12 +439,65 @@ test.describe("Prescription create", () => {
     ).toBeVisible();
 
     await drugNameInput.pressSequentially("an", { delay: 20 });
-    // Give the debounced fuzzy search (SUGGESTIONS_DEBOUNCE_MS in
+    // Give the debounced fuzzy search (DEFAULT_SUGGESTIONS_DEBOUNCE_MS in
     // useDrugNameSuggestions.ts) time to fire and its response to apply, so
     // a remount here would have already happened.
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(800);
 
     expect(await page.evaluate(() => window.__listboxMountCount)).toBe(1);
+  });
+
+  test("clearing the field and typing a different medicine never briefly shows the previous medicine's suggestion", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+
+    const drugNameInput = page.getByLabel(/drug name/i);
+    await drugNameInput.pressSequentially("enala");
+    await expect(
+      page.getByRole("option", { name: "Enalapril", exact: true }),
+    ).toBeVisible();
+
+    // Clear the whole field (mirrors select-all + delete) and pause well
+    // past the debounce, so the old answer has every chance to have
+    // settled — this isn't a fast-retype timing race.
+    await drugNameInput.fill("");
+    await page.waitForTimeout(2_000);
+    // Scoped to the drug-name popover's listbox specifically — the Unit
+    // and Form fields are native <select> elements, whose <option>
+    // children also carry an implicit role="option" and would otherwise
+    // collide with an unscoped query here.
+    await expect(page.locator('[role="listbox"]')).not.toBeVisible();
+
+    // Watch every option the popover ever renders from this point on: the
+    // previous medicine's name must never appear again, not even briefly,
+    // while typing a completely unrelated one.
+    await page.evaluate(() => {
+      window.__staleOptionSeen = false;
+      new MutationObserver(() => {
+        const listbox = document.querySelector('[role="listbox"]');
+        if (!listbox) return;
+        const optionText = Array.from(
+          listbox.querySelectorAll('[role="option"]'),
+        )
+          .map((el) => el.textContent?.trim())
+          .join("|");
+        if (optionText.includes("Enalapril")) {
+          window.__staleOptionSeen = true;
+        }
+      }).observe(document.body, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
+    });
+
+    await drugNameInput.pressSequentially("meto");
+    await expect(
+      page.getByRole("option", { name: "Metoprolol", exact: true }),
+    ).toBeVisible();
+
+    expect(await page.evaluate(() => window.__staleOptionSeen)).toBe(false);
   });
 
   test("drug name suggestion popover aligns with the input's left and right edges", async ({

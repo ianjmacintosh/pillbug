@@ -5,7 +5,8 @@ import type {
   DrugSearchWorkerResponse,
 } from "./drugNameSearch.worker";
 import {
-  SUGGESTIONS_DEBOUNCE_MS,
+  DEFAULT_MIN_CHARS,
+  DEFAULT_SUGGESTIONS_DEBOUNCE_MS,
   useDrugNameSuggestions,
 } from "./useDrugNameSuggestions";
 
@@ -75,7 +76,7 @@ describe("useDrugNameSuggestions", () => {
     );
 
     act(() => {
-      vi.advanceTimersByTime(SUGGESTIONS_DEBOUNCE_MS);
+      vi.advanceTimersByTime(DEFAULT_SUGGESTIONS_DEBOUNCE_MS);
     });
 
     expect(result.current).toEqual(["enalapril"]);
@@ -94,7 +95,7 @@ describe("useDrugNameSuggestions", () => {
     expect(worker.posted.some((m) => m.type === "search")).toBe(false);
 
     act(() => {
-      vi.advanceTimersByTime(SUGGESTIONS_DEBOUNCE_MS);
+      vi.advanceTimersByTime(DEFAULT_SUGGESTIONS_DEBOUNCE_MS);
     });
 
     // The pause-then-fire debounce collapses the fast "xyzz" -> "xyzzy" run
@@ -113,7 +114,7 @@ describe("useDrugNameSuggestions", () => {
     );
 
     act(() => {
-      vi.advanceTimersByTime(SUGGESTIONS_DEBOUNCE_MS);
+      vi.advanceTimersByTime(DEFAULT_SUGGESTIONS_DEBOUNCE_MS);
     });
 
     const worker = instances[0];
@@ -134,7 +135,7 @@ describe("useDrugNameSuggestions", () => {
       { initialProps: { query: "xyzzy" } },
     );
     act(() => {
-      vi.advanceTimersByTime(SUGGESTIONS_DEBOUNCE_MS);
+      vi.advanceTimersByTime(DEFAULT_SUGGESTIONS_DEBOUNCE_MS);
     });
     const worker = instances[0];
     const firstRequest = worker.posted.find((m) => m.type === "search");
@@ -150,7 +151,7 @@ describe("useDrugNameSuggestions", () => {
     rerender({ query: "xyzzyz" });
     expect(result.current).toEqual(["metoprolol"]);
     act(() => {
-      vi.advanceTimersByTime(SUGGESTIONS_DEBOUNCE_MS);
+      vi.advanceTimersByTime(DEFAULT_SUGGESTIONS_DEBOUNCE_MS);
     });
     expect(result.current).toEqual(["metoprolol"]);
   });
@@ -161,7 +162,7 @@ describe("useDrugNameSuggestions", () => {
       { initialProps: { query: "enala" } },
     );
     act(() => {
-      vi.advanceTimersByTime(SUGGESTIONS_DEBOUNCE_MS);
+      vi.advanceTimersByTime(DEFAULT_SUGGESTIONS_DEBOUNCE_MS);
     });
     expect(result.current).toEqual(["enalapril"]);
 
@@ -171,7 +172,7 @@ describe("useDrugNameSuggestions", () => {
     rerender({ query: "enalax" });
     expect(result.current).toEqual(["enalapril"]);
     act(() => {
-      vi.advanceTimersByTime(SUGGESTIONS_DEBOUNCE_MS);
+      vi.advanceTimersByTime(DEFAULT_SUGGESTIONS_DEBOUNCE_MS);
     });
     expect(result.current).toEqual(["enalapril"]);
 
@@ -190,7 +191,7 @@ describe("useDrugNameSuggestions", () => {
       { initialProps: { query: "xyzzy" } },
     );
     act(() => {
-      vi.advanceTimersByTime(SUGGESTIONS_DEBOUNCE_MS);
+      vi.advanceTimersByTime(DEFAULT_SUGGESTIONS_DEBOUNCE_MS);
     });
     const worker = instances[0];
     const searchMessage = worker.posted.find((m) => m.type === "search");
@@ -200,7 +201,7 @@ describe("useDrugNameSuggestions", () => {
     // responds to the earlier query.
     rerender({ query: "enala" });
     act(() => {
-      vi.advanceTimersByTime(SUGGESTIONS_DEBOUNCE_MS);
+      vi.advanceTimersByTime(DEFAULT_SUGGESTIONS_DEBOUNCE_MS);
     });
     expect(result.current).toEqual(["enalapril"]);
 
@@ -210,17 +211,142 @@ describe("useDrugNameSuggestions", () => {
     expect(result.current).toEqual(["enalapril"]);
   });
 
-  test("clears suggestions immediately when the query drops below 2 characters", () => {
+  test("clears suggestions immediately when the query drops below the minimum length", () => {
     const { result, rerender } = renderHook(
       ({ query }) => useDrugNameSuggestions(query, NAMES),
       { initialProps: { query: "enala" } },
     );
     act(() => {
-      vi.advanceTimersByTime(SUGGESTIONS_DEBOUNCE_MS);
+      vi.advanceTimersByTime(DEFAULT_SUGGESTIONS_DEBOUNCE_MS);
     });
     expect(result.current).toEqual(["enalapril"]);
 
     rerender({ query: "e" });
     expect(result.current).toEqual([]);
+  });
+
+  test("does not show a prefix match shorter than a custom minChars setting", () => {
+    const { result } = renderHook(
+      ({ query }) => useDrugNameSuggestions(query, NAMES, { minChars: 4 }),
+      { initialProps: { query: "ena" } },
+    );
+    act(() => {
+      vi.advanceTimersByTime(DEFAULT_SUGGESTIONS_DEBOUNCE_MS);
+    });
+
+    // "ena" is a valid 3-char prefix of "enalapril" and would normally
+    // resolve under the default minChars (3) — a custom, higher minChars
+    // must suppress it.
+    expect(result.current).toEqual([]);
+    const worker = instances[0];
+    expect(worker.posted.some((m) => m.type === "search")).toBe(false);
+  });
+
+  test("shows a prefix match once a custom minChars setting is reached", () => {
+    const { result } = renderHook(
+      ({ query }) => useDrugNameSuggestions(query, NAMES, { minChars: 4 }),
+      { initialProps: { query: "enal" } },
+    );
+    act(() => {
+      vi.advanceTimersByTime(DEFAULT_SUGGESTIONS_DEBOUNCE_MS);
+    });
+
+    expect(result.current).toEqual(["enalapril"]);
+  });
+
+  test("respects a custom debounceMs setting, waiting longer than the default before reacting", () => {
+    const customDebounceMs = DEFAULT_SUGGESTIONS_DEBOUNCE_MS * 3;
+    const { result } = renderHook(
+      ({ query }) =>
+        useDrugNameSuggestions(query, NAMES, {
+          debounceMs: customDebounceMs,
+        }),
+      { initialProps: { query: "enala" } },
+    );
+
+    // The default debounce would have already fired by now — a custom,
+    // longer one must not have settled yet.
+    act(() => {
+      vi.advanceTimersByTime(DEFAULT_SUGGESTIONS_DEBOUNCE_MS);
+    });
+    expect(result.current).toEqual([]);
+
+    act(() => {
+      vi.advanceTimersByTime(
+        customDebounceMs - DEFAULT_SUGGESTIONS_DEBOUNCE_MS,
+      );
+    });
+    expect(result.current).toEqual(["enalapril"]);
+  });
+
+  test("falls back to DEFAULT_MIN_CHARS and DEFAULT_SUGGESTIONS_DEBOUNCE_MS when no settings are passed", () => {
+    const { result } = renderHook(
+      ({ query }) => useDrugNameSuggestions(query, NAMES),
+      { initialProps: { query: "en" } },
+    );
+    act(() => {
+      vi.advanceTimersByTime(DEFAULT_SUGGESTIONS_DEBOUNCE_MS);
+    });
+
+    // "en" is shorter than DEFAULT_MIN_CHARS (3) — confirms the default is
+    // actually applied, not just documented.
+    expect(DEFAULT_MIN_CHARS).toBe(3);
+    expect(result.current).toEqual([]);
+  });
+
+  test("forgets a settled answer once cleared, so a later unrelated search never shows it — even after a long pause first", () => {
+    const { result, rerender } = renderHook(
+      ({ query }) => useDrugNameSuggestions(query, NAMES),
+      { initialProps: { query: "enala" } },
+    );
+    act(() => {
+      vi.advanceTimersByTime(DEFAULT_SUGGESTIONS_DEBOUNCE_MS);
+    });
+    expect(result.current).toEqual(["enalapril"]);
+
+    // Clear the field and let the debounce fully settle on the empty
+    // value before typing again — this is the exact repro: a real pause,
+    // not a fast retype.
+    rerender({ query: "" });
+    act(() => {
+      vi.advanceTimersByTime(DEFAULT_SUGGESTIONS_DEBOUNCE_MS * 10);
+    });
+    expect(result.current).toEqual([]);
+
+    // Type a completely unrelated query. Before the fix, the stale
+    // "enalapril" answer — never actually cleared, only hidden while the
+    // query was too short — would reappear the instant enough characters
+    // were typed, even before this new search has resolved.
+    rerender({ query: "meto" });
+    expect(result.current).toEqual([]);
+
+    act(() => {
+      vi.advanceTimersByTime(DEFAULT_SUGGESTIONS_DEBOUNCE_MS);
+    });
+    expect(result.current).toEqual(["metoprolol"]);
+  });
+
+  test("forgets a settled answer immediately on clear, even when retyping starts before the debounce would have settled", () => {
+    const { result, rerender } = renderHook(
+      ({ query }) => useDrugNameSuggestions(query, NAMES),
+      { initialProps: { query: "enala" } },
+    );
+    act(() => {
+      vi.advanceTimersByTime(DEFAULT_SUGGESTIONS_DEBOUNCE_MS);
+    });
+    expect(result.current).toEqual(["enalapril"]);
+
+    // Clear, then immediately start typing a new query — never letting the
+    // debounce settle on the short/empty intermediate value at all. The
+    // reset must still have fired synchronously on the clearing keystroke
+    // itself for this to work.
+    rerender({ query: "" });
+    rerender({ query: "meto" });
+    expect(result.current).toEqual([]);
+
+    act(() => {
+      vi.advanceTimersByTime(DEFAULT_SUGGESTIONS_DEBOUNCE_MS);
+    });
+    expect(result.current).toEqual(["metoprolol"]);
   });
 });

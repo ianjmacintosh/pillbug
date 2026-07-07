@@ -29,11 +29,15 @@ function levenshteinDistance(a: string, b: string): number {
 // typos and truncations, tight enough to exclude unrelated names.
 const MAX_NORMALIZED_DISTANCE = 0.6;
 
+// How many characters are "enough" to search on is a UX policy (see
+// DrugNameSuggestionsSettings in useDrugNameSuggestions.ts) owned by the
+// caller, not this pure matching function — the only length this function
+// itself cares about is the degenerate empty-string case.
 export function getDrugNameSuggestions(
   query: string,
   names: readonly string[],
 ): string[] {
-  if (query.length < 2) return [];
+  if (!query) return [];
   const lowerQuery = query.toLowerCase();
   return names
     .map((name) => {
@@ -57,7 +61,7 @@ export function getPrefixMatches(
   query: string,
   names: readonly string[],
 ): string[] {
-  if (query.length < 2) return [];
+  if (!query) return [];
   const lower = query.toLowerCase();
   const results: string[] = [];
   for (const name of names) {

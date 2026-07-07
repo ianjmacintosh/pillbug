@@ -3,19 +3,16 @@ import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, test, vi } from "vitest";
 import { DrugNameCombobox } from "./DrugNameCombobox";
-import { SUGGESTIONS_DEBOUNCE_MS } from "./useDrugNameSuggestions";
+import { DEFAULT_SUGGESTIONS_DEBOUNCE_MS } from "./useDrugNameSuggestions";
 
 const NAMES = ["enalapril", "enoxaparin", "metoprolol"];
 
 // Waits out the real debounce timer inside act() so React (and any
 // third-party effects, e.g. Ariakit's active-item wiring) fully flushes the
 // resulting state update before the test continues.
-async function waitOutDebounce() {
+async function waitOutDebounce(debounceMs = DEFAULT_SUGGESTIONS_DEBOUNCE_MS) {
   await act(
-    () =>
-      new Promise((resolve) =>
-        setTimeout(resolve, SUGGESTIONS_DEBOUNCE_MS + 50),
-      ),
+    () => new Promise((resolve) => setTimeout(resolve, debounceMs + 50)),
   );
 }
 
@@ -155,5 +152,66 @@ describe("DrugNameCombobox", () => {
     );
 
     expect(screen.getByRole("combobox")).toBeRequired();
+  });
+
+  test("autocompleteSettings.minChars raises how many characters are needed before a suggestion appears", async () => {
+    const user = userEvent.setup();
+    function Wrapper() {
+      const [value, setValue] = useState("");
+      return (
+        <DrugNameCombobox
+          id="drugName"
+          value={value}
+          onChange={setValue}
+          names={NAMES}
+          autocompleteSettings={{ minChars: 6 }}
+        />
+      );
+    }
+    render(<Wrapper />);
+
+    const input = screen.getByRole("combobox") as HTMLInputElement;
+    // "enala" is 5 characters — a real prefix that would normally resolve
+    // under the default minChars (3), but not under this custom, higher one.
+    await user.type(input, "enala");
+    await waitOutDebounce();
+    expect(screen.queryByRole("option")).not.toBeInTheDocument();
+
+    await user.type(input, "p");
+    await waitOutDebounce();
+    expect(
+      screen.getByRole("option", { name: "Enalapril" }),
+    ).toBeInTheDocument();
+  });
+
+  test("autocompleteSettings.debounceMs changes how long typing must pause before a suggestion appears", async () => {
+    const user = userEvent.setup();
+    const customDebounceMs = DEFAULT_SUGGESTIONS_DEBOUNCE_MS * 3;
+    function Wrapper() {
+      const [value, setValue] = useState("");
+      return (
+        <DrugNameCombobox
+          id="drugName"
+          value={value}
+          onChange={setValue}
+          names={NAMES}
+          autocompleteSettings={{ debounceMs: customDebounceMs }}
+        />
+      );
+    }
+    render(<Wrapper />);
+
+    const input = screen.getByRole("combobox") as HTMLInputElement;
+    await user.type(input, "enala");
+
+    // The default debounce would have already fired by now.
+    await waitOutDebounce();
+    expect(screen.queryByRole("option")).not.toBeInTheDocument();
+
+    // The custom, longer debounce has now had time to settle.
+    await waitOutDebounce(customDebounceMs);
+    expect(
+      screen.getByRole("option", { name: "Enalapril" }),
+    ).toBeInTheDocument();
   });
 });
