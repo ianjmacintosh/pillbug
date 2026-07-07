@@ -1,33 +1,54 @@
 export { DOSAGE_UNITS, type DosageUnit } from "../../utils/constants";
-import Fuse from "fuse.js";
 import { DOSAGE_UNITS, type DosageUnit } from "../../utils/constants";
 
-// Building the Fuse index over ~14k drug names is too slow to redo on every
-// keystroke, so we cache one index per `names` array reference.
-const fuseCache = new WeakMap<readonly string[], Fuse<string>>();
-
-function getFuse(names: readonly string[]): Fuse<string> {
-  let fuse = fuseCache.get(names);
-  if (!fuse) {
-    fuse = new Fuse(names as string[], {
-      includeScore: true,
-      threshold: 0.3,
-      ignoreLocation: true,
-      minMatchCharLength: 2,
-    });
-    fuseCache.set(names, fuse);
+// Standard edit-distance DP, O(min space) via two rolling rows.
+function levenshteinDistance(a: string, b: string): number {
+  const m = a.length;
+  const n = b.length;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  let curr = new Array<number>(n + 1);
+  for (let i = 1; i <= m; i++) {
+    curr[0] = i;
+    for (let j = 1; j <= n; j++) {
+      curr[j] =
+        a[i - 1] === b[j - 1]
+          ? prev[j - 1]
+          : 1 + Math.min(prev[j], curr[j - 1], prev[j - 1]);
+    }
+    [prev, curr] = [curr, prev];
   }
-  return fuse;
+  return prev[n];
 }
+
+// A library like Fuse.js scores by errors-per-query-length, which
+// structurally under-scores short queries against long candidate words
+// (e.g. "omprzl" vs "omeprazole") regardless of how the threshold is
+// tuned — normalizing by the *longer* of the two strings instead is what
+// lets a truncated/typo'd query still surface the full word it was aiming
+// for. 0.6 was picked empirically: loose enough to catch multi-character
+// typos and truncations, tight enough to exclude unrelated names.
+const MAX_NORMALIZED_DISTANCE = 0.6;
 
 export function getDrugNameSuggestions(
   query: string,
   names: readonly string[],
 ): string[] {
   if (query.length < 2) return [];
-  return getFuse(names)
-    .search(query, { limit: 10 })
-    .map((result) => result.item);
+  const lowerQuery = query.toLowerCase();
+  return names
+    .map((name) => {
+      const distance = levenshteinDistance(lowerQuery, name.toLowerCase());
+      const normalizedDistance =
+        distance / Math.max(lowerQuery.length, name.length);
+      return { name, distance, normalizedDistance };
+    })
+    .filter((result) => result.normalizedDistance <= MAX_NORMALIZED_DISTANCE)
+    .sort(
+      (a, b) =>
+        a.normalizedDistance - b.normalizedDistance || a.distance - b.distance,
+    )
+    .slice(0, 10)
+    .map((result) => result.name);
 }
 
 // Correctly-typed prefixes are the common case and near-free to check, so we

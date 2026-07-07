@@ -35,6 +35,37 @@ const BASE_PRESCRIPTION = {
   doseForm: "tablet",
 };
 
+// CDP CPU throttling factor (1 = no throttle, N = Nx slowdown of JS
+// execution) applied to the drug-name low-end-hardware tests. 6
+// approximates a low-end mobile device — beyond Lighthouse's own 4x
+// mobile-throttling preset.
+const LOW_END_CPU_THROTTLE_RATE = 6;
+
+// Ceiling for how long the correct fuzzy-match suggestion is allowed to
+// take to appear after typing stops, under LOW_END_CPU_THROTTLE_RATE.
+// Measured directly: 420-467ms across repeated runs at this throttle rate.
+// 3s leaves ~6x headroom for CI-machine variance while still catching a
+// genuine multi-second regression — unlike a much larger ceiling, which
+// would let the feature get many times slower before the test ever failed.
+const SUGGESTION_VISIBLE_TIMEOUT_MS = 3_000;
+
+// Ceiling on how many times the *rendered* suggestion list is allowed to
+// change to a different set of options while typing a single 11-character
+// typo ("amoxicillan") under LOW_END_CPU_THROTTLE_RATE. This is what the
+// debounce is actually protecting the user from: without it, each keystroke
+// would trigger its own search and re-render, and the user would watch the
+// dropdown's contents flash through a different, mostly-irrelevant set of
+// names on every character — worse than just "slow," actively distracting,
+// and worse still on the low-end hardware this test targets, where each of
+// those extra re-renders competes for an already-scarce main thread.
+// A working debounce settles content at most a couple of times here: once
+// for "amoxicill" (a valid prefix), once more for the final "amoxicillan"
+// fuzzy result. The bound allows slack above that (rather than an exact
+// count) because throttled keystroke timing can occasionally exceed the
+// app's debounce window (observed up to ~228ms against a 200ms window) and
+// force an extra settle.
+const MAX_VISIBLE_SUGGESTION_CHANGES_FOR_ONE_TYPO = 5;
+
 test.use({ storageState: PRESCRIPTIONS_PATIENT_AUTH_FILE });
 
 test.beforeEach(async () => {
@@ -292,6 +323,81 @@ test.describe("Prescription create", () => {
     await expect(
       page.getByRole("option", { name: "Amoxicillin", exact: true }),
     ).toBeVisible();
+  });
+
+  test("drug name field still resolves a typo on heavily CPU-throttled (low-end) hardware", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+
+    // Applied after navigation, not before: we're testing the fuzzy search
+    // itself under load, not slowing down the page's initial bootstrap too.
+    const client = await page.context().newCDPSession(page);
+    await client.send("Emulation.setCPUThrottlingRate", {
+      rate: LOW_END_CPU_THROTTLE_RATE,
+    });
+
+    const drugNameInput = page.getByLabel(/drug name/i);
+    await drugNameInput.pressSequentially("amoxicillan");
+
+    // The fuzzy search runs in a Worker specifically so it isn't blocked by
+    // main-thread contention (see useDrugNameSearchWorker.ts), but a
+    // throttled CPU still slows down React's rendering of the result once
+    // it arrives.
+    await expect(
+      page.getByRole("option", { name: "Amoxicillin", exact: true }),
+    ).toBeVisible({ timeout: SUGGESTION_VISIBLE_TIMEOUT_MS });
+  });
+
+  test("suggestion list does not visibly thrash through many different option sets while typing a typo under CPU throttling", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+
+    // Records every time the rendered option list settles on a genuinely
+    // different set of names, ignoring re-renders that don't change what's
+    // shown (React re-rendering the same options doesn't count as a
+    // "change" here — only the user-visible content does).
+    await page.evaluate(() => {
+      window.__visibleSuggestionChanges = 0;
+      let lastSignature = "";
+      new MutationObserver(() => {
+        const listbox = document.querySelector('[role="listbox"]');
+        if (!listbox) return;
+        const signature = Array.from(
+          listbox.querySelectorAll('[role="option"]'),
+        )
+          .map((el) => el.textContent?.trim())
+          .join("|");
+        if (signature && signature !== lastSignature) {
+          window.__visibleSuggestionChanges!++;
+          lastSignature = signature;
+        }
+      }).observe(document.body, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
+    });
+
+    const client = await page.context().newCDPSession(page);
+    await client.send("Emulation.setCPUThrottlingRate", {
+      rate: LOW_END_CPU_THROTTLE_RATE,
+    });
+
+    const drugNameInput = page.getByLabel(/drug name/i);
+    await drugNameInput.pressSequentially("amoxicillan");
+
+    await expect(
+      page.getByRole("option", { name: "Amoxicillin", exact: true }),
+    ).toBeVisible({ timeout: SUGGESTION_VISIBLE_TIMEOUT_MS });
+
+    const visibleSuggestionChanges = await page.evaluate(
+      () => window.__visibleSuggestionChanges,
+    );
+    expect(visibleSuggestionChanges).toBeLessThan(
+      MAX_VISIBLE_SUGGESTION_CHANGES_FOR_ONE_TYPO,
+    );
   });
 
   test("drug name suggestion popover does not remount (flicker closed and reopen) while typing through a typo", async ({

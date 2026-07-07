@@ -52,6 +52,32 @@ describe("getDrugNameSuggestions", () => {
     const names = ["acetaminophen", noise];
     expect(getDrugNameSuggestions("acetaminophen", names)).not.toContain(noise);
   });
+
+  test("finds omeprazole from a short, heavily truncated typo", () => {
+    // Regression test: a plain errors-per-query-length score (e.g. Fuse.js's
+    // default) structurally under-scores a short query against a much
+    // longer candidate word, so "omprzl" (6 chars) against "omeprazole"
+    // (10 chars) used to return zero results no matter how the threshold
+    // was tuned. Normalizing by the longer of the two strings fixes this.
+    expect(getDrugNameSuggestions("omprzl", drugNames)).toContain("omeprazole");
+  });
+
+  test("prefers a genuinely closer match over a same-scoring-but-worse one", () => {
+    // "omapz" used to surface "chlorpromazine" and "somapacitan" (both
+    // much further from "omeprazole" by real edit distance) while
+    // excluding "omeprazole" from the candidate set entirely.
+    const results = getDrugNameSuggestions("omapz", drugNames);
+    expect(results).toContain("omeprazole");
+    expect(results).not.toContain("chlorpromazine");
+    expect(results).not.toContain("somapacitan");
+  });
+
+  test("excludes names too different from the query, even as the best of a bad lot", () => {
+    const names = ["acetaminophen", "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"];
+    expect(getDrugNameSuggestions("acetaminophen", names)).toEqual([
+      "acetaminophen",
+    ]);
+  });
 });
 
 describe("getPrefixMatches", () => {

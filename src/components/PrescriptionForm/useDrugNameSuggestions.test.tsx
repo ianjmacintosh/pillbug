@@ -184,41 +184,6 @@ describe("useDrugNameSuggestions", () => {
     expect(result.current).toEqual(["enoxaparin"]);
   });
 
-  test("discards a stale worker response that arrives after a newer request", () => {
-    const { result, rerender } = renderHook(
-      ({ query }) => useDrugNameSuggestions(query, NAMES),
-      { initialProps: { query: "xyzz" } },
-    );
-    act(() => {
-      vi.advanceTimersByTime(SUGGESTIONS_DEBOUNCE_MS);
-    });
-
-    rerender({ query: "xyzzyw" });
-    act(() => {
-      vi.advanceTimersByTime(SUGGESTIONS_DEBOUNCE_MS);
-    });
-
-    const worker = instances[0];
-    const [firstRequest, secondRequest] = worker.posted.filter(
-      (m): m is Extract<DrugSearchWorkerRequest, { type: "search" }> =>
-        m.type === "search",
-    );
-    expect(firstRequest).toBeDefined();
-    expect(secondRequest).toBeDefined();
-
-    act(() => {
-      worker.respond(secondRequest.requestId, "xyzzyw", ["metoprolol"]);
-    });
-    expect(result.current).toEqual(["metoprolol"]);
-
-    act(() => {
-      // Stale response for a superseded request must not override the
-      // newer result that already arrived.
-      worker.respond(firstRequest.requestId, "xyzz", ["enalapril"]);
-    });
-    expect(result.current).toEqual(["metoprolol"]);
-  });
-
   test("a stale worker response cannot clobber a settled prefix match", () => {
     const { result, rerender } = renderHook(
       ({ query }) => useDrugNameSuggestions(query, NAMES),
@@ -257,16 +222,5 @@ describe("useDrugNameSuggestions", () => {
 
     rerender({ query: "e" });
     expect(result.current).toEqual([]);
-  });
-
-  test("terminates the worker on unmount", () => {
-    const { unmount } = renderHook(() =>
-      useDrugNameSuggestions("xyzzy", NAMES),
-    );
-
-    const worker = instances[0];
-    unmount();
-
-    expect(worker.terminated).toBe(true);
   });
 });

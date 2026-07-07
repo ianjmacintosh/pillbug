@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { createDrugNameWorker } from "./drugNameWorkerClient";
-import type { DrugSearchWorkerResponse } from "./drugNameSearch.worker";
+import { useEffect, useMemo, useState } from "react";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
+import { useDrugNameSearchWorker } from "./useDrugNameSearchWorker";
 import { getPrefixMatches } from "./PrescriptionForm.helpers";
 
 // Wait for the user to pause before reacting to a new query at all — for
@@ -9,65 +9,64 @@ import { getPrefixMatches } from "./PrescriptionForm.helpers";
 // is still mid-word.
 export const SUGGESTIONS_DEBOUNCE_MS = 200;
 
-// Full-corpus fuzzy search over ~14k drug names is too slow to run
-// synchronously on the main thread (100-500ms+ per keystroke on a throttled
-// device), so the fuzzy fallback runs in a worker.
+// A full-corpus fuzzy scan blocks the main thread for noticeably long on a
+// throttled device, so the fuzzy fallback runs in a worker rather than
+// synchronously in this hook.
 export function useDrugNameSuggestions(
   query: string,
   names: readonly string[],
 ): string[] {
-  const workerRef = useRef<Worker | null>(null);
-  const requestIdRef = useRef(0);
+  const { value: debouncedQuery, isPending } = useDebouncedValue(
+    query,
+    SUGGESTIONS_DEBOUNCE_MS,
+  );
+  const { search, result } = useDrugNameSearchWorker(names);
+
+  const prefixMatches = useMemo(
+    () =>
+      isPending || debouncedQuery.length < 2
+        ? []
+        : getPrefixMatches(debouncedQuery, names),
+    [isPending, debouncedQuery, names],
+  );
+
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [appliedQuery, setAppliedQuery] = useState<string | null>(null);
 
-  useEffect(() => {
-    const worker = createDrugNameWorker();
-    workerRef.current = worker;
-    worker.onmessage = (event: MessageEvent<DrugSearchWorkerResponse>) => {
-      // Discard responses superseded by a later settled query.
-      if (event.data.requestId === requestIdRef.current) {
-        setSuggestions(event.data.results);
-      }
-    };
-    return () => {
-      worker.terminate();
-      workerRef.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    workerRef.current?.postMessage({ type: "setNames", names });
-  }, [names]);
-
-  useEffect(() => {
-    if (query.length < 2) {
-      requestIdRef.current += 1; // invalidate any in-flight search
-      return;
+  // Once the query settles, adjust `suggestions` synchronously during
+  // render — rather than in an effect — whenever a new answer becomes
+  // available for it: either the cheap prefix scan, or a worker response
+  // that answers this exact query. This is a pure derivation from
+  // `debouncedQuery`/`names`/`result`, not a synchronization with an
+  // external system (see "Adjusting state when a prop changes" in the
+  // React docs). Leaving `suggestions` untouched when neither is ready yet
+  // is what keeps the previous list visible while the next one is
+  // debounced or in flight, and comparing against `appliedQuery` (rather
+  // than re-checking on every render) is what stops a stale worker
+  // response — one for a query since resolved via the prefix path instead
+  // — from clobbering an already-applied result.
+  if (
+    !isPending &&
+    debouncedQuery.length >= 2 &&
+    debouncedQuery !== appliedQuery
+  ) {
+    if (prefixMatches.length > 0) {
+      setAppliedQuery(debouncedQuery);
+      setSuggestions(prefixMatches);
+    } else if (result && result.query === debouncedQuery) {
+      setAppliedQuery(debouncedQuery);
+      setSuggestions(result.results);
     }
+  }
 
-    const timer = setTimeout(() => {
-      // Bump on every settled query (not just worker dispatches) so a
-      // worker response from an earlier settle can't clobber a suggestion
-      // list this settle resolved via the cheap prefix path instead.
-      requestIdRef.current += 1;
-      const prefixMatches = getPrefixMatches(query, names);
-      if (prefixMatches.length > 0) {
-        setSuggestions(prefixMatches);
-        return;
-      }
-      // No valid prefix — fall back to the fuzzy worker search. Keep
-      // showing whatever was already displayed until the response
-      // arrives, rather than clearing to empty (which would flicker the
-      // popover closed and reopened).
-      workerRef.current?.postMessage({
-        type: "search",
-        requestId: requestIdRef.current,
-        query,
-      });
-    }, SUGGESTIONS_DEBOUNCE_MS);
-
-    return () => clearTimeout(timer);
-  }, [query, names]);
+  // The one genuine external-system concern: ask the worker for a fuzzy
+  // match once the query settles without a prefix match.
+  useEffect(() => {
+    if (isPending) return;
+    if (debouncedQuery.length < 2) return;
+    if (prefixMatches.length > 0) return;
+    search(debouncedQuery);
+  }, [debouncedQuery, isPending, prefixMatches, search]);
 
   // A too-short query never has suggestions, regardless of what's still in
   // state from a prior (now-abandoned) settle — no need to route this
