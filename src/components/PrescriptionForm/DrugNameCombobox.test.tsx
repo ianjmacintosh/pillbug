@@ -12,7 +12,10 @@ const NAMES = ["enalapril", "enoxaparin", "metoprolol"];
 // resulting state update before the test continues.
 async function waitOutDebounce() {
   await act(
-    () => new Promise((resolve) => setTimeout(resolve, SUGGESTIONS_DEBOUNCE_MS + 50)),
+    () =>
+      new Promise((resolve) =>
+        setTimeout(resolve, SUGGESTIONS_DEBOUNCE_MS + 50),
+      ),
   );
 }
 
