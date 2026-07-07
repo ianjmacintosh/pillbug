@@ -2,11 +2,9 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import drugNames from "../../data/drug-names.json";
 import { Button } from "../Button/Button";
+import { DrugNameCombobox } from "./DrugNameCombobox";
 import type { DosageUnit } from "./PrescriptionForm.helpers";
-import {
-  detectUnitInQuantity,
-  getDrugNameSuggestions,
-} from "./PrescriptionForm.helpers";
+import { detectUnitInQuantity } from "./PrescriptionForm.helpers";
 import { RoutineBlock } from "./RoutineBlock";
 import type { ScheduleEditor } from "./usePrescriptionForm";
 
@@ -61,7 +59,6 @@ export function PrescriptionFields({
   const [isAdvanced, setIsAdvanced] = useState(
     () => scheduleEditor.schedules.length > 1,
   );
-  const drugNameSuggestions = getDrugNameSuggestions(drugName, drugNames);
 
   const {
     schedules,
@@ -85,19 +82,13 @@ export function PrescriptionFields({
           <label htmlFor={`${idPrefix}-drugName`}>
             {t("prescriptionForm.drugNameLabel")}
           </label>
-          <input
+          <DrugNameCombobox
             id={`${idPrefix}-drugName`}
-            type="text"
             value={drugName}
-            onChange={(e) => setDrugName(e.target.value)}
-            list={`${idPrefix}-drugName-list`}
+            onChange={setDrugName}
+            names={drugNames}
             required
           />
-          <datalist id={`${idPrefix}-drugName-list`}>
-            {drugNameSuggestions.map((name) => (
-              <option key={name} value={name} />
-            ))}
-          </datalist>
         </div>
 
         <div className="field drug-dosage-field">

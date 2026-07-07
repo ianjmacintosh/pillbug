@@ -268,18 +268,123 @@ test.describe("Prescription create", () => {
     }
   });
 
-  test("drug name field suggests a matching name from the bundled drug list", async ({
+  test("drug name field suggests a matching name from the bundled drug list, in display case", async ({
     page,
   }) => {
     await page.goto("/prescriptions/new");
 
     const drugNameInput = page.getByLabel(/drug name/i);
-    await drugNameInput.fill("enala");
+    await drugNameInput.pressSequentially("enala");
 
-    const listId = await drugNameInput.getAttribute("list");
     await expect(
-      page.locator(`#${listId} option[value="enalapril"]`),
-    ).toHaveCount(1);
+      page.getByRole("option", { name: "Enalapril", exact: true }),
+    ).toBeVisible();
+  });
+
+  test("drug name field tolerates a typo by falling back to fuzzy search", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+
+    const drugNameInput = page.getByLabel(/drug name/i);
+    await drugNameInput.pressSequentially("amoxicillan");
+
+    await expect(
+      page.getByRole("option", { name: "Amoxicillin", exact: true }),
+    ).toBeVisible();
+  });
+
+  test("drug name suggestion popover does not remount (flicker closed and reopen) while typing through a typo", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+
+    const drugNameInput = page.getByLabel(/drug name/i);
+
+    // "amoxicill" is a valid prefix; the remaining "an" diverges from the
+    // real spelling and falls back to the debounced fuzzy worker search.
+    // Both paths wait for typing to pause before showing/updating anything.
+    // Playwright's auto-retrying assertions would tolerate a brief
+    // close-then-reopen (they just wait for the element to reappear), so
+    // instead count how many times the listbox is inserted into the DOM —
+    // it must mount exactly once and never remount.
+    await page.evaluate(() => {
+      window.__listboxMountCount = 0;
+      new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          for (const node of mutation.addedNodes) {
+            if (!(node instanceof Element)) continue;
+            // The popover may be portaled in as a wrapper whose listbox is
+            // a descendant, not the added node itself.
+            if (
+              node.matches('[role="listbox"]') ||
+              node.querySelector('[role="listbox"]')
+            ) {
+              window.__listboxMountCount!++;
+            }
+          }
+        }
+      }).observe(document.body, { childList: true, subtree: true });
+    });
+
+    await drugNameInput.pressSequentially("amoxicill");
+    await expect(
+      page.getByRole("option", { name: "Amoxicillin", exact: true }),
+    ).toBeVisible();
+
+    await drugNameInput.pressSequentially("an", { delay: 20 });
+    // Give the debounced fuzzy search (SUGGESTIONS_DEBOUNCE_MS in
+    // useDrugNameSuggestions.ts) time to fire and its response to apply, so
+    // a remount here would have already happened.
+    await page.waitForTimeout(500);
+
+    expect(await page.evaluate(() => window.__listboxMountCount)).toBe(1);
+  });
+
+  test("drug name suggestion popover aligns with the input's left and right edges", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+
+    const drugNameInput = page.getByLabel(/drug name/i);
+    await drugNameInput.pressSequentially("enala");
+
+    const option = page.getByRole("option", { name: "Enalapril", exact: true });
+    await expect(option).toBeVisible();
+
+    const inputBox = await drugNameInput.boundingBox();
+    const popoverBox = await option
+      .locator("xpath=ancestor::*[@role='listbox']")
+      .boundingBox();
+
+    expect(inputBox).not.toBeNull();
+    expect(popoverBox).not.toBeNull();
+    expect(Math.abs(popoverBox!.x - inputBox!.x)).toBeLessThanOrEqual(2);
+    expect(
+      Math.abs(
+        popoverBox!.x + popoverBox!.width - (inputBox!.x + inputBox!.width),
+      ),
+    ).toBeLessThanOrEqual(2);
+  });
+
+  test("selecting a suggestion with Enter fills the field and does not reopen the suggestion list", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+
+    const drugNameInput = page.getByLabel(/drug name/i);
+    await drugNameInput.pressSequentially("enala");
+    await expect(
+      page.getByRole("option", { name: "Enalapril", exact: true }),
+    ).toBeVisible();
+
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Enter");
+
+    await expect(drugNameInput).toHaveValue("Enalapril");
+    await expect(
+      page.getByRole("option", { name: "Enalapril", exact: true }),
+    ).not.toBeVisible();
   });
 
   test("Days and Times fieldset is aria-invalid when submitted without a day or with a blank time", async ({

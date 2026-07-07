@@ -137,10 +137,9 @@ describe("NewPrescriptionForm", () => {
       const drugName = screen.getByLabelText(/drug name/i) as HTMLInputElement;
       await user.type(drugName, "enala");
 
-      const listId = drugName.getAttribute("list");
-      const datalist = document.getElementById(listId!) as HTMLDataListElement;
-      const optionValues = Array.from(datalist.options).map((o) => o.value);
-      expect(optionValues).toContain("enalapril");
+      expect(
+        await screen.findByRole("option", { name: "Enalapril" }),
+      ).toBeInTheDocument();
     });
   });
 
