@@ -102,15 +102,13 @@ A saved Patient decision resolving how a Prescription's scheduled time maps to a
 _Avoid_: Time assignment, Preference
 
 **Fill Session**:
-A guided, step-by-step workflow in which the Patient fills their Pill Organizer for the full span of the organizer (e.g., 7 days). Follows a prescription-by-prescription approach (one Prescription at a time across all Compartments, then move to the next). The Patient can optionally configure a recurring Reminder to prompt Fill Sessions. Workflow steps are provisional pending pharmacist or OT validation.
+A guided, multi-step wizard, at `/fill-session`, in which the Patient fills their Pill Organizer for the full span of the organizer (e.g., 7 days). A step indicator tracks progress (e.g., "Step 2 of 4") — the step count is expected to grow as the wizard gains steps (see _Status_), so treat any specific count as a snapshot, not a ceiling. Steps today, in order: **Disclaimer** (safety warnings — Patient responsibility for their own health, medications that cannot be safely stored in an organizer, keep one pill in its original container as a visual reference, never open multiple bottles at once) → **Setup** (prompts to collect medicines onto a clean flat surface, wash and dry hands, confirm the organizer is empty) → **Fill** (the inventory reference screen, described below) → **Double-check** (a read-only summary of every active Prescription's Compartment breakdown, all shown expanded at once, so the Patient — optionally with a trusted person — can confirm everything is in place before closing the organizer; a Back action returns to Fill). The Patient can optionally configure a recurring Reminder to prompt Fill Sessions. Workflow steps are provisional pending pharmacist or OT validation.
+
+The Fill step follows a prescription-by-prescription approach (ADR-0002): medicines are grouped into cards, one open at a time by default, so the Patient works with one bottle open at a time. The Patient fills at their own pace — there is no per-Compartment confirmation gate.
 
 The Patient selects a **Fill Session Start Date** — any calendar date — to anchor the 7-day grid. The grid always runs Sunday → Saturday to match the physical Pill Organizer layout. Days that fall before the start date in Sunday→Saturday order show the next week's dates (wrap-forward). For example, a Tuesday start produces: Sun (next week), Mon (next week), Tue, Wed, Thu, Fri, Sat. The default start date is the nearest Sunday: today if today is Sunday, otherwise the coming Sunday. The date range heading and printed worksheet show the chronological span (earliest date → latest date). Navigation prev/next arrows step by 7 days; an arbitrary date input is also available. Each medication card column header shows both the weekday name and the calendar date (e.g., "Mon Jun 23") so the Patient can match columns to physical Pill Organizer compartments unambiguously. Wrap-around column headers carry a ⚠ triangle icon with a tooltip explaining that the date is from the following week. When any wrap-around is present, a page-level warning (⚠ triangle + explanatory text) also appears beneath the `<h1>` — it is hidden entirely when the start date is a Sunday and no wrap-around occurs.
 
-Steps: (1) Verification — for each active Prescription, the app calculates the required pill count and the Patient confirms Yes/No that they have enough. If No, the app flags a refill is needed but does not block the session. (2) Filling — prescription-by-prescription, the Patient places pills in the listed Compartments. The Patient can confirm each Compartment individually or mark all at once. Ambiguous Schedule-to-Compartment mappings are resolved inline when first encountered, with an option to save as a permanent Compartment Mapping.
-
-If a Fill Session is interrupted and resumed, an Audit step precedes the remaining filling steps: the Patient confirms each previously completed Prescription is still accurate, and verifies no additional pills have been placed in those Compartments.
-
-A completed Fill Session is recorded with a timestamp and which Prescriptions were flagged as needing a refill during verification.
+_Status_: The steps above (#194) cover the happy path only, and the wizard is expected to grow further steps over time. Likely additions to the sequence: a Verification step (per-Prescription refill confirmation), inline resolution of ambiguous Schedule-to-Compartment mappings into a saved **Compartment Mapping**, and an Audit step for interrupted/resumed sessions. Completed Fill Sessions are not yet persisted (no timestamp or refill-flag record) — persistence should land alongside whichever step needs it. Refreshing mid-wizard currently restarts from Disclaimer rather than resuming.
 _Avoid_: Packing, Loading, Preparation
 
 **Prescription Suggestion**:
@@ -152,7 +150,7 @@ _Avoid_: Public link, Share URL
 - A **Patient** can generate a **Share Link** to grant read-only access to their **Adherence Record**
 - A **Doctor** can generate a **Prescription Suggestion** link that a **Patient** confirms to create a **Prescription**
 - A **Patient** optionally has one **Pill Organizer** with a configured structure (Compartments per day, span in days)
-- A **Fill Session** covers the full span of the **Pill Organizer** and is recorded on completion
+- A **Fill Session** covers the full span of the **Pill Organizer**; persisting a completion record is not yet implemented (see Fill Session's _Status_ note)
 
 ## Data Model
 
