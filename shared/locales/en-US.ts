@@ -156,11 +156,37 @@ const enUS = {
   "fillSession.noPrescriptions": "No active prescriptions.",
   "fillSession.printButton": "Print Worksheet",
   "fillSession.savePdfButton": "Save as PDF",
+  "fillSession.doneButton": "Done filling",
   "fillSession.prevWeek": "Previous week",
   "fillSession.nextWeek": "Next week",
   "fillSession.startDateLabel": "Start date",
   "fillSession.wrapWarning": "Some columns show dates from the following week.",
   "fillSession.wrapColumnTooltip": "Date from the following week",
+  "fillSessionWizard.stepIndicator": "Step {{step}} of {{totalSteps}}",
+  "fillSessionWizard.continueButton": "Continue",
+  "fillSessionWizard.disclaimer.heading": "Before you begin",
+  "fillSessionWizard.disclaimer.responsibility":
+    "You are responsible for your own health. Double-check every medicine against your prescription label before placing it in the organizer.",
+  "fillSessionWizard.disclaimer.unsafeMeds":
+    "Some medicines cannot be safely stored in a pill organizer — for example ones that are sensitive to humidity or light, foil-backed blister packs, or medicines with special warning labels. Leave those in their original containers.",
+  "fillSessionWizard.disclaimer.keepReference":
+    "Leave one pill in its original container as a visual reference while you fill the organizer.",
+  "fillSessionWizard.disclaimer.oneBottleAtATime":
+    "Never open multiple pill bottles at once. Work with one medicine at a time.",
+  "fillSessionWizard.setup.heading": "Get set up",
+  "fillSessionWizard.setup.collectMedicines":
+    "Collect all your medicines and place them on a clean, flat surface.",
+  "fillSessionWizard.setup.washHands": "Wash and dry your hands thoroughly.",
+  "fillSessionWizard.setup.emptyOrganizer":
+    "Confirm your pill organizer is empty and ready to fill.",
+  "fillSessionWizard.setup.readyButton": "I'm ready",
+  "fillSessionWizard.doubleCheck.heading": "Double-check",
+  "fillSessionWizard.doubleCheck.intro":
+    "Before closing the organizer, confirm everything is in place — ideally with a trusted person.",
+  "fillSessionWizard.doubleCheck.backButton": "Back",
+  "fillSessionWizard.doubleCheck.confirmButton": "Done",
+  "fillSessionWizard.doubleCheck.noMedicines":
+    "No medicines in this compartment",
   "register.heading": "All your medicine in order",
   "register.intro":
     "Manage your prescriptions and get step-by-step guidance filling your pill organizer.",

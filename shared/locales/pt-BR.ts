@@ -160,12 +160,38 @@ const ptBR = {
   "fillSession.noPrescriptions": "Nenhuma prescrição ativa.",
   "fillSession.printButton": "Imprimir Planilha",
   "fillSession.savePdfButton": "Salvar como PDF",
+  "fillSession.doneButton": "Concluir separação",
   "fillSession.prevWeek": "Semana anterior",
   "fillSession.nextWeek": "Próxima semana",
   "fillSession.startDateLabel": "Data de início",
   "fillSession.wrapWarning":
     "Algumas colunas mostram datas da semana seguinte.",
   "fillSession.wrapColumnTooltip": "Data da semana seguinte",
+  "fillSessionWizard.stepIndicator": "Etapa {{step}} de {{totalSteps}}",
+  "fillSessionWizard.continueButton": "Continuar",
+  "fillSessionWizard.disclaimer.heading": "Antes de começar",
+  "fillSessionWizard.disclaimer.responsibility":
+    "Você é responsável pela sua própria saúde. Confira cada medicamento com o rótulo da prescrição antes de colocá-lo no organizador.",
+  "fillSessionWizard.disclaimer.unsafeMeds":
+    "Alguns medicamentos não podem ser guardados com segurança em um organizador de comprimidos — por exemplo, os sensíveis à umidade ou luz, blísteres com fundo de alumínio, ou medicamentos com rótulos de aviso especial. Deixe-os em suas embalagens originais.",
+  "fillSessionWizard.disclaimer.keepReference":
+    "Deixe um comprimido na embalagem original como referência visual enquanto você separa os demais.",
+  "fillSessionWizard.disclaimer.oneBottleAtATime":
+    "Nunca abra vários frascos de comprimidos ao mesmo tempo. Trabalhe com um medicamento por vez.",
+  "fillSessionWizard.setup.heading": "Prepare-se",
+  "fillSessionWizard.setup.collectMedicines":
+    "Reúna todos os seus medicamentos e coloque-os em uma superfície limpa e plana.",
+  "fillSessionWizard.setup.washHands": "Lave e seque bem as mãos.",
+  "fillSessionWizard.setup.emptyOrganizer":
+    "Confirme que seu organizador de comprimidos está vazio e pronto para ser preenchido.",
+  "fillSessionWizard.setup.readyButton": "Estou pronto",
+  "fillSessionWizard.doubleCheck.heading": "Confira tudo",
+  "fillSessionWizard.doubleCheck.intro":
+    "Antes de fechar o organizador, confirme que tudo está no lugar certo — de preferência com uma pessoa de confiança.",
+  "fillSessionWizard.doubleCheck.backButton": "Voltar",
+  "fillSessionWizard.doubleCheck.confirmButton": "Concluir",
+  "fillSessionWizard.doubleCheck.noMedicines":
+    "Nenhum medicamento neste compartimento",
   "register.heading": "Todos os seus medicamentos em ordem",
   "register.intro":
     "Gerencie suas prescrições e receba orientação passo a passo para separar seu organizador de remédios.",

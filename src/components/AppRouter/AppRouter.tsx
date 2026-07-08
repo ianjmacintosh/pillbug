@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-router";
 import { applyStoredLanguage } from "../../utils/applyStoredLanguage";
 import App from "../App";
-import FillSession from "../FillSession";
+import FillSessionWizard from "../FillSession/FillSessionWizard";
 import Layout from "../Layout";
 import Login from "../Login";
 import Logout from "../Logout";
@@ -170,7 +170,7 @@ const fillSessionRoute = createRoute({
     const data = await fetchAccount();
     return { timezone: data?.timezone ?? null };
   },
-  component: FillSession,
+  component: FillSessionWizard,
 });
 
 const prescriptionsRoute = createRoute({

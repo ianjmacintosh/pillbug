@@ -5,6 +5,7 @@ import {
   type Download,
   type Page,
 } from "@playwright/test";
+
 import { readFileSync } from "node:fs";
 import { extractText, getDocumentProxy } from "unpdf";
 import { hashEmail } from "../worker/email-crypto";
@@ -14,6 +15,12 @@ import {
 } from "./test-accounts";
 import { getDB, disposeDB } from "./db";
 import { nearestSunday } from "../shared/week-boundaries";
+
+async function goToFillStep(page: Page): Promise<void> {
+  await page.goto("/fill-session");
+  await page.getByRole("button", { name: /continue/i }).click();
+  await page.getByRole("button", { name: /i'm ready/i }).click();
+}
 
 let emailLookup: string;
 
@@ -115,7 +122,7 @@ test.describe("Fill Session page", () => {
       storageState: PRESCRIPTIONS_PATIENT_AUTH_FILE,
     });
     sharedPage = await context.newPage();
-    await sharedPage.goto("/fill-session");
+    await goToFillStep(sharedPage);
   });
 
   test.afterAll(async () => {
@@ -256,7 +263,7 @@ test.describe("Fill Session", () => {
     test("shows heading and no active prescriptions message", async ({
       page,
     }) => {
-      await page.goto("/fill-session");
+      await goToFillStep(page);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
       await expect(page.getByText(/no active prescriptions/i)).toBeVisible();
     });
@@ -271,7 +278,7 @@ test.describe("Fill Session", () => {
         storageState: PRESCRIPTIONS_PATIENT_AUTH_FILE,
       });
       sharedPage = await context.newPage();
-      await sharedPage.goto("/fill-session");
+      await goToFillStep(sharedPage);
     });
 
     test.afterAll(async () => {
@@ -342,5 +349,69 @@ test.describe("Fill Session", () => {
       await expect(sharedPage.getByText("Metformin")).toBeVisible();
       await expect(sharedPage.getByText("Lisinopril")).toBeVisible();
     });
+  });
+});
+
+test.describe("Fill Session wizard", () => {
+  test.beforeEach(async ({ browser }) => {
+    await resetState(browser, METFORMIN);
+  });
+
+  test("completes all four steps in order: disclaimer, setup, fill, double-check", async ({
+    page,
+  }) => {
+    await page.goto("/fill-session");
+
+    await expect(page.getByText(/step 1 of 4/i)).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /before you begin/i }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: /continue/i }).click();
+
+    await expect(page.getByText(/step 2 of 4/i)).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /get set up/i }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: /i'm ready/i }).click();
+
+    await expect(page.getByText(/step 3 of 4/i)).toBeVisible();
+    await expect(page.getByText("Metformin")).toBeVisible();
+    await page.getByRole("button", { name: /done filling/i }).click();
+
+    await expect(page.getByText(/step 4 of 4/i)).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /double-check/i }),
+    ).toBeVisible();
+    // New compartment-based UI: check for Daily compartment label
+    await expect(page.getByText("Daily")).toBeVisible();
+    // Click a compartment cell to verify medicine details are shown
+    const compartmentButtons = await page
+      .getByRole("button")
+      .filter({ hasText: /^\d+$/ })
+      .all();
+    if (compartmentButtons.length > 0) {
+      await compartmentButtons[0].click();
+      // Verify detail panel shows medicine name
+      await expect(page.getByText("Metformin")).toBeVisible();
+    }
+    await page.getByRole("button", { name: /^done$/i }).click();
+
+    await expect(page).toHaveURL(/\/prescriptions$/);
+  });
+
+  test("Back from double-check returns to the fill step", async ({ page }) => {
+    await page.goto("/fill-session");
+    await page.getByRole("button", { name: /continue/i }).click();
+    await page.getByRole("button", { name: /i'm ready/i }).click();
+    await expect(page.getByText("Metformin")).toBeVisible();
+    await page.getByRole("button", { name: /done filling/i }).click();
+
+    await expect(page.getByText(/step 4 of 4/i)).toBeVisible();
+    await page.getByRole("button", { name: /back/i }).click();
+
+    await expect(page.getByText(/step 3 of 4/i)).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /done filling/i }),
+    ).toBeVisible();
   });
 });

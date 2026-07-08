@@ -27,6 +27,18 @@ interface Prescription {
   status: string;
 }
 
+export interface FillSessionSnapshot {
+  cards: ReturnType<typeof groupByMedicine>;
+  compartments: Compartment[];
+  columnDates: ReturnType<typeof sessionDates>;
+  startDateFmt: string;
+  endDateFmt: string;
+}
+
+interface FillSessionProps {
+  onDone?: (snapshot: FillSessionSnapshot) => void;
+}
+
 const ORGANIZER_OPTIONS: {
   value: string;
   labelKey: string;
@@ -56,7 +68,7 @@ const ORGANIZER_OPTIONS: {
 
 const Route = getRouteApi("/layout/fill-session");
 
-function FillSession() {
+function FillSession({ onDone }: FillSessionProps) {
   const { t, i18n } = useTranslation();
   const { timezone } = Route.useLoaderData();
   const today = new Intl.DateTimeFormat("en-CA", {
@@ -120,8 +132,18 @@ function FillSession() {
     }
   };
 
+  const handleDone = () => {
+    onDone?.({
+      cards,
+      compartments,
+      columnDates: sessionDatesMap,
+      startDateFmt,
+      endDateFmt,
+    });
+  };
+
   return (
-    <main className="fill-session">
+    <div className="fill-session">
       <div className="fill-session-header">
         <h1>{t("fillSession.heading")}</h1>
         <h2 className="fill-session-date-range">
@@ -201,6 +223,11 @@ function FillSession() {
         </div>
       )}
       <div className="fill-session-actions screen-only">
+        {onDone && (
+          <Button type="button" onClick={handleDone}>
+            {t("fillSession.doneButton")}
+          </Button>
+        )}
         <Button
           type="button"
           className="button-secondary button-leading-icon"
@@ -219,7 +246,7 @@ function FillSession() {
           {t("fillSession.savePdfButton")}
         </Button>
       </div>
-    </main>
+    </div>
   );
 }
 
