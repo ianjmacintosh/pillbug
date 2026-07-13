@@ -163,6 +163,9 @@ const ptBR = {
   "fillSession.doneButton": "Concluir separação",
   "fillSession.prevWeek": "Semana anterior",
   "fillSession.nextWeek": "Próxima semana",
+  "fillSession.prevMedicine": "Medicamento anterior",
+  "fillSession.nextMedicine": "Próximo medicamento",
+  "fillSession.medicineIndicator": "Medicamento {{current}} de {{total}}",
   "fillSession.startDateLabel": "Data de início",
   "fillSession.wrapWarning":
     "Algumas colunas mostram datas da semana seguinte.",

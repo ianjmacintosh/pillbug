@@ -50,7 +50,7 @@ function FillSession({
   }).format(new Date());
   const [startDate, setStartDate] = useState(() => nearestSunday(today));
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
-  const [openCardKey, setOpenCardKey] = useState<string | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [pdfLoading, setPdfLoading] = useState(false);
 
   const sessionDatesMap = sessionDates(startDate);
@@ -64,21 +64,16 @@ function FillSession({
       .then((res) => (res.ok ? res.json() : []))
       .then((data: Prescription[]) => {
         setPrescriptions(data);
-        const initialCards = groupByMedicine(data, compartments);
-        if (initialCards.length > 0) {
-          setOpenCardKey(
-            `${initialCards[0].drugName}-${initialCards[0].dosage}`,
-          );
-        }
+        setCurrentIndex(0);
       })
       .catch(() => {});
   }, [compartments]);
 
   const cards = groupByMedicine(prescriptions, compartments);
 
-  const toggleCard = (key: string) => {
-    setOpenCardKey((prev) => (prev === key ? null : key));
-  };
+  const goToPrevMedicine = () => setCurrentIndex((i) => Math.max(0, i - 1));
+  const goToNextMedicine = () =>
+    setCurrentIndex((i) => Math.min(cards.length - 1, i + 1));
 
   const handleSavePdf = async () => {
     setPdfLoading(true);
@@ -161,21 +156,48 @@ function FillSession({
       {prescriptions.length === 0 ? (
         <p>{t("fillSession.noPrescriptions")}</p>
       ) : (
-        <div className="fill-session-cards">
-          {cards.map((card) => {
-            const cardKey = `${card.drugName}-${card.dosage}`;
-            return (
-              <MedicineCard
-                key={cardKey}
-                card={card}
-                compartments={compartments}
-                columnDates={sessionDatesMap}
-                isOpen={openCardKey === cardKey}
-                onToggle={() => toggleCard(cardKey)}
-              />
-            );
-          })}
-        </div>
+        <>
+          <div className="fill-session-medicine-nav screen-only">
+            <Button
+              type="button"
+              className="button-icon button-secondary"
+              aria-label={t("fillSession.prevMedicine")}
+              onClick={goToPrevMedicine}
+              disabled={currentIndex === 0}
+            >
+              <ChevronLeft size={20} aria-hidden="true" />
+            </Button>
+            <span className="fill-session-medicine-nav-counter">
+              {t("fillSession.medicineIndicator", {
+                current: currentIndex + 1,
+                total: cards.length,
+              })}
+            </span>
+            <Button
+              type="button"
+              className="button-icon button-secondary"
+              aria-label={t("fillSession.nextMedicine")}
+              onClick={goToNextMedicine}
+              disabled={currentIndex === cards.length - 1}
+            >
+              <ChevronRight size={20} aria-hidden="true" />
+            </Button>
+          </div>
+          <div className="fill-session-cards">
+            {cards.map((card, index) => {
+              const cardKey = `${card.drugName}-${card.dosage}`;
+              return (
+                <MedicineCard
+                  key={cardKey}
+                  card={card}
+                  compartments={compartments}
+                  columnDates={sessionDatesMap}
+                  isCurrent={index === currentIndex}
+                />
+              );
+            })}
+          </div>
+        </>
       )}
       <div className="fill-session-actions screen-only">
         {onDone && (

@@ -11,39 +11,33 @@ interface MedicineCardProps {
   card: MedicineCardData;
   compartments: Compartment[];
   columnDates: Record<string, { date: string; wrapped: boolean }>;
-  isOpen: boolean;
-  onToggle: () => void;
+  isCurrent: boolean;
 }
 
 export function MedicineCard({
   card,
   compartments,
   columnDates,
-  isOpen,
-  onToggle,
+  isCurrent,
 }: MedicineCardProps) {
   const { t, i18n } = useTranslation();
 
   return (
-    <section className="fill-session-card" aria-label={card.drugName}>
-      <button
-        type="button"
-        className={`fill-session-card-header${isOpen ? " fill-session-card-header--open" : ""}`}
-        onClick={onToggle}
-        aria-expanded={isOpen}
-      >
+    <section
+      className={`fill-session-card${isCurrent ? "" : " fill-session-card--hidden"}`}
+      aria-label={card.drugName}
+      aria-current={isCurrent ? "true" : undefined}
+    >
+      <div className="fill-session-card-header">
         <span className="fill-session-card-drug-name">{card.drugName}</span>
         <span className="fill-session-card-drug-dosage">{card.dosage}</span>
         <span className="fill-session-card-drug-total">
           {t("doseForm.pill", { count: card.weeklyTotal })}
         </span>
-        <span className="fill-session-card-caret" aria-hidden="true">
-          ▾
-        </span>
-      </button>
+      </div>
 
       <div
-        className={`fill-session-card-grid${isOpen ? "" : " fill-session-card-grid--hidden"}`}
+        className="fill-session-card-grid"
         style={
           {
             "--day-count": WEEKDAYS.length,

@@ -286,45 +286,38 @@ test.describe("Fill Session", () => {
       await sharedPage.context().close();
     });
 
-    test("shows drug names, dosage, and weekly pill count", async () => {
+    test("shows drug name, dosage, and weekly pill count for the current medicine", async () => {
       await expect(sharedPage.getByText("Metformin")).toBeVisible();
-      await expect(sharedPage.getByText("Lisinopril")).toBeVisible();
       await expect(sharedPage.getByText("500 mg")).toBeVisible();
       await expect(sharedPage.getByText(/7 pills/)).toBeVisible();
     });
 
-    test("accordion initial state: first card open, all day headers visible", async () => {
-      await expect(
-        sharedPage.getByRole("button", { name: /metformin/i }),
-      ).toHaveAttribute("aria-expanded", "true");
-      await expect(
-        sharedPage.getByRole("button", { name: /lisinopril/i }),
-      ).toHaveAttribute("aria-expanded", "false");
-      // Day headers render in every card, so scope to the open card (Metformin)
-      // to avoid a strict-mode match against the closed card's headers.
-      const openCard = sharedPage.getByRole("region", { name: /metformin/i });
+    test("first medicine is shown by default; the other is not yet visible", async () => {
+      const currentCard = sharedPage.getByRole("region", {
+        name: /metformin/i,
+      });
       for (const day of ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]) {
-        await expect(openCard.getByText(day)).toBeVisible();
+        await expect(currentCard.getByText(day)).toBeVisible();
       }
+      await expect(sharedPage.getByText("Lisinopril")).not.toBeVisible();
+      await expect(sharedPage.getByText(/medicine 1 of 2/i)).toBeVisible();
     });
 
-    test("clicking a different card opens it and closes the current", async () => {
-      await sharedPage.getByRole("button", { name: /lisinopril/i }).click();
+    test("Next medicine advances to the next medicine", async () => {
+      await sharedPage.getByRole("button", { name: /next medicine/i }).click();
       await expect(
-        sharedPage.getByRole("button", { name: /lisinopril/i }),
-      ).toHaveAttribute("aria-expanded", "true");
-      await expect(
-        sharedPage.getByRole("button", { name: /metformin/i }),
-      ).toHaveAttribute("aria-expanded", "false");
+        sharedPage.getByRole("region", { name: /lisinopril/i }),
+      ).toBeVisible();
+      await expect(sharedPage.getByText("Metformin")).not.toBeVisible();
+      await expect(sharedPage.getByText(/medicine 2 of 2/i)).toBeVisible();
     });
 
-    test("clicking an open card closes it, both cards remain in the list", async () => {
-      await sharedPage.getByRole("button", { name: /lisinopril/i }).click();
-      await expect(
-        sharedPage.getByRole("button", { name: /lisinopril/i }),
-      ).toHaveAttribute("aria-expanded", "false");
+    test("Previous medicine returns to the first medicine, both remain reachable", async () => {
+      await sharedPage
+        .getByRole("button", { name: /previous medicine/i })
+        .click();
       await expect(sharedPage.getByText("Metformin")).toBeVisible();
-      await expect(sharedPage.getByText("Lisinopril")).toBeVisible();
+      await expect(sharedPage.getByText("Lisinopril")).not.toBeVisible();
     });
   });
 });

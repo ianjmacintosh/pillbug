@@ -126,7 +126,7 @@ describe("FillSession", () => {
     });
   });
 
-  test("drug names and details are always visible without interaction", async () => {
+  test("drug names and details for every medicine are in the DOM without interaction", async () => {
     mockPrescriptions(METFORMIN, LISINOPRIL);
     renderFillSession();
     await waitFor(() => {
@@ -181,29 +181,58 @@ describe("FillSession", () => {
     expect(headers[0].textContent).toBe("Sun");
   });
 
-  test("first card is open by default", async () => {
+  test("first medicine is shown by default", async () => {
     mockPrescriptions(METFORMIN, LISINOPRIL);
     renderFillSession();
     await waitFor(() => screen.getByText("Metformin"));
-    const metforminHeader = screen.getByText("Metformin").closest("button")!;
-    expect(metforminHeader.getAttribute("aria-expanded")).toBe("true");
-    const lisinoprilHeader = screen.getByText("Lisinopril").closest("button")!;
-    expect(lisinoprilHeader.getAttribute("aria-expanded")).toBe("false");
+    expect(screen.getByRole("region", { name: /metformin/i })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    expect(
+      screen.getByRole("region", { name: /lisinopril/i }),
+    ).not.toHaveAttribute("aria-current");
+    expect(screen.getByText(/medicine 1 of 2/i)).toBeInTheDocument();
   });
 
-  test("clicking a closed card opens it and closes the previously open card", async () => {
+  test("Previous medicine is disabled on the first medicine", async () => {
     mockPrescriptions(METFORMIN, LISINOPRIL);
     renderFillSession();
     await waitFor(() => screen.getByText("Metformin"));
+    expect(
+      screen.getByRole("button", { name: /previous medicine/i }),
+    ).toBeDisabled();
+  });
 
-    const lisinoprilHeader = screen.getByText("Lisinopril").closest("button")!;
-    await userEvent.click(lisinoprilHeader);
+  test("Next medicine advances to the next medicine, Previous returns to the first", async () => {
+    mockPrescriptions(METFORMIN, LISINOPRIL);
+    const user = userEvent.setup();
+    renderFillSession();
+    await waitFor(() => screen.getByText("Metformin"));
 
-    await waitFor(() => {
-      expect(lisinoprilHeader.getAttribute("aria-expanded")).toBe("true");
-      const metforminHeader = screen.getByText("Metformin").closest("button")!;
-      expect(metforminHeader.getAttribute("aria-expanded")).toBe("false");
-    });
+    await user.click(screen.getByRole("button", { name: /next medicine/i }));
+
+    expect(screen.getByRole("region", { name: /lisinopril/i })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    expect(
+      screen.getByRole("region", { name: /metformin/i }),
+    ).not.toHaveAttribute("aria-current");
+    expect(screen.getByText(/medicine 2 of 2/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /next medicine/i }),
+    ).toBeDisabled();
+
+    await user.click(
+      screen.getByRole("button", { name: /previous medicine/i }),
+    );
+
+    expect(screen.getByRole("region", { name: /metformin/i })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    expect(screen.getByText(/medicine 1 of 2/i)).toBeInTheDocument();
   });
 
   test("shows nearest-Sunday-anchored date range below the heading", () => {
@@ -238,17 +267,17 @@ describe("FillSession", () => {
     }
   });
 
-  test("medicine card grids render for all cards regardless of open state", async () => {
+  test("medicine card grids render for all cards regardless of the current index", async () => {
     mockPrescriptions(METFORMIN, LISINOPRIL);
     renderFillSession();
     await waitFor(() => screen.getByText("Metformin"));
-    // Metformin is open — its cell values are in the DOM
+    // Metformin is current — its cell values are in the DOM
     expect(
       within(screen.getByRole("region", { name: /metformin/i })).getAllByText(
         "1",
       )[0],
     ).toBeInTheDocument();
-    // Lisinopril is closed — its grid is still rendered (needed for print CSS to reveal it)
+    // Lisinopril is not current — its grid is still rendered (needed for print CSS to reveal it)
     expect(
       within(screen.getByRole("region", { name: /lisinopril/i })).getAllByText(
         "2",
@@ -268,17 +297,5 @@ describe("FillSession", () => {
     expect(
       screen.getByRole("button", { name: /print worksheet/i }),
     ).toBeTruthy();
-  });
-
-  test("clicking an open card closes it", async () => {
-    mockPrescriptions(METFORMIN);
-    renderFillSession();
-    await waitFor(() => screen.getByText("Metformin"));
-
-    const header = screen.getByText("Metformin").closest("button")!;
-    expect(header.getAttribute("aria-expanded")).toBe("true");
-
-    await userEvent.click(header);
-    expect(header.getAttribute("aria-expanded")).toBe("false");
   });
 });
