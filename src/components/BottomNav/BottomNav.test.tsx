@@ -72,6 +72,16 @@ describe("BottomNav", () => {
       ).toHaveAttribute("aria-current", "page");
     });
 
+    test("fill session tab is active on child step routes", () => {
+      vi.mocked(useLocation).mockReturnValue({
+        pathname: "/fill-session/step2",
+      } as never);
+      render(<BottomNav />);
+      expect(
+        screen.getByRole("link", { name: /fill session/i }),
+      ).toHaveAttribute("aria-current", "page");
+    });
+
     test("settings tab is active on /settings", () => {
       vi.mocked(useLocation).mockReturnValue({
         pathname: "/settings",

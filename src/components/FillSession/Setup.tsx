@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { ChevronRight } from "lucide-react";
 import { Button } from "../Button/Button";
 
 interface SetupProps {
@@ -16,8 +17,13 @@ export function Setup({ onReady }: SetupProps) {
         <li>{t("fillSessionWizard.setup.washHands")}</li>
         <li>{t("fillSessionWizard.setup.emptyOrganizer")}</li>
       </ul>
-      <Button type="button" onClick={onReady}>
+      <Button
+        type="button"
+        onClick={onReady}
+        className="button-primary button-trailing-icon"
+      >
         {t("fillSessionWizard.setup.readyButton")}
+        <ChevronRight size={18} aria-hidden="true" />
       </Button>
     </section>
   );

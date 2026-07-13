@@ -224,8 +224,13 @@ function FillSession({ onDone }: FillSessionProps) {
       )}
       <div className="fill-session-actions screen-only">
         {onDone && (
-          <Button type="button" onClick={handleDone}>
+          <Button
+            type="button"
+            onClick={handleDone}
+            className="button-primary button-trailing-icon"
+          >
             {t("fillSession.doneButton")}
+            <ChevronRight size={18} aria-hidden="true" />
           </Button>
         )}
         <Button

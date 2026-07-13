@@ -1,9 +1,22 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useSyncExternalStore } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import FillSessionWizard from "./FillSessionWizard";
 
 let mockNavigate: ReturnType<typeof vi.fn>;
+let stepParam: string;
+const listeners = new Set<() => void>();
+
+function setStepParam(step: string) {
+  stepParam = step;
+  listeners.forEach((listener) => listener());
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
 
 vi.mock("@tanstack/react-router", async (importOriginal) => {
   const actual =
@@ -12,13 +25,21 @@ vi.mock("@tanstack/react-router", async (importOriginal) => {
     ...actual,
     getRouteApi: () => ({
       useLoaderData: () => ({ timezone: null }),
+      useParams: () => ({
+        step: useSyncExternalStore(subscribe, () => stepParam),
+      }),
     }),
     useNavigate: () => mockNavigate,
   };
 });
 
 beforeEach(() => {
-  mockNavigate = vi.fn();
+  stepParam = "step1";
+  mockNavigate = vi.fn(
+    (opts: { to: string; params?: { step?: string }; replace?: boolean }) => {
+      if (opts?.params?.step) setStepParam(opts.params.step);
+    },
+  );
 });
 
 const METFORMIN = {
@@ -78,7 +99,7 @@ describe("FillSessionWizard", () => {
     ).toBeInTheDocument();
   });
 
-  test("Continue advances to the setup step", async () => {
+  test("Continue advances to the setup step and updates the URL", async () => {
     const user = userEvent.setup();
     render(<FillSessionWizard />);
     await user.click(screen.getByRole("button", { name: /continue/i }));
@@ -86,6 +107,10 @@ describe("FillSessionWizard", () => {
     expect(
       screen.getByRole("button", { name: /i'm ready/i }),
     ).toBeInTheDocument();
+    expect(mockNavigate).toHaveBeenCalledWith({
+      to: "/fill-session/$step",
+      params: { step: "step2" },
+    });
   });
 
   test("I'm ready advances to the fill step, showing the inventory screen", async () => {
@@ -143,5 +168,18 @@ describe("FillSessionWizard", () => {
 
     await user.click(screen.getByRole("button", { name: /^done$/i }));
     expect(mockNavigate).toHaveBeenCalledWith({ to: "/" });
+  });
+
+  test("landing directly on step4 with no snapshot redirects back to the fill step", async () => {
+    mockPrescriptions();
+    stepParam = "step4";
+    render(<FillSessionWizard />);
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith({
+        to: "/fill-session/$step",
+        params: { step: "step3" },
+        replace: true,
+      });
+    });
   });
 });

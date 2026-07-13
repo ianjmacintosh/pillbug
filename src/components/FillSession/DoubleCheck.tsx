@@ -1,5 +1,6 @@
 import { Fragment, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Check, ChevronLeft } from "lucide-react";
 import { WEEKDAYS } from "../../utils/constants";
 import { formatMonthDay } from "../../utils/dates";
 import { Button } from "../Button/Button";
@@ -187,10 +188,20 @@ export function DoubleCheck({ snapshot, onBack, onConfirm }: DoubleCheckProps) {
       )}
 
       <div className="fill-session-wizard-buttons">
-        <Button type="button" className="button-secondary" onClick={onBack}>
+        <Button
+          type="button"
+          className="button-secondary button-leading-icon"
+          onClick={onBack}
+        >
+          <ChevronLeft size={18} aria-hidden="true" />
           {t("fillSessionWizard.doubleCheck.backButton")}
         </Button>
-        <Button type="button" onClick={onConfirm}>
+        <Button
+          type="button"
+          className="button-primary button-leading-icon"
+          onClick={onConfirm}
+        >
+          <Check size={18} aria-hidden="true" />
           {t("fillSessionWizard.doubleCheck.confirmButton")}
         </Button>
       </div>

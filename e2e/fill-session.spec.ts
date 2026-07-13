@@ -361,6 +361,7 @@ test.describe("Fill Session wizard", () => {
     page,
   }) => {
     await page.goto("/fill-session");
+    await expect(page).toHaveURL(/\/fill-session\/step1$/);
 
     await expect(page.getByText(/step 1 of 4/i)).toBeVisible();
     await expect(
@@ -368,16 +369,19 @@ test.describe("Fill Session wizard", () => {
     ).toBeVisible();
     await page.getByRole("button", { name: /continue/i }).click();
 
+    await expect(page).toHaveURL(/\/fill-session\/step2$/);
     await expect(page.getByText(/step 2 of 4/i)).toBeVisible();
     await expect(
       page.getByRole("heading", { name: /get set up/i }),
     ).toBeVisible();
     await page.getByRole("button", { name: /i'm ready/i }).click();
 
+    await expect(page).toHaveURL(/\/fill-session\/step3$/);
     await expect(page.getByText(/step 3 of 4/i)).toBeVisible();
     await expect(page.getByText("Metformin")).toBeVisible();
     await page.getByRole("button", { name: /done filling/i }).click();
 
+    await expect(page).toHaveURL(/\/fill-session\/step4$/);
     await expect(page.getByText(/step 4 of 4/i)).toBeVisible();
     await expect(
       page.getByRole("heading", { name: /double-check/i }),
@@ -409,9 +413,19 @@ test.describe("Fill Session wizard", () => {
     await expect(page.getByText(/step 4 of 4/i)).toBeVisible();
     await page.getByRole("button", { name: /back/i }).click();
 
+    await expect(page).toHaveURL(/\/fill-session\/step3$/);
     await expect(page.getByText(/step 3 of 4/i)).toBeVisible();
     await expect(
       page.getByRole("button", { name: /done filling/i }),
     ).toBeVisible();
+  });
+
+  test("navigating directly to /fill-session/step4 with no data redirects to step 3", async ({
+    page,
+  }) => {
+    await page.goto("/fill-session/step4");
+
+    await expect(page).toHaveURL(/\/fill-session\/step3$/);
+    await expect(page.getByText(/step 3 of 4/i)).toBeVisible();
   });
 });

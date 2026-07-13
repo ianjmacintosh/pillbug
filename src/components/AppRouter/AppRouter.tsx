@@ -162,6 +162,8 @@ const settingsRoute = createRoute({
   component: Settings,
 });
 
+const FILL_SESSION_STEPS = ["step1", "step2", "step3", "step4"];
+
 const fillSessionRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/fill-session",
@@ -169,6 +171,28 @@ const fillSessionRoute = createRoute({
   loader: async () => {
     const data = await fetchAccount();
     return { timezone: data?.timezone ?? null };
+  },
+  component: Outlet,
+});
+
+const fillSessionIndexRoute = createRoute({
+  getParentRoute: () => fillSessionRoute,
+  path: "/",
+  beforeLoad: () => {
+    throw redirect({ to: "/fill-session/$step", params: { step: "step1" } });
+  },
+});
+
+const fillSessionStepRoute = createRoute({
+  getParentRoute: () => fillSessionRoute,
+  path: "$step",
+  beforeLoad: ({ params }) => {
+    if (!FILL_SESSION_STEPS.includes(params.step)) {
+      throw redirect({
+        to: "/fill-session/$step",
+        params: { step: "step1" },
+      });
+    }
   },
   component: FillSessionWizard,
 });
@@ -240,7 +264,7 @@ const routeTree = rootRoute.addChildren([
     privacyRoute,
     completeSetupRoute,
     settingsRoute,
-    fillSessionRoute,
+    fillSessionRoute.addChildren([fillSessionIndexRoute, fillSessionStepRoute]),
     prescriptionsRoute.addChildren([
       prescriptionNewRoute,
       prescriptionDetailRoute,

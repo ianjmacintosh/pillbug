@@ -1,7 +1,6 @@
 .double-check-grid-container {
   display: flex;
   justify-content: center;
-  margin-block-end: 1.5rem;
   overflow-x: auto;
 }
 
@@ -127,7 +126,6 @@
   border: 1px solid var(--blue-70);
   border-radius: 10px;
   padding: 1rem;
-  margin-block-end: 1.5rem;
 }
 
 .double-check-detail-heading {

@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { ChevronRight } from "lucide-react";
 import { Button } from "../Button/Button";
 
 interface DisclaimerProps {
@@ -17,8 +18,13 @@ export function Disclaimer({ onContinue }: DisclaimerProps) {
         <li>{t("fillSessionWizard.disclaimer.keepReference")}</li>
         <li>{t("fillSessionWizard.disclaimer.oneBottleAtATime")}</li>
       </ul>
-      <Button type="button" onClick={onContinue}>
+      <Button
+        type="button"
+        onClick={onContinue}
+        className="button-primary button-trailing-icon"
+      >
         {t("fillSessionWizard.continueButton")}
+        <ChevronRight size={18} aria-hidden="true" />
       </Button>
     </section>
   );
