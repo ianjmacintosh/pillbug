@@ -20,6 +20,7 @@ async function goToFillStep(page: Page): Promise<void> {
   await page.goto("/fill-session");
   await page.getByRole("button", { name: /continue/i }).click();
   await page.getByRole("button", { name: /i'm ready/i }).click();
+  await page.getByRole("button", { name: /continue/i }).click();
 }
 
 let emailLookup: string;
@@ -307,30 +308,6 @@ test.describe("Fill Session", () => {
       }
     });
 
-    test("organizer selector defaults to Simple 7-day", async () => {
-      await expect(
-        sharedPage.getByRole("combobox", { name: /pill organizer/i }),
-      ).toHaveValue("1");
-    });
-
-    test("switching organizer shows correct slot labels", async () => {
-      // Slot labels render in every card, so scope to the open card (Metformin)
-      // to avoid a strict-mode match against the closed card's labels.
-      const openCard = sharedPage.getByRole("region", { name: /metformin/i });
-      await sharedPage
-        .getByRole("combobox", { name: /pill organizer/i })
-        .selectOption("2");
-      await expect(openCard.getByText("AM", { exact: true })).toBeVisible();
-      await expect(openCard.getByText("PM", { exact: true })).toBeVisible();
-
-      await sharedPage
-        .getByRole("combobox", { name: /pill organizer/i })
-        .selectOption("3");
-      await expect(openCard.getByText("Morn", { exact: true })).toBeVisible();
-      await expect(openCard.getByText("Noon", { exact: true })).toBeVisible();
-      await expect(openCard.getByText("Night", { exact: true })).toBeVisible();
-    });
-
     test("clicking a different card opens it and closes the current", async () => {
       await sharedPage.getByRole("button", { name: /lisinopril/i }).click();
       await expect(
@@ -357,32 +334,39 @@ test.describe("Fill Session wizard", () => {
     await resetState(browser, METFORMIN);
   });
 
-  test("completes all four steps in order: disclaimer, setup, fill, double-check", async ({
+  test("completes all five steps in order: disclaimer, setup, pill organizer, fill, double-check", async ({
     page,
   }) => {
     await page.goto("/fill-session");
     await expect(page).toHaveURL(/\/fill-session\/step1$/);
 
-    await expect(page.getByText(/step 1 of 4/i)).toBeVisible();
+    await expect(page.getByText(/step 1 of 5/i)).toBeVisible();
     await expect(
       page.getByRole("heading", { name: /before you begin/i }),
     ).toBeVisible();
     await page.getByRole("button", { name: /continue/i }).click();
 
     await expect(page).toHaveURL(/\/fill-session\/step2$/);
-    await expect(page.getByText(/step 2 of 4/i)).toBeVisible();
+    await expect(page.getByText(/step 2 of 5/i)).toBeVisible();
     await expect(
       page.getByRole("heading", { name: /get set up/i }),
     ).toBeVisible();
     await page.getByRole("button", { name: /i'm ready/i }).click();
 
     await expect(page).toHaveURL(/\/fill-session\/step3$/);
-    await expect(page.getByText(/step 3 of 4/i)).toBeVisible();
+    await expect(page.getByText(/step 3 of 5/i)).toBeVisible();
+    await expect(
+      page.getByRole("combobox", { name: /pill organizer/i }),
+    ).toHaveValue("1");
+    await page.getByRole("button", { name: /continue/i }).click();
+
+    await expect(page).toHaveURL(/\/fill-session\/step4$/);
+    await expect(page.getByText(/step 4 of 5/i)).toBeVisible();
     await expect(page.getByText("Metformin")).toBeVisible();
     await page.getByRole("button", { name: /done filling/i }).click();
 
-    await expect(page).toHaveURL(/\/fill-session\/step4$/);
-    await expect(page.getByText(/step 4 of 4/i)).toBeVisible();
+    await expect(page).toHaveURL(/\/fill-session\/step5$/);
+    await expect(page.getByText(/step 5 of 5/i)).toBeVisible();
     await expect(
       page.getByRole("heading", { name: /double-check/i }),
     ).toBeVisible();
@@ -403,29 +387,44 @@ test.describe("Fill Session wizard", () => {
     await expect(page).toHaveURL(/\/prescriptions$/);
   });
 
-  test("Back from double-check returns to the fill step", async ({ page }) => {
+  test("choosing a 2-compartment organizer shows AM/PM slots on the fill step", async ({
+    page,
+  }) => {
     await page.goto("/fill-session");
     await page.getByRole("button", { name: /continue/i }).click();
     await page.getByRole("button", { name: /i'm ready/i }).click();
+
+    await page
+      .getByRole("combobox", { name: /pill organizer/i })
+      .selectOption("2");
+    await page.getByRole("button", { name: /continue/i }).click();
+
+    const openCard = page.getByRole("region", { name: /metformin/i });
+    await expect(openCard.getByText("AM", { exact: true })).toBeVisible();
+    await expect(openCard.getByText("PM", { exact: true })).toBeVisible();
+  });
+
+  test("Back from double-check returns to the fill step", async ({ page }) => {
+    await goToFillStep(page);
     await expect(page.getByText("Metformin")).toBeVisible();
     await page.getByRole("button", { name: /done filling/i }).click();
 
-    await expect(page.getByText(/step 4 of 4/i)).toBeVisible();
+    await expect(page.getByText(/step 5 of 5/i)).toBeVisible();
     await page.getByRole("button", { name: /back/i }).click();
 
-    await expect(page).toHaveURL(/\/fill-session\/step3$/);
-    await expect(page.getByText(/step 3 of 4/i)).toBeVisible();
+    await expect(page).toHaveURL(/\/fill-session\/step4$/);
+    await expect(page.getByText(/step 4 of 5/i)).toBeVisible();
     await expect(
       page.getByRole("button", { name: /done filling/i }),
     ).toBeVisible();
   });
 
-  test("navigating directly to /fill-session/step4 with no data redirects to step 3", async ({
+  test("navigating directly to /fill-session/step5 with no data redirects to step 4", async ({
     page,
   }) => {
-    await page.goto("/fill-session/step4");
+    await page.goto("/fill-session/step5");
 
-    await expect(page).toHaveURL(/\/fill-session\/step3$/);
-    await expect(page.getByText(/step 3 of 4/i)).toBeVisible();
+    await expect(page).toHaveURL(/\/fill-session\/step4$/);
+    await expect(page.getByText(/step 4 of 5/i)).toBeVisible();
   });
 });

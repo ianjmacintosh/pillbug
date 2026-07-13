@@ -104,7 +104,7 @@ test.describe("Bottom nav — mobile", () => {
   }) => {
     await page.goto("/");
     await page.getByRole("link", { name: /fill session/i }).click();
-    await expect(page).toHaveURL("/fill-session");
+    await expect(page).toHaveURL(/\/fill-session\/step1$/);
   });
 
   test("clicking settings tab navigates to /settings", async ({ page }) => {

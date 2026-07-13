@@ -185,6 +185,10 @@ const ptBR = {
   "fillSessionWizard.setup.emptyOrganizer":
     "Confirme que seu organizador de comprimidos está vazio e pronto para ser preenchido.",
   "fillSessionWizard.setup.readyButton": "Estou pronto",
+  "fillSessionWizard.pillOrganizer.heading":
+    "Escolha seu organizador de comprimidos",
+  "fillSessionWizard.pillOrganizer.description":
+    "Escolha o organizador que corresponde à sua rotina de doses. Sua planilha semanal será organizada de acordo.",
   "fillSessionWizard.doubleCheck.heading": "Confira tudo",
   "fillSessionWizard.doubleCheck.intro":
     "Antes de fechar o organizador, confirme que tudo está no lugar certo — de preferência com uma pessoa de confiança.",

@@ -180,6 +180,9 @@ const enUS = {
   "fillSessionWizard.setup.emptyOrganizer":
     "Confirm your pill organizer is empty and ready to fill.",
   "fillSessionWizard.setup.readyButton": "I'm ready",
+  "fillSessionWizard.pillOrganizer.heading": "Choose your pill organizer",
+  "fillSessionWizard.pillOrganizer.description":
+    "Pick the organizer that matches your dosing schedule. Your weekly worksheet will be laid out to match.",
   "fillSessionWizard.doubleCheck.heading": "Double-check",
   "fillSessionWizard.doubleCheck.intro":
     "Before closing the organizer, confirm everything is in place — ideally with a trusted person.",

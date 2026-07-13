@@ -3,12 +3,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { addDays, formatMonthDay } from "../../utils/dates";
 import { nearestSunday, sessionDates } from "../../../shared/week-boundaries";
-import { Select } from "../Select/Select";
 import {
-  ONE_COMPARTMENT,
-  TWO_COMPARTMENTS,
-  THREE_COMPARTMENTS,
-  FOUR_COMPARTMENTS,
   groupByMedicine,
   type Compartment,
   type Schedule,
@@ -36,39 +31,18 @@ export interface FillSessionSnapshot {
 }
 
 interface FillSessionProps {
+  compartments: Compartment[];
+  organizerType: string;
   onDone?: (snapshot: FillSessionSnapshot) => void;
 }
 
-const ORGANIZER_OPTIONS: {
-  value: string;
-  labelKey: string;
-  compartments: Compartment[];
-}[] = [
-  {
-    value: "1",
-    labelKey: "fillSession.organizerOption.simple7day",
-    compartments: ONE_COMPARTMENT,
-  },
-  {
-    value: "2",
-    labelKey: "fillSession.organizerOption.amPm",
-    compartments: TWO_COMPARTMENTS,
-  },
-  {
-    value: "3",
-    labelKey: "fillSession.organizerOption.mornNoonNight",
-    compartments: THREE_COMPARTMENTS,
-  },
-  {
-    value: "4",
-    labelKey: "fillSession.organizerOption.mornNoonEveNight",
-    compartments: FOUR_COMPARTMENTS,
-  },
-];
-
 const Route = getRouteApi("/layout/fill-session");
 
-function FillSession({ onDone }: FillSessionProps) {
+function FillSession({
+  compartments,
+  organizerType,
+  onDone,
+}: FillSessionProps) {
   const { t, i18n } = useTranslation();
   const { timezone } = Route.useLoaderData();
   const today = new Intl.DateTimeFormat("en-CA", {
@@ -76,7 +50,6 @@ function FillSession({ onDone }: FillSessionProps) {
   }).format(new Date());
   const [startDate, setStartDate] = useState(() => nearestSunday(today));
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
-  const [organizerType, setOrganizerType] = useState("1");
   const [openCardKey, setOpenCardKey] = useState<string | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
 
@@ -86,16 +59,12 @@ function FillSession({ onDone }: FillSessionProps) {
   const startDateFmt = formatMonthDay(startDate, i18n.language);
   const endDateFmt = formatMonthDay(endDate, i18n.language);
 
-  const compartments =
-    ORGANIZER_OPTIONS.find((o) => o.value === organizerType)?.compartments ??
-    ONE_COMPARTMENT;
-
   useEffect(() => {
     fetch("/api/v1/prescriptions?status=active")
       .then((res) => (res.ok ? res.json() : []))
       .then((data: Prescription[]) => {
         setPrescriptions(data);
-        const initialCards = groupByMedicine(data, ONE_COMPARTMENT);
+        const initialCards = groupByMedicine(data, compartments);
         if (initialCards.length > 0) {
           setOpenCardKey(
             `${initialCards[0].drugName}-${initialCards[0].dosage}`,
@@ -103,7 +72,7 @@ function FillSession({ onDone }: FillSessionProps) {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [compartments]);
 
   const cards = groupByMedicine(prescriptions, compartments);
 
@@ -188,20 +157,6 @@ function FillSession({ onDone }: FillSessionProps) {
           ⚠ {t("fillSession.wrapWarning")}
         </p>
       )}
-
-      <div className="fill-session-controls screen-only">
-        <Select
-          label={t("fillSession.pillOrganizerLabel")}
-          value={organizerType}
-          onChange={(e) => setOrganizerType(e.target.value)}
-        >
-          {ORGANIZER_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {t(opt.labelKey)}
-            </option>
-          ))}
-        </Select>
-      </div>
 
       {prescriptions.length === 0 ? (
         <p>{t("fillSession.noPrescriptions")}</p>

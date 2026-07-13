@@ -81,8 +81,9 @@ function mockPrescriptions(...rxs: object[]) {
 async function advanceToFillStep() {
   const user = userEvent.setup();
   render(<FillSessionWizard />);
-  await user.click(screen.getByRole("button", { name: /continue/i }));
-  await user.click(screen.getByRole("button", { name: /i'm ready/i }));
+  await user.click(screen.getByRole("button", { name: /continue/i })); // step1 -> step2
+  await user.click(screen.getByRole("button", { name: /i'm ready/i })); // step2 -> step3
+  await user.click(screen.getByRole("button", { name: /continue/i })); // step3 -> step4
   return user;
 }
 
@@ -93,7 +94,7 @@ afterEach(() => {
 describe("FillSessionWizard", () => {
   test("opens on the disclaimer step with a Continue button", () => {
     render(<FillSessionWizard />);
-    expect(screen.getByText(/step 1 of 4/i)).toBeInTheDocument();
+    expect(screen.getByText(/step 1 of 5/i)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /continue/i }),
     ).toBeInTheDocument();
@@ -103,7 +104,7 @@ describe("FillSessionWizard", () => {
     const user = userEvent.setup();
     render(<FillSessionWizard />);
     await user.click(screen.getByRole("button", { name: /continue/i }));
-    expect(screen.getByText(/step 2 of 4/i)).toBeInTheDocument();
+    expect(screen.getByText(/step 2 of 5/i)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /i'm ready/i }),
     ).toBeInTheDocument();
@@ -113,13 +114,47 @@ describe("FillSessionWizard", () => {
     });
   });
 
-  test("I'm ready advances to the fill step, showing the inventory screen", async () => {
+  test("I'm ready advances to the pill organizer step", async () => {
+    const user = userEvent.setup();
+    render(<FillSessionWizard />);
+    await user.click(screen.getByRole("button", { name: /continue/i }));
+    await user.click(screen.getByRole("button", { name: /i'm ready/i }));
+    expect(screen.getByText(/step 3 of 5/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("combobox", { name: /pill organizer/i }),
+    ).toBeInTheDocument();
+    expect(mockNavigate).toHaveBeenCalledWith({
+      to: "/fill-session/$step",
+      params: { step: "step3" },
+    });
+  });
+
+  test("Continuing past the pill organizer step shows the inventory screen", async () => {
     mockPrescriptions(METFORMIN);
     await advanceToFillStep();
-    expect(screen.getByText(/step 3 of 4/i)).toBeInTheDocument();
+    expect(screen.getByText(/step 4 of 5/i)).toBeInTheDocument();
     await waitFor(() => {
       expect(screen.getByText("Metformin")).toBeInTheDocument();
     });
+  });
+
+  test("selecting a 2-compartment organizer shows AM/PM slots on the fill step", async () => {
+    mockPrescriptions(METFORMIN);
+    const user = userEvent.setup();
+    render(<FillSessionWizard />);
+    await user.click(screen.getByRole("button", { name: /continue/i }));
+    await user.click(screen.getByRole("button", { name: /i'm ready/i }));
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: /pill organizer/i }),
+      "2",
+    );
+    await user.click(screen.getByRole("button", { name: /continue/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Metformin")).toBeInTheDocument();
+    });
+    expect(screen.getByText("AM")).toBeInTheDocument();
+    expect(screen.getByText("PM")).toBeInTheDocument();
   });
 
   test("Done filling advances to the double-check step", async () => {
@@ -127,7 +162,7 @@ describe("FillSessionWizard", () => {
     const user = await advanceToFillStep();
     await waitFor(() => screen.getByText("Metformin"));
     await user.click(screen.getByRole("button", { name: /done filling/i }));
-    expect(screen.getByText(/step 4 of 4/i)).toBeInTheDocument();
+    expect(screen.getByText(/step 5 of 5/i)).toBeInTheDocument();
   });
 
   test("double-check step shows compartment grid with pill counts", async () => {
@@ -154,7 +189,7 @@ describe("FillSessionWizard", () => {
     await user.click(screen.getByRole("button", { name: /done filling/i }));
 
     await user.click(screen.getByRole("button", { name: /back/i }));
-    expect(screen.getByText(/step 3 of 4/i)).toBeInTheDocument();
+    expect(screen.getByText(/step 4 of 5/i)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /done filling/i }),
     ).toBeInTheDocument();
@@ -170,14 +205,14 @@ describe("FillSessionWizard", () => {
     expect(mockNavigate).toHaveBeenCalledWith({ to: "/" });
   });
 
-  test("landing directly on step4 with no snapshot redirects back to the fill step", async () => {
+  test("landing directly on step5 with no snapshot redirects back to the fill step", async () => {
     mockPrescriptions();
-    stepParam = "step4";
+    stepParam = "step5";
     render(<FillSessionWizard />);
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith({
         to: "/fill-session/$step",
-        params: { step: "step3" },
+        params: { step: "step4" },
         replace: true,
       });
     });
