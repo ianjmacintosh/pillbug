@@ -220,9 +220,6 @@ describe("FillSession", () => {
       screen.getByRole("region", { name: /metformin/i }),
     ).not.toHaveAttribute("aria-current");
     expect(screen.getByText(/medicine 2 of 2/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /next medicine/i }),
-    ).toBeDisabled();
 
     await user.click(
       screen.getByRole("button", { name: /previous medicine/i }),
@@ -233,6 +230,26 @@ describe("FillSession", () => {
       "true",
     );
     expect(screen.getByText(/medicine 1 of 2/i)).toBeInTheDocument();
+  });
+
+  test("Done filling only appears on the last medicine", async () => {
+    mockPrescriptions(METFORMIN, LISINOPRIL);
+    const user = userEvent.setup();
+    renderFillSession();
+    await waitFor(() => screen.getByText("Metformin"));
+
+    expect(
+      screen.queryByRole("button", { name: /done filling/i }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /next medicine/i }));
+
+    expect(
+      screen.queryByRole("button", { name: /next medicine/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /done filling/i }),
+    ).toBeInTheDocument();
   });
 
   test("shows nearest-Sunday-anchored date range below the heading", () => {

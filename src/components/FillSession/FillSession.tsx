@@ -8,7 +8,13 @@ import {
   type Compartment,
   type Schedule,
 } from "../../../shared/fill-session";
-import { ChevronLeft, ChevronRight, FileDown, Printer } from "lucide-react";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  FileDown,
+  Printer,
+} from "lucide-react";
 import { Button } from "../Button/Button";
 import { MedicineCard } from "./MedicineCard";
 import "./FillSession.css";
@@ -157,32 +163,6 @@ function FillSession({
         <p>{t("fillSession.noPrescriptions")}</p>
       ) : (
         <>
-          <div className="fill-session-medicine-nav screen-only">
-            <Button
-              type="button"
-              className="button-icon button-secondary"
-              aria-label={t("fillSession.prevMedicine")}
-              onClick={goToPrevMedicine}
-              disabled={currentIndex === 0}
-            >
-              <ChevronLeft size={20} aria-hidden="true" />
-            </Button>
-            <span className="fill-session-medicine-nav-counter">
-              {t("fillSession.medicineIndicator", {
-                current: currentIndex + 1,
-                total: cards.length,
-              })}
-            </span>
-            <Button
-              type="button"
-              className="button-icon button-secondary"
-              aria-label={t("fillSession.nextMedicine")}
-              onClick={goToNextMedicine}
-              disabled={currentIndex === cards.length - 1}
-            >
-              <ChevronRight size={20} aria-hidden="true" />
-            </Button>
-          </div>
           <div className="fill-session-cards">
             {cards.map((card, index) => {
               const cardKey = `${card.drugName}-${card.dosage}`;
@@ -197,19 +177,45 @@ function FillSession({
               );
             })}
           </div>
+          <div className="fill-session-medicine-nav screen-only">
+            <Button
+              type="button"
+              className="button-secondary button-leading-icon"
+              onClick={goToPrevMedicine}
+              disabled={currentIndex === 0}
+            >
+              <ChevronLeft size={18} aria-hidden="true" />
+              {t("fillSession.prevMedicine")}
+            </Button>
+            <span className="fill-session-medicine-nav-counter">
+              {t("fillSession.medicineIndicator", {
+                current: currentIndex + 1,
+                total: cards.length,
+              })}
+            </span>
+            {currentIndex === cards.length - 1 ? (
+              <Button
+                type="button"
+                onClick={handleDone}
+                className="button-primary button-leading-icon"
+              >
+                <Check size={18} aria-hidden="true" />
+                {t("fillSession.doneButton")}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                onClick={goToNextMedicine}
+                className="button-primary button-trailing-icon"
+              >
+                {t("fillSession.nextMedicine")}
+                <ChevronRight size={18} aria-hidden="true" />
+              </Button>
+            )}
+          </div>
         </>
       )}
       <div className="fill-session-actions screen-only">
-        {onDone && (
-          <Button
-            type="button"
-            onClick={handleDone}
-            className="button-primary button-trailing-icon"
-          >
-            {t("fillSession.doneButton")}
-            <ChevronRight size={18} aria-hidden="true" />
-          </Button>
-        )}
         <Button
           type="button"
           className="button-secondary button-leading-icon"

@@ -303,6 +303,12 @@ test.describe("Fill Session", () => {
       await expect(sharedPage.getByText(/medicine 1 of 2/i)).toBeVisible();
     });
 
+    test("Done filling is not shown until the last medicine is reached", async () => {
+      await expect(
+        sharedPage.getByRole("button", { name: /done filling/i }),
+      ).not.toBeVisible();
+    });
+
     test("Next medicine advances to the next medicine", async () => {
       await sharedPage.getByRole("button", { name: /next medicine/i }).click();
       await expect(
@@ -312,12 +318,24 @@ test.describe("Fill Session", () => {
       await expect(sharedPage.getByText(/medicine 2 of 2/i)).toBeVisible();
     });
 
+    test("Done filling appears once the last medicine is reached", async () => {
+      await expect(
+        sharedPage.getByRole("button", { name: /done filling/i }),
+      ).toBeVisible();
+      await expect(
+        sharedPage.getByRole("button", { name: /next medicine/i }),
+      ).not.toBeVisible();
+    });
+
     test("Previous medicine returns to the first medicine, both remain reachable", async () => {
       await sharedPage
         .getByRole("button", { name: /previous medicine/i })
         .click();
       await expect(sharedPage.getByText("Metformin")).toBeVisible();
       await expect(sharedPage.getByText("Lisinopril")).not.toBeVisible();
+      await expect(
+        sharedPage.getByRole("button", { name: /done filling/i }),
+      ).not.toBeVisible();
     });
   });
 });

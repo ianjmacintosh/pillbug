@@ -110,13 +110,10 @@
 .fill-session-medicine-nav {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.75rem;
+  max-width: 40rem;
   margin-block-end: 1rem;
-}
-
-.fill-session-medicine-nav .button-icon {
-  width: 2.25rem;
-  height: 2.25rem;
 }
 
 .fill-session-medicine-nav-counter {
@@ -124,8 +121,19 @@
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--gray-30);
-  min-width: 9rem;
   text-align: center;
+}
+
+@media (max-width: 640px) {
+  .fill-session-medicine-nav {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .fill-session-medicine-nav-counter {
+    order: -1;
+    flex-basis: 100%;
+  }
 }
 
 /* Medicine cards */

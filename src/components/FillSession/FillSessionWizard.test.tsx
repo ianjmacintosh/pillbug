@@ -73,8 +73,8 @@ const LISINOPRIL = {
 };
 
 function mockPrescriptions(...rxs: object[]) {
-  vi.spyOn(globalThis, "fetch").mockResolvedValue(
-    new Response(JSON.stringify(rxs), { status: 200 }),
+  vi.spyOn(globalThis, "fetch").mockImplementation(
+    async () => new Response(JSON.stringify(rxs), { status: 200 }),
   );
 }
 
@@ -165,10 +165,25 @@ describe("FillSessionWizard", () => {
     expect(screen.getByText(/step 5 of 5/i)).toBeInTheDocument();
   });
 
+  test("Done filling is not available until the last prescription is reached", async () => {
+    mockPrescriptions(METFORMIN, LISINOPRIL);
+    const user = await advanceToFillStep();
+    await waitFor(() => screen.getByText("Metformin"));
+
+    expect(
+      screen.queryByRole("button", { name: /done filling/i }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /next medicine/i }));
+    await user.click(screen.getByRole("button", { name: /done filling/i }));
+    expect(screen.getByText(/step 5 of 5/i)).toBeInTheDocument();
+  });
+
   test("double-check step shows compartment grid with pill counts", async () => {
     mockPrescriptions(METFORMIN, LISINOPRIL);
     const user = await advanceToFillStep();
     await waitFor(() => screen.getByText("Metformin"));
+    await user.click(screen.getByRole("button", { name: /next medicine/i }));
     await user.click(screen.getByRole("button", { name: /done filling/i }));
 
     expect(screen.getByText(/double-check/i)).toBeInTheDocument();
