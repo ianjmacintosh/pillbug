@@ -210,6 +210,30 @@ describe("FillSessionWizard", () => {
     ).toBeInTheDocument();
   });
 
+  test("Back from double-check preserves the selected week and medicine index", async () => {
+    mockPrescriptions(METFORMIN, LISINOPRIL);
+    const user = await advanceToFillStep();
+    await waitFor(() => screen.getByText("Metformin"));
+
+    await user.click(screen.getByRole("button", { name: /next week/i }));
+    const dateInput = screen.getByLabelText(/start date/i) as HTMLInputElement;
+    const selectedWeek = dateInput.value;
+
+    await user.click(screen.getByRole("button", { name: /next medicine/i }));
+    expect(screen.getByText(/medicine 2 of 2/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /done filling/i }));
+    await user.click(screen.getByRole("button", { name: /back/i }));
+
+    expect(
+      (screen.getByLabelText(/start date/i) as HTMLInputElement).value,
+    ).toBe(selectedWeek);
+    expect(screen.getByText(/medicine 2 of 2/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /done filling/i }),
+    ).toBeInTheDocument();
+  });
+
   test("Confirming double-check navigates home", async () => {
     mockPrescriptions(METFORMIN);
     const user = await advanceToFillStep();

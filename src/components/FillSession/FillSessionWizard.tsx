@@ -73,8 +73,9 @@ function FillSessionWizard() {
           onContinue={() => goToStep(4)}
         />
       )}
-      {step === 4 && (
+      {(step === 4 || step === 5) && (
         <FillSession
+          isActive={step === 4}
           compartments={compartments}
           organizerType={organizerType}
           onDone={(nextSnapshot) => {
