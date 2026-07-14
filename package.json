@@ -27,7 +27,6 @@
     "test:unit": "vitest",
     "test:e2e": "npx playwright test --reporter=list",
     "test:e2e:html": "npx playwright test --reporter=list,html",
-    "claude:install": "curl -fsSL https://claude.ai/install.sh | bash",
     "data:fetch-drug-names": "node scripts/fetch-rxnorm-names.js",
     "postinstall": "patch-package"
   },
