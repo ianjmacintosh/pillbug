@@ -138,7 +138,7 @@ export function DoubleCheck({ snapshot, onBack, onConfirm }: DoubleCheckProps) {
                     }
                     onClick={() => setExpandedCell(isExpanded ? null : key)}
                     aria-expanded={isExpanded}
-                    aria-label={`${comp.label} ${t(`days.abbr.${day}`)}: ${total} pills`}
+                    aria-label={`${comp.label} ${t(`days.abbr.${day}`)}: ${t("doseForm.pill", { count: total })}`}
                   >
                     <span className="double-check-cell-count">{total}</span>
                   </Button>

@@ -438,4 +438,31 @@ test.describe("Fill Session wizard", () => {
     await expect(page).toHaveURL(/\/fill-session\/step4$/);
     await expect(page.getByText(/step 4 of 5/i)).toBeVisible();
   });
+
+  test("Back from double-check preserves the selected week and medicine index", async ({
+    page,
+    browser,
+  }) => {
+    await resetState(browser, METFORMIN, LISINOPRIL);
+    await goToFillStep(page);
+    await expect(page.getByText("Metformin")).toBeVisible();
+
+    await page.getByRole("button", { name: /next week/i }).click();
+    const dateInput = page.getByLabel(/start date/i);
+    const selectedWeek = await dateInput.inputValue();
+
+    await page.getByRole("button", { name: /next medicine/i }).click();
+    await expect(page.getByText("Medicine 2 of 2")).toBeVisible();
+
+    await page.getByRole("button", { name: /done filling/i }).click();
+    await expect(page.getByText(/step 5 of 5/i)).toBeVisible();
+    await page.getByRole("button", { name: /back/i }).click();
+
+    await expect(page).toHaveURL(/\/fill-session\/step4$/);
+    await expect(dateInput).toHaveValue(selectedWeek);
+    await expect(page.getByText("Medicine 2 of 2")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /done filling/i }),
+    ).toBeVisible();
+  });
 });

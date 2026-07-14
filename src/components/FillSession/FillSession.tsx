@@ -40,6 +40,7 @@ interface FillSessionProps {
   compartments: Compartment[];
   organizerType: string;
   onDone?: (snapshot: FillSessionSnapshot) => void;
+  isActive?: boolean;
 }
 
 const Route = getRouteApi("/layout/fill-session");
@@ -48,6 +49,7 @@ function FillSession({
   compartments,
   organizerType,
   onDone,
+  isActive = true,
 }: FillSessionProps) {
   const { t, i18n } = useTranslation();
   const { timezone } = Route.useLoaderData();
@@ -111,6 +113,10 @@ function FillSession({
       endDateFmt,
     });
   };
+
+  if (!isActive) {
+    return null;
+  }
 
   return (
     <div className="fill-session">
