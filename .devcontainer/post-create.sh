@@ -1,21 +1,11 @@
 #!/bin/bash
 set -e
 
-# Install tmux
-sudo apt-get update -qq && sudo apt-get install -y tmux
-
-# Copy tmux config
+# Copy tmux config (No sudo required)
 cp .devcontainer/.tmux.conf ~/.tmux.conf
 
 # Fix PS1 for non-VS Code terminals (e.g. docker exec from Ghostty)
-# The devcontainer image's default prompt uses ➜ which renders as 2 cells in
-# some terminals but readline counts it as 1, breaking line length calculation.
 cat >> ~/.bashrc << 'EOF'
-
-# docker exec sessions don't inherit locale from the container environment,
-# so LANG is empty. Set it explicitly so tmux enables UTF-8 (client_utf8=1)
-# and renders Unicode characters correctly.
-export LANG=en_US.UTF-8
 
 # If the terminal type isn't known to this container (e.g. xterm-ghostty from
 # a direct docker exec), fall back to xterm-256color so programs don't see an

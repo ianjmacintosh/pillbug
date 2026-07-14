@@ -9,6 +9,7 @@
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
+  "runArgs": ["--cap-drop=ALL"],
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
