@@ -8,22 +8,32 @@
   // Features to add to the dev container. More info: https://containers.dev/features.
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {},
+    "ghcr.io/devcontainers-extra/features/tmux-apt-get:1": {},
+    "ghcr.io/postfinance/devcontainer-features/playwright-deps:1.0.0": {
+      "installChromiumDeps": true
+    }
   },
   "runArgs": ["--cap-drop=ALL"],
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
 
+  "updateContentCommand": "npm install",
   // Use 'postCreateCommand' to run commands after the container is created.
   // "onCreateCommand": "curl -fsSL https://claude.ai/install.sh | bash"
   "postCreateCommand": "bash .devcontainer/post-create.sh",
 
   // Configure tool-specific properties.
+  // Store downloaded browsers in the workspace checkout (bind-mounted, so it
+  // inherits the same ownership as node_modules/.git) rather than in
+  // ~/.cache, which the playwright-deps feature otherwise clears on rebuild
+  // and which a root-owned Docker volume couldn't fix without sudo.
   // arm64: point miniflare at Playwright's Chromium instead of downloading x86-64 Chrome-for-Testing
   // Update the version segment (chromium-NNNN) when Playwright is upgraded
   "remoteEnv": {
-    "MINIFLARE_CHROME_EXECUTABLE": "/home/node/.cache/ms-playwright/chromium-1223/chrome-linux/chrome",
+    "PLAYWRIGHT_BROWSERS_PATH": "${containerWorkspaceFolder}/.devcontainer/.ms-playwright",
+    "MINIFLARE_CHROME_EXECUTABLE": "${containerWorkspaceFolder}/.devcontainer/.ms-playwright/chromium-1208/chrome-linux/chrome",
     "CLAUDE_CODE_DISABLE_MOUSE_CLICKS": "1"
   },
 

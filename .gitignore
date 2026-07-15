@@ -36,6 +36,7 @@ dev-dist
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+/.devcontainer/.ms-playwright/
 
 # Environment Secrets
 .env*
