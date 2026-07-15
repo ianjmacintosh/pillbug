@@ -9,6 +9,8 @@ function BottomNav() {
   const path = location.pathname;
   const isPrescriptionsActive =
     path === "/prescriptions" || path.startsWith("/prescriptions/");
+  const isFillSessionActive =
+    path === "/fill-session" || path.startsWith("/fill-session/");
 
   return (
     <nav className="bottom-nav" aria-label="Main navigation">
@@ -24,8 +26,8 @@ function BottomNav() {
       </a>
       <a
         href="/fill-session"
-        className={`bottom-nav-tab${path === "/fill-session" ? " bottom-nav-tab--active" : ""}`}
-        aria-current={path === "/fill-session" ? "page" : undefined}
+        className={`bottom-nav-tab${isFillSessionActive ? " bottom-nav-tab--active" : ""}`}
+        aria-current={isFillSessionActive ? "page" : undefined}
       >
         <span className="bottom-nav-tab-icon">
           <CalendarCheck size={22} aria-hidden="true" />

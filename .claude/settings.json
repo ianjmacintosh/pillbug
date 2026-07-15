@@ -1,5 +1,21 @@
 {
+  "env": {
+    "GSTACK_CHROMIUM_NO_SANDBOX": "1",
+    "DISABLE_AUTOUPDATER": "1"
+  },
   "permissions": {
+    "allow": [
+      "Bash(npx vitest *)",
+      "Bash(npm run test:unit *)",
+      "Bash(npx playwright *)",
+      "Bash(curl *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run lint *)",
+      "Bash(npm run typecheck *)",
+      "mcp__claude_ai_Ref__ref_search_documentation",
+      "mcp__claude_ai_Ref__ref_read_url",
+      "Bash(npx eslint *)"
+    ],
     "deny": [
       "Read(./.env)",
       "Bash(npm run db:users:local*)",
@@ -78,10 +94,17 @@
             "statusMessage": "Flagging tmux window as awaiting input..."
           }
         ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if jq -e '.tool_input.args | select(. == \"browse\" or . | contains([\"browse\"]))' > /dev/null 2>&1; then if ! [ -x /home/node/.bun/bin/bun ]; then echo '{\"continue\": false, \"stopReason\": \"bun not found at /home/node/.bun/bin/bun. Add /home/node/.bun/bin to PATH or ensure bun is installed.\"}' && exit 0; fi; export PATH=/home/node/.bun/bin:$PATH; fi; exit 0",
+            "statusMessage": "Setting up environment for /browse..."
+          }
+        ]
       }
     ]
-  },
-  "enabledPlugins": {
-    "andrej-karpathy-skills@karpathy-skills": true
   }
 }

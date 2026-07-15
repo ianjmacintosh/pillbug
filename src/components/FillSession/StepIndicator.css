@@ -1,0 +1,6 @@
+.fill-session-wizard-step-indicator {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--gray-30);
+  margin: 0 0 1rem;
+}

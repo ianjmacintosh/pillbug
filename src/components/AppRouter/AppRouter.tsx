@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-router";
 import { applyStoredLanguage } from "../../utils/applyStoredLanguage";
 import App from "../App";
-import FillSession from "../FillSession";
+import FillSessionWizard from "../FillSession/FillSessionWizard";
 import Layout from "../Layout";
 import Login from "../Login";
 import Logout from "../Logout";
@@ -162,6 +162,8 @@ const settingsRoute = createRoute({
   component: Settings,
 });
 
+const FILL_SESSION_STEPS = ["step1", "step2", "step3", "step4", "step5"];
+
 const fillSessionRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: "/fill-session",
@@ -170,7 +172,29 @@ const fillSessionRoute = createRoute({
     const data = await fetchAccount();
     return { timezone: data?.timezone ?? null };
   },
-  component: FillSession,
+  component: Outlet,
+});
+
+const fillSessionIndexRoute = createRoute({
+  getParentRoute: () => fillSessionRoute,
+  path: "/",
+  beforeLoad: () => {
+    throw redirect({ to: "/fill-session/$step", params: { step: "step1" } });
+  },
+});
+
+const fillSessionStepRoute = createRoute({
+  getParentRoute: () => fillSessionRoute,
+  path: "$step",
+  beforeLoad: ({ params }) => {
+    if (!FILL_SESSION_STEPS.includes(params.step)) {
+      throw redirect({
+        to: "/fill-session/$step",
+        params: { step: "step1" },
+      });
+    }
+  },
+  component: FillSessionWizard,
 });
 
 const prescriptionsRoute = createRoute({
@@ -240,7 +264,7 @@ const routeTree = rootRoute.addChildren([
     privacyRoute,
     completeSetupRoute,
     settingsRoute,
-    fillSessionRoute,
+    fillSessionRoute.addChildren([fillSessionIndexRoute, fillSessionStepRoute]),
     prescriptionsRoute.addChildren([
       prescriptionNewRoute,
       prescriptionDetailRoute,

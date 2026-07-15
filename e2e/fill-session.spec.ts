@@ -5,6 +5,7 @@ import {
   type Download,
   type Page,
 } from "@playwright/test";
+
 import { readFileSync } from "node:fs";
 import { extractText, getDocumentProxy } from "unpdf";
 import { hashEmail } from "../worker/email-crypto";
@@ -14,6 +15,13 @@ import {
 } from "./test-accounts";
 import { getDB, disposeDB } from "./db";
 import { nearestSunday } from "../shared/week-boundaries";
+
+async function goToFillStep(page: Page): Promise<void> {
+  await page.goto("/fill-session");
+  await page.getByRole("button", { name: /continue/i }).click();
+  await page.getByRole("button", { name: /i'm ready/i }).click();
+  await page.getByRole("button", { name: /continue/i }).click();
+}
 
 let emailLookup: string;
 
@@ -115,7 +123,7 @@ test.describe("Fill Session page", () => {
       storageState: PRESCRIPTIONS_PATIENT_AUTH_FILE,
     });
     sharedPage = await context.newPage();
-    await sharedPage.goto("/fill-session");
+    await goToFillStep(sharedPage);
   });
 
   test.afterAll(async () => {
@@ -256,7 +264,7 @@ test.describe("Fill Session", () => {
     test("shows heading and no active prescriptions message", async ({
       page,
     }) => {
-      await page.goto("/fill-session");
+      await goToFillStep(page);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
       await expect(page.getByText(/no active prescriptions/i)).toBeVisible();
     });
@@ -271,76 +279,190 @@ test.describe("Fill Session", () => {
         storageState: PRESCRIPTIONS_PATIENT_AUTH_FILE,
       });
       sharedPage = await context.newPage();
-      await sharedPage.goto("/fill-session");
+      await goToFillStep(sharedPage);
     });
 
     test.afterAll(async () => {
       await sharedPage.context().close();
     });
 
-    test("shows drug names, dosage, and weekly pill count", async () => {
+    test("shows drug name, dosage, and weekly pill count for the current medicine", async () => {
       await expect(sharedPage.getByText("Metformin")).toBeVisible();
-      await expect(sharedPage.getByText("Lisinopril")).toBeVisible();
       await expect(sharedPage.getByText("500 mg")).toBeVisible();
       await expect(sharedPage.getByText(/7 pills/)).toBeVisible();
     });
 
-    test("accordion initial state: first card open, all day headers visible", async () => {
-      await expect(
-        sharedPage.getByRole("button", { name: /metformin/i }),
-      ).toHaveAttribute("aria-expanded", "true");
-      await expect(
-        sharedPage.getByRole("button", { name: /lisinopril/i }),
-      ).toHaveAttribute("aria-expanded", "false");
-      // Day headers render in every card, so scope to the open card (Metformin)
-      // to avoid a strict-mode match against the closed card's headers.
-      const openCard = sharedPage.getByRole("region", { name: /metformin/i });
+    test("first medicine is shown by default; the other is not yet visible", async () => {
+      const currentCard = sharedPage.getByRole("region", {
+        name: /metformin/i,
+      });
       for (const day of ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]) {
-        await expect(openCard.getByText(day)).toBeVisible();
+        await expect(currentCard.getByText(day)).toBeVisible();
       }
+      await expect(sharedPage.getByText("Lisinopril")).not.toBeVisible();
+      await expect(sharedPage.getByText(/medicine 1 of 2/i)).toBeVisible();
     });
 
-    test("organizer selector defaults to Simple 7-day", async () => {
+    test("Done filling is not shown until the last medicine is reached", async () => {
       await expect(
-        sharedPage.getByRole("combobox", { name: /pill organizer/i }),
-      ).toHaveValue("1");
+        sharedPage.getByRole("button", { name: /done filling/i }),
+      ).not.toBeVisible();
     });
 
-    test("switching organizer shows correct slot labels", async () => {
-      // Slot labels render in every card, so scope to the open card (Metformin)
-      // to avoid a strict-mode match against the closed card's labels.
-      const openCard = sharedPage.getByRole("region", { name: /metformin/i });
+    test("Next medicine advances to the next medicine", async () => {
+      await sharedPage.getByRole("button", { name: /next medicine/i }).click();
+      await expect(
+        sharedPage.getByRole("region", { name: /lisinopril/i }),
+      ).toBeVisible();
+      await expect(sharedPage.getByText("Metformin")).not.toBeVisible();
+      await expect(sharedPage.getByText(/medicine 2 of 2/i)).toBeVisible();
+    });
+
+    test("Done filling appears once the last medicine is reached", async () => {
+      await expect(
+        sharedPage.getByRole("button", { name: /done filling/i }),
+      ).toBeVisible();
+      await expect(
+        sharedPage.getByRole("button", { name: /next medicine/i }),
+      ).not.toBeVisible();
+    });
+
+    test("Previous medicine returns to the first medicine, both remain reachable", async () => {
       await sharedPage
-        .getByRole("combobox", { name: /pill organizer/i })
-        .selectOption("2");
-      await expect(openCard.getByText("AM", { exact: true })).toBeVisible();
-      await expect(openCard.getByText("PM", { exact: true })).toBeVisible();
-
-      await sharedPage
-        .getByRole("combobox", { name: /pill organizer/i })
-        .selectOption("3");
-      await expect(openCard.getByText("Morn", { exact: true })).toBeVisible();
-      await expect(openCard.getByText("Noon", { exact: true })).toBeVisible();
-      await expect(openCard.getByText("Night", { exact: true })).toBeVisible();
-    });
-
-    test("clicking a different card opens it and closes the current", async () => {
-      await sharedPage.getByRole("button", { name: /lisinopril/i }).click();
-      await expect(
-        sharedPage.getByRole("button", { name: /lisinopril/i }),
-      ).toHaveAttribute("aria-expanded", "true");
-      await expect(
-        sharedPage.getByRole("button", { name: /metformin/i }),
-      ).toHaveAttribute("aria-expanded", "false");
-    });
-
-    test("clicking an open card closes it, both cards remain in the list", async () => {
-      await sharedPage.getByRole("button", { name: /lisinopril/i }).click();
-      await expect(
-        sharedPage.getByRole("button", { name: /lisinopril/i }),
-      ).toHaveAttribute("aria-expanded", "false");
+        .getByRole("button", { name: /previous medicine/i })
+        .click();
       await expect(sharedPage.getByText("Metformin")).toBeVisible();
-      await expect(sharedPage.getByText("Lisinopril")).toBeVisible();
+      await expect(sharedPage.getByText("Lisinopril")).not.toBeVisible();
+      await expect(
+        sharedPage.getByRole("button", { name: /done filling/i }),
+      ).not.toBeVisible();
     });
+  });
+});
+
+test.describe("Fill Session wizard", () => {
+  test.beforeEach(async ({ browser }) => {
+    await resetState(browser, METFORMIN);
+  });
+
+  test("completes all five steps in order: disclaimer, setup, pill organizer, fill, double-check", async ({
+    page,
+  }) => {
+    await page.goto("/fill-session");
+    await expect(page).toHaveURL(/\/fill-session\/step1$/);
+
+    await expect(page.getByText(/step 1 of 5/i)).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /before you begin/i }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: /continue/i }).click();
+
+    await expect(page).toHaveURL(/\/fill-session\/step2$/);
+    await expect(page.getByText(/step 2 of 5/i)).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /get set up/i }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: /i'm ready/i }).click();
+
+    await expect(page).toHaveURL(/\/fill-session\/step3$/);
+    await expect(page.getByText(/step 3 of 5/i)).toBeVisible();
+    await expect(
+      page.getByRole("combobox", { name: /pill organizer/i }),
+    ).toHaveValue("1");
+    await page.getByRole("button", { name: /continue/i }).click();
+
+    await expect(page).toHaveURL(/\/fill-session\/step4$/);
+    await expect(page.getByText(/step 4 of 5/i)).toBeVisible();
+    await expect(page.getByText("Metformin")).toBeVisible();
+    await page.getByRole("button", { name: /done filling/i }).click();
+
+    await expect(page).toHaveURL(/\/fill-session\/step5$/);
+    await expect(page.getByText(/step 5 of 5/i)).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /double-check/i }),
+    ).toBeVisible();
+    // New compartment-based UI: check for Daily compartment label
+    await expect(page.getByText("Daily")).toBeVisible();
+    // Click a compartment cell to verify medicine details are shown
+    const compartmentButtons = await page
+      .getByRole("button")
+      .filter({ hasText: /^\d+$/ })
+      .all();
+    if (compartmentButtons.length > 0) {
+      await compartmentButtons[0].click();
+      // Verify detail panel shows medicine name
+      await expect(page.getByText("Metformin")).toBeVisible();
+    }
+    await page.getByRole("button", { name: /^done$/i }).click();
+
+    await expect(page).toHaveURL(/\/prescriptions$/);
+  });
+
+  test("choosing a 2-compartment organizer shows AM/PM slots on the fill step", async ({
+    page,
+  }) => {
+    await page.goto("/fill-session");
+    await page.getByRole("button", { name: /continue/i }).click();
+    await page.getByRole("button", { name: /i'm ready/i }).click();
+
+    await page
+      .getByRole("combobox", { name: /pill organizer/i })
+      .selectOption("2");
+    await page.getByRole("button", { name: /continue/i }).click();
+
+    const openCard = page.getByRole("region", { name: /metformin/i });
+    await expect(openCard.getByText("AM", { exact: true })).toBeVisible();
+    await expect(openCard.getByText("PM", { exact: true })).toBeVisible();
+  });
+
+  test("Back from double-check returns to the fill step", async ({ page }) => {
+    await goToFillStep(page);
+    await expect(page.getByText("Metformin")).toBeVisible();
+    await page.getByRole("button", { name: /done filling/i }).click();
+
+    await expect(page.getByText(/step 5 of 5/i)).toBeVisible();
+    await page.getByRole("button", { name: /back/i }).click();
+
+    await expect(page).toHaveURL(/\/fill-session\/step4$/);
+    await expect(page.getByText(/step 4 of 5/i)).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /done filling/i }),
+    ).toBeVisible();
+  });
+
+  test("navigating directly to /fill-session/step5 with no data redirects to step 4", async ({
+    page,
+  }) => {
+    await page.goto("/fill-session/step5");
+
+    await expect(page).toHaveURL(/\/fill-session\/step4$/);
+    await expect(page.getByText(/step 4 of 5/i)).toBeVisible();
+  });
+
+  test("Back from double-check preserves the selected week and medicine index", async ({
+    page,
+    browser,
+  }) => {
+    await resetState(browser, METFORMIN, LISINOPRIL);
+    await goToFillStep(page);
+    await expect(page.getByText("Metformin")).toBeVisible();
+
+    await page.getByRole("button", { name: /next week/i }).click();
+    const dateInput = page.getByLabel(/start date/i);
+    const selectedWeek = await dateInput.inputValue();
+
+    await page.getByRole("button", { name: /next medicine/i }).click();
+    await expect(page.getByText("Medicine 2 of 2")).toBeVisible();
+
+    await page.getByRole("button", { name: /done filling/i }).click();
+    await expect(page.getByText(/step 5 of 5/i)).toBeVisible();
+    await page.getByRole("button", { name: /back/i }).click();
+
+    await expect(page).toHaveURL(/\/fill-session\/step4$/);
+    await expect(dateInput).toHaveValue(selectedWeek);
+    await expect(page.getByText("Medicine 2 of 2")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /done filling/i }),
+    ).toBeVisible();
   });
 });

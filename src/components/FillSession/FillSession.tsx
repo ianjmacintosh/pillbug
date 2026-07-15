@@ -3,17 +3,18 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { addDays, formatMonthDay } from "../../utils/dates";
 import { nearestSunday, sessionDates } from "../../../shared/week-boundaries";
-import { Select } from "../Select/Select";
 import {
-  ONE_COMPARTMENT,
-  TWO_COMPARTMENTS,
-  THREE_COMPARTMENTS,
-  FOUR_COMPARTMENTS,
   groupByMedicine,
   type Compartment,
   type Schedule,
 } from "../../../shared/fill-session";
-import { ChevronLeft, ChevronRight, FileDown, Printer } from "lucide-react";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  FileDown,
+  Printer,
+} from "lucide-react";
 import { Button } from "../Button/Button";
 import { MedicineCard } from "./MedicineCard";
 import "./FillSession.css";
@@ -27,36 +28,29 @@ interface Prescription {
   status: string;
 }
 
-const ORGANIZER_OPTIONS: {
-  value: string;
-  labelKey: string;
+export interface FillSessionSnapshot {
+  cards: ReturnType<typeof groupByMedicine>;
   compartments: Compartment[];
-}[] = [
-  {
-    value: "1",
-    labelKey: "fillSession.organizerOption.simple7day",
-    compartments: ONE_COMPARTMENT,
-  },
-  {
-    value: "2",
-    labelKey: "fillSession.organizerOption.amPm",
-    compartments: TWO_COMPARTMENTS,
-  },
-  {
-    value: "3",
-    labelKey: "fillSession.organizerOption.mornNoonNight",
-    compartments: THREE_COMPARTMENTS,
-  },
-  {
-    value: "4",
-    labelKey: "fillSession.organizerOption.mornNoonEveNight",
-    compartments: FOUR_COMPARTMENTS,
-  },
-];
+  columnDates: ReturnType<typeof sessionDates>;
+  startDateFmt: string;
+  endDateFmt: string;
+}
+
+interface FillSessionProps {
+  compartments: Compartment[];
+  organizerType: string;
+  onDone?: (snapshot: FillSessionSnapshot) => void;
+  isActive?: boolean;
+}
 
 const Route = getRouteApi("/layout/fill-session");
 
-function FillSession() {
+function FillSession({
+  compartments,
+  organizerType,
+  onDone,
+  isActive = true,
+}: FillSessionProps) {
   const { t, i18n } = useTranslation();
   const { timezone } = Route.useLoaderData();
   const today = new Intl.DateTimeFormat("en-CA", {
@@ -64,8 +58,7 @@ function FillSession() {
   }).format(new Date());
   const [startDate, setStartDate] = useState(() => nearestSunday(today));
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
-  const [organizerType, setOrganizerType] = useState("1");
-  const [openCardKey, setOpenCardKey] = useState<string | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [pdfLoading, setPdfLoading] = useState(false);
 
   const sessionDatesMap = sessionDates(startDate);
@@ -74,30 +67,21 @@ function FillSession() {
   const startDateFmt = formatMonthDay(startDate, i18n.language);
   const endDateFmt = formatMonthDay(endDate, i18n.language);
 
-  const compartments =
-    ORGANIZER_OPTIONS.find((o) => o.value === organizerType)?.compartments ??
-    ONE_COMPARTMENT;
-
   useEffect(() => {
     fetch("/api/v1/prescriptions?status=active")
       .then((res) => (res.ok ? res.json() : []))
       .then((data: Prescription[]) => {
         setPrescriptions(data);
-        const initialCards = groupByMedicine(data, ONE_COMPARTMENT);
-        if (initialCards.length > 0) {
-          setOpenCardKey(
-            `${initialCards[0].drugName}-${initialCards[0].dosage}`,
-          );
-        }
+        setCurrentIndex(0);
       })
       .catch(() => {});
-  }, []);
+  }, [compartments]);
 
   const cards = groupByMedicine(prescriptions, compartments);
 
-  const toggleCard = (key: string) => {
-    setOpenCardKey((prev) => (prev === key ? null : key));
-  };
+  const goToPrevMedicine = () => setCurrentIndex((i) => Math.max(0, i - 1));
+  const goToNextMedicine = () =>
+    setCurrentIndex((i) => Math.min(cards.length - 1, i + 1));
 
   const handleSavePdf = async () => {
     setPdfLoading(true);
@@ -120,8 +104,22 @@ function FillSession() {
     }
   };
 
+  const handleDone = () => {
+    onDone?.({
+      cards,
+      compartments,
+      columnDates: sessionDatesMap,
+      startDateFmt,
+      endDateFmt,
+    });
+  };
+
+  if (!isActive) {
+    return null;
+  }
+
   return (
-    <main className="fill-session">
+    <div className="fill-session">
       <div className="fill-session-header">
         <h1>{t("fillSession.heading")}</h1>
         <h2 className="fill-session-date-range">
@@ -167,38 +165,61 @@ function FillSession() {
         </p>
       )}
 
-      <div className="fill-session-controls screen-only">
-        <Select
-          label={t("fillSession.pillOrganizerLabel")}
-          value={organizerType}
-          onChange={(e) => setOrganizerType(e.target.value)}
-        >
-          {ORGANIZER_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {t(opt.labelKey)}
-            </option>
-          ))}
-        </Select>
-      </div>
-
       {prescriptions.length === 0 ? (
         <p>{t("fillSession.noPrescriptions")}</p>
       ) : (
-        <div className="fill-session-cards">
-          {cards.map((card) => {
-            const cardKey = `${card.drugName}-${card.dosage}`;
-            return (
-              <MedicineCard
-                key={cardKey}
-                card={card}
-                compartments={compartments}
-                columnDates={sessionDatesMap}
-                isOpen={openCardKey === cardKey}
-                onToggle={() => toggleCard(cardKey)}
-              />
-            );
-          })}
-        </div>
+        <>
+          <div className="fill-session-cards">
+            {cards.map((card, index) => {
+              const cardKey = `${card.drugName}-${card.dosage}`;
+              return (
+                <MedicineCard
+                  key={cardKey}
+                  card={card}
+                  compartments={compartments}
+                  columnDates={sessionDatesMap}
+                  isCurrent={index === currentIndex}
+                />
+              );
+            })}
+          </div>
+          <div className="fill-session-medicine-nav screen-only">
+            <Button
+              type="button"
+              className="button-secondary button-leading-icon"
+              onClick={goToPrevMedicine}
+              disabled={currentIndex === 0}
+            >
+              <ChevronLeft size={18} aria-hidden="true" />
+              {t("fillSession.prevMedicine")}
+            </Button>
+            <span className="fill-session-medicine-nav-counter">
+              {t("fillSession.medicineIndicator", {
+                current: currentIndex + 1,
+                total: cards.length,
+              })}
+            </span>
+            {currentIndex === cards.length - 1 ? (
+              <Button
+                type="button"
+                onClick={handleDone}
+                className="button-primary button-leading-icon"
+              >
+                <Check size={18} aria-hidden="true" />
+                {t("fillSession.doneButton")}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                onClick={goToNextMedicine}
+                className="button-primary button-trailing-icon"
+              >
+                {t("fillSession.nextMedicine")}
+                <ChevronRight size={18} aria-hidden="true" />
+              </Button>
+            )}
+          </div>
+        </>
       )}
       <div className="fill-session-actions screen-only">
         <Button
@@ -219,7 +240,7 @@ function FillSession() {
           {t("fillSession.savePdfButton")}
         </Button>
       </div>
-    </main>
+    </div>
   );
 }
 
