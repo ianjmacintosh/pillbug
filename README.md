@@ -6,6 +6,20 @@ Get reminders to take your prescriptions without needing to personally manage a 
 
 ## Development
 
+### Dev Container Basics
+
+Get the ID of your current container:
+
+```
+cat /etc/hostname
+```
+
+Open a terminal session from your local system to your dev container:
+
+```
+docker exec -it <container_id> bash
+```
+
 ### Start a dev server
 
 ```bash
