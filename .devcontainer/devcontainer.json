@@ -17,6 +17,16 @@
   },
   "runArgs": ["--cap-drop=ALL"],
 
+  // Named Docker volume (not a host bind mount) so Claude Code's OAuth
+  // credentials survive container rebuilds without ever touching the host
+  // filesystem. First container creation copies the claude-code feature's
+  // freshly-installed ~/.claude into the volume; every rebuild after that
+  // reuses the same (already logged-in) volume instead of a clean one, so
+  // the browser/magic-link login only has to happen once per machine.
+  "mounts": [
+    "source=pillbug-claude-code-auth,target=/home/node/.claude,type=volume"
+  ],
+
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
 

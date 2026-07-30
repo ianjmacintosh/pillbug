@@ -8,4 +8,5 @@ FROM mcr.microsoft.com/devcontainers/javascript-node:24
 # including a plain `docker exec -it <container> bash` that lands as root.
 COPY bash-terminal-fixes.sh /tmp/bash-terminal-fixes.sh
 RUN cat /tmp/bash-terminal-fixes.sh >> /etc/bash.bashrc && rm /tmp/bash-terminal-fixes.sh
+RUN mkdir -p /home/node/.claude && chown -R node:node /home/node/.claude
 USER node
