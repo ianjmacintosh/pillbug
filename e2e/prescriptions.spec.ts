@@ -546,6 +546,42 @@ test.describe("Prescription create", () => {
     ).not.toBeVisible();
   });
 
+  test("tabbing away from an open suggestion popover keeps the typed text instead of forcing the nearest match", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+
+    const drugNameInput = page.getByLabel(/drug name/i);
+    await drugNameInput.pressSequentially("enala");
+    await expect(
+      page.getByRole("option", { name: "Enalapril", exact: true }),
+    ).toBeVisible();
+
+    // Neither arrows down to an option nor clicks one — just leaves.
+    await page.keyboard.press("Tab");
+
+    await expect(drugNameInput).toHaveValue("enala");
+  });
+
+  test("arrowing down to preview a suggestion, then tabbing away without pressing Enter, does not select it", async ({
+    page,
+  }) => {
+    await page.goto("/prescriptions/new");
+
+    const drugNameInput = page.getByLabel(/drug name/i);
+    await drugNameInput.pressSequentially("enala");
+    await expect(
+      page.getByRole("option", { name: "Enalapril", exact: true }),
+    ).toBeVisible();
+
+    // Highlighting a suggestion by arrowing to it is a preview, not a
+    // commitment — only Enter or a click should confirm it.
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Tab");
+
+    await expect(drugNameInput).toHaveValue("enala");
+  });
+
   test("Days and Times fieldset is aria-invalid when submitted without a day or with a blank time", async ({
     page,
   }) => {
