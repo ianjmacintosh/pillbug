@@ -2,8 +2,9 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
 {
   "name": "Node.js & TypeScript",
-  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:24",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
 
   // Features to add to the dev container. More info: https://containers.dev/features.
   "features": {
@@ -41,7 +42,16 @@
     "vscode": {
       "extensions": ["bierner.markdown-mermaid", "esbenp.prettier-vscode"]
     }
-  }
+  },
+
+  // remoteUser (used by VS Code/devcontainer CLI for its own exec sessions)
+  // already defaults to node via the base image's `USER node`. But whatever
+  // starts this container passes --user root at the Docker level, so a raw
+  // `docker exec` (e.g. from a host terminal like Ghostty) lands as root
+  // instead of inheriting the image default. containerUser fixes the
+  // container's actual runtime user so plain `docker exec` sessions land as
+  // node too, matching ownership of the bind-mounted workspace.
+  "containerUser": "node"
 
   // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
   // "remoteUser": "root"
