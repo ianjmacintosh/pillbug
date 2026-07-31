@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronRight } from "lucide-react";
 import { Button } from "../Button/Button";
-import { Select } from "../Select/Select";
 import { ORGANIZER_OPTIONS } from "./organizerOptions";
+import { OrganizerIllustration } from "./OrganizerIllustration";
+import { OrganizerTypeDialog } from "./OrganizerTypeDialog";
 import "./PillOrganizer.css";
 
 interface PillOrganizerProps {
@@ -17,23 +19,38 @@ export function PillOrganizer({
   onContinue,
 }: PillOrganizerProps) {
   const { t } = useTranslation();
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const selected =
+    ORGANIZER_OPTIONS.find((opt) => opt.value === value) ??
+    ORGANIZER_OPTIONS[0];
 
   return (
     <section className="fill-session-wizard-step">
       <h1>{t("fillSessionWizard.pillOrganizer.heading")}</h1>
       <p>{t("fillSessionWizard.pillOrganizer.description")}</p>
-      <Select
-        label={t("fillSession.pillOrganizerLabel")}
-        className="pill-organizer-field"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+
+      <div className="pill-organizer-selected">
+        <OrganizerIllustration compartments={selected.compartments} />
+        <p className="pill-organizer-selected-label">{t(selected.labelKey)}</p>
+      </div>
+
+      <Button
+        type="button"
+        className="button-secondary pill-organizer-change-button"
+        onClick={() => setDialogOpen(true)}
       >
-        {ORGANIZER_OPTIONS.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {t(opt.labelKey)}
-          </option>
-        ))}
-      </Select>
+        {t("fillSessionWizard.pillOrganizer.changeButton")}
+      </Button>
+
+      {dialogOpen && (
+        <OrganizerTypeDialog
+          value={value}
+          onSelect={onChange}
+          onClose={() => setDialogOpen(false)}
+        />
+      )}
+
       <Button
         type="button"
         onClick={onContinue}

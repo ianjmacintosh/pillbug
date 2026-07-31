@@ -366,9 +366,10 @@ test.describe("Fill Session wizard", () => {
 
     await expect(page).toHaveURL(/\/fill-session\/step3$/);
     await expect(page.getByText(/step 3 of 5/i)).toBeVisible();
+    await expect(page.getByText("Simple 7-day")).toBeVisible();
     await expect(
-      page.getByRole("combobox", { name: /pill organizer/i }),
-    ).toHaveValue("1");
+      page.getByRole("button", { name: /change pill organizer type/i }),
+    ).toBeVisible();
     await page.getByRole("button", { name: /continue/i }).click();
 
     await expect(page).toHaveURL(/\/fill-session\/step4$/);
@@ -406,13 +407,41 @@ test.describe("Fill Session wizard", () => {
     await page.getByRole("button", { name: /i'm ready/i }).click();
 
     await page
-      .getByRole("combobox", { name: /pill organizer/i })
-      .selectOption("2");
+      .getByRole("button", { name: /change pill organizer type/i })
+      .click();
+    await page.getByRole("radio", { name: /7-day am\/pm/i }).click();
+    await expect(page.getByText("7-day AM/PM")).toBeVisible();
     await page.getByRole("button", { name: /continue/i }).click();
 
     const openCard = page.getByRole("region", { name: /metformin/i });
     await expect(openCard.getByText("AM", { exact: true })).toBeVisible();
     await expect(openCard.getByText("PM", { exact: true })).toBeVisible();
+  });
+
+  test("pill organizer picker: opening it shows all types and cancelling keeps the default", async ({
+    page,
+  }) => {
+    await page.goto("/fill-session");
+    await page.getByRole("button", { name: /continue/i }).click();
+    await page.getByRole("button", { name: /i'm ready/i }).click();
+
+    await expect(page.getByText("Simple 7-day")).toBeVisible();
+    await page
+      .getByRole("button", { name: /change pill organizer type/i })
+      .click();
+
+    const picker = page.getByRole("radiogroup", { name: /pill organizer/i });
+    await expect(picker.getByRole("radio")).toHaveCount(4);
+    await expect(
+      picker.getByRole("radio", { name: /simple 7-day/i }),
+    ).toHaveAttribute("aria-checked", "true");
+
+    await page.keyboard.press("Escape");
+    await expect(picker).not.toBeVisible();
+    await expect(page.getByText("Simple 7-day")).toBeVisible();
+
+    await page.getByRole("button", { name: /continue/i }).click();
+    await expect(page).toHaveURL(/\/fill-session\/step4$/);
   });
 
   test("Back from double-check returns to the fill step", async ({ page }) => {

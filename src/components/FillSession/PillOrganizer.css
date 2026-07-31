@@ -1,17 +1,22 @@
-.pill-organizer-field {
+.pill-organizer-selected {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  font-family: var(--font-sans);
-  font-weight: 600;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background-color: var(--color-surface-raised);
+  border: 1px solid var(--gray-70);
+  border-radius: 12px;
 }
 
-.pill-organizer-field select {
-  font-size: var(--text-base);
-  padding: 0.375rem 0.75rem;
-  border: 1px solid var(--gray-70);
-  border-radius: 4px;
-  background-color: transparent;
-  color: var(--gray-10);
-  cursor: pointer;
+.pill-organizer-selected-label {
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.pill-organizer-change-button {
+  align-self: center;
 }

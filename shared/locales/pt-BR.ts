@@ -192,6 +192,9 @@ const ptBR = {
     "Escolha seu organizador de comprimidos",
   "fillSessionWizard.pillOrganizer.description":
     "Escolha o organizador que corresponde à sua rotina de doses. Sua planilha semanal será organizada de acordo.",
+  "fillSessionWizard.pillOrganizer.changeButton": "Trocar tipo de organizador",
+  "fillSessionWizard.pillOrganizer.changeDialogHeading":
+    "Escolha outro organizador de comprimidos",
   "fillSessionWizard.doubleCheck.heading": "Confira tudo",
   "fillSessionWizard.doubleCheck.intro":
     "Antes de fechar o organizador, confirme que tudo está no lugar certo — de preferência com uma pessoa de confiança.",

@@ -1,0 +1,33 @@
+.organizer-illustration {
+  display: grid;
+  grid-template-columns: repeat(var(--comp-count), 1fr);
+  gap: var(--space-1);
+  padding: var(--space-3);
+  background-color: var(--color-surface-tinted);
+  border: 1px solid var(--gray-70);
+  border-radius: 12px;
+}
+
+.organizer-illustration-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-1);
+  background-color: var(--color-surface-raised);
+  border: 1px solid var(--gray-70);
+  border-radius: 6px;
+}
+
+.organizer-illustration-pill {
+  color: var(--color-action);
+}
+
+.organizer-illustration-label {
+  font-family: var(--font-sans);
+  font-size: var(--text-3xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--color-text-muted);
+}

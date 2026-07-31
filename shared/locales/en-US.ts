@@ -186,6 +186,9 @@ const enUS = {
   "fillSessionWizard.pillOrganizer.heading": "Choose your pill organizer",
   "fillSessionWizard.pillOrganizer.description":
     "Pick the organizer that matches your dosing schedule. Your weekly worksheet will be laid out to match.",
+  "fillSessionWizard.pillOrganizer.changeButton": "Change pill organizer type",
+  "fillSessionWizard.pillOrganizer.changeDialogHeading":
+    "Choose a different pill organizer",
   "fillSessionWizard.doubleCheck.heading": "Double-check",
   "fillSessionWizard.doubleCheck.intro":
     "Before closing the organizer, confirm everything is in place — ideally with a trusted person.",

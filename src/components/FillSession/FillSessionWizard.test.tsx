@@ -120,9 +120,7 @@ describe("FillSessionWizard", () => {
     await user.click(screen.getByRole("button", { name: /continue/i }));
     await user.click(screen.getByRole("button", { name: /i'm ready/i }));
     expect(screen.getByText(/step 3 of 5/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole("combobox", { name: /pill organizer/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Simple 7-day")).toBeInTheDocument();
     expect(mockNavigate).toHaveBeenCalledWith({
       to: "/fill-session/$step",
       params: { step: "step3" },
@@ -144,10 +142,10 @@ describe("FillSessionWizard", () => {
     render(<FillSessionWizard />);
     await user.click(screen.getByRole("button", { name: /continue/i }));
     await user.click(screen.getByRole("button", { name: /i'm ready/i }));
-    await user.selectOptions(
-      screen.getByRole("combobox", { name: /pill organizer/i }),
-      "2",
+    await user.click(
+      screen.getByRole("button", { name: /change pill organizer type/i }),
     );
+    await user.click(screen.getByRole("radio", { name: /7-day am\/pm/i }));
     await user.click(screen.getByRole("button", { name: /continue/i }));
 
     await waitFor(() => {
