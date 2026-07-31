@@ -163,6 +163,34 @@
   }
 }
 
+.fill-session-card--insufficient {
+  border-color: var(--color-error);
+}
+
+.fill-session-card-insufficient-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--gray-30);
+  padding: 0.5rem 1rem 0;
+}
+
+.fill-session-card-insufficient-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-error);
+  margin: 0.5rem 1rem 0;
+}
+
+.fill-session-card-grid--blocked {
+  opacity: 0.5;
+}
+
 .fill-session-card-header {
   display: flex;
   align-items: center;

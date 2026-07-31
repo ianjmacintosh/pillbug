@@ -466,3 +466,46 @@ test.describe("Fill Session wizard", () => {
     ).toBeVisible();
   });
 });
+
+test.describe("Fill Session: insufficient pills", () => {
+  test.beforeEach(async ({ browser }) => {
+    await resetState(browser, METFORMIN, LISINOPRIL);
+  });
+
+  test("marking a medicine insufficient blocks that dose but leaves the rest of the session workable", async ({
+    page,
+  }) => {
+    await goToFillStep(page);
+    await expect(page.getByText("Metformin")).toBeVisible();
+
+    const metforminCard = page.getByRole("region", { name: /metformin/i });
+    await metforminCard
+      .getByRole("checkbox", { name: /don't have enough pills for this/i })
+      .check();
+    await expect(
+      metforminCard.getByText(/blocked until you get a refill/i),
+    ).toBeVisible();
+
+    // The rest of the session is unaffected: the other medicine has no
+    // warning, and the session can still be completed.
+    await page.getByRole("button", { name: /next medicine/i }).click();
+    const lisinoprilCard = page.getByRole("region", { name: /lisinopril/i });
+    await expect(
+      lisinoprilCard.getByRole("checkbox", {
+        name: /don't have enough pills for this/i,
+      }),
+    ).not.toBeChecked();
+    await expect(
+      lisinoprilCard.getByText(/blocked until you get a refill/i),
+    ).not.toBeVisible();
+
+    await page.getByRole("button", { name: /done filling/i }).click();
+    await expect(page.getByText(/step 5 of 5/i)).toBeVisible();
+
+    // The blocked medicine is still flagged at double-check, but the
+    // session can still be confirmed overall.
+    await expect(page.getByText(/some medicines are blocked/i)).toBeVisible();
+    await page.getByRole("button", { name: /^done$/i }).click();
+    await expect(page).toHaveURL(/\/prescriptions$|\/$/);
+  });
+});

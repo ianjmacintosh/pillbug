@@ -170,6 +170,10 @@ const ptBR = {
   "fillSession.wrapWarning":
     "Algumas colunas mostram datas da semana seguinte.",
   "fillSession.wrapColumnTooltip": "Data da semana seguinte",
+  "fillSession.insufficientToggle":
+    "Não tenho comprimidos suficientes para isto",
+  "fillSession.insufficientBanner":
+    "Esta dose está bloqueada até você reabastecer. Pule por enquanto — você ainda pode terminar de preencher os outros medicamentos.",
   "fillSessionWizard.stepIndicator": "Etapa {{step}} de {{totalSteps}}",
   "fillSessionWizard.continueButton": "Continuar",
   "fillSessionWizard.disclaimer.heading": "Antes de começar",
@@ -199,6 +203,10 @@ const ptBR = {
   "fillSessionWizard.doubleCheck.confirmButton": "Concluir",
   "fillSessionWizard.doubleCheck.noMedicines":
     "Nenhum medicamento neste compartimento",
+  "fillSessionWizard.doubleCheck.insufficientHeading":
+    "Alguns medicamentos estão bloqueados — comprimidos insuficientes",
+  "fillSessionWizard.doubleCheck.insufficientBadge":
+    "Comprimidos insuficientes",
   "register.heading": "Todos os seus medicamentos em ordem",
   "register.intro":
     "Gerencie suas prescrições e receba orientação passo a passo para separar seu organizador de remédios.",

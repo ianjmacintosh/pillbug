@@ -5,6 +5,7 @@ import { addDays, formatMonthDay } from "../../utils/dates";
 import { nearestSunday, sessionDates } from "../../../shared/week-boundaries";
 import {
   groupByMedicine,
+  medicineCardKey,
   type Compartment,
   type Schedule,
 } from "../../../shared/fill-session";
@@ -34,6 +35,7 @@ export interface FillSessionSnapshot {
   columnDates: ReturnType<typeof sessionDates>;
   startDateFmt: string;
   endDateFmt: string;
+  insufficientCardKeys: string[];
 }
 
 interface FillSessionProps {
@@ -60,6 +62,9 @@ function FillSession({
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [insufficientCardKeys, setInsufficientCardKeys] = useState<Set<string>>(
+    new Set(),
+  );
 
   const sessionDatesMap = sessionDates(startDate);
   const endDate = addDays(startDate, 6);
@@ -104,6 +109,18 @@ function FillSession({
     }
   };
 
+  const toggleInsufficient = (cardKey: string) => {
+    setInsufficientCardKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(cardKey)) {
+        next.delete(cardKey);
+      } else {
+        next.add(cardKey);
+      }
+      return next;
+    });
+  };
+
   const handleDone = () => {
     onDone?.({
       cards,
@@ -111,6 +128,7 @@ function FillSession({
       columnDates: sessionDatesMap,
       startDateFmt,
       endDateFmt,
+      insufficientCardKeys: Array.from(insufficientCardKeys),
     });
   };
 
@@ -171,7 +189,7 @@ function FillSession({
         <>
           <div className="fill-session-cards">
             {cards.map((card, index) => {
-              const cardKey = `${card.drugName}-${card.dosage}`;
+              const cardKey = medicineCardKey(card);
               return (
                 <MedicineCard
                   key={cardKey}
@@ -179,6 +197,8 @@ function FillSession({
                   compartments={compartments}
                   columnDates={sessionDatesMap}
                   isCurrent={index === currentIndex}
+                  isInsufficient={insufficientCardKeys.has(cardKey)}
+                  onToggleInsufficient={() => toggleInsufficient(cardKey)}
                 />
               );
             })}

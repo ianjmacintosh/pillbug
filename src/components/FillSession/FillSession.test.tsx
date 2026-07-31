@@ -315,4 +315,89 @@ describe("FillSession", () => {
       screen.getByRole("button", { name: /print worksheet/i }),
     ).toBeTruthy();
   });
+
+  describe("insufficient pills", () => {
+    test("marking a medicine insufficient shows a blocked warning on its card", async () => {
+      mockPrescriptions(METFORMIN);
+      const user = userEvent.setup();
+      renderFillSession();
+      await waitFor(() => screen.getByText("Metformin"));
+
+      expect(
+        screen.queryByText(/blocked until you get a refill/i),
+      ).not.toBeInTheDocument();
+
+      await user.click(
+        screen.getByRole("checkbox", {
+          name: /don't have enough pills for this/i,
+        }),
+      );
+
+      expect(
+        screen.getByText(/blocked until you get a refill/i),
+      ).toBeInTheDocument();
+    });
+
+    test("marking one medicine insufficient does not affect other medicines or prevent completing the session", async () => {
+      mockPrescriptions(METFORMIN, LISINOPRIL);
+      const onDone = vi.fn();
+      const user = userEvent.setup();
+      renderFillSession({ onDone });
+      await waitFor(() => screen.getByText("Metformin"));
+
+      const metforminCard = screen.getByRole("region", {
+        name: /metformin/i,
+      });
+      await user.click(
+        within(metforminCard).getByRole("checkbox", {
+          name: /don't have enough pills for this/i,
+        }),
+      );
+      expect(
+        within(metforminCard).getByText(/blocked until you get a refill/i),
+      ).toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: /next medicine/i }));
+      // Lisinopril (the other medicine) shows no insufficient warning
+      const lisinoprilCard = screen.getByRole("region", {
+        name: /lisinopril/i,
+      });
+      expect(
+        within(lisinoprilCard).queryByText(/blocked until you get a refill/i),
+      ).not.toBeInTheDocument();
+      expect(
+        within(lisinoprilCard).getByRole("checkbox", {
+          name: /don't have enough pills for this/i,
+        }),
+      ).not.toBeChecked();
+
+      // The session can still be completed overall
+      await user.click(screen.getByRole("button", { name: /done filling/i }));
+      expect(onDone).toHaveBeenCalledWith(
+        expect.objectContaining({
+          insufficientCardKeys: ["Metformin-500mg"],
+        }),
+      );
+    });
+
+    test("unchecking the insufficient toggle clears the warning", async () => {
+      mockPrescriptions(METFORMIN);
+      const user = userEvent.setup();
+      renderFillSession();
+      await waitFor(() => screen.getByText("Metformin"));
+
+      const toggle = screen.getByRole("checkbox", {
+        name: /don't have enough pills for this/i,
+      });
+      await user.click(toggle);
+      expect(
+        screen.getByText(/blocked until you get a refill/i),
+      ).toBeInTheDocument();
+
+      await user.click(toggle);
+      expect(
+        screen.queryByText(/blocked until you get a refill/i),
+      ).not.toBeInTheDocument();
+    });
+  });
 });

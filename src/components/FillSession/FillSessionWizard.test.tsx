@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useSyncExternalStore } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
@@ -240,6 +240,31 @@ describe("FillSessionWizard", () => {
     await waitFor(() => screen.getByText("Metformin"));
     await user.click(screen.getByRole("button", { name: /done filling/i }));
 
+    await user.click(screen.getByRole("button", { name: /^done$/i }));
+    expect(mockNavigate).toHaveBeenCalledWith({ to: "/" });
+  });
+
+  test("a medicine marked insufficient on the fill step is flagged on double-check, and the session can still be confirmed", async () => {
+    mockPrescriptions(METFORMIN, LISINOPRIL);
+    const user = await advanceToFillStep();
+    await waitFor(() => screen.getByText("Metformin"));
+
+    await user.click(
+      within(screen.getByRole("region", { name: /metformin/i })).getByRole(
+        "checkbox",
+        {
+          name: /don't have enough pills for this/i,
+        },
+      ),
+    );
+    await user.click(screen.getByRole("button", { name: /next medicine/i }));
+    await user.click(screen.getByRole("button", { name: /done filling/i }));
+
+    expect(screen.getByText(/double-check/i)).toBeInTheDocument();
+    expect(screen.getByText(/some medicines are blocked/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/metformin/i).length).toBeGreaterThan(0);
+
+    // The overall session can still be confirmed even with a blocked dose.
     await user.click(screen.getByRole("button", { name: /^done$/i }));
     expect(mockNavigate).toHaveBeenCalledWith({ to: "/" });
   });
