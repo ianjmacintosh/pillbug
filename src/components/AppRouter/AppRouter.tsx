@@ -47,6 +47,25 @@ async function fetchAccount(): Promise<AccountData | null> {
   return res.json();
 }
 
+type FillSessionProgress = {
+  step: "step1" | "step2" | "step3" | "step4" | "step5";
+  organizerType: string;
+  startDate: string;
+  currentIndex: number;
+  updatedAt: string;
+};
+
+async function fetchFillSessionProgress(): Promise<FillSessionProgress | null> {
+  try {
+    const res = await fetch("/api/v1/fill-session/progress");
+    if (!res.ok) return null;
+    const data = (await res.json()) as { progress: FillSessionProgress | null };
+    return data.progress;
+  } catch {
+    return null;
+  }
+}
+
 async function requireAuth() {
   let res: Response;
   try {
@@ -94,6 +113,13 @@ const indexRoute = createRoute({
       throw redirect({ to: "/prescriptions" }); // offline — best effort
     }
     if (!data) throw redirect({ to: "/register" });
+    const progress = await fetchFillSessionProgress();
+    if (progress) {
+      throw redirect({
+        to: "/fill-session/$step",
+        params: { step: progress.step },
+      });
+    }
     throw redirect({ to: "/prescriptions" });
   },
   component: () => null,
@@ -193,6 +219,19 @@ const fillSessionStepRoute = createRoute({
         params: { step: "step1" },
       });
     }
+  },
+  loader: async ({ params }) => {
+    const progress = await fetchFillSessionProgress();
+    // Landing on step1 (the default entry point) with later saved progress
+    // means this is a resume, not a fresh start — jump to where they left off.
+    if (progress && params.step === "step1" && progress.step !== "step1") {
+      throw redirect({
+        to: "/fill-session/$step",
+        params: { step: progress.step },
+        replace: true,
+      });
+    }
+    return { progress };
   },
   component: FillSessionWizard,
 });

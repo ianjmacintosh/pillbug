@@ -1,6 +1,7 @@
 import { getSession, type AuthRepository } from "./auth";
 import type { PrescriptionRepository } from "./prescriptions";
 import type { DoseRepository } from "./doses";
+import type { FillSessionProgressRepository } from "./fill-session-progress";
 import { getSessionId } from "./cookie-utils";
 import type { Env } from "./env";
 
@@ -8,6 +9,7 @@ export type Repos = {
   auth: AuthRepository;
   prescription: PrescriptionRepository;
   dose: DoseRepository;
+  fillSessionProgress: FillSessionProgressRepository;
 };
 
 export function json(data: unknown, status = 200): Response {

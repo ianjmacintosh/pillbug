@@ -6,6 +6,14 @@ import FillSessionWizard from "./FillSessionWizard";
 
 let mockNavigate: ReturnType<typeof vi.fn>;
 let stepParam: string;
+let mockTimezone: string | null;
+let mockProgress: {
+  step: string;
+  organizerType: string;
+  startDate: string;
+  currentIndex: number;
+  updatedAt: string;
+} | null;
 const listeners = new Set<() => void>();
 
 function setStepParam(step: string) {
@@ -23,22 +31,32 @@ vi.mock("@tanstack/react-router", async (importOriginal) => {
     await importOriginal<typeof import("@tanstack/react-router")>();
   return {
     ...actual,
-    getRouteApi: () => ({
-      useLoaderData: () => ({ timezone: null }),
-      useParams: () => ({
-        step: useSyncExternalStore(subscribe, () => stepParam),
-      }),
-    }),
+    getRouteApi: (id: string) => {
+      if (id === "/layout/fill-session") {
+        return { useLoaderData: () => ({ timezone: mockTimezone }) };
+      }
+      return {
+        useLoaderData: () => ({ progress: mockProgress }),
+        useParams: () => ({
+          step: useSyncExternalStore(subscribe, () => stepParam),
+        }),
+      };
+    },
     useNavigate: () => mockNavigate,
   };
 });
 
 beforeEach(() => {
   stepParam = "step1";
+  mockTimezone = null;
+  mockProgress = null;
   mockNavigate = vi.fn(
     (opts: { to: string; params?: { step?: string }; replace?: boolean }) => {
       if (opts?.params?.step) setStepParam(opts.params.step);
     },
+  );
+  vi.spyOn(globalThis, "fetch").mockResolvedValue(
+    new Response("[]", { status: 200 }),
   );
 });
 
@@ -254,6 +272,96 @@ describe("FillSessionWizard", () => {
         params: { step: "step4" },
         replace: true,
       });
+    });
+  });
+
+  describe("resuming an in-progress session", () => {
+    test("with no saved progress, the start date defaults from the patient's timezone", () => {
+      // 2026-07-06T02:58 UTC is Monday in UTC but still Sunday, Jul 5,
+      // 21:58 in America/Chicago (UTC-5 in July) — the default must be
+      // anchored to the patient's local day, not the UTC day.
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-07-06T02:58:00Z"));
+      mockTimezone = "America/Chicago";
+      stepParam = "step4";
+      try {
+        mockPrescriptions();
+        render(<FillSessionWizard />);
+        const dateHeading = screen.getByRole("heading", { level: 2 });
+        expect(dateHeading.textContent).toMatch(/Jul 5/);
+        expect(dateHeading.textContent).toMatch(/Jul 11/);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    test("landing on step1 with later saved progress restores organizer type, start date, and medicine index", async () => {
+      mockProgress = {
+        step: "step4",
+        organizerType: "2",
+        startDate: "2026-06-14",
+        currentIndex: 1,
+        updatedAt: new Date().toISOString(),
+      };
+      stepParam = "step4";
+      mockPrescriptions(METFORMIN, LISINOPRIL);
+      render(<FillSessionWizard />);
+
+      await waitFor(() => screen.getByText("Lisinopril"));
+      expect(screen.getAllByText("AM").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("PM").length).toBeGreaterThan(0);
+      expect(
+        (screen.getByLabelText(/start date/i) as HTMLInputElement).value,
+      ).toBe("2026-06-14");
+      expect(screen.getByText(/medicine 2 of 2/i)).toBeInTheDocument();
+    });
+
+    test("advancing past the disclaimer saves progress", async () => {
+      const user = userEvent.setup();
+      render(<FillSessionWizard />);
+      await user.click(screen.getByRole("button", { name: /continue/i }));
+
+      await waitFor(() => {
+        const putCall = vi
+          .mocked(globalThis.fetch)
+          .mock.calls.find(
+            ([, init]) => (init as RequestInit | undefined)?.method === "PUT",
+          );
+        expect(putCall).toBeTruthy();
+        expect(putCall?.[0]).toBe("/api/v1/fill-session/progress");
+        const body = JSON.parse((putCall?.[1] as RequestInit).body as string);
+        expect(body).toMatchObject({ step: "step2", organizerType: "1" });
+      });
+    });
+
+    test("does not save progress while still on the disclaimer step", () => {
+      render(<FillSessionWizard />);
+      const putCall = vi
+        .mocked(globalThis.fetch)
+        .mock.calls.find(
+          ([, init]) => (init as RequestInit | undefined)?.method === "PUT",
+        );
+      expect(putCall).toBeUndefined();
+    });
+
+    test("confirming double-check clears saved progress before navigating home", async () => {
+      mockPrescriptions(METFORMIN);
+      const user = await advanceToFillStep();
+      await waitFor(() => screen.getByText("Metformin"));
+      await user.click(screen.getByRole("button", { name: /done filling/i }));
+
+      await user.click(screen.getByRole("button", { name: /^done$/i }));
+
+      await waitFor(() => {
+        const deleteCall = vi
+          .mocked(globalThis.fetch)
+          .mock.calls.find(
+            ([, init]) =>
+              (init as RequestInit | undefined)?.method === "DELETE",
+          );
+        expect(deleteCall?.[0]).toBe("/api/v1/fill-session/progress");
+      });
+      expect(mockNavigate).toHaveBeenCalledWith({ to: "/" });
     });
   });
 });

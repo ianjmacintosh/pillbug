@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { makeD1AuthRepo } from "./d1-auth-repo";
 import { makeD1PrescriptionRepo } from "./d1-prescriptions-repo";
 import { makeD1DoseRepo } from "./d1-doses-repo";
+import { makeD1FillSessionProgressRepo } from "./d1-fill-session-progress-repo";
 import { checkHealth } from "./health";
 import { getSession } from "./auth";
 import { getSessionId } from "./cookie-utils";
@@ -36,6 +37,11 @@ import {
   handleGetScheduledDoses,
 } from "./routes/doses";
 import { handleGetFillSessionPdf } from "./routes/fill-session";
+import {
+  handleGetFillSessionProgress,
+  handlePutFillSessionProgress,
+  handleDeleteFillSessionProgress,
+} from "./routes/fill-session-progress";
 import { handleGetAdmin } from "./routes/admin";
 
 export default {
@@ -70,6 +76,7 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     auth: makeD1AuthRepo(env.DB, env.EMAIL_SECRET),
     prescription: makeD1PrescriptionRepo(env.DB),
     dose: makeD1DoseRepo(env.DB),
+    fillSessionProgress: makeD1FillSessionProgressRepo(env.DB),
   };
 
   if (request.method === "OPTIONS") {
@@ -114,6 +121,27 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
 
   if (url.pathname === "/api/v1/fill-session/pdf" && request.method === "GET") {
     return withSession(handleGetFillSessionPdf, request, env, repos);
+  }
+
+  if (
+    url.pathname === "/api/v1/fill-session/progress" &&
+    request.method === "GET"
+  ) {
+    return withSession(handleGetFillSessionProgress, request, env, repos);
+  }
+
+  if (
+    url.pathname === "/api/v1/fill-session/progress" &&
+    request.method === "PUT"
+  ) {
+    return withSession(handlePutFillSessionProgress, request, env, repos);
+  }
+
+  if (
+    url.pathname === "/api/v1/fill-session/progress" &&
+    request.method === "DELETE"
+  ) {
+    return withSession(handleDeleteFillSessionProgress, request, env, repos);
   }
 
   if (url.pathname === "/api/v1/prescriptions" && request.method === "POST") {

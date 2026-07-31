@@ -1,8 +1,7 @@
-import { getRouteApi } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { addDays, formatMonthDay } from "../../utils/dates";
-import { nearestSunday, sessionDates } from "../../../shared/week-boundaries";
+import { sessionDates } from "../../../shared/week-boundaries";
 import {
   groupByMedicine,
   type Compartment,
@@ -41,24 +40,24 @@ interface FillSessionProps {
   organizerType: string;
   onDone?: (snapshot: FillSessionSnapshot) => void;
   isActive?: boolean;
+  startDate: string;
+  onStartDateChange: (startDate: string) => void;
+  currentIndex: number;
+  onCurrentIndexChange: (currentIndex: number) => void;
 }
-
-const Route = getRouteApi("/layout/fill-session");
 
 function FillSession({
   compartments,
   organizerType,
   onDone,
   isActive = true,
+  startDate,
+  onStartDateChange,
+  currentIndex,
+  onCurrentIndexChange,
 }: FillSessionProps) {
   const { t, i18n } = useTranslation();
-  const { timezone } = Route.useLoaderData();
-  const today = new Intl.DateTimeFormat("en-CA", {
-    timeZone: timezone ?? "UTC",
-  }).format(new Date());
-  const [startDate, setStartDate] = useState(() => nearestSunday(today));
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [pdfLoading, setPdfLoading] = useState(false);
 
   const sessionDatesMap = sessionDates(startDate);
@@ -72,16 +71,22 @@ function FillSession({
       .then((res) => (res.ok ? res.json() : []))
       .then((data: Prescription[]) => {
         setPrescriptions(data);
-        setCurrentIndex(0);
+        const cardCount = groupByMedicine(data, compartments).length;
+        if (currentIndex >= cardCount) onCurrentIndexChange(0);
       })
       .catch(() => {});
+    // currentIndex/onCurrentIndexChange are only used to clamp an
+    // out-of-range restored index; re-running on their change would fight
+    // the very navigation they're meant to preserve.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [compartments]);
 
   const cards = groupByMedicine(prescriptions, compartments);
 
-  const goToPrevMedicine = () => setCurrentIndex((i) => Math.max(0, i - 1));
+  const goToPrevMedicine = () =>
+    onCurrentIndexChange(Math.max(0, currentIndex - 1));
   const goToNextMedicine = () =>
-    setCurrentIndex((i) => Math.min(cards.length - 1, i + 1));
+    onCurrentIndexChange(Math.min(cards.length - 1, currentIndex + 1));
 
   const handleSavePdf = async () => {
     setPdfLoading(true);
@@ -137,7 +142,7 @@ function FillSession({
               type="button"
               className="button-icon button-secondary"
               aria-label={t("fillSession.prevWeek")}
-              onClick={() => setStartDate((d) => addDays(d, -7))}
+              onClick={() => onStartDateChange(addDays(startDate, -7))}
             >
               <ChevronLeft size={20} aria-hidden="true" />
             </Button>
@@ -145,13 +150,15 @@ function FillSession({
               id="fill-session-start-date"
               type="date"
               value={startDate}
-              onChange={(e) => e.target.value && setStartDate(e.target.value)}
+              onChange={(e) =>
+                e.target.value && onStartDateChange(e.target.value)
+              }
             />
             <Button
               type="button"
               className="button-icon button-secondary"
               aria-label={t("fillSession.nextWeek")}
-              onClick={() => setStartDate((d) => addDays(d, 7))}
+              onClick={() => onStartDateChange(addDays(startDate, 7))}
             >
               <ChevronRight size={20} aria-hidden="true" />
             </Button>

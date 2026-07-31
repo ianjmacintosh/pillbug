@@ -1,5 +1,6 @@
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { nearestSunday } from "../../../shared/week-boundaries";
 import { Disclaimer } from "./Disclaimer";
 import { DoubleCheck } from "./DoubleCheck";
 import FillSession, { type FillSessionSnapshot } from "./FillSession";
@@ -33,12 +34,44 @@ const STEP_FROM_PATH: Record<string, WizardStep> = {
 };
 
 const Route = getRouteApi("/layout/fill-session/$step");
+const ParentRoute = getRouteApi("/layout/fill-session");
+
+function saveProgress(
+  step: WizardStep,
+  organizerType: string,
+  startDate: string,
+  currentIndex: number,
+) {
+  void fetch("/api/v1/fill-session/progress", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      step: STEP_PATHS[step],
+      organizerType,
+      startDate,
+      currentIndex,
+    }),
+  }).catch(() => {});
+}
 
 function FillSessionWizard() {
   const navigate = useNavigate();
   const { step: stepParam } = Route.useParams();
+  const { progress } = Route.useLoaderData();
+  const { timezone } = ParentRoute.useLoaderData();
   const step = STEP_FROM_PATH[stepParam] ?? 1;
-  const [organizerType, setOrganizerType] = useState("1");
+
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone ?? "UTC",
+  }).format(new Date());
+
+  const [organizerType, setOrganizerType] = useState(
+    progress?.organizerType ?? "1",
+  );
+  const [startDate, setStartDate] = useState(
+    progress?.startDate ?? nearestSunday(today),
+  );
+  const [currentIndex, setCurrentIndex] = useState(progress?.currentIndex ?? 0);
   const [snapshot, setSnapshot] = useState<FillSessionSnapshot | null>(null);
 
   const compartments =
@@ -61,6 +94,25 @@ function FillSessionWizard() {
     }
   }, [step, snapshot, navigate]);
 
+  // Persist progress once the Patient has moved past the disclaimer, so an
+  // interrupted session (screen sleep, app switch, lost cookie) can be
+  // resumed instead of restarting from scratch.
+  useEffect(() => {
+    if (step === 1) return;
+    saveProgress(step, organizerType, startDate, currentIndex);
+  }, [step, organizerType, startDate, currentIndex]);
+
+  const handleConfirm = async () => {
+    try {
+      await fetch("/api/v1/fill-session/progress", { method: "DELETE" });
+    } catch {
+      // Best-effort — a stale progress row just means the next login shows
+      // a resume redirect for an already-completed session, which is
+      // harmless.
+    }
+    navigate({ to: "/" });
+  };
+
   return (
     <main className="fill-session-wizard">
       <StepIndicator step={step} totalSteps={TOTAL_STEPS} />
@@ -78,6 +130,10 @@ function FillSessionWizard() {
           isActive={step === 4}
           compartments={compartments}
           organizerType={organizerType}
+          startDate={startDate}
+          onStartDateChange={setStartDate}
+          currentIndex={currentIndex}
+          onCurrentIndexChange={setCurrentIndex}
           onDone={(nextSnapshot) => {
             setSnapshot(nextSnapshot);
             goToStep(5);
@@ -88,7 +144,7 @@ function FillSessionWizard() {
         <DoubleCheck
           snapshot={snapshot}
           onBack={() => goToStep(4)}
-          onConfirm={() => navigate({ to: "/" })}
+          onConfirm={handleConfirm}
         />
       )}
     </main>

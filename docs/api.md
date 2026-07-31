@@ -633,6 +633,99 @@ Filename format: `Pillbug_Worksheet-{startDate_YYYY_MM_DD}-{endDate_YYYY_MM_DD}.
 
 ---
 
+## Fill Session progress endpoints
+
+Support resuming an in-progress Fill Session — either after the device locks/sleeps and the tab reloads, or after logging back in from a browser with no session cookie (see `CONTEXT.md`'s Fill Session entry, "Status" note). At most one in-progress Fill Session is tracked per Patient; starting the wizard over (step 1) implicitly replaces any prior progress via upsert.
+
+Progress older than 24 hours is treated as stale and not returned — an abandoned session from weeks ago should not silently redirect a Patient away from `/prescriptions`. The row itself is left in place (no extra write on read) but `GET` reports it as absent.
+
+### `GET /api/v1/fill-session/progress`
+
+Returns the authenticated Patient's in-progress Fill Session, if any and not stale. Requires a valid session cookie.
+
+**Response — 200**
+
+```json
+{
+  "ok": true,
+  "progress": {
+    "step": "step3",
+    "organizerType": "2",
+    "startDate": "2026-08-02",
+    "currentIndex": 0,
+    "updatedAt": "2026-07-31T14:00:00.000Z"
+  }
+}
+```
+
+```json
+{ "ok": true, "progress": null }
+```
+
+**Response — 401**
+
+```json
+{ "error": "not_authenticated" }
+```
+
+### `PUT /api/v1/fill-session/progress`
+
+Upserts the authenticated Patient's Fill Session progress. Called by the wizard on step transitions and on meaningful in-step selection changes (organizer type, Fill Session Start Date, current medicine card index). Requires a valid session cookie.
+
+**Request body**
+
+```json
+{
+  "step": "step3",
+  "organizerType": "2",
+  "startDate": "2026-08-02",
+  "currentIndex": 0
+}
+```
+
+| Field           | Type   | Required | Description                                            |
+| --------------- | ------ | -------- | ------------------------------------------------------ |
+| `step`          | string | yes      | One of `step1`–`step5`.                                |
+| `organizerType` | string | yes      | Same values as the Fill Session PDF `organizer` param. |
+| `startDate`     | string | yes      | `YYYY-MM-DD` Fill Session Start Date.                  |
+| `currentIndex`  | number | yes      | Index of the medicine card the Patient is on.          |
+
+**Response — 200**
+
+```json
+{ "ok": true }
+```
+
+**Response — 401**
+
+```json
+{ "error": "not_authenticated" }
+```
+
+**Response — 422**
+
+```json
+{ "error": "invalid_step" }
+```
+
+### `DELETE /api/v1/fill-session/progress`
+
+Clears the authenticated Patient's Fill Session progress. Called when the wizard reaches Double-check confirmation (the session is complete, so there is nothing left to resume). Requires a valid session cookie.
+
+**Response — 200**
+
+```json
+{ "ok": true }
+```
+
+**Response — 401**
+
+```json
+{ "error": "not_authenticated" }
+```
+
+---
+
 ## Admin endpoints
 
 The Admin Panel is protected by Cloudflare Access. All requests to `/admin` must carry a valid `Cf-Access-Jwt-Assertion` header. The Worker validates this JWT independently against the JWKS at `{CF_TEAM_DOMAIN}/cdn-cgi/access/certs`. Requests without a valid JWT are rejected with 401 even if they somehow bypass Cloudflare Access (e.g. via the `*.workers.dev` URL).

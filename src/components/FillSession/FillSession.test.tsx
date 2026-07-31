@@ -1,6 +1,7 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { useState } from "react";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import type { ComponentProps } from "react";
 import FillSession from "./FillSession";
 import {
@@ -8,30 +9,40 @@ import {
   TWO_COMPARTMENTS,
 } from "../../../shared/fill-session";
 
-let mockTimezone: string | null = null;
+// A fixed Sunday, unrelated to system time/timezone — FillSession no longer
+// derives a default from the Patient's timezone itself (that responsibility
+// moved to FillSessionWizard, see FillSessionWizard.test.tsx).
+const DEFAULT_START_DATE = "2026-06-14";
 
 function renderFillSession(
   overrides: Partial<ComponentProps<typeof FillSession>> = {},
 ) {
-  return render(
-    <FillSession
-      compartments={ONE_COMPARTMENT}
-      organizerType="1"
-      {...overrides}
-    />,
-  );
-}
+  const {
+    startDate: initialStartDate,
+    currentIndex: initialCurrentIndex,
+    ...rest
+  } = overrides;
 
-vi.mock("@tanstack/react-router", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("@tanstack/react-router")>();
-  return {
-    ...actual,
-    getRouteApi: () => ({
-      useLoaderData: () => ({ timezone: mockTimezone }),
-    }),
-  };
-});
+  function Harness() {
+    const [startDate, setStartDate] = useState(
+      initialStartDate ?? DEFAULT_START_DATE,
+    );
+    const [currentIndex, setCurrentIndex] = useState(initialCurrentIndex ?? 0);
+    return (
+      <FillSession
+        compartments={ONE_COMPARTMENT}
+        organizerType="1"
+        startDate={startDate}
+        onStartDateChange={setStartDate}
+        currentIndex={currentIndex}
+        onCurrentIndexChange={setCurrentIndex}
+        {...rest}
+      />
+    );
+  }
+
+  return render(<Harness />);
+}
 
 const METFORMIN = {
   id: "rx-1",
@@ -102,9 +113,6 @@ function mockPrescriptions(...rxs: object[]) {
   );
 }
 
-beforeEach(() => {
-  mockTimezone = null;
-});
 afterEach(() => {
   vi.restoreAllMocks();
   vi.useRealTimers();
@@ -252,36 +260,12 @@ describe("FillSession", () => {
     ).toBeInTheDocument();
   });
 
-  test("shows nearest-Sunday-anchored date range below the heading", () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-06-11T00:00:00Z")); // Thursday → nearest Sunday is Jun 14
-    try {
-      mockPrescriptions();
-      renderFillSession();
-      const dateHeading = screen.getByRole("heading", { level: 2 });
-      expect(dateHeading.textContent).toMatch(/Jun 14/); // start: nearest Sunday
-      expect(dateHeading.textContent).toMatch(/Jun 20/); // end: startDate + 6
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
-  test("computes the current week using the patient's timezone, not UTC", () => {
-    // 2026-07-06T02:58 UTC is Monday in UTC but still Sunday, Jul 5,
-    // 21:58 in America/Chicago (UTC-5 in July). The date range must be
-    // anchored to the patient's local day, not the UTC day.
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-07-06T02:58:00Z"));
-    mockTimezone = "America/Chicago";
-    try {
-      mockPrescriptions();
-      renderFillSession();
-      const dateHeading = screen.getByRole("heading", { level: 2 });
-      expect(dateHeading.textContent).toMatch(/Jul 5/);
-      expect(dateHeading.textContent).toMatch(/Jul 11/);
-    } finally {
-      vi.useRealTimers();
-    }
+  test("shows a date range anchored to the given startDate prop", () => {
+    mockPrescriptions();
+    renderFillSession({ startDate: "2026-06-14" });
+    const dateHeading = screen.getByRole("heading", { level: 2 });
+    expect(dateHeading.textContent).toMatch(/Jun 14/);
+    expect(dateHeading.textContent).toMatch(/Jun 20/); // end: startDate + 6
   });
 
   test("medicine card grids render for all cards regardless of the current index", async () => {
