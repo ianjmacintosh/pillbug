@@ -1,5 +1,5 @@
 import { getRouteApi } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { addDays, formatMonthDay } from "../../utils/dates";
 import { nearestSunday, sessionDates } from "../../../shared/week-boundaries";
@@ -95,9 +95,28 @@ function FillSession({
     insufficientCardKeys.has(medicineCardKey(card)),
   );
 
+  const prevActiveCardsRef = useRef<typeof activeCards>([]);
+
   useEffect(() => {
-    setCurrentIndex((i) => Math.min(i, Math.max(0, activeCards.length - 1)));
+    setCurrentIndex((prevIndex) => {
+      const prevCard = prevActiveCardsRef.current[prevIndex];
+      if (prevCard) {
+        const key = medicineCardKey(prevCard);
+        const newIndex = activeCards.findIndex(
+          (card) => medicineCardKey(card) === key,
+        );
+        if (newIndex !== -1) {
+          return newIndex;
+        }
+      }
+      return Math.min(prevIndex, Math.max(0, activeCards.length - 1));
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeCards.length]);
+
+  useEffect(() => {
+    prevActiveCardsRef.current = activeCards;
+  });
 
   const goToPrevMedicine = () => setCurrentIndex((i) => Math.max(0, i - 1));
   const goToNextMedicine = () =>
