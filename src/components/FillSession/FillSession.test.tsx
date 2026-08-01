@@ -96,6 +96,27 @@ const LISINOPRIL = {
   status: "active",
 };
 
+const AMLODIPINE = {
+  id: "rx-3",
+  drugName: "Amlodipine",
+  dosage: "5mg",
+  doseForm: "tablet",
+  schedule: {
+    days: {
+      monday: [{ time: "08:00", quantity: 1 }],
+      tuesday: [{ time: "08:00", quantity: 1 }],
+      wednesday: [{ time: "08:00", quantity: 1 }],
+      thursday: [{ time: "08:00", quantity: 1 }],
+      friday: [{ time: "08:00", quantity: 1 }],
+      saturday: [{ time: "08:00", quantity: 1 }],
+      sunday: [{ time: "08:00", quantity: 1 }],
+    },
+  },
+  startDate: "2024-01-01",
+  endDate: null,
+  status: "active",
+};
+
 function mockPrescriptions(...rxs: object[]) {
   vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
     new Response(JSON.stringify(rxs), { status: 200 }),
@@ -402,6 +423,52 @@ describe("FillSession", () => {
           excludedCards: [expect.objectContaining({ drugName: "Metformin" })],
         }),
       );
+    });
+
+    test("undoing an exclusion re-pins 'current' to the same medicine, not the same index", async () => {
+      // Regression test for the currentIndex-drift bug: excluding a middle
+      // card and navigating past it, then undoing the exclusion, must keep
+      // 'current' on the medicine the user was actually looking at rather
+      // than snapping back to whatever now occupies that numeric index.
+      mockPrescriptions(METFORMIN, LISINOPRIL, AMLODIPINE);
+      const user = userEvent.setup();
+      renderFillSession();
+      await waitFor(() => screen.getByText("Metformin"));
+
+      // Exclude the middle medicine (Lisinopril). Current should remain on
+      // Metformin, the card the user started on.
+      await user.click(
+        within(
+          screen.getByRole("region", { name: /lisinopril/i }),
+        ).getByRole("checkbox", { name: /don't have enough pills for this/i }),
+      );
+      expect(
+        screen.getByRole("region", { name: /metformin/i }),
+      ).toHaveAttribute("aria-current", "true");
+      expect(screen.getByText(/medicine 1 of 2/i)).toBeInTheDocument();
+
+      // Navigate past where Lisinopril used to be — current becomes
+      // Amlodipine, now at index 1 of the 2 active cards.
+      await user.click(screen.getByRole("button", { name: /next medicine/i }));
+      expect(
+        screen.getByRole("region", { name: /amlodipine/i }),
+      ).toHaveAttribute("aria-current", "true");
+      expect(screen.getByText(/medicine 2 of 2/i)).toBeInTheDocument();
+
+      // Undo the exclusion. Lisinopril re-enters the deck at index 1 (the
+      // slot Amlodipine is currently occupying), so a naive index-based
+      // restore would incorrectly make Lisinopril 'current'. The fix must
+      // keep Amlodipine current by identity.
+      await user.click(
+        screen.getByRole("button", { name: /found enough pills/i }),
+      );
+      expect(
+        screen.getByRole("region", { name: /amlodipine/i }),
+      ).toHaveAttribute("aria-current", "true");
+      expect(
+        screen.getByRole("region", { name: /lisinopril/i }),
+      ).not.toHaveAttribute("aria-current");
+      expect(screen.getByText(/medicine 3 of 3/i)).toBeInTheDocument();
     });
 
     test("marking every medicine insufficient still allows completing the session", async () => {

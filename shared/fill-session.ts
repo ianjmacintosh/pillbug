@@ -71,7 +71,7 @@ export function medicineCardKey(card: {
   drugName: string;
   dosage: string;
 }): string {
-  return `${card.drugName}-${card.dosage}`;
+  return `${card.drugName}||${card.dosage}`;
 }
 
 export function groupByMedicine(

@@ -98,19 +98,22 @@ function FillSession({
   const prevActiveCardsRef = useRef<typeof activeCards>([]);
 
   useEffect(() => {
-    setCurrentIndex((prevIndex) => {
-      const prevCard = prevActiveCardsRef.current[prevIndex];
-      if (prevCard) {
-        const key = medicineCardKey(prevCard);
-        const newIndex = activeCards.findIndex(
-          (card) => medicineCardKey(card) === key,
-        );
-        if (newIndex !== -1) {
-          return newIndex;
-        }
+    // Read the ref synchronously here rather than inside a setCurrentIndex
+    // updater: updater callbacks run lazily, by which time the sibling ref
+    // effect below may have already overwritten prevActiveCardsRef with the
+    // new activeCards, making "previous" and "current" indistinguishable.
+    const prevCard = prevActiveCardsRef.current[currentIndex];
+    if (prevCard) {
+      const key = medicineCardKey(prevCard);
+      const newIndex = activeCards.findIndex(
+        (card) => medicineCardKey(card) === key,
+      );
+      if (newIndex !== -1) {
+        setCurrentIndex(newIndex);
+        return;
       }
-      return Math.min(prevIndex, Math.max(0, activeCards.length - 1));
-    });
+    }
+    setCurrentIndex(Math.min(currentIndex, Math.max(0, activeCards.length - 1)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeCards.length]);
 
