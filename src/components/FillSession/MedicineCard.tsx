@@ -13,8 +13,7 @@ interface MedicineCardProps {
   compartments: Compartment[];
   columnDates: Record<string, { date: string; wrapped: boolean }>;
   isCurrent: boolean;
-  isInsufficient: boolean;
-  onToggleInsufficient: () => void;
+  onFlagInsufficient: () => void;
 }
 
 export function MedicineCard({
@@ -22,14 +21,13 @@ export function MedicineCard({
   compartments,
   columnDates,
   isCurrent,
-  isInsufficient,
-  onToggleInsufficient,
+  onFlagInsufficient,
 }: MedicineCardProps) {
   const { t, i18n } = useTranslation();
 
   return (
     <section
-      className={`fill-session-card${isCurrent ? "" : " fill-session-card--hidden"}${isInsufficient ? " fill-session-card--insufficient" : ""}`}
+      className={`fill-session-card${isCurrent ? "" : " fill-session-card--hidden"}`}
       aria-label={card.drugName}
       aria-current={isCurrent ? "true" : undefined}
     >
@@ -43,20 +41,14 @@ export function MedicineCard({
 
       <Checkbox
         className="fill-session-card-insufficient-toggle"
-        checked={isInsufficient}
-        onChange={onToggleInsufficient}
+        checked={false}
+        onChange={onFlagInsufficient}
       >
         {t("fillSession.insufficientToggle")}
       </Checkbox>
 
-      {isInsufficient && (
-        <p className="fill-session-card-insufficient-banner" role="status">
-          ⚠ {t("fillSession.insufficientBanner")}
-        </p>
-      )}
-
       <div
-        className={`fill-session-card-grid${isInsufficient ? " fill-session-card-grid--blocked" : ""}`}
+        className="fill-session-card-grid"
         style={
           {
             "--day-count": WEEKDAYS.length,

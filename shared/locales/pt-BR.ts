@@ -172,8 +172,11 @@ const ptBR = {
   "fillSession.wrapColumnTooltip": "Data da semana seguinte",
   "fillSession.insufficientToggle":
     "Não tenho comprimidos suficientes para isto",
-  "fillSession.insufficientBanner":
-    "Esta dose está bloqueada até você reabastecer. Pule por enquanto — você ainda pode terminar de preencher os outros medicamentos.",
+  "fillSession.excludedHeading":
+    "Pulado nesta sessão — comprimidos insuficientes para preencher",
+  "fillSession.undoExclude": "Encontrei comprimidos suficientes",
+  "fillSession.savePdfDisabledNote":
+    "Salvar PDF está temporariamente indisponível",
   "fillSessionWizard.stepIndicator": "Etapa {{step}} de {{totalSteps}}",
   "fillSessionWizard.continueButton": "Continuar",
   "fillSessionWizard.disclaimer.heading": "Antes de começar",
@@ -204,9 +207,7 @@ const ptBR = {
   "fillSessionWizard.doubleCheck.noMedicines":
     "Nenhum medicamento neste compartimento",
   "fillSessionWizard.doubleCheck.insufficientHeading":
-    "Alguns medicamentos estão bloqueados — comprimidos insuficientes",
-  "fillSessionWizard.doubleCheck.insufficientBadge":
-    "Comprimidos insuficientes",
+    "Alguns medicamentos foram pulados nesta sessão — comprimidos insuficientes",
   "register.heading": "Todos os seus medicamentos em ordem",
   "register.intro":
     "Gerencie suas prescrições e receba orientação passo a passo para separar seu organizador de remédios.",

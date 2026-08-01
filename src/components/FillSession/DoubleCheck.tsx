@@ -4,7 +4,6 @@ import { Check, ChevronLeft } from "lucide-react";
 import { WEEKDAYS } from "../../utils/constants";
 import { formatMonthDay } from "../../utils/dates";
 import { Button } from "../Button/Button";
-import { medicineCardKey } from "../../../shared/fill-session";
 import type { FillSessionSnapshot } from "./FillSession";
 import "./DoubleCheck.css";
 
@@ -16,12 +15,8 @@ interface DoubleCheckProps {
 
 export function DoubleCheck({ snapshot, onBack, onConfirm }: DoubleCheckProps) {
   const { t, i18n } = useTranslation();
-  const { cards, compartments, columnDates, insufficientCardKeys } = snapshot;
+  const { cards, compartments, columnDates, excludedCards } = snapshot;
   const [expandedCell, setExpandedCell] = useState<string | null>(null);
-
-  const insufficientCards = cards.filter((card) =>
-    insufficientCardKeys.includes(medicineCardKey(card)),
-  );
 
   // Build compartment grid: for each compartment and day, sum all medicines
   const getCompartmentTotal = (
@@ -48,25 +43,12 @@ export function DoubleCheck({ snapshot, onBack, onConfirm }: DoubleCheckProps) {
         );
         const qty = slot?.quantities[dayName] ?? 0;
         return qty > 0
-          ? {
-              drugName: card.drugName,
-              dosage: card.dosage,
-              qty,
-              isInsufficient: insufficientCardKeys.includes(
-                medicineCardKey(card),
-              ),
-            }
+          ? { drugName: card.drugName, dosage: card.dosage, qty }
           : null;
       })
       .filter(
-        (
-          x,
-        ): x is {
-          drugName: string;
-          dosage: string;
-          qty: number;
-          isInsufficient: boolean;
-        } => x !== null,
+        (x): x is { drugName: string; dosage: string; qty: number } =>
+          x !== null,
       );
   };
 
@@ -91,13 +73,13 @@ export function DoubleCheck({ snapshot, onBack, onConfirm }: DoubleCheckProps) {
       <h1>{t("fillSessionWizard.doubleCheck.heading")}</h1>
       <p>{t("fillSessionWizard.doubleCheck.intro")}</p>
 
-      {insufficientCards.length > 0 && (
+      {excludedCards.length > 0 && (
         <div className="double-check-insufficient-banner" role="status">
           <p className="double-check-insufficient-banner-heading">
             ⚠ {t("fillSessionWizard.doubleCheck.insufficientHeading")}
           </p>
           <ul className="double-check-insufficient-banner-list">
-            {insufficientCards.map((card) => (
+            {excludedCards.map((card) => (
               <li key={`${card.drugName}-${card.dosage}`}>
                 {card.drugName} {card.dosage}
               </li>
@@ -200,7 +182,7 @@ export function DoubleCheck({ snapshot, onBack, onConfirm }: DoubleCheckProps) {
               {expandedDetails.medicines.map((med) => (
                 <div
                   key={`${med.drugName}-${med.dosage}`}
-                  className={`double-check-detail-item${med.isInsufficient ? " double-check-detail-item--insufficient" : ""}`}
+                  className="double-check-detail-item"
                 >
                   <span className="double-check-detail-drug">
                     {med.drugName}
@@ -209,11 +191,6 @@ export function DoubleCheck({ snapshot, onBack, onConfirm }: DoubleCheckProps) {
                     {med.dosage}
                   </span>
                   <span className="double-check-detail-qty">×{med.qty}</span>
-                  {med.isInsufficient && (
-                    <span className="double-check-detail-insufficient-badge">
-                      ⚠ {t("fillSessionWizard.doubleCheck.insufficientBadge")}
-                    </span>
-                  )}
                 </div>
               ))}
             </div>

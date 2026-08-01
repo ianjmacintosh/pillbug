@@ -1,20 +1,11 @@
-import {
-  expect,
-  test,
-  type Browser,
-  type Download,
-  type Page,
-} from "@playwright/test";
+import { expect, test, type Browser, type Page } from "@playwright/test";
 
-import { readFileSync } from "node:fs";
-import { extractText, getDocumentProxy } from "unpdf";
 import { hashEmail } from "../worker/email-crypto";
 import {
   PRESCRIPTIONS_PATIENT_EMAIL,
   PRESCRIPTIONS_PATIENT_AUTH_FILE,
 } from "./test-accounts";
 import { getDB, disposeDB } from "./db";
-import { nearestSunday } from "../shared/week-boundaries";
 
 async function goToFillStep(page: Page): Promise<void> {
   await page.goto("/fill-session");
@@ -191,66 +182,14 @@ test.describe("Fill Session page", () => {
   });
 
   test.describe("PDF download", () => {
-    // Chrome-for-Testing may need to be downloaded on a cold CI cache miss;
-    // 120 s gives the download time to complete before the hook times out.
-    test.describe.configure({ timeout: 120_000 });
-
-    let expectedFilename: string;
-    let startDate: string;
-    let endDate: string;
-    let startDateFmt: string;
-    let endDateFmt: string;
-    let download: Download;
-    let pdfText: string;
-
-    test.beforeAll(async () => {
-      // Mirror the worker's filename computation: nearest Sunday from today
-      // in the patient's timezone (set to America/Chicago by resetState).
-      const today = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "America/Chicago",
-      }).format(new Date());
-      startDate = nearestSunday(today);
-      const d = new Date(startDate + "T00:00:00Z");
-      d.setUTCDate(d.getUTCDate() + 6);
-      endDate = d.toISOString().slice(0, 10);
-      expectedFilename = `Pillbug_Worksheet-${startDate.replace(/-/g, "_")}-${endDate.replace(/-/g, "_")}.pdf`;
-      const fmt = (iso: string) =>
-        new Date(iso + "T00:00:00Z").toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          timeZone: "UTC",
-        });
-      startDateFmt = fmt(startDate);
-      endDateFmt = fmt(endDate);
-
-      [download] = await Promise.all([
-        sharedPage.waitForEvent("download"),
-        sharedPage.getByRole("button", { name: /save as pdf/i }).click(),
-      ]);
-
-      const path = await download.path();
-      const buffer = readFileSync(path!);
-      const pdf = await getDocumentProxy(new Uint8Array(buffer));
-      ({ text: pdfText } = await extractText(pdf, { mergePages: true }));
-    });
-
-    test("'Save as PDF' button triggers a file download", async () => {
-      expect(download).toBeDefined();
-    });
-
-    test("downloaded file has the correct filename for the current week", async () => {
-      expect(download.suggestedFilename()).toBe(expectedFilename);
-    });
-
-    test("downloaded PDF contains the worksheet heading and date range", async () => {
-      expect(pdfText).toContain("Fill Session");
-      expect(pdfText).toContain(startDateFmt);
-      expect(pdfText).toContain(endDateFmt);
-    });
-
-    test("downloaded PDF contains the prescription names", async () => {
-      expect(pdfText).toContain("Metformin");
-      expect(pdfText).toContain("Lisinopril");
+    // Save PDF is temporarily disabled while insufficient-pill exclusion
+    // isn't wired into the server-side PDF route. See issue #315 for
+    // restoring it (the worker route itself is still covered directly by
+    // worker/fill-session-pdf.test.ts).
+    test("'Save as PDF' button is disabled", async () => {
+      await expect(
+        sharedPage.getByRole("button", { name: /save as pdf/i }),
+      ).toBeDisabled();
     });
   });
 });
@@ -472,7 +411,7 @@ test.describe("Fill Session: insufficient pills", () => {
     await resetState(browser, METFORMIN, LISINOPRIL);
   });
 
-  test("marking a medicine insufficient blocks that dose but leaves the rest of the session workable", async ({
+  test("marking a medicine insufficient excludes it entirely but leaves the rest of the session workable", async ({
     page,
   }) => {
     await goToFillStep(page);
@@ -481,31 +420,87 @@ test.describe("Fill Session: insufficient pills", () => {
     const metforminCard = page.getByRole("region", { name: /metformin/i });
     await metforminCard
       .getByRole("checkbox", { name: /don't have enough pills for this/i })
-      .check();
+      .click();
+
+    // Metformin is excluded entirely — it drops out of the card-by-card
+    // review, and Lisinopril becomes the only (current) card.
     await expect(
-      metforminCard.getByText(/blocked until you get a refill/i),
+      page.getByRole("region", { name: /metformin/i }),
+    ).not.toBeVisible();
+    const lisinoprilCard = page.getByRole("region", { name: /lisinopril/i });
+    await expect(lisinoprilCard).toHaveAttribute("aria-current", "true");
+    await expect(page.getByText(/medicine 1 of 1/i)).toBeVisible();
+
+    // It's still visible (with an undo control) in a "skipped" list at
+    // step 4, so the caregiver can reverse the flag without restarting.
+    await expect(page.getByText(/skipped this session/i)).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /found enough pills/i }),
     ).toBeVisible();
 
-    // The rest of the session is unaffected: the other medicine has no
-    // warning, and the session can still be completed.
-    await page.getByRole("button", { name: /next medicine/i }).click();
-    const lisinoprilCard = page.getByRole("region", { name: /lisinopril/i });
-    await expect(
-      lisinoprilCard.getByRole("checkbox", {
-        name: /don't have enough pills for this/i,
-      }),
-    ).not.toBeChecked();
-    await expect(
-      lisinoprilCard.getByText(/blocked until you get a refill/i),
-    ).not.toBeVisible();
-
+    // The session can still be completed with the remaining medicine.
     await page.getByRole("button", { name: /done filling/i }).click();
     await expect(page.getByText(/step 5 of 5/i)).toBeVisible();
 
-    // The blocked medicine is still flagged at double-check, but the
-    // session can still be confirmed overall.
-    await expect(page.getByText(/some medicines are blocked/i)).toBeVisible();
+    // Double-check shows a read-only summary of what was skipped — no
+    // Yes/No or undo controls on this screen.
+    await expect(
+      page.getByText(/some medicines were skipped this session/i),
+    ).toBeVisible();
+    await expect(page.getByText(/metformin/i)).toBeVisible();
+    await expect(page.getByRole("checkbox")).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: /found enough pills/i }),
+    ).toHaveCount(0);
+
     await page.getByRole("button", { name: /^done$/i }).click();
     await expect(page).toHaveURL(/\/prescriptions$|\/$/);
+  });
+
+  test("undoing via Back-to-step-4 restores the excluded medicine", async ({
+    page,
+  }) => {
+    await goToFillStep(page);
+    await expect(page.getByText("Metformin")).toBeVisible();
+
+    await page
+      .getByRole("region", { name: /metformin/i })
+      .getByRole("checkbox", { name: /don't have enough pills for this/i })
+      .click();
+    await page.getByRole("button", { name: /done filling/i }).click();
+    await expect(page.getByText(/step 5 of 5/i)).toBeVisible();
+
+    await page.getByRole("button", { name: /back/i }).click();
+    await expect(page).toHaveURL(/\/fill-session\/step4$/);
+    await page.getByRole("button", { name: /found enough pills/i }).click();
+
+    await expect(
+      page.getByRole("region", { name: /metformin/i }),
+    ).toBeVisible();
+    await expect(page.getByText(/skipped this session/i)).not.toBeVisible();
+  });
+
+  test("Print still includes the remaining medicine while Save PDF stays disabled", async ({
+    page,
+  }) => {
+    await goToFillStep(page);
+    await expect(page.getByText("Metformin")).toBeVisible();
+
+    await page
+      .getByRole("region", { name: /metformin/i })
+      .getByRole("checkbox", { name: /don't have enough pills for this/i })
+      .click();
+
+    await expect(
+      page.getByRole("button", { name: /save as pdf/i }),
+    ).toBeDisabled();
+
+    await page.emulateMedia({ media: "print" });
+    await expect(
+      page.getByRole("region", { name: /lisinopril/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("region", { name: /metformin/i }),
+    ).not.toBeVisible();
   });
 });

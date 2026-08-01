@@ -21,17 +21,6 @@
   color: var(--gray-30);
 }
 
-.double-check-detail-item--insufficient {
-  flex-wrap: wrap;
-}
-
-.double-check-detail-insufficient-badge {
-  flex-basis: 100%;
-  color: var(--color-error);
-  font-weight: 600;
-  font-size: var(--text-xs);
-}
-
 .double-check-grid-container {
   display: flex;
   justify-content: center;

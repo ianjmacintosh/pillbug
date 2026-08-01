@@ -166,8 +166,10 @@ const enUS = {
   "fillSession.wrapWarning": "Some columns show dates from the following week.",
   "fillSession.wrapColumnTooltip": "Date from the following week",
   "fillSession.insufficientToggle": "I don't have enough pills for this",
-  "fillSession.insufficientBanner":
-    "This dose is blocked until you get a refill. Skip it for now — you can still finish filling your other medicines.",
+  "fillSession.excludedHeading":
+    "Skipped this session — not enough pills to fill",
+  "fillSession.undoExclude": "I found enough pills",
+  "fillSession.savePdfDisabledNote": "Save PDF is temporarily unavailable",
   "fillSessionWizard.stepIndicator": "Step {{step}} of {{totalSteps}}",
   "fillSessionWizard.continueButton": "Continue",
   "fillSessionWizard.disclaimer.heading": "Before you begin",
@@ -197,8 +199,7 @@ const enUS = {
   "fillSessionWizard.doubleCheck.noMedicines":
     "No medicines in this compartment",
   "fillSessionWizard.doubleCheck.insufficientHeading":
-    "Some medicines are blocked — not enough pills to fill",
-  "fillSessionWizard.doubleCheck.insufficientBadge": "Not enough pills",
+    "Some medicines were skipped this session — not enough pills to fill",
   "register.heading": "All your medicine in order",
   "register.intro":
     "Manage your prescriptions and get step-by-step guidance filling your pill organizer.",

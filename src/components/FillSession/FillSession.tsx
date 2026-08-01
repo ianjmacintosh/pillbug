@@ -35,7 +35,7 @@ export interface FillSessionSnapshot {
   columnDates: ReturnType<typeof sessionDates>;
   startDateFmt: string;
   endDateFmt: string;
-  insufficientCardKeys: string[];
+  excludedCards: ReturnType<typeof groupByMedicine>;
 }
 
 interface FillSessionProps {
@@ -46,6 +46,11 @@ interface FillSessionProps {
 }
 
 const Route = getRouteApi("/layout/fill-session");
+
+// Save PDF is temporarily disabled: the server-side PDF route doesn't know
+// which medicines were excluded client-side for insufficient pills. Flip
+// this back to true once #315 wires exclusion into the PDF route.
+const SAVE_PDF_ENABLED = false;
 
 function FillSession({
   compartments,
@@ -83,10 +88,20 @@ function FillSession({
   }, [compartments]);
 
   const cards = groupByMedicine(prescriptions, compartments);
+  const activeCards = cards.filter(
+    (card) => !insufficientCardKeys.has(medicineCardKey(card)),
+  );
+  const excludedCards = cards.filter((card) =>
+    insufficientCardKeys.has(medicineCardKey(card)),
+  );
+
+  useEffect(() => {
+    setCurrentIndex((i) => Math.min(i, Math.max(0, activeCards.length - 1)));
+  }, [activeCards.length]);
 
   const goToPrevMedicine = () => setCurrentIndex((i) => Math.max(0, i - 1));
   const goToNextMedicine = () =>
-    setCurrentIndex((i) => Math.min(cards.length - 1, i + 1));
+    setCurrentIndex((i) => Math.min(activeCards.length - 1, i + 1));
 
   const handleSavePdf = async () => {
     setPdfLoading(true);
@@ -123,12 +138,12 @@ function FillSession({
 
   const handleDone = () => {
     onDone?.({
-      cards,
+      cards: activeCards,
       compartments,
       columnDates: sessionDatesMap,
       startDateFmt,
       endDateFmt,
-      insufficientCardKeys: Array.from(insufficientCardKeys),
+      excludedCards,
     });
   };
 
@@ -183,12 +198,12 @@ function FillSession({
         </p>
       )}
 
-      {prescriptions.length === 0 ? (
+      {cards.length === 0 ? (
         <p>{t("fillSession.noPrescriptions")}</p>
       ) : (
         <>
           <div className="fill-session-cards">
-            {cards.map((card, index) => {
+            {activeCards.map((card, index) => {
               const cardKey = medicineCardKey(card);
               return (
                 <MedicineCard
@@ -197,29 +212,78 @@ function FillSession({
                   compartments={compartments}
                   columnDates={sessionDatesMap}
                   isCurrent={index === currentIndex}
-                  isInsufficient={insufficientCardKeys.has(cardKey)}
-                  onToggleInsufficient={() => toggleInsufficient(cardKey)}
+                  onFlagInsufficient={() => toggleInsufficient(cardKey)}
                 />
               );
             })}
           </div>
-          <div className="fill-session-medicine-nav screen-only">
-            <Button
-              type="button"
-              className="button-secondary button-leading-icon"
-              onClick={goToPrevMedicine}
-              disabled={currentIndex === 0}
-            >
-              <ChevronLeft size={18} aria-hidden="true" />
-              {t("fillSession.prevMedicine")}
-            </Button>
-            <span className="fill-session-medicine-nav-counter">
-              {t("fillSession.medicineIndicator", {
-                current: currentIndex + 1,
-                total: cards.length,
-              })}
-            </span>
-            {currentIndex === cards.length - 1 ? (
+
+          {excludedCards.length > 0 && (
+            <div className="fill-session-excluded screen-only">
+              <p className="fill-session-excluded-heading" role="status">
+                ⚠ {t("fillSession.excludedHeading")}
+              </p>
+              <ul className="fill-session-excluded-list">
+                {excludedCards.map((card) => {
+                  const cardKey = medicineCardKey(card);
+                  return (
+                    <li key={cardKey} className="fill-session-excluded-item">
+                      <span className="fill-session-excluded-name">
+                        {card.drugName} {card.dosage}
+                      </span>
+                      <Button
+                        type="button"
+                        className="button-secondary"
+                        onClick={() => toggleInsufficient(cardKey)}
+                      >
+                        {t("fillSession.undoExclude")}
+                      </Button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+
+          {activeCards.length > 0 ? (
+            <div className="fill-session-medicine-nav screen-only">
+              <Button
+                type="button"
+                className="button-secondary button-leading-icon"
+                onClick={goToPrevMedicine}
+                disabled={currentIndex === 0}
+              >
+                <ChevronLeft size={18} aria-hidden="true" />
+                {t("fillSession.prevMedicine")}
+              </Button>
+              <span className="fill-session-medicine-nav-counter">
+                {t("fillSession.medicineIndicator", {
+                  current: currentIndex + 1,
+                  total: activeCards.length,
+                })}
+              </span>
+              {currentIndex === activeCards.length - 1 ? (
+                <Button
+                  type="button"
+                  onClick={handleDone}
+                  className="button-primary button-leading-icon"
+                >
+                  <Check size={18} aria-hidden="true" />
+                  {t("fillSession.doneButton")}
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={goToNextMedicine}
+                  className="button-primary button-trailing-icon"
+                >
+                  {t("fillSession.nextMedicine")}
+                  <ChevronRight size={18} aria-hidden="true" />
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="fill-session-medicine-nav screen-only">
               <Button
                 type="button"
                 onClick={handleDone}
@@ -228,17 +292,8 @@ function FillSession({
                 <Check size={18} aria-hidden="true" />
                 {t("fillSession.doneButton")}
               </Button>
-            ) : (
-              <Button
-                type="button"
-                onClick={goToNextMedicine}
-                className="button-primary button-trailing-icon"
-              >
-                {t("fillSession.nextMedicine")}
-                <ChevronRight size={18} aria-hidden="true" />
-              </Button>
-            )}
-          </div>
+            </div>
+          )}
         </>
       )}
       <div className="fill-session-actions screen-only">
@@ -254,7 +309,10 @@ function FillSession({
           type="button"
           className="button-secondary button-leading-icon"
           onClick={handleSavePdf}
-          disabled={pdfLoading}
+          disabled={!SAVE_PDF_ENABLED || pdfLoading}
+          title={
+            SAVE_PDF_ENABLED ? undefined : t("fillSession.savePdfDisabledNote")
+          }
         >
           <FileDown size={18} aria-hidden="true" />
           {t("fillSession.savePdfButton")}

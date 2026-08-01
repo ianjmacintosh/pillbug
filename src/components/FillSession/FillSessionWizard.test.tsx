@@ -244,7 +244,7 @@ describe("FillSessionWizard", () => {
     expect(mockNavigate).toHaveBeenCalledWith({ to: "/" });
   });
 
-  test("a medicine marked insufficient on the fill step is flagged on double-check, and the session can still be confirmed", async () => {
+  test("a medicine marked insufficient on the fill step is excluded from double-check as a read-only summary, and the session can still be confirmed", async () => {
     mockPrescriptions(METFORMIN, LISINOPRIL);
     const user = await advanceToFillStep();
     await waitFor(() => screen.getByText("Metformin"));
@@ -257,14 +257,25 @@ describe("FillSessionWizard", () => {
         },
       ),
     );
-    await user.click(screen.getByRole("button", { name: /next medicine/i }));
+    // Metformin drops out of the review deck — Lisinopril is now the only
+    // (and current) card, so "Done filling" is reachable directly.
+    expect(
+      screen.queryByRole("region", { name: /metformin/i }),
+    ).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /done filling/i }));
 
     expect(screen.getByText(/double-check/i)).toBeInTheDocument();
-    expect(screen.getByText(/some medicines are blocked/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/some medicines were skipped this session/i),
+    ).toBeInTheDocument();
     expect(screen.getAllByText(/metformin/i).length).toBeGreaterThan(0);
+    // Read-only: no Yes/No or undo controls on the double-check summary.
+    expect(
+      screen.queryByRole("button", { name: /found enough pills/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryAllByRole("checkbox").length).toBe(0);
 
-    // The overall session can still be confirmed even with a blocked dose.
+    // The overall session can still be confirmed even with a skipped medicine.
     await user.click(screen.getByRole("button", { name: /^done$/i }));
     expect(mockNavigate).toHaveBeenCalledWith({ to: "/" });
   });
