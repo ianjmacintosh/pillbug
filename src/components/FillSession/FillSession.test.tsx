@@ -438,9 +438,10 @@ describe("FillSession", () => {
       // Exclude the middle medicine (Lisinopril). Current should remain on
       // Metformin, the card the user started on.
       await user.click(
-        within(
-          screen.getByRole("region", { name: /lisinopril/i }),
-        ).getByRole("checkbox", { name: /don't have enough pills for this/i }),
+        within(screen.getByRole("region", { name: /lisinopril/i })).getByRole(
+          "checkbox",
+          { name: /don't have enough pills for this/i },
+        ),
       );
       expect(
         screen.getByRole("region", { name: /metformin/i }),

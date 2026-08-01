@@ -113,7 +113,9 @@ function FillSession({
         return;
       }
     }
-    setCurrentIndex(Math.min(currentIndex, Math.max(0, activeCards.length - 1)));
+    setCurrentIndex(
+      Math.min(currentIndex, Math.max(0, activeCards.length - 1)),
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeCards.length]);
 
