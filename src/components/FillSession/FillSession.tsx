@@ -96,12 +96,31 @@ function FillSession({
   );
 
   const prevActiveCardsRef = useRef<typeof activeCards>([]);
+  // Tracks medicine keys that were the *current* card at the moment they
+  // were flagged insufficient, so that undoing that specific exclusion can
+  // bring focus back to it. Without this, undo always re-pins "current" to
+  // whatever card the caregiver was already viewing (see the drift-fix
+  // regression test below), which silently hides the medicine they just
+  // said they now have enough pills for.
+  const currentAtExclusionRef = useRef<Set<string>>(new Set());
+  const focusKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     // Read the ref synchronously here rather than inside a setCurrentIndex
     // updater: updater callbacks run lazily, by which time the sibling ref
     // effect below may have already overwritten prevActiveCardsRef with the
     // new activeCards, making "previous" and "current" indistinguishable.
+    if (focusKeyRef.current) {
+      const key = focusKeyRef.current;
+      focusKeyRef.current = null;
+      const newIndex = activeCards.findIndex(
+        (card) => medicineCardKey(card) === key,
+      );
+      if (newIndex !== -1) {
+        setCurrentIndex(newIndex);
+        return;
+      }
+    }
     const prevCard = prevActiveCardsRef.current[currentIndex];
     if (prevCard) {
       const key = medicineCardKey(prevCard);
@@ -153,8 +172,15 @@ function FillSession({
       const next = new Set(prev);
       if (next.has(cardKey)) {
         next.delete(cardKey);
+        if (currentAtExclusionRef.current.delete(cardKey)) {
+          focusKeyRef.current = cardKey;
+        }
       } else {
         next.add(cardKey);
+        const currentCard = activeCards[currentIndex];
+        if (currentCard && medicineCardKey(currentCard) === cardKey) {
+          currentAtExclusionRef.current.add(cardKey);
+        }
       }
       return next;
     });
