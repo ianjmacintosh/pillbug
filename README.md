@@ -122,7 +122,7 @@ Two named environments are configured in `wrangler.jsonc`. Always deploy with an
 | Environment  | URL                                 | Command                     |
 | ------------ | ----------------------------------- | --------------------------- |
 | `production` | `pillbug.ianjmacintosh.com`         | `npm run deploy:production` |
-| `staging`    | `staging.pillbug.ianjmacintosh.com` | `npm run deploy:staging`    |
+| `staging`    | `pillbug-staging.ianjmacintosh.com` | `npm run deploy:staging`    |
 
 Each deploy script applies pending D1 migrations before uploading the Worker.
 
@@ -144,3 +144,22 @@ Cloudflare build settings use `deploy:preview` for non-production branch deploym
 ```bash
 npm run deploy:preview
 ```
+
+### Logging into staging or a preview deploy
+
+The `staging` environment sets `EMAIL_MOCK: "true"` in `wrangler.jsonc`, so login/verification emails are never actually sent there — the Worker silently no-ops instead of calling Resend. Since PR preview deployments are versioned uploads of the `staging` environment (see above), the same applies to them: there is no email to click.
+
+To get a working login link without email, use:
+
+```bash
+npm run dev:login -- --env staging
+```
+
+This calls `POST /api/v1/login` against `https://pillbug-staging.ianjmacintosh.com`, then writes a known PIN (`1234`) directly onto the resulting token in the shared `pillbug-staging` D1 database via `wrangler d1 execute --remote`, and prints a ready-to-use link:
+
+```
+https://pillbug-staging.ianjmacintosh.com/enter-code?token=<token>
+PIN: 1234
+```
+
+To use this against a specific PR preview URL instead of the shared staging domain, swap the host in the printed link for the preview URL — both share the same `pillbug-staging` D1 database, so the token is valid on either. Requires `PIN_SECRET` to be set in your local `.env` (see `.env.EXAMPLE`).

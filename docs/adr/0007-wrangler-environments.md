@@ -23,7 +23,7 @@ Per Cloudflare docs, `workers_dev` is set per environment. Staging has `workers_
 | Environment  | Worker name          | URL                                 | D1 database       |
 | ------------ | -------------------- | ----------------------------------- | ----------------- |
 | `production` | `pillbug-production` | `pillbug.ianjmacintosh.com`         | `pillbug`         |
-| `staging`    | `pillbug-staging`    | `staging.pillbug.ianjmacintosh.com` | `pillbug-staging` |
+| `staging`    | `pillbug-staging`    | `pillbug-staging.ianjmacintosh.com` | `pillbug-staging` |
 
 ## Considered Options
 
