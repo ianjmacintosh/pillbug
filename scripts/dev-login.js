@@ -35,7 +35,7 @@ if (!process.env.PIN_SECRET) {
 }
 const pinHash = await hashPin(TEST_PIN, process.env.PIN_SECRET);
 
-execFileSync(
+const updateOutput = execFileSync(
   "wrangler",
   [
     "d1",
@@ -43,10 +43,17 @@ execFileSync(
     "pillbug-staging",
     ...d1Flags,
     "--command",
-    `UPDATE magic_link_tokens SET pin_hash = '${pinHash}' WHERE token = '${token}'`,
+    `UPDATE magic_link_tokens SET pin_hash = '${pinHash}' WHERE token = '${token}' RETURNING patient_id`,
+    "--json",
   ],
   { encoding: "utf8" },
 );
+const [{ results }] = JSON.parse(updateOutput);
+if (!results[0]?.patient_id) {
+  throw new Error(
+    `No account exists for ${EMAIL} in this environment. The server returned a decoy token (intentional anti-enumeration behavior, not a bug) because no patient matches that email. Register the account first — e.g. 'npm run dev:login' seeds test accounts automatically, or POST ${baseUrl}/api/v1/register directly.`,
+  );
+}
 
 console.log(`${baseUrl}/enter-code?token=${token}`);
 console.log(`PIN: ${TEST_PIN}`);
