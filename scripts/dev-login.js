@@ -10,7 +10,7 @@ const env = process.argv.includes("--env")
 
 const isStaging = env === "staging";
 const baseUrl = isStaging
-  ? "https://staging.pillbug.ianjmacintosh.com"
+  ? "https://pillbug-staging.ianjmacintosh.com"
   : "http://localhost:5173";
 const d1Flags = isStaging
   ? ["--env", "staging", "--remote"]
