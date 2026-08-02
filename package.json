@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node scripts/check-migrations.js && CLOUDFLARE_ENV=staging vite --host",
     "dev:wrangler": "wrangler dev --config wrangler.jsonc --env staging --ip 0.0.0.0",
-    "dev:login": "node --env-file=.env scripts/seed-test-accounts.js && node --env-file=.env scripts/dev-login.js",
+    "dev:login": "node --env-file=.env scripts/seed-test-accounts.js \"$@\" && node --env-file=.env scripts/dev-login.js \"$@\"",
     "db:migrate:local": "wrangler d1 migrations apply pillbug-staging --env staging --local",
     "db:migrate:debug": "node scripts/debug-migration.js",
     "db:seed:local": "node --env-file-if-exists=.env scripts/seed-test-accounts.js",
