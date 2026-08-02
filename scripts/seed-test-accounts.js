@@ -8,38 +8,77 @@ const TEST_ACCOUNTS = [
   "delivered+e2e-prescriptions@resend.dev",
 ];
 
-if (!process.env.EMAIL_SECRET) {
-  throw new Error("EMAIL_SECRET must be set in your environment");
+const isStaging =
+  process.argv.includes("--env") &&
+  process.argv[process.argv.indexOf("--env") + 1] === "staging";
+
+if (isStaging) {
+  await seedRemote();
+} else {
+  await seedLocal();
 }
 
-const { env, dispose } = await getPlatformProxy({ environment: "staging" });
-
-try {
+// Registers through the real deployed Worker instead of writing to D1
+// directly. The Worker hashes/encrypts with its own live secrets, so this
+// never runs into the local-vs-deployed EMAIL_SECRET mismatch that a
+// direct D1 insert (computed with a local secret) would risk. Safe to
+// call repeatedly — registerPatient finds the existing patient and just
+// issues a fresh token instead of erroring or duplicating the account.
+async function seedRemote() {
+  const baseUrl = "https://pillbug-staging.ianjmacintosh.com";
   for (const email of TEST_ACCOUNTS) {
-    const emailLookup = await hashEmail(email, process.env.EMAIL_SECRET);
-    const existing = await env.DB.prepare(
-      "SELECT id FROM patients WHERE email_lookup = ?",
-    )
-      .bind(emailLookup)
-      .first();
-
-    if (existing) {
-      console.log(`Already exists: ${email}`);
-      continue;
+    const response = await fetch(`${baseUrl}/api/v1/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, turnstileToken: "XXXX.DUMMY.TOKEN.XXXX" }),
+    });
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(
+        `POST /api/v1/register failed for ${email}: ${response.status} ${body}`,
+      );
     }
-
-    const emailEncrypted = await encryptEmail(email, process.env.EMAIL_SECRET);
-    const now = new Date().toISOString();
-    await env.DB.prepare(
-      "INSERT INTO patients (id, email_lookup, email_encrypted, terms_accepted_at, created_at) VALUES (?, ?, ?, ?, ?)",
-    )
-      .bind(randomUUID(), emailLookup, emailEncrypted, now, now)
-      .run();
-
-    console.log(`Created: ${email}`);
+    console.log(`Registered (or already existed) on staging: ${email}`);
   }
-} finally {
-  await dispose();
+}
+
+async function seedLocal() {
+  if (!process.env.EMAIL_SECRET) {
+    throw new Error("EMAIL_SECRET must be set in your environment");
+  }
+
+  const { env, dispose } = await getPlatformProxy({ environment: "staging" });
+
+  try {
+    for (const email of TEST_ACCOUNTS) {
+      const emailLookup = await hashEmail(email, process.env.EMAIL_SECRET);
+      const existing = await env.DB.prepare(
+        "SELECT id FROM patients WHERE email_lookup = ?",
+      )
+        .bind(emailLookup)
+        .first();
+
+      if (existing) {
+        console.log(`Already exists: ${email}`);
+        continue;
+      }
+
+      const emailEncrypted = await encryptEmail(
+        email,
+        process.env.EMAIL_SECRET,
+      );
+      const now = new Date().toISOString();
+      await env.DB.prepare(
+        "INSERT INTO patients (id, email_lookup, email_encrypted, terms_accepted_at, created_at) VALUES (?, ?, ?, ?, ?)",
+      )
+        .bind(randomUUID(), emailLookup, emailEncrypted, now, now)
+        .run();
+
+      console.log(`Created: ${email}`);
+    }
+  } finally {
+    await dispose();
+  }
 }
 
 // Inline implementations matching worker/email-crypto.ts
