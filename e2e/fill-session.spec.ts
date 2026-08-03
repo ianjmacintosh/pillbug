@@ -307,9 +307,7 @@ test.describe("Fill Session wizard", () => {
     await expect(
       page.getByRole("combobox", { name: /pill organizer/i }),
     ).toHaveValue("1");
-    const organizerStepDate = await page
-      .getByLabel(/start date/i)
-      .inputValue();
+    const organizerStepDate = await page.getByLabel(/start date/i).inputValue();
     await page.getByRole("button", { name: /continue/i }).click();
 
     await expect(page).toHaveURL(/\/fill-session\/step4$/);
@@ -330,9 +328,7 @@ test.describe("Fill Session wizard", () => {
     await expect(page.getByText(/step 5 of 6/i)).toBeVisible();
     await expect(page.getByText("Metformin")).toBeVisible();
     // The Fill step's date carries forward from Pill Organizer's date field.
-    await expect(page.getByLabel(/start date/i)).toHaveValue(
-      organizerStepDate,
-    );
+    await expect(page.getByLabel(/start date/i)).toHaveValue(organizerStepDate);
     await page.getByRole("button", { name: /done filling/i }).click();
 
     await expect(page).toHaveURL(/\/fill-session\/step6$/);

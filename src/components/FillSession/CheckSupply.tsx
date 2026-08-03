@@ -108,7 +108,10 @@ export function CheckSupply({
                     {t("doseForm.pill", { count: card.weeklyTotal })}
                   </span>
                   {!isChecked && (
-                    <span className="check-supply-row-excluded-note" role="status">
+                    <span
+                      className="check-supply-row-excluded-note"
+                      role="status"
+                    >
                       <TriangleAlert size={14} aria-hidden="true" />
                       {t("fillSessionWizard.checkSupply.excludedNote")}
                     </span>
