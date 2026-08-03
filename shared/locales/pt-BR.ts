@@ -197,8 +197,10 @@ const ptBR = {
   "fillSessionWizard.pillOrganizer.description":
     "Escolha o organizador que corresponde à sua rotina de doses. Sua planilha semanal será organizada de acordo.",
   "fillSessionWizard.checkSupply.heading": "Confira seu estoque",
-  "fillSessionWizard.checkSupply.description":
-    "Confirme que você tem o suficiente de cada medicamento para {{startDate}} – {{endDate}} (7 dias). Desmarque o que estiver em falta — será pulado nesta sessão.",
+  "fillSessionWizard.checkSupply.descriptionPrefix":
+    "Confirme que você tem o suficiente de cada medicamento para",
+  "fillSessionWizard.checkSupply.descriptionSuffix":
+    "(7 dias). Desmarque o que estiver em falta — será pulado nesta sessão.",
   "fillSessionWizard.checkSupply.excludedNote":
     "Pulado nesta sessão — comprimidos insuficientes para separar",
   "fillSessionWizard.doubleCheck.heading": "Confira tudo",

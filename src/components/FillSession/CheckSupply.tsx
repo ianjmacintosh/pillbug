@@ -74,10 +74,11 @@ export function CheckSupply({
     <section className="fill-session-wizard-step">
       <h1>{t("fillSessionWizard.checkSupply.heading")}</h1>
       <p>
-        {t("fillSessionWizard.checkSupply.description", {
-          startDate: startDateFmt,
-          endDate: endDateFmt,
-        })}
+        {t("fillSessionWizard.checkSupply.descriptionPrefix")}{" "}
+        <strong>
+          {startDateFmt} – {endDateFmt}
+        </strong>{" "}
+        {t("fillSessionWizard.checkSupply.descriptionSuffix")}
       </p>
       <ul className="check-supply-list">
         {cards.map((card) => {

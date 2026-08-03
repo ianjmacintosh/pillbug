@@ -191,8 +191,10 @@ const enUS = {
   "fillSessionWizard.pillOrganizer.description":
     "Pick the organizer that matches your dosing schedule. Your weekly worksheet will be laid out to match.",
   "fillSessionWizard.checkSupply.heading": "Check your supply",
-  "fillSessionWizard.checkSupply.description":
-    "Confirm you have enough of each medicine for {{startDate}} – {{endDate}} (7 days). Uncheck anything you're short on — it'll be skipped this session.",
+  "fillSessionWizard.checkSupply.descriptionPrefix":
+    "Confirm you have enough of each medicine for",
+  "fillSessionWizard.checkSupply.descriptionSuffix":
+    "(7 days). Uncheck anything you're short on — it'll be skipped this session.",
   "fillSessionWizard.checkSupply.excludedNote":
     "Skipped this session — not enough pills to fill",
   "fillSessionWizard.doubleCheck.heading": "Double-check",
