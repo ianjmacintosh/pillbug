@@ -154,8 +154,12 @@ const enUS = {
   "fillSession.organizerOption.mornNoonNight": "7-day Morn/Noon/Night",
   "fillSession.organizerOption.mornNoonEveNight": "7-day Morn/Noon/Eve/Bed",
   "fillSession.noPrescriptions": "No active prescriptions.",
+  "fillSession.allExcluded":
+    "Every medicine was skipped this session on the previous step.",
   "fillSession.printButton": "Print Worksheet",
   "fillSession.savePdfButton": "Save as PDF",
+  "fillSession.savePdfDisabledReason":
+    "Save as PDF is temporarily unavailable. Use Print Worksheet instead.",
   "fillSession.doneButton": "Done filling",
   "fillSession.prevWeek": "Previous week",
   "fillSession.nextWeek": "Next week",
@@ -186,6 +190,11 @@ const enUS = {
   "fillSessionWizard.pillOrganizer.heading": "Choose your pill organizer",
   "fillSessionWizard.pillOrganizer.description":
     "Pick the organizer that matches your dosing schedule. Your weekly worksheet will be laid out to match.",
+  "fillSessionWizard.checkSupply.heading": "Check your supply",
+  "fillSessionWizard.checkSupply.description":
+    "Confirm you have enough of each medicine for {{startDate}} – {{endDate}} (7 days). Uncheck anything you're short on — it'll be skipped this session.",
+  "fillSessionWizard.checkSupply.excludedNote":
+    "Skipped this session — not enough pills to fill",
   "fillSessionWizard.doubleCheck.heading": "Double-check",
   "fillSessionWizard.doubleCheck.intro":
     "Before closing the organizer, confirm everything is in place — ideally with a trusted person.",
@@ -193,6 +202,8 @@ const enUS = {
   "fillSessionWizard.doubleCheck.confirmButton": "Done",
   "fillSessionWizard.doubleCheck.noMedicines":
     "No medicines in this compartment",
+  "fillSessionWizard.doubleCheck.excludedHeading":
+    "Skipped this session — not enough pills to fill",
   "register.heading": "All your medicine in order",
   "register.intro":
     "Manage your prescriptions and get step-by-step guidance filling your pill organizer.",

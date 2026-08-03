@@ -15,7 +15,7 @@ interface DoubleCheckProps {
 
 export function DoubleCheck({ snapshot, onBack, onConfirm }: DoubleCheckProps) {
   const { t, i18n } = useTranslation();
-  const { cards, compartments, columnDates } = snapshot;
+  const { cards, compartments, columnDates, excludedMedicines = [] } = snapshot;
   const [expandedCell, setExpandedCell] = useState<string | null>(null);
 
   // Build compartment grid: for each compartment and day, sum all medicines
@@ -72,6 +72,21 @@ export function DoubleCheck({ snapshot, onBack, onConfirm }: DoubleCheckProps) {
     <section className="fill-session-wizard-step">
       <h1>{t("fillSessionWizard.doubleCheck.heading")}</h1>
       <p>{t("fillSessionWizard.doubleCheck.intro")}</p>
+
+      {excludedMedicines.length > 0 && (
+        <div className="double-check-excluded">
+          <h2 className="double-check-excluded-heading">
+            {t("fillSessionWizard.doubleCheck.excludedHeading")}
+          </h2>
+          <ul className="double-check-excluded-list">
+            {excludedMedicines.map((med) => (
+              <li key={`${med.drugName}-${med.dosage}`}>
+                {med.drugName} {med.dosage}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="double-check-grid-container">
         <div

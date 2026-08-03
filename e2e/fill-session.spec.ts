@@ -1,25 +1,21 @@
-import {
-  expect,
-  test,
-  type Browser,
-  type Download,
-  type Page,
-} from "@playwright/test";
+import { expect, test, type Browser, type Page } from "@playwright/test";
 
-import { readFileSync } from "node:fs";
-import { extractText, getDocumentProxy } from "unpdf";
 import { hashEmail } from "../worker/email-crypto";
 import {
   PRESCRIPTIONS_PATIENT_EMAIL,
   PRESCRIPTIONS_PATIENT_AUTH_FILE,
 } from "./test-accounts";
 import { getDB, disposeDB } from "./db";
-import { nearestSunday } from "../shared/week-boundaries";
 
-async function goToFillStep(page: Page): Promise<void> {
+async function goToCheckSupplyStep(page: Page): Promise<void> {
   await page.goto("/fill-session");
   await page.getByRole("button", { name: /continue/i }).click();
   await page.getByRole("button", { name: /i'm ready/i }).click();
+  await page.getByRole("button", { name: /continue/i }).click();
+}
+
+async function goToFillStep(page: Page): Promise<void> {
+  await goToCheckSupplyStep(page);
   await page.getByRole("button", { name: /continue/i }).click();
 }
 
@@ -190,68 +186,10 @@ test.describe("Fill Session page", () => {
     });
   });
 
-  test.describe("PDF download", () => {
-    // Chrome-for-Testing may need to be downloaded on a cold CI cache miss;
-    // 120 s gives the download time to complete before the hook times out.
-    test.describe.configure({ timeout: 120_000 });
-
-    let expectedFilename: string;
-    let startDate: string;
-    let endDate: string;
-    let startDateFmt: string;
-    let endDateFmt: string;
-    let download: Download;
-    let pdfText: string;
-
-    test.beforeAll(async () => {
-      // Mirror the worker's filename computation: nearest Sunday from today
-      // in the patient's timezone (set to America/Chicago by resetState).
-      const today = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "America/Chicago",
-      }).format(new Date());
-      startDate = nearestSunday(today);
-      const d = new Date(startDate + "T00:00:00Z");
-      d.setUTCDate(d.getUTCDate() + 6);
-      endDate = d.toISOString().slice(0, 10);
-      expectedFilename = `Pillbug_Worksheet-${startDate.replace(/-/g, "_")}-${endDate.replace(/-/g, "_")}.pdf`;
-      const fmt = (iso: string) =>
-        new Date(iso + "T00:00:00Z").toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          timeZone: "UTC",
-        });
-      startDateFmt = fmt(startDate);
-      endDateFmt = fmt(endDate);
-
-      [download] = await Promise.all([
-        sharedPage.waitForEvent("download"),
-        sharedPage.getByRole("button", { name: /save as pdf/i }).click(),
-      ]);
-
-      const path = await download.path();
-      const buffer = readFileSync(path!);
-      const pdf = await getDocumentProxy(new Uint8Array(buffer));
-      ({ text: pdfText } = await extractText(pdf, { mergePages: true }));
-    });
-
-    test("'Save as PDF' button triggers a file download", async () => {
-      expect(download).toBeDefined();
-    });
-
-    test("downloaded file has the correct filename for the current week", async () => {
-      expect(download.suggestedFilename()).toBe(expectedFilename);
-    });
-
-    test("downloaded PDF contains the worksheet heading and date range", async () => {
-      expect(pdfText).toContain("Fill Session");
-      expect(pdfText).toContain(startDateFmt);
-      expect(pdfText).toContain(endDateFmt);
-    });
-
-    test("downloaded PDF contains the prescription names", async () => {
-      expect(pdfText).toContain("Metformin");
-      expect(pdfText).toContain("Lisinopril");
-    });
+  test("'Save as PDF' is temporarily disabled", async () => {
+    await expect(
+      sharedPage.getByRole("button", { name: /save as pdf/i }),
+    ).toBeDisabled();
   });
 });
 
@@ -345,39 +283,60 @@ test.describe("Fill Session wizard", () => {
     await resetState(browser, METFORMIN);
   });
 
-  test("completes all five steps in order: disclaimer, setup, pill organizer, fill, double-check", async ({
+  test("completes all six steps in order: disclaimer, setup, pill organizer, check your supply, fill, double-check", async ({
     page,
   }) => {
     await page.goto("/fill-session");
     await expect(page).toHaveURL(/\/fill-session\/step1$/);
 
-    await expect(page.getByText(/step 1 of 5/i)).toBeVisible();
+    await expect(page.getByText(/step 1 of 6/i)).toBeVisible();
     await expect(
       page.getByRole("heading", { name: /before you begin/i }),
     ).toBeVisible();
     await page.getByRole("button", { name: /continue/i }).click();
 
     await expect(page).toHaveURL(/\/fill-session\/step2$/);
-    await expect(page.getByText(/step 2 of 5/i)).toBeVisible();
+    await expect(page.getByText(/step 2 of 6/i)).toBeVisible();
     await expect(
       page.getByRole("heading", { name: /get set up/i }),
     ).toBeVisible();
     await page.getByRole("button", { name: /i'm ready/i }).click();
 
     await expect(page).toHaveURL(/\/fill-session\/step3$/);
-    await expect(page.getByText(/step 3 of 5/i)).toBeVisible();
+    await expect(page.getByText(/step 3 of 6/i)).toBeVisible();
     await expect(
       page.getByRole("combobox", { name: /pill organizer/i }),
     ).toHaveValue("1");
+    const organizerStepDate = await page
+      .getByLabel(/start date/i)
+      .inputValue();
     await page.getByRole("button", { name: /continue/i }).click();
 
     await expect(page).toHaveURL(/\/fill-session\/step4$/);
-    await expect(page.getByText(/step 4 of 5/i)).toBeVisible();
+    await expect(page.getByText(/step 4 of 6/i)).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /check your supply/i }),
+    ).toBeVisible();
     await expect(page.getByText("Metformin")).toBeVisible();
-    await page.getByRole("button", { name: /done filling/i }).click();
+    await expect(
+      page.getByRole("checkbox", { name: /metformin/i }),
+    ).toBeChecked();
+    // Check-your-supply's intro references the real session dates set on
+    // Pill Organizer, not a placeholder — same date the Fill step will use.
+    await expect(page.getByText(/\w{3} \d+ . \w{3} \d+/)).toBeVisible();
+    await page.getByRole("button", { name: /continue/i }).click();
 
     await expect(page).toHaveURL(/\/fill-session\/step5$/);
-    await expect(page.getByText(/step 5 of 5/i)).toBeVisible();
+    await expect(page.getByText(/step 5 of 6/i)).toBeVisible();
+    await expect(page.getByText("Metformin")).toBeVisible();
+    // The Fill step's date carries forward from Pill Organizer's date field.
+    await expect(page.getByLabel(/start date/i)).toHaveValue(
+      organizerStepDate,
+    );
+    await page.getByRole("button", { name: /done filling/i }).click();
+
+    await expect(page).toHaveURL(/\/fill-session\/step6$/);
+    await expect(page.getByText(/step 6 of 6/i)).toBeVisible();
     await expect(
       page.getByRole("heading", { name: /double-check/i }),
     ).toBeVisible();
@@ -398,6 +357,23 @@ test.describe("Fill Session wizard", () => {
     await expect(page).toHaveURL(/\/prescriptions$/);
   });
 
+  test("changing the date on Pill Organizer carries through to Check-your-supply's copy and the Fill step", async ({
+    page,
+  }) => {
+    await page.goto("/fill-session");
+    await page.getByRole("button", { name: /continue/i }).click();
+    await page.getByRole("button", { name: /i'm ready/i }).click();
+
+    await page.getByLabel(/start date/i).fill("2026-08-02");
+    await page.getByRole("button", { name: /continue/i }).click(); // step3 -> step4
+
+    await expect(page.getByText("Metformin")).toBeVisible();
+    await expect(page.getByText(/Aug 2.*Aug 8/)).toBeVisible();
+
+    await page.getByRole("button", { name: /continue/i }).click(); // step4 -> step5
+    await expect(page.getByLabel(/start date/i)).toHaveValue("2026-08-02");
+  });
+
   test("choosing a 2-compartment organizer shows AM/PM slots on the fill step", async ({
     page,
   }) => {
@@ -408,6 +384,8 @@ test.describe("Fill Session wizard", () => {
     await page
       .getByRole("combobox", { name: /pill organizer/i })
       .selectOption("2");
+    await page.getByRole("button", { name: /continue/i }).click();
+    await expect(page.getByText("Metformin")).toBeVisible();
     await page.getByRole("button", { name: /continue/i }).click();
 
     const openCard = page.getByRole("region", { name: /metformin/i });
@@ -420,23 +398,23 @@ test.describe("Fill Session wizard", () => {
     await expect(page.getByText("Metformin")).toBeVisible();
     await page.getByRole("button", { name: /done filling/i }).click();
 
-    await expect(page.getByText(/step 5 of 5/i)).toBeVisible();
+    await expect(page.getByText(/step 6 of 6/i)).toBeVisible();
     await page.getByRole("button", { name: /back/i }).click();
 
-    await expect(page).toHaveURL(/\/fill-session\/step4$/);
-    await expect(page.getByText(/step 4 of 5/i)).toBeVisible();
+    await expect(page).toHaveURL(/\/fill-session\/step5$/);
+    await expect(page.getByText(/step 5 of 6/i)).toBeVisible();
     await expect(
       page.getByRole("button", { name: /done filling/i }),
     ).toBeVisible();
   });
 
-  test("navigating directly to /fill-session/step5 with no data redirects to step 4", async ({
+  test("navigating directly to /fill-session/step6 with no data redirects to step 5", async ({
     page,
   }) => {
-    await page.goto("/fill-session/step5");
+    await page.goto("/fill-session/step6");
 
-    await expect(page).toHaveURL(/\/fill-session\/step4$/);
-    await expect(page.getByText(/step 4 of 5/i)).toBeVisible();
+    await expect(page).toHaveURL(/\/fill-session\/step5$/);
+    await expect(page.getByText(/step 5 of 6/i)).toBeVisible();
   });
 
   test("Back from double-check preserves the selected week and medicine index", async ({
@@ -455,14 +433,121 @@ test.describe("Fill Session wizard", () => {
     await expect(page.getByText("Medicine 2 of 2")).toBeVisible();
 
     await page.getByRole("button", { name: /done filling/i }).click();
-    await expect(page.getByText(/step 5 of 5/i)).toBeVisible();
+    await expect(page.getByText(/step 6 of 6/i)).toBeVisible();
     await page.getByRole("button", { name: /back/i }).click();
 
-    await expect(page).toHaveURL(/\/fill-session\/step4$/);
+    await expect(page).toHaveURL(/\/fill-session\/step5$/);
     await expect(dateInput).toHaveValue(selectedWeek);
     await expect(page.getByText("Medicine 2 of 2")).toBeVisible();
     await expect(
       page.getByRole("button", { name: /done filling/i }),
     ).toBeVisible();
+  });
+});
+
+test.describe("Fill Session wizard: insufficient-pill exclusion", () => {
+  test.beforeEach(async ({ browser }) => {
+    await resetState(browser, METFORMIN, LISINOPRIL);
+  });
+
+  test("unchecking a medicine on Check your supply excludes it from Fill entirely", async ({
+    page,
+  }) => {
+    await goToCheckSupplyStep(page);
+    await expect(page.getByText("Metformin")).toBeVisible();
+    await expect(page.getByText("Lisinopril")).toBeVisible();
+
+    await page.getByRole("checkbox", { name: /metformin/i }).uncheck();
+    await page.getByRole("button", { name: /continue/i }).click();
+
+    await expect(page).toHaveURL(/\/fill-session\/step5$/);
+    await expect(page.getByText("Lisinopril")).toBeVisible();
+    await expect(page.getByText("Metformin")).not.toBeVisible();
+    await expect(page.getByText(/medicine 1 of 1/i)).toBeVisible();
+  });
+
+  test("an excluded medicine never appears while navigating the Fill cards", async ({
+    page,
+  }) => {
+    await goToCheckSupplyStep(page);
+    await page.getByRole("checkbox", { name: /lisinopril/i }).uncheck();
+    await page.getByRole("button", { name: /continue/i }).click();
+
+    await expect(page.getByText("Metformin")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /next medicine/i }),
+    ).not.toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /done filling/i }),
+    ).toBeVisible();
+    await expect(page.getByText("Lisinopril")).not.toBeVisible();
+  });
+
+  test("Double-check shows a read-only summary of the skipped medicine", async ({
+    page,
+  }) => {
+    await goToCheckSupplyStep(page);
+    await page.getByRole("checkbox", { name: /metformin/i }).uncheck();
+    await page.getByRole("button", { name: /continue/i }).click();
+
+    await expect(page.getByText("Lisinopril")).toBeVisible();
+    await page.getByRole("button", { name: /done filling/i }).click();
+
+    await expect(page.getByText(/skipped this session/i)).toBeVisible();
+    await expect(page.getByText("Metformin 500 mg")).toBeVisible();
+    await expect(
+      page.getByRole("checkbox", { name: /metformin/i }),
+    ).toHaveCount(0);
+  });
+
+  test("Print worksheet excludes the skipped medicine", async ({ page }) => {
+    await goToCheckSupplyStep(page);
+    await page.getByRole("checkbox", { name: /metformin/i }).uncheck();
+    await page.getByRole("button", { name: /continue/i }).click();
+    await expect(page.getByText("Lisinopril")).toBeVisible();
+
+    await page.emulateMedia({ media: "print" });
+    try {
+      await expect(page.getByText("Lisinopril")).toBeVisible();
+      await expect(page.getByText("Metformin")).toHaveCount(0);
+    } finally {
+      await page.emulateMedia({ media: null });
+    }
+  });
+
+  test("un-checking then re-checking on Check your supply restores the medicine to Fill", async ({
+    page,
+  }) => {
+    await goToCheckSupplyStep(page);
+    const metforminCheckbox = page.getByRole("checkbox", {
+      name: /metformin/i,
+    });
+    await metforminCheckbox.uncheck();
+    await metforminCheckbox.check();
+    await page.getByRole("button", { name: /continue/i }).click();
+
+    await expect(page.getByText("Metformin")).toBeVisible();
+    await expect(page.getByText(/medicine 1 of 2/i)).toBeVisible();
+  });
+
+  test("browser Back from Fill to Check your supply preserves the unchecked state and allows reversal", async ({
+    page,
+  }) => {
+    await goToCheckSupplyStep(page);
+    await page.getByRole("checkbox", { name: /metformin/i }).uncheck();
+    await page.getByRole("button", { name: /continue/i }).click();
+    await expect(page.getByText("Lisinopril")).toBeVisible();
+
+    await page.goBack();
+    await expect(page).toHaveURL(/\/fill-session\/step4$/);
+    await expect(
+      page.getByRole("checkbox", { name: /metformin/i }),
+    ).not.toBeChecked();
+
+    await page.getByRole("checkbox", { name: /metformin/i }).check();
+    await page.getByRole("button", { name: /continue/i }).click();
+
+    await expect(page.getByText("Metformin")).toBeVisible();
+    await expect(page.getByText(/medicine 1 of 2/i)).toBeVisible();
   });
 });

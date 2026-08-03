@@ -1,14 +1,15 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import type { ComponentProps } from "react";
 import FillSession from "./FillSession";
 import {
+  medicineCardKey,
   ONE_COMPARTMENT,
   TWO_COMPARTMENTS,
 } from "../../../shared/fill-session";
 
-let mockTimezone: string | null = null;
+const START_DATE = "2026-06-14";
 
 function renderFillSession(
   overrides: Partial<ComponentProps<typeof FillSession>> = {},
@@ -17,21 +18,12 @@ function renderFillSession(
     <FillSession
       compartments={ONE_COMPARTMENT}
       organizerType="1"
+      startDate={START_DATE}
+      onStartDateChange={vi.fn()}
       {...overrides}
     />,
   );
 }
-
-vi.mock("@tanstack/react-router", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("@tanstack/react-router")>();
-  return {
-    ...actual,
-    getRouteApi: () => ({
-      useLoaderData: () => ({ timezone: mockTimezone }),
-    }),
-  };
-});
 
 const METFORMIN = {
   id: "rx-1",
@@ -102,12 +94,8 @@ function mockPrescriptions(...rxs: object[]) {
   );
 }
 
-beforeEach(() => {
-  mockTimezone = null;
-});
 afterEach(() => {
   vi.restoreAllMocks();
-  vi.useRealTimers();
 });
 
 describe("FillSession", () => {
@@ -252,36 +240,32 @@ describe("FillSession", () => {
     ).toBeInTheDocument();
   });
 
-  test("shows nearest-Sunday-anchored date range below the heading", () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-06-11T00:00:00Z")); // Thursday → nearest Sunday is Jun 14
-    try {
-      mockPrescriptions();
-      renderFillSession();
-      const dateHeading = screen.getByRole("heading", { level: 2 });
-      expect(dateHeading.textContent).toMatch(/Jun 14/); // start: nearest Sunday
-      expect(dateHeading.textContent).toMatch(/Jun 20/); // end: startDate + 6
-    } finally {
-      vi.useRealTimers();
-    }
+  test("shows the date range derived from the startDate prop below the heading", () => {
+    mockPrescriptions();
+    renderFillSession();
+    const dateHeading = screen.getByRole("heading", { level: 2 });
+    expect(dateHeading.textContent).toMatch(/Jun 14/); // startDate
+    expect(dateHeading.textContent).toMatch(/Jun 20/); // startDate + 6
   });
 
-  test("computes the current week using the patient's timezone, not UTC", () => {
-    // 2026-07-06T02:58 UTC is Monday in UTC but still Sunday, Jul 5,
-    // 21:58 in America/Chicago (UTC-5 in July). The date range must be
-    // anchored to the patient's local day, not the UTC day.
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-07-06T02:58:00Z"));
-    mockTimezone = "America/Chicago";
-    try {
-      mockPrescriptions();
-      renderFillSession();
-      const dateHeading = screen.getByRole("heading", { level: 2 });
-      expect(dateHeading.textContent).toMatch(/Jul 5/);
-      expect(dateHeading.textContent).toMatch(/Jul 11/);
-    } finally {
-      vi.useRealTimers();
-    }
+  test("the date picker reflects the startDate prop, not an internally computed default", () => {
+    mockPrescriptions();
+    renderFillSession({ startDate: "2026-07-05" });
+    expect(screen.getByLabelText(/start date/i)).toHaveValue("2026-07-05");
+  });
+
+  test("Previous/Next week call onStartDateChange instead of managing date state internally", async () => {
+    const user = userEvent.setup();
+    const onStartDateChange = vi.fn();
+    mockPrescriptions();
+    renderFillSession({ onStartDateChange });
+
+    await user.click(screen.getByRole("button", { name: /previous week/i }));
+    expect(onStartDateChange).toHaveBeenCalledTimes(1);
+    expect(typeof onStartDateChange.mock.calls[0][0]).toBe("function");
+
+    await user.click(screen.getByRole("button", { name: /next week/i }));
+    expect(onStartDateChange).toHaveBeenCalledTimes(2);
   });
 
   test("medicine card grids render for all cards regardless of the current index", async () => {
@@ -314,5 +298,63 @@ describe("FillSession", () => {
     expect(
       screen.getByRole("button", { name: /print worksheet/i }),
     ).toBeTruthy();
+  });
+
+  test("Save as PDF button is disabled", () => {
+    mockPrescriptions();
+    renderFillSession();
+    expect(
+      screen.getByRole("button", { name: /save as pdf/i }),
+    ).toHaveAttribute("aria-disabled", "true");
+  });
+
+  describe("excludedMedicineKeys", () => {
+    test("excluded medicines never mount a card", async () => {
+      mockPrescriptions(METFORMIN, LISINOPRIL);
+      renderFillSession({
+        excludedMedicineKeys: new Set([
+          medicineCardKey(METFORMIN.drugName, METFORMIN.dosage),
+        ]),
+      });
+      await waitFor(() => screen.getByText("Lisinopril"));
+      expect(screen.queryByText("Metformin")).not.toBeInTheDocument();
+      expect(screen.getByText(/medicine 1 of 1/i)).toBeInTheDocument();
+    });
+
+    test("excluding every medicine shows an explanatory message instead of empty nav", async () => {
+      mockPrescriptions(METFORMIN);
+      renderFillSession({
+        excludedMedicineKeys: new Set([
+          medicineCardKey(METFORMIN.drugName, METFORMIN.dosage),
+        ]),
+      });
+      await waitFor(() => {
+        expect(screen.getByText(/skipped this session/i)).toBeInTheDocument();
+      });
+      expect(screen.queryByText("Metformin")).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /next medicine/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    test("onDone snapshot only contains non-excluded cards", async () => {
+      mockPrescriptions(METFORMIN, LISINOPRIL);
+      const onDone = vi.fn();
+      const user = userEvent.setup();
+      renderFillSession({
+        excludedMedicineKeys: new Set([
+          medicineCardKey(METFORMIN.drugName, METFORMIN.dosage),
+        ]),
+        onDone,
+      });
+      await waitFor(() => screen.getByText("Lisinopril"));
+      await user.click(screen.getByRole("button", { name: /done filling/i }));
+
+      expect(onDone).toHaveBeenCalledWith(
+        expect.objectContaining({
+          cards: [expect.objectContaining({ drugName: "Lisinopril" })],
+        }),
+      );
+    });
   });
 });

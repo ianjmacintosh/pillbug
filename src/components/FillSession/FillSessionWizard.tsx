@@ -1,27 +1,31 @@
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { CheckSupply, type SupplyAnswer } from "./CheckSupply";
 import { Disclaimer } from "./Disclaimer";
 import { DoubleCheck } from "./DoubleCheck";
 import FillSession, { type FillSessionSnapshot } from "./FillSession";
+import { medicineCardKey } from "../../../shared/fill-session";
+import { nearestSunday } from "../../../shared/week-boundaries";
 import { ORGANIZER_OPTIONS } from "./organizerOptions";
 import { PillOrganizer } from "./PillOrganizer";
 import { Setup } from "./Setup";
 import { StepIndicator } from "./StepIndicator";
 import "./FillSessionWizard.css";
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 
-type WizardStep = 1 | 2 | 3 | 4 | 5;
+type WizardStep = 1 | 2 | 3 | 4 | 5 | 6;
 
 const STEP_PATHS: Record<
   WizardStep,
-  "step1" | "step2" | "step3" | "step4" | "step5"
+  "step1" | "step2" | "step3" | "step4" | "step5" | "step6"
 > = {
   1: "step1",
   2: "step2",
   3: "step3",
   4: "step4",
   5: "step5",
+  6: "step6",
 };
 
 const STEP_FROM_PATH: Record<string, WizardStep> = {
@@ -30,20 +34,36 @@ const STEP_FROM_PATH: Record<string, WizardStep> = {
   step3: 3,
   step4: 4,
   step5: 5,
+  step6: 6,
 };
 
-const Route = getRouteApi("/layout/fill-session/$step");
+const StepRoute = getRouteApi("/layout/fill-session/$step");
+const FillSessionRoute = getRouteApi("/layout/fill-session");
 
 function FillSessionWizard() {
   const navigate = useNavigate();
-  const { step: stepParam } = Route.useParams();
+  const { step: stepParam } = StepRoute.useParams();
+  const { timezone } = FillSessionRoute.useLoaderData();
   const step = STEP_FROM_PATH[stepParam] ?? 1;
   const [organizerType, setOrganizerType] = useState("1");
+  const [startDate, setStartDate] = useState(() => {
+    const today = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone ?? "UTC",
+    }).format(new Date());
+    return nearestSunday(today);
+  });
+  const [excludedMedicines, setExcludedMedicines] = useState<
+    { drugName: string; dosage: string }[]
+  >([]);
   const [snapshot, setSnapshot] = useState<FillSessionSnapshot | null>(null);
 
   const compartments =
     ORGANIZER_OPTIONS.find((o) => o.value === organizerType)?.compartments ??
     ORGANIZER_OPTIONS[0].compartments;
+
+  const excludedMedicineKeys = new Set(
+    excludedMedicines.map((m) => medicineCardKey(m.drugName, m.dosage)),
+  );
 
   const goToStep = (nextStep: WizardStep) =>
     navigate({
@@ -51,11 +71,20 @@ function FillSessionWizard() {
       params: { step: STEP_PATHS[nextStep] },
     });
 
+  const handleSupplyContinue = (answers: SupplyAnswer[]) => {
+    setExcludedMedicines(
+      answers
+        .filter((a) => !a.hasEnough)
+        .map((a) => ({ drugName: a.drugName, dosage: a.dosage })),
+    );
+    goToStep(5);
+  };
+
   useEffect(() => {
-    if (step === 5 && !snapshot) {
+    if (step === 6 && !snapshot) {
       navigate({
         to: "/fill-session/$step",
-        params: { step: "step4" },
+        params: { step: "step5" },
         replace: true,
       });
     }
@@ -70,24 +99,37 @@ function FillSessionWizard() {
         <PillOrganizer
           value={organizerType}
           onChange={setOrganizerType}
+          startDate={startDate}
+          onStartDateChange={setStartDate}
           onContinue={() => goToStep(4)}
         />
       )}
-      {(step === 4 || step === 5) && (
+      {step === 4 && (
+        <CheckSupply
+          compartments={compartments}
+          startDate={startDate}
+          excludedMedicines={excludedMedicines}
+          onContinue={handleSupplyContinue}
+        />
+      )}
+      {(step === 5 || step === 6) && (
         <FillSession
-          isActive={step === 4}
+          isActive={step === 5}
           compartments={compartments}
           organizerType={organizerType}
+          startDate={startDate}
+          onStartDateChange={setStartDate}
+          excludedMedicineKeys={excludedMedicineKeys}
           onDone={(nextSnapshot) => {
-            setSnapshot(nextSnapshot);
-            goToStep(5);
+            setSnapshot({ ...nextSnapshot, excludedMedicines });
+            goToStep(6);
           }}
         />
       )}
-      {step === 5 && snapshot && (
+      {step === 6 && snapshot && (
         <DoubleCheck
           snapshot={snapshot}
-          onBack={() => goToStep(4)}
+          onBack={() => goToStep(5)}
           onConfirm={() => navigate({ to: "/" })}
         />
       )}

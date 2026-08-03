@@ -1,3 +1,25 @@
+.double-check-excluded {
+  border: 1px solid var(--gray-90);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  background: var(--gray-97);
+}
+
+.double-check-excluded-heading {
+  margin: 0 0 0.5rem 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--gray-30);
+}
+
+.double-check-excluded-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: var(--text-sm);
+  color: var(--gray-30);
+}
+
 .double-check-grid-container {
   display: flex;
   justify-content: center;
