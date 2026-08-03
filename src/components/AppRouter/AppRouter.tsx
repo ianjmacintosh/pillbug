@@ -162,7 +162,14 @@ const settingsRoute = createRoute({
   component: Settings,
 });
 
-const FILL_SESSION_STEPS = ["step1", "step2", "step3", "step4", "step5"];
+const FILL_SESSION_STEPS = [
+  "step1",
+  "step2",
+  "step3",
+  "step4",
+  "step5",
+  "step6",
+];
 
 const fillSessionRoute = createRoute({
   getParentRoute: () => layoutRoute,

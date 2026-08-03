@@ -1,11 +1,9 @@
-import { Fragment } from "react";
 import { useTranslation } from "react-i18next";
-import { WEEKDAYS } from "../../utils/constants";
-import { formatMonthDay } from "../../utils/dates";
 import type {
   Compartment,
   MedicineCard as MedicineCardData,
 } from "../../../shared/fill-session";
+import { PillOrganizerTable } from "./PillOrganizerTable";
 
 interface MedicineCardProps {
   card: MedicineCardData;
@@ -20,7 +18,7 @@ export function MedicineCard({
   columnDates,
   isCurrent,
 }: MedicineCardProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   return (
     <section
@@ -36,84 +34,27 @@ export function MedicineCard({
         </span>
       </div>
 
-      <div
-        className="fill-session-card-grid"
-        style={
-          {
-            "--day-count": WEEKDAYS.length,
-            "--comp-count": compartments.length,
-          } as React.CSSProperties
-        }
-      >
-        <div className="fill-session-card-corner" />
-
-        {WEEKDAYS.map((day, dayIdx) => {
-          const { date, wrapped } = columnDates[day];
-          return (
-            <div
-              key={day}
-              className={`fill-session-card-day-header${wrapped ? " fill-session-card-day-header--wrapped" : ""}`}
-              style={{ "--day-idx": dayIdx } as React.CSSProperties}
-            >
-              {wrapped && (
-                <span
-                  className="fill-session-card-wrap-icon"
-                  title={t("fillSession.wrapColumnTooltip")}
-                  aria-label={t("fillSession.wrapColumnTooltip")}
-                >
-                  ⚠
-                </span>
-              )}
-              <span>{t(`days.abbr.${day}`)}</span>
-              <span className="fill-session-card-day-date">
-                {formatMonthDay(date, i18n.language)}
-              </span>
-            </div>
-          );
-        })}
-
-        {compartments.map((comp, compIdx) => {
+      <PillOrganizerTable
+        compartments={compartments}
+        columnDates={columnDates}
+        showWrapIndicator
+        cellClassName={({ compartment, day }) => {
           const slot = card.slots.find(
-            (s) => s.compartmentLabel === comp.label,
+            (s) => s.compartmentLabel === compartment.label,
           )!;
-          return (
-            <Fragment key={comp.label}>
-              <div
-                className="fill-session-card-slot-label"
-                style={{ "--comp-idx": compIdx } as React.CSSProperties}
-              >
-                <span className="fill-session-card-slot-name">
-                  {comp.label}
-                </span>
-                <span className="fill-session-card-slot-time">
-                  {comp.startTime}–{comp.endTime}
-                </span>
-              </div>
-              {WEEKDAYS.map((day, dayIdx) => {
-                const qty = slot.quantities[day] ?? 0;
-                return (
-                  <div
-                    key={day}
-                    className={`fill-session-card-cell${qty === 0 ? " fill-session-card-cell--empty" : ""}`}
-                    style={
-                      {
-                        "--day-idx": dayIdx,
-                        "--comp-idx": compIdx,
-                      } as React.CSSProperties
-                    }
-                  >
-                    {qty > 0 && (
-                      <span className="fill-session-card-cell-count">
-                        {qty}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </Fragment>
-          );
-        })}
-      </div>
+          const qty = slot.quantities[day] ?? 0;
+          return qty === 0 ? "pill-organizer-table-cell--empty" : undefined;
+        }}
+        renderCell={({ compartment, day }) => {
+          const slot = card.slots.find(
+            (s) => s.compartmentLabel === compartment.label,
+          )!;
+          const qty = slot.quantities[day] ?? 0;
+          return qty > 0 ? (
+            <span className="pill-organizer-table-cell-count">{qty}</span>
+          ) : null;
+        }}
+      />
     </section>
   );
 }
