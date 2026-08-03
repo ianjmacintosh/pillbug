@@ -179,9 +179,9 @@ describe("FillSessionWizard", () => {
     expect(screen.getByText(/Aug 8/)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /continue/i })); // step4 -> step5
-    expect(
-      (screen.getByLabelText(/start date/i) as HTMLInputElement).value,
-    ).toBe("2026-08-02");
+    const fillDateHeading = screen.getByRole("heading", { level: 2 });
+    expect(fillDateHeading.textContent).toMatch(/Aug 2/);
+    expect(fillDateHeading.textContent).toMatch(/Aug 8/);
   });
 
   test("Continuing past the pill organizer step shows the check-your-supply checklist", async () => {
@@ -337,14 +337,10 @@ describe("FillSessionWizard", () => {
     });
   });
 
-  test("Back from double-check preserves the selected week and medicine index", async () => {
+  test("Back from double-check preserves the selected medicine index", async () => {
     mockPrescriptions(METFORMIN, LISINOPRIL);
     const user = await advanceToFillStep();
     await waitFor(() => screen.getByText("Metformin"));
-
-    await user.click(screen.getByRole("button", { name: /next week/i }));
-    const dateInput = screen.getByLabelText(/start date/i) as HTMLInputElement;
-    const selectedWeek = dateInput.value;
 
     await user.click(screen.getByRole("button", { name: /next medicine/i }));
     expect(screen.getByText(/medicine 2 of 2/i)).toBeInTheDocument();
@@ -352,9 +348,6 @@ describe("FillSessionWizard", () => {
     await user.click(screen.getByRole("button", { name: /done filling/i }));
     await user.click(screen.getByRole("button", { name: /back/i }));
 
-    expect(
-      (screen.getByLabelText(/start date/i) as HTMLInputElement).value,
-    ).toBe(selectedWeek);
     expect(screen.getByText(/medicine 2 of 2/i)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /done filling/i }),

@@ -162,8 +162,6 @@ const ptBR = {
     "Todos os medicamentos foram pulados nesta sessão na etapa anterior.",
   "fillSession.printButton": "Imprimir Planilha",
   "fillSession.savePdfButton": "Salvar como PDF",
-  "fillSession.savePdfDisabledReason":
-    "Salvar como PDF está temporariamente indisponível. Use Imprimir Planilha.",
   "fillSession.doneButton": "Concluir separação",
   "fillSession.prevWeek": "Semana anterior",
   "fillSession.nextWeek": "Próxima semana",
@@ -200,12 +198,12 @@ const ptBR = {
   "fillSessionWizard.checkSupply.descriptionPrefix":
     "Confirme que você tem o suficiente de cada medicamento para",
   "fillSessionWizard.checkSupply.descriptionSuffix":
-    "(7 dias). Desmarque o que estiver em falta — será pulado nesta sessão.",
+    "(7 dias). Se você não tiver o suficiente de algum, desmarque sua caixa de seleção para pulá-lo nesta sessão.",
   "fillSessionWizard.checkSupply.excludedNote":
-    "Pulado nesta sessão — comprimidos insuficientes para separar",
+    "Esta separação vai pular este medicamento",
   "fillSessionWizard.doubleCheck.heading": "Confira tudo",
   "fillSessionWizard.doubleCheck.intro":
-    "Antes de fechar o organizador, confirme que tudo está no lugar certo — de preferência com uma pessoa de confiança.",
+    "Antes de concluir, este é um bom momento para conferir se cada compartimento tem a quantidade correta de itens.",
   "fillSessionWizard.doubleCheck.backButton": "Voltar",
   "fillSessionWizard.doubleCheck.confirmButton": "Concluir",
   "fillSessionWizard.doubleCheck.noMedicines":

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import type { Dispatch, SetStateAction } from "react";
 import { useTranslation } from "react-i18next";
 import { addDays, formatMonthDay } from "../../utils/dates";
 import { sessionDates } from "../../../shared/week-boundaries";
@@ -38,7 +37,7 @@ export interface FillSessionSnapshot {
   excludedMedicines?: { drugName: string; dosage: string }[];
 }
 
-// Save PDF is temporarily disabled: the server-side PDF route re-fetches
+// Save PDF is temporarily hidden: the server-side PDF route re-fetches
 // prescriptions independently and has no mechanism to receive the
 // insufficient-pill exclusion list. See issue #315.
 const SAVE_PDF_ENABLED = false;
@@ -47,7 +46,6 @@ interface FillSessionProps {
   compartments: Compartment[];
   organizerType: string;
   startDate: string;
-  onStartDateChange: Dispatch<SetStateAction<string>>;
   excludedMedicineKeys?: Set<string>;
   onDone?: (snapshot: FillSessionSnapshot) => void;
   isActive?: boolean;
@@ -57,7 +55,6 @@ function FillSession({
   compartments,
   organizerType,
   startDate,
-  onStartDateChange,
   excludedMedicineKeys,
   onDone,
   isActive = true,
@@ -134,40 +131,6 @@ function FillSession({
         <h2 className="fill-session-date-range">
           {startDateFmt}–{endDateFmt}
         </h2>
-        <div className="fill-session-date-picker screen-only">
-          <label
-            htmlFor="fill-session-start-date"
-            className="fill-session-date-picker-label"
-          >
-            {t("fillSession.startDateLabel")}
-          </label>
-          <div className="fill-session-date-picker-row">
-            <Button
-              type="button"
-              className="button-icon button-secondary"
-              aria-label={t("fillSession.prevWeek")}
-              onClick={() => onStartDateChange((d) => addDays(d, -7))}
-            >
-              <ChevronLeft size={20} aria-hidden="true" />
-            </Button>
-            <input
-              id="fill-session-start-date"
-              type="date"
-              value={startDate}
-              onChange={(e) =>
-                e.target.value && onStartDateChange(e.target.value)
-              }
-            />
-            <Button
-              type="button"
-              className="button-icon button-secondary"
-              aria-label={t("fillSession.nextWeek")}
-              onClick={() => onStartDateChange((d) => addDays(d, 7))}
-            >
-              <ChevronRight size={20} aria-hidden="true" />
-            </Button>
-          </div>
-        </div>
       </div>
 
       {hasWrap && (
@@ -261,20 +224,17 @@ function FillSession({
           <Printer size={18} aria-hidden="true" />
           {t("fillSession.printButton")}
         </Button>
-        <Button
-          type="button"
-          className="button-secondary button-leading-icon"
-          onClick={SAVE_PDF_ENABLED ? handleSavePdf : undefined}
-          disabled={!SAVE_PDF_ENABLED || pdfLoading}
-          disabledReason={
-            SAVE_PDF_ENABLED
-              ? undefined
-              : t("fillSession.savePdfDisabledReason")
-          }
-        >
-          <FileDown size={18} aria-hidden="true" />
-          {t("fillSession.savePdfButton")}
-        </Button>
+        {SAVE_PDF_ENABLED && (
+          <Button
+            type="button"
+            className="button-secondary button-leading-icon"
+            onClick={handleSavePdf}
+            disabled={pdfLoading}
+          >
+            <FileDown size={18} aria-hidden="true" />
+            {t("fillSession.savePdfButton")}
+          </Button>
+        )}
       </div>
     </div>
   );

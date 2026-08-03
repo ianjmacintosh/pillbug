@@ -35,3 +35,8 @@
   color: var(--gray-10);
   cursor: pointer;
 }
+
+.pill-organizer-preview-frame {
+  border: 1px solid var(--gray-90);
+  border-radius: 8px;
+}

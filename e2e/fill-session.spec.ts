@@ -186,10 +186,10 @@ test.describe("Fill Session page", () => {
     });
   });
 
-  test("'Save as PDF' is temporarily disabled", async () => {
+  test("'Save as PDF' is temporarily hidden", async () => {
     await expect(
       sharedPage.getByRole("button", { name: /save as pdf/i }),
-    ).toBeDisabled();
+    ).toHaveCount(0);
   });
 });
 
@@ -307,7 +307,6 @@ test.describe("Fill Session wizard", () => {
     await expect(
       page.getByRole("combobox", { name: /pill organizer/i }),
     ).toHaveValue("1");
-    const organizerStepDate = await page.getByLabel(/start date/i).inputValue();
     await page.getByRole("button", { name: /continue/i }).click();
 
     await expect(page).toHaveURL(/\/fill-session\/step4$/);
@@ -321,14 +320,21 @@ test.describe("Fill Session wizard", () => {
     ).toBeChecked();
     // Check-your-supply's intro references the real session dates set on
     // Pill Organizer, not a placeholder — same date the Fill step will use.
-    await expect(page.getByText(/\w{3} \d+ . \w{3} \d+/)).toBeVisible();
+    const dateRangeText = await page
+      .getByText(/\w{3} \d+ . \w{3} \d+/)
+      .textContent();
+    const [startFrag, endFrag] = dateRangeText!.match(/\w{3} \d+/g)!;
     await page.getByRole("button", { name: /continue/i }).click();
 
     await expect(page).toHaveURL(/\/fill-session\/step5$/);
     await expect(page.getByText(/step 5 of 6/i)).toBeVisible();
     await expect(page.getByText("Metformin")).toBeVisible();
     // The Fill step's date carries forward from Pill Organizer's date field.
-    await expect(page.getByLabel(/start date/i)).toHaveValue(organizerStepDate);
+    // (CheckSupply spaces its en dash, the Fill heading doesn't, so compare
+    // the two date fragments rather than the exact combined string.)
+    const fillDateHeading = page.getByRole("heading", { level: 2 });
+    await expect(fillDateHeading).toContainText(startFrag);
+    await expect(fillDateHeading).toContainText(endFrag);
     await page.getByRole("button", { name: /done filling/i }).click();
 
     await expect(page).toHaveURL(/\/fill-session\/step6$/);
@@ -367,7 +373,7 @@ test.describe("Fill Session wizard", () => {
     await expect(page.getByText(/Aug 2.*Aug 8/)).toBeVisible();
 
     await page.getByRole("button", { name: /continue/i }).click(); // step4 -> step5
-    await expect(page.getByLabel(/start date/i)).toHaveValue("2026-08-02");
+    await expect(page.getByText(/Aug 2.*Aug 8/)).toBeVisible();
   });
 
   test("choosing a 2-compartment organizer shows AM/PM slots on the fill step", async ({
@@ -413,17 +419,13 @@ test.describe("Fill Session wizard", () => {
     await expect(page.getByText(/step 5 of 6/i)).toBeVisible();
   });
 
-  test("Back from double-check preserves the selected week and medicine index", async ({
+  test("Back from double-check preserves the selected medicine index", async ({
     page,
     browser,
   }) => {
     await resetState(browser, METFORMIN, LISINOPRIL);
     await goToFillStep(page);
     await expect(page.getByText("Metformin")).toBeVisible();
-
-    await page.getByRole("button", { name: /next week/i }).click();
-    const dateInput = page.getByLabel(/start date/i);
-    const selectedWeek = await dateInput.inputValue();
 
     await page.getByRole("button", { name: /next medicine/i }).click();
     await expect(page.getByText("Medicine 2 of 2")).toBeVisible();
@@ -433,7 +435,6 @@ test.describe("Fill Session wizard", () => {
     await page.getByRole("button", { name: /back/i }).click();
 
     await expect(page).toHaveURL(/\/fill-session\/step5$/);
-    await expect(dateInput).toHaveValue(selectedWeek);
     await expect(page.getByText("Medicine 2 of 2")).toBeVisible();
     await expect(
       page.getByRole("button", { name: /done filling/i }),

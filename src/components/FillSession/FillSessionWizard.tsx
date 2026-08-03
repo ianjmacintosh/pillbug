@@ -118,7 +118,6 @@ function FillSessionWizard() {
           compartments={compartments}
           organizerType={organizerType}
           startDate={startDate}
-          onStartDateChange={setStartDate}
           excludedMedicineKeys={excludedMedicineKeys}
           onDone={(nextSnapshot) => {
             setSnapshot({ ...nextSnapshot, excludedMedicines });

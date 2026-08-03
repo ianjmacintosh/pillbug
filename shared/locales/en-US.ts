@@ -158,8 +158,6 @@ const enUS = {
     "Every medicine was skipped this session on the previous step.",
   "fillSession.printButton": "Print Worksheet",
   "fillSession.savePdfButton": "Save as PDF",
-  "fillSession.savePdfDisabledReason":
-    "Save as PDF is temporarily unavailable. Use Print Worksheet instead.",
   "fillSession.doneButton": "Done filling",
   "fillSession.prevWeek": "Previous week",
   "fillSession.nextWeek": "Next week",
@@ -194,12 +192,12 @@ const enUS = {
   "fillSessionWizard.checkSupply.descriptionPrefix":
     "Confirm you have enough of each medicine for",
   "fillSessionWizard.checkSupply.descriptionSuffix":
-    "(7 days). Uncheck anything you're short on — it'll be skipped this session.",
+    "(7 days). If you don't have enough of any, un-check its checkbox to skip it for this session.",
   "fillSessionWizard.checkSupply.excludedNote":
-    "Skipped this session — not enough pills to fill",
+    "This fill session will skip this medicine",
   "fillSessionWizard.doubleCheck.heading": "Double-check",
   "fillSessionWizard.doubleCheck.intro":
-    "Before closing the organizer, confirm everything is in place — ideally with a trusted person.",
+    "Before finishing, this is a good time to check that each compartment has the correct number of items.",
   "fillSessionWizard.doubleCheck.backButton": "Back",
   "fillSessionWizard.doubleCheck.confirmButton": "Done",
   "fillSessionWizard.doubleCheck.noMedicines":

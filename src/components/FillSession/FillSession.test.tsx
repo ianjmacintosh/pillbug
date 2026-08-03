@@ -19,7 +19,6 @@ function renderFillSession(
       compartments={ONE_COMPARTMENT}
       organizerType="1"
       startDate={START_DATE}
-      onStartDateChange={vi.fn()}
       {...overrides}
     />,
   );
@@ -248,26 +247,6 @@ describe("FillSession", () => {
     expect(dateHeading.textContent).toMatch(/Jun 20/); // startDate + 6
   });
 
-  test("the date picker reflects the startDate prop, not an internally computed default", () => {
-    mockPrescriptions();
-    renderFillSession({ startDate: "2026-07-05" });
-    expect(screen.getByLabelText(/start date/i)).toHaveValue("2026-07-05");
-  });
-
-  test("Previous/Next week call onStartDateChange instead of managing date state internally", async () => {
-    const user = userEvent.setup();
-    const onStartDateChange = vi.fn();
-    mockPrescriptions();
-    renderFillSession({ onStartDateChange });
-
-    await user.click(screen.getByRole("button", { name: /previous week/i }));
-    expect(onStartDateChange).toHaveBeenCalledTimes(1);
-    expect(typeof onStartDateChange.mock.calls[0][0]).toBe("function");
-
-    await user.click(screen.getByRole("button", { name: /next week/i }));
-    expect(onStartDateChange).toHaveBeenCalledTimes(2);
-  });
-
   test("medicine card grids render for all cards regardless of the current index", async () => {
     mockPrescriptions(METFORMIN, LISINOPRIL);
     renderFillSession();
@@ -300,12 +279,12 @@ describe("FillSession", () => {
     ).toBeTruthy();
   });
 
-  test("Save as PDF button is disabled", () => {
+  test("Save as PDF button is hidden", () => {
     mockPrescriptions();
     renderFillSession();
     expect(
-      screen.getByRole("button", { name: /save as pdf/i }),
-    ).toHaveAttribute("aria-disabled", "true");
+      screen.queryByRole("button", { name: /save as pdf/i }),
+    ).not.toBeInTheDocument();
   });
 
   describe("excludedMedicineKeys", () => {

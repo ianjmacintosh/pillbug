@@ -1,9 +1,9 @@
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Check, ChevronLeft } from "lucide-react";
-import { WEEKDAYS } from "../../utils/constants";
 import { formatMonthDay } from "../../utils/dates";
 import { Button } from "../Button/Button";
+import { PillOrganizerTable } from "./PillOrganizerTable";
 import type { FillSessionSnapshot } from "./FillSession";
 import "./DoubleCheck.css";
 
@@ -89,79 +89,38 @@ export function DoubleCheck({ snapshot, onBack, onConfirm }: DoubleCheckProps) {
       )}
 
       <div className="double-check-grid-container">
-        <div
-          className="double-check-grid"
-          style={
-            {
-              "--day-count": WEEKDAYS.length,
-              "--comp-count": compartments.length,
-            } as React.CSSProperties
-          }
-        >
-          {/* Corner */}
-          <div className="double-check-corner" />
+        <PillOrganizerTable
+          compartments={compartments}
+          columnDates={columnDates}
+          cellClassName={({ compartment, day }) => {
+            const total = getCompartmentTotal(compartment.label, day);
+            const isExpanded = expandedCell === cellKey(compartment.label, day);
+            return [
+              total === 0 && "pill-organizer-table-cell--empty",
+              total === 0 && "double-check-cell--empty",
+              isExpanded && "double-check-cell--expanded",
+            ]
+              .filter(Boolean)
+              .join(" ");
+          }}
+          renderCell={({ compartment, day }) => {
+            const total = getCompartmentTotal(compartment.label, day);
+            const key = cellKey(compartment.label, day);
+            const isExpanded = expandedCell === key;
 
-          {/* Day headers */}
-          {WEEKDAYS.map((day, dayIdx) => {
-            const { date } = columnDates[day];
             return (
-              <div
-                key={day}
-                className="double-check-day-header"
-                style={{ "--day-idx": dayIdx } as React.CSSProperties}
+              <Button
+                type="button"
+                className="double-check-cell-button"
+                onClick={() => setExpandedCell(isExpanded ? null : key)}
+                aria-expanded={isExpanded}
+                aria-label={`${compartment.label} ${t(`days.abbr.${day}`)}: ${t("doseForm.pill", { count: total })}`}
               >
-                <span className="double-check-day-abbr">
-                  {t(`days.abbr.${day}`)}
-                </span>
-                <span className="double-check-day-date">
-                  {formatMonthDay(date, i18n.language)}
-                </span>
-              </div>
+                <span className="pill-organizer-table-cell-count">{total}</span>
+              </Button>
             );
-          })}
-
-          {/* Compartment rows */}
-          {compartments.map((comp, compIdx) => (
-            <Fragment key={comp.label}>
-              {/* Compartment label */}
-              <div
-                className="double-check-comp-label"
-                style={{ "--comp-idx": compIdx } as React.CSSProperties}
-              >
-                <span className="double-check-comp-name">{comp.label}</span>
-                <span className="double-check-comp-time">
-                  {comp.startTime}–{comp.endTime}
-                </span>
-              </div>
-
-              {/* Cells for each day */}
-              {WEEKDAYS.map((day, dayIdx) => {
-                const total = getCompartmentTotal(comp.label, day);
-                const key = cellKey(comp.label, day);
-                const isExpanded = expandedCell === key;
-
-                return (
-                  <Button
-                    key={day}
-                    type="button"
-                    className={`double-check-cell${total === 0 ? " double-check-cell--empty" : ""}${isExpanded ? " double-check-cell--expanded" : ""}`}
-                    style={
-                      {
-                        "--day-idx": dayIdx,
-                        "--comp-idx": compIdx,
-                      } as React.CSSProperties
-                    }
-                    onClick={() => setExpandedCell(isExpanded ? null : key)}
-                    aria-expanded={isExpanded}
-                    aria-label={`${comp.label} ${t(`days.abbr.${day}`)}: ${t("doseForm.pill", { count: total })}`}
-                  >
-                    <span className="double-check-cell-count">{total}</span>
-                  </Button>
-                );
-              })}
-            </Fragment>
-          ))}
-        </div>
+          }}
+        />
       </div>
 
       {/* Expanded detail section */}
