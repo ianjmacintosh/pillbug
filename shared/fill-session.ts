@@ -67,6 +67,10 @@ export interface MedicineCard {
   weeklyTotal: number;
 }
 
+export function medicineCardKey(drugName: string, dosage: string): string {
+  return `${drugName}||${dosage}`;
+}
+
 export function groupByMedicine(
   prescriptions: Array<{
     drugName: string;
@@ -78,7 +82,7 @@ export function groupByMedicine(
   const cardMap = new Map<string, MedicineCard>();
 
   for (const rx of prescriptions) {
-    const key = `${rx.drugName}||${rx.dosage}`;
+    const key = medicineCardKey(rx.drugName, rx.dosage);
     if (!cardMap.has(key)) {
       cardMap.set(key, {
         drugName: rx.drugName,

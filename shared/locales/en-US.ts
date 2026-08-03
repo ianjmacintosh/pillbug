@@ -154,6 +154,8 @@ const enUS = {
   "fillSession.organizerOption.mornNoonNight": "7-day Morn/Noon/Night",
   "fillSession.organizerOption.mornNoonEveNight": "7-day Morn/Noon/Eve/Bed",
   "fillSession.noPrescriptions": "No active prescriptions.",
+  "fillSession.allExcluded":
+    "Every medicine was skipped this session on the previous step.",
   "fillSession.printButton": "Print Worksheet",
   "fillSession.savePdfButton": "Save as PDF",
   "fillSession.doneButton": "Done filling",
@@ -186,13 +188,22 @@ const enUS = {
   "fillSessionWizard.pillOrganizer.heading": "Choose your pill organizer",
   "fillSessionWizard.pillOrganizer.description":
     "Pick the organizer that matches your dosing schedule. Your weekly worksheet will be laid out to match.",
+  "fillSessionWizard.checkSupply.heading": "Check your supply",
+  "fillSessionWizard.checkSupply.descriptionPrefix":
+    "Confirm you have enough of each medicine for",
+  "fillSessionWizard.checkSupply.descriptionSuffix":
+    "(7 days). If you don't have enough of any, un-check its checkbox to skip it for this session.",
+  "fillSessionWizard.checkSupply.excludedNote":
+    "This fill session will skip this medicine",
   "fillSessionWizard.doubleCheck.heading": "Double-check",
   "fillSessionWizard.doubleCheck.intro":
-    "Before closing the organizer, confirm everything is in place — ideally with a trusted person.",
+    "Before finishing, this is a good time to check that each compartment has the correct number of items.",
   "fillSessionWizard.doubleCheck.backButton": "Back",
   "fillSessionWizard.doubleCheck.confirmButton": "Done",
   "fillSessionWizard.doubleCheck.noMedicines":
     "No medicines in this compartment",
+  "fillSessionWizard.doubleCheck.excludedHeading":
+    "Skipped this session — not enough pills to fill",
   "register.heading": "All your medicine in order",
   "register.intro":
     "Manage your prescriptions and get step-by-step guidance filling your pill organizer.",

@@ -158,6 +158,8 @@ const ptBR = {
   "fillSession.organizerOption.mornNoonEveNight":
     "7 dias Manhã/Tarde/Noite/Dormir",
   "fillSession.noPrescriptions": "Nenhuma prescrição ativa.",
+  "fillSession.allExcluded":
+    "Todos os medicamentos foram pulados nesta sessão na etapa anterior.",
   "fillSession.printButton": "Imprimir Planilha",
   "fillSession.savePdfButton": "Salvar como PDF",
   "fillSession.doneButton": "Concluir separação",
@@ -192,13 +194,22 @@ const ptBR = {
     "Escolha seu organizador de comprimidos",
   "fillSessionWizard.pillOrganizer.description":
     "Escolha o organizador que corresponde à sua rotina de doses. Sua planilha semanal será organizada de acordo.",
+  "fillSessionWizard.checkSupply.heading": "Confira seu estoque",
+  "fillSessionWizard.checkSupply.descriptionPrefix":
+    "Confirme que você tem o suficiente de cada medicamento para",
+  "fillSessionWizard.checkSupply.descriptionSuffix":
+    "(7 dias). Se você não tiver o suficiente de algum, desmarque sua caixa de seleção para pulá-lo nesta sessão.",
+  "fillSessionWizard.checkSupply.excludedNote":
+    "Esta separação vai pular este medicamento",
   "fillSessionWizard.doubleCheck.heading": "Confira tudo",
   "fillSessionWizard.doubleCheck.intro":
-    "Antes de fechar o organizador, confirme que tudo está no lugar certo — de preferência com uma pessoa de confiança.",
+    "Antes de concluir, este é um bom momento para conferir se cada compartimento tem a quantidade correta de itens.",
   "fillSessionWizard.doubleCheck.backButton": "Voltar",
   "fillSessionWizard.doubleCheck.confirmButton": "Concluir",
   "fillSessionWizard.doubleCheck.noMedicines":
     "Nenhum medicamento neste compartimento",
+  "fillSessionWizard.doubleCheck.excludedHeading":
+    "Pulado nesta sessão — comprimidos insuficientes para separar",
   "register.heading": "Todos os seus medicamentos em ordem",
   "register.intro":
     "Gerencie suas prescrições e receba orientação passo a passo para separar seu organizador de remédios.",
