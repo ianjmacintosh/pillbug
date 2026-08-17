@@ -1,3 +1,23 @@
+.pill-organizer-date-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-family: var(--font-sans);
+  font-weight: 600;
+}
+
+.pill-organizer-date-picker-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pill-organizer-date-picker-range {
+  margin: 0;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
 .pill-organizer-field {
   display: flex;
   flex-direction: column;
@@ -14,4 +34,9 @@
   background-color: transparent;
   color: var(--gray-10);
   cursor: pointer;
+}
+
+.pill-organizer-preview-frame {
+  border: 1px solid var(--gray-90);
+  border-radius: 8px;
 }

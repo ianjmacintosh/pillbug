@@ -1,10 +1,10 @@
-import { getRouteApi } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { addDays, formatMonthDay } from "../../utils/dates";
-import { nearestSunday, sessionDates } from "../../../shared/week-boundaries";
+import { sessionDates } from "../../../shared/week-boundaries";
 import {
   groupByMedicine,
+  medicineCardKey,
   type Compartment,
   type Schedule,
 } from "../../../shared/fill-session";
@@ -34,29 +34,32 @@ export interface FillSessionSnapshot {
   columnDates: ReturnType<typeof sessionDates>;
   startDateFmt: string;
   endDateFmt: string;
+  excludedMedicines?: { drugName: string; dosage: string }[];
 }
+
+// Save PDF is temporarily hidden: the server-side PDF route re-fetches
+// prescriptions independently and has no mechanism to receive the
+// insufficient-pill exclusion list. See issue #315.
+const SAVE_PDF_ENABLED = false;
 
 interface FillSessionProps {
   compartments: Compartment[];
   organizerType: string;
+  startDate: string;
+  excludedMedicineKeys?: Set<string>;
   onDone?: (snapshot: FillSessionSnapshot) => void;
   isActive?: boolean;
 }
 
-const Route = getRouteApi("/layout/fill-session");
-
 function FillSession({
   compartments,
   organizerType,
+  startDate,
+  excludedMedicineKeys,
   onDone,
   isActive = true,
 }: FillSessionProps) {
   const { t, i18n } = useTranslation();
-  const { timezone } = Route.useLoaderData();
-  const today = new Intl.DateTimeFormat("en-CA", {
-    timeZone: timezone ?? "UTC",
-  }).format(new Date());
-  const [startDate, setStartDate] = useState(() => nearestSunday(today));
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -77,7 +80,10 @@ function FillSession({
       .catch(() => {});
   }, [compartments]);
 
-  const cards = groupByMedicine(prescriptions, compartments);
+  const cards = groupByMedicine(prescriptions, compartments).filter(
+    (card) =>
+      !excludedMedicineKeys?.has(medicineCardKey(card.drugName, card.dosage)),
+  );
 
   const goToPrevMedicine = () => setCurrentIndex((i) => Math.max(0, i - 1));
   const goToNextMedicine = () =>
@@ -125,38 +131,6 @@ function FillSession({
         <h2 className="fill-session-date-range">
           {startDateFmt}–{endDateFmt}
         </h2>
-        <div className="fill-session-date-picker screen-only">
-          <label
-            htmlFor="fill-session-start-date"
-            className="fill-session-date-picker-label"
-          >
-            {t("fillSession.startDateLabel")}
-          </label>
-          <div className="fill-session-date-picker-row">
-            <Button
-              type="button"
-              className="button-icon button-secondary"
-              aria-label={t("fillSession.prevWeek")}
-              onClick={() => setStartDate((d) => addDays(d, -7))}
-            >
-              <ChevronLeft size={20} aria-hidden="true" />
-            </Button>
-            <input
-              id="fill-session-start-date"
-              type="date"
-              value={startDate}
-              onChange={(e) => e.target.value && setStartDate(e.target.value)}
-            />
-            <Button
-              type="button"
-              className="button-icon button-secondary"
-              aria-label={t("fillSession.nextWeek")}
-              onClick={() => setStartDate((d) => addDays(d, 7))}
-            >
-              <ChevronRight size={20} aria-hidden="true" />
-            </Button>
-          </div>
-        </div>
       </div>
 
       {hasWrap && (
@@ -165,13 +139,33 @@ function FillSession({
         </p>
       )}
 
-      {prescriptions.length === 0 ? (
-        <p>{t("fillSession.noPrescriptions")}</p>
+      {cards.length === 0 ? (
+        <>
+          <p>
+            {t(
+              prescriptions.length === 0
+                ? "fillSession.noPrescriptions"
+                : "fillSession.allExcluded",
+            )}
+          </p>
+          {prescriptions.length > 0 && (
+            <div className="fill-session-medicine-nav screen-only">
+              <Button
+                type="button"
+                onClick={handleDone}
+                className="button-primary button-leading-icon"
+              >
+                <Check size={18} aria-hidden="true" />
+                {t("fillSession.doneButton")}
+              </Button>
+            </div>
+          )}
+        </>
       ) : (
         <>
           <div className="fill-session-cards">
             {cards.map((card, index) => {
-              const cardKey = `${card.drugName}-${card.dosage}`;
+              const cardKey = medicineCardKey(card.drugName, card.dosage);
               return (
                 <MedicineCard
                   key={cardKey}
@@ -230,15 +224,17 @@ function FillSession({
           <Printer size={18} aria-hidden="true" />
           {t("fillSession.printButton")}
         </Button>
-        <Button
-          type="button"
-          className="button-secondary button-leading-icon"
-          onClick={handleSavePdf}
-          disabled={pdfLoading}
-        >
-          <FileDown size={18} aria-hidden="true" />
-          {t("fillSession.savePdfButton")}
-        </Button>
+        {SAVE_PDF_ENABLED && (
+          <Button
+            type="button"
+            className="button-secondary button-leading-icon"
+            onClick={handleSavePdf}
+            disabled={pdfLoading}
+          >
+            <FileDown size={18} aria-hidden="true" />
+            {t("fillSession.savePdfButton")}
+          </Button>
+        )}
       </div>
     </div>
   );
