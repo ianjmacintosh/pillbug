@@ -1,6 +1,6 @@
 import { listPrescriptions } from "../prescriptions";
 import { handleFillSessionPdf } from "../fill-session-pdf";
-import { type Repos } from "../session";
+import { json, type Repos } from "../session";
 import type { Env } from "../env";
 
 export async function handleGetFillSessionPdf(
@@ -25,4 +25,19 @@ export async function handleGetFillSessionPdf(
     patientTimezone,
     patientLanguage,
   );
+}
+
+export async function handleCreateFillSession(
+  _request: Request,
+  _env: Env,
+  repos: Repos,
+  patientId: string,
+): Promise<Response> {
+  const fillSession = {
+    id: crypto.randomUUID(),
+    patientId,
+    completedAt: new Date().toISOString(),
+  };
+  await repos.fillSession.createFillSession(fillSession);
+  return json(fillSession, 201);
 }
