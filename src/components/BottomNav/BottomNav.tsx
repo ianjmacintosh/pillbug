@@ -10,7 +10,9 @@ function BottomNav() {
   const isPrescriptionsActive =
     path === "/prescriptions" || path.startsWith("/prescriptions/");
   const isFillSessionActive =
-    path === "/fill-session" || path.startsWith("/fill-session/");
+    path === "/" ||
+    path === "/fill-session" ||
+    path.startsWith("/fill-session/");
 
   return (
     <nav className="bottom-nav" aria-label="Main navigation">

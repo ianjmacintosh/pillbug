@@ -8,7 +8,9 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 beforeEach(() => {
-  vi.mocked(useLocation).mockReturnValue({ pathname: "/" } as never);
+  vi.mocked(useLocation).mockReturnValue({
+    pathname: "/some-unrelated-route",
+  } as never);
 });
 
 describe("BottomNav", () => {
@@ -76,6 +78,14 @@ describe("BottomNav", () => {
       vi.mocked(useLocation).mockReturnValue({
         pathname: "/fill-session/step2",
       } as never);
+      render(<BottomNav />);
+      expect(
+        screen.getByRole("link", { name: /fill session/i }),
+      ).toHaveAttribute("aria-current", "page");
+    });
+
+    test("fill session tab is active on / (the Home Screen)", () => {
+      vi.mocked(useLocation).mockReturnValue({ pathname: "/" } as never);
       render(<BottomNav />);
       expect(
         screen.getByRole("link", { name: /fill session/i }),
