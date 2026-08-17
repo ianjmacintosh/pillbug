@@ -9,6 +9,7 @@ import {
 import { applyStoredLanguage } from "../../utils/applyStoredLanguage";
 import App from "../App";
 import FillSessionWizard from "../FillSession/FillSessionWizard";
+import Home from "../Home";
 import Layout from "../Layout";
 import Login from "../Login";
 import Logout from "../Logout";
@@ -94,9 +95,10 @@ const indexRoute = createRoute({
       throw redirect({ to: "/prescriptions" }); // offline — best effort
     }
     if (!data) throw redirect({ to: "/register" });
-    throw redirect({ to: "/prescriptions" });
+    await applyStoredLanguage(data.language ?? null);
+    if (!data.timezone) throw redirect({ to: "/finish-setup" });
   },
-  component: () => null,
+  component: Home,
 });
 
 const weeklyDosesRoute = createRoute({
