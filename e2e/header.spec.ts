@@ -27,21 +27,25 @@ test.describe("Bottom nav — mobile", () => {
     ).toBeVisible();
   });
 
+  function nav(page: Page) {
+    return page.getByRole("navigation", { name: /main navigation/i });
+  }
+
   test("prescriptions tab links to /prescriptions", async () => {
     await expect(
-      sharedPage.getByRole("link", { name: /prescriptions/i }),
+      nav(sharedPage).getByRole("link", { name: /prescriptions/i }),
     ).toHaveAttribute("href", "/prescriptions");
   });
 
   test("fill session tab links to /fill-session", async () => {
     await expect(
-      sharedPage.getByRole("link", { name: /fill session/i }),
+      nav(sharedPage).getByRole("link", { name: /fill session/i }),
     ).toHaveAttribute("href", "/fill-session");
   });
 
   test("settings tab links to /settings", async () => {
     await expect(
-      sharedPage.getByRole("link", { name: /settings/i }),
+      nav(sharedPage).getByRole("link", { name: /settings/i }),
     ).toHaveAttribute("href", "/settings");
   });
 
@@ -50,7 +54,7 @@ test.describe("Bottom nav — mobile", () => {
   }) => {
     await page.goto("/prescriptions");
     await expect(
-      page.getByRole("link", { name: /prescriptions/i }),
+      nav(page).getByRole("link", { name: /prescriptions/i }),
     ).toHaveAttribute("aria-current", "page");
   });
 
@@ -59,43 +63,44 @@ test.describe("Bottom nav — mobile", () => {
   }) => {
     await page.goto("/fill-session");
     await expect(
-      page.getByRole("link", { name: /fill session/i }),
+      nav(page).getByRole("link", { name: /fill session/i }),
     ).toHaveAttribute("aria-current", "page");
   });
 
   test("settings tab is marked active when on /settings", async ({ page }) => {
     await page.goto("/settings");
-    await expect(page.getByRole("link", { name: /settings/i })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
+    await expect(
+      nav(page).getByRole("link", { name: /settings/i }),
+    ).toHaveAttribute("aria-current", "page");
   });
 
   test("active tab has pill chip class applied", async ({ page }) => {
     await page.goto("/settings");
-    await expect(page.getByRole("link", { name: /settings/i })).toHaveClass(
-      /bottom-nav-tab--active/,
-    );
+    await expect(
+      nav(page).getByRole("link", { name: /settings/i }),
+    ).toHaveClass(/bottom-nav-tab--active/);
   });
 
   test("only the active tab has the active class", async ({ page }) => {
     await page.goto("/settings");
     await expect(
-      page.getByRole("link", { name: /prescriptions/i }),
+      nav(page).getByRole("link", { name: /prescriptions/i }),
     ).not.toHaveClass(/bottom-nav-tab--active/);
     await expect(
-      page.getByRole("link", { name: /fill session/i }),
+      nav(page).getByRole("link", { name: /fill session/i }),
     ).not.toHaveClass(/bottom-nav-tab--active/);
-    await expect(page.getByRole("link", { name: /settings/i })).toHaveClass(
-      /bottom-nav-tab--active/,
-    );
+    await expect(
+      nav(page).getByRole("link", { name: /settings/i }),
+    ).toHaveClass(/bottom-nav-tab--active/);
   });
 
   test("clicking prescriptions tab navigates to /prescriptions", async ({
     page,
   }) => {
     await page.goto("/");
-    await page.getByRole("link", { name: /prescriptions/i }).click();
+    await nav(page)
+      .getByRole("link", { name: /prescriptions/i })
+      .click();
     await expect(page).toHaveURL("/prescriptions");
   });
 
@@ -103,13 +108,17 @@ test.describe("Bottom nav — mobile", () => {
     page,
   }) => {
     await page.goto("/");
-    await page.getByRole("link", { name: /fill session/i }).click();
+    await nav(page)
+      .getByRole("link", { name: /fill session/i })
+      .click();
     await expect(page).toHaveURL(/\/fill-session\/step1$/);
   });
 
   test("clicking settings tab navigates to /settings", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("link", { name: /settings/i }).click();
+    await nav(page)
+      .getByRole("link", { name: /settings/i })
+      .click();
     await expect(page).toHaveURL("/settings");
   });
 });
