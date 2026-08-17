@@ -75,9 +75,11 @@ const LISINOPRIL = {
 };
 
 function mockPrescriptions(...rxs: object[]) {
-  vi.spyOn(globalThis, "fetch").mockImplementation(
-    async () => new Response(JSON.stringify(rxs), { status: 200 }),
-  );
+  return vi
+    .spyOn(globalThis, "fetch")
+    .mockImplementation(
+      async () => new Response(JSON.stringify(rxs), { status: 200 }),
+    );
 }
 
 async function advanceToCheckSupplyStep() {
@@ -362,6 +364,20 @@ describe("FillSessionWizard", () => {
 
     await user.click(screen.getByRole("button", { name: /^done$/i }));
     expect(mockNavigate).toHaveBeenCalledWith({ to: "/" });
+  });
+
+  test("Confirming double-check POSTs to /api/v1/fill-session", async () => {
+    const fetchSpy = mockPrescriptions(METFORMIN);
+    const user = await advanceToFillStep();
+    await waitFor(() => screen.getByText("Metformin"));
+    await user.click(screen.getByRole("button", { name: /done filling/i }));
+
+    await user.click(screen.getByRole("button", { name: /^done$/i }));
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      "/api/v1/fill-session",
+      expect.objectContaining({ method: "POST" }),
+    );
   });
 
   test("landing directly on step6 with no snapshot redirects back to the fill step", async () => {
