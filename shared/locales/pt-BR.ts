@@ -78,6 +78,10 @@ const ptBR = {
   "prescriptions.loading": "Carregando…",
   "prescriptions.selectPrompt":
     "Selecione uma prescrição para ver os detalhes.",
+  "home.startFillSession": "Iniciar Sessão de Separação",
+  "home.viewPrescriptions": "Ver Prescrições",
+  "home.lastFilled": "Última separação: {{date}}",
+  "home.addFirstPrescription": "Adicione sua primeira prescrição",
   "prescriptionDetail.edit": "editar",
   "prescriptionDetail.delete": "excluir",
   "prescriptionDetail.strength": "Concentração",
