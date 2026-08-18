@@ -33,6 +33,10 @@
   ],
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  // Port 4387 (Lavish) isn't picked up by VS Code's automatic port
+  // forwarding since it's opened by a process outside the integrated
+  // terminal's visibility. 5173 (Vite) added alongside for the same
+  // reliability, since it's currently only auto-forwarded.
   "forwardPorts": [4387, 5173],
 
   "updateContentCommand": "npm install",
