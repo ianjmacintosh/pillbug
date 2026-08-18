@@ -80,6 +80,15 @@ const enUS = {
   "home.viewPrescriptions": "View Prescriptions",
   "home.lastFilled": "Last filled: {{date}}",
   "home.addFirstPrescription": "Add your first prescription",
+  // PROTOTYPE — throwaway, see .claude/skills/prototype/UI.md. Delete these
+  // keys when src/components/Home/prototype/ is deleted.
+  "home.prototype.greeting": "Welcome back",
+  "home.prototype.greetingMorning": "Good morning",
+  "home.prototype.greetingAfternoon": "Good afternoon",
+  "home.prototype.greetingEvening": "Good evening",
+  "home.prototype.readyToFill": "Ready when you are.",
+  "home.prototype.estimatedTime": "About 2 minutes",
+  "home.prototype.menuTitle": "What would you like to do?",
   "prescriptionDetail.edit": "edit",
   "prescriptionDetail.delete": "delete",
   "prescriptionDetail.strength": "Strength",

@@ -1,0 +1,27 @@
+/* PROTOTYPE — throwaway, see .claude/skills/prototype/UI.md */
+
+.home-d {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-4);
+}
+
+.home-d h1 {
+  font-size: var(--text-h1);
+  margin: 0;
+}
+
+.home-d__intro {
+  margin: 0;
+  font-size: var(--text-base);
+  color: var(--color-text-muted);
+}
+
+.home-d__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}

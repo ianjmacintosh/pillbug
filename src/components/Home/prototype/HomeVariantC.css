@@ -1,0 +1,56 @@
+/* PROTOTYPE — throwaway, see .claude/skills/prototype/UI.md */
+
+.home-c {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.home-c__heading {
+  font-size: var(--text-h2);
+  margin: 0;
+}
+
+.home-c__status {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.home-c__list {
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  border-top: 1px solid var(--gray-90);
+}
+
+.home-c__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-2);
+  border-bottom: 1px solid var(--gray-90);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  font-size: var(--text-lg);
+  transition: background-color 100ms ease-out;
+}
+
+.home-c__row:hover {
+  background-color: var(--color-well-bg-light);
+}
+
+.home-c__row svg:first-child {
+  flex-shrink: 0;
+  color: var(--color-link);
+}
+
+.home-c__row span {
+  flex: 1;
+}
+
+.home-c__chevron {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}

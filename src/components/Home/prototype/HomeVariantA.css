@@ -1,0 +1,42 @@
+/* PROTOTYPE — throwaway, see .claude/skills/prototype/UI.md */
+
+.home-a {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-4);
+}
+
+.home-a__hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.home-a__hero h1 {
+  font-size: var(--text-h1);
+  margin: var(--space-1) 0 0;
+}
+
+.home-a__status {
+  margin: 0;
+  font-size: var(--text-base);
+}
+
+.home-a__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.home-a__secondary-link {
+  font-size: var(--text-sm);
+  color: var(--color-link);
+  text-decoration: underline;
+}
+
+.home-a__secondary-link:hover {
+  color: var(--color-link-hover);
+}
