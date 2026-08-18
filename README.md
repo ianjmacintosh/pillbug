@@ -36,34 +36,24 @@ npm run dev:wrangler
 
 ### Authenticating locally (bypassing magic link email)
 
-Use the silent endpoints to register or log in without sending an email. The token is stored in the database only — retrieve it with a second step.
+`/api/register/silent` and `/api/login/silent` were removed (see commit `0880a77`) because `login/silent` returned the plaintext PIN in the API response — anyone who knew a user's email could log in without inbox access. Do not recreate that pattern.
 
-**Register a new account:**
-
-```bash
-curl -s -X POST http://localhost:5173/api/register/silent \
-  -H "Content-Type: application/json" \
-  -d '{"email":"you@example.com"}'
-# {"ok":true}
-```
-
-**Log in to an existing account:**
+The current approach: call the real `/api/v1/login` (or `/api/v1/register`) endpoint with the Turnstile dummy token, then overwrite the stored `pin_hash` directly in the DB with the hash of a known PIN. This is what `npm run dev:login` automates:
 
 ```bash
-curl -s -X POST http://localhost:5173/api/login/silent \
-  -H "Content-Type: application/json" \
-  -d '{"email":"you@example.com"}'
-# {"ok":true}
+npm run dev:login
 ```
 
-**Retrieve the token from the database:**
+This prints an `/enter-code?token=<uuid>` URL and a PIN (`1234`) for `http://localhost:5173`.
 
-```bash
-npx wrangler d1 execute pillbug-staging --env staging --local \
-  --command "SELECT token FROM magic_link_tokens ORDER BY rowid DESC LIMIT 1"
-```
+### Authenticating against staging or a preview deployment
 
-Then visit `http://localhost:5173/api/auth/verify?token=<token>` to complete the login and set a session cookie.
+`node --env-file=.env scripts/dev-login.js --env staging` does the same thing against the real `pillbug-staging` D1 (`--remote`) instead of local SQLite. A few non-obvious things that will waste your afternoon if you don't know them going in:
+
+- **The test account must already be a registered patient in the _remote_ `pillbug-staging` D1, not just local.** `npm run dev:login`'s seed step (`scripts/seed-test-accounts.js`) only ever seeds local D1 — it always calls `getPlatformProxy({ environment: "staging" })`, which defaults to local persistence, even when you pass `--env staging` to `dev-login.js` for the login half. If the account doesn't exist remotely, `POST /api/v1/login` silently succeeds and returns a token anyway — the server creates a **decoy token** (`patient_id: null`) specifically so a nonexistent-account attempt is indistinguishable from a real one (`worker/auth.ts` `sendLoginLink`, anti-enumeration). Verifying the PIN against a decoy token always returns `{"error":"invalid"}` — identical to what a wrong `PIN_SECRET` produces — and critically, **`failed_attempts` never increments** on this path, since the `!record.patientId` check happens after the hash check and doesn't call `incrementFailedAttempts`. That's the only externally-visible tell that you're looking at a decoy, not a secret mismatch. If the account doesn't exist yet, register it for real first: `curl -X POST https://pillbug-staging.ianjmacintosh.com/api/v1/register -H "Content-Type: application/json" -d '{"email":"test-user-alice@pillbug.ianjmacintosh.com","turnstileToken":"XXXX.DUMMY.TOKEN.XXXX"}'`.
+- **Your local `PIN_SECRET` (`.env`) must exactly match the real Cloudflare Worker secret for `pillbug-staging`.** The DB-override trick computes `pin_hash` locally, so the deployed Worker has to hash the submitted PIN with the same secret to get a match. Cloudflare secrets are write-only (no `wrangler secret get`), so there's no way to diff them — if in doubt, resync by piping `.env` straight into Wrangler rather than copy-pasting through the dashboard: `grep '^PIN_SECRET=' .env | cut -d= -f2- | npx wrangler versions secret put PIN_SECRET --env staging`, then `npx wrangler versions deploy --env staging`. (Plain `wrangler secret put` will fail with "the latest version of your Worker isn't currently deployed" here, since PR previews use `wrangler versions upload`, which never promotes to 100% traffic — use `versions secret put` instead.)
+- **Preview deployments are not a separate environment.** `npm run deploy:preview` runs `wrangler versions upload --env staging` — every PR preview is just another Version of the same `pillbug-staging` Worker, sharing the exact same D1 database and the exact same secrets as staging proper. A token/PIN created against `pillbug-staging.ianjmacintosh.com` works identically against any of that PR's preview URLs (find them in the Cloudflare bot's PR comment) — swap the hostname, keep the token and PIN.
+- If `wrangler` isn't on your `PATH` as a bare command, use `npx wrangler` — `dev-login.js`'s own `execFileSync("wrangler", ...)` call will fail with `ENOENT` in that case; run its `wrangler d1 execute` step manually with `npx` instead.
 
 ### Build the app
 
