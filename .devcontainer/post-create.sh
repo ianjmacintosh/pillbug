@@ -9,3 +9,9 @@ npx playwright install chromium
 
 # Copy tmux config (No sudo required)
 cp .devcontainer/.tmux.conf ~/.tmux.conf
+
+# Agent-ergonomic CLI wrappers (AXI protocol, see firstmate project). Global
+# npm packages live outside the ~/.claude volume, so they don't survive a
+# rebuild on their own — reinstall them here every time instead. Claude
+# Code's SessionStart hooks (~/.claude/settings.json) call these directly.
+npm install -g gh-axi chrome-devtools-axi lavish-axi tasks-axi
