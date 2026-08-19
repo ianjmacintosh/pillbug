@@ -50,7 +50,7 @@ export function LoginForm() {
         onExpire={() => setTurnstileToken(null)}
       />
       {turnstileError && <p role="alert">{t("login.turnstileError")}</p>}
-      <Button type="submit" disabled={submitting} className="button-primary">
+      <Button type="submit" disabled={submitting} variant="primary">
         {submitting ? t("login.submitting") : t("login.submit")}
       </Button>
     </form>

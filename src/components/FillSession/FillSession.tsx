@@ -153,7 +153,8 @@ function FillSession({
               <Button
                 type="button"
                 onClick={handleDone}
-                className="button-primary button-leading-icon"
+                variant="primary"
+                iconPosition="leading"
               >
                 <Check size={18} aria-hidden="true" />
                 {t("fillSession.doneButton")}
@@ -180,7 +181,8 @@ function FillSession({
           <div className="fill-session-medicine-nav screen-only">
             <Button
               type="button"
-              className="button-secondary button-leading-icon"
+              variant="secondary"
+              iconPosition="leading"
               onClick={goToPrevMedicine}
               disabled={currentIndex === 0}
             >
@@ -197,7 +199,8 @@ function FillSession({
               <Button
                 type="button"
                 onClick={handleDone}
-                className="button-primary button-leading-icon"
+                variant="primary"
+                iconPosition="leading"
               >
                 <Check size={18} aria-hidden="true" />
                 {t("fillSession.doneButton")}
@@ -206,7 +209,8 @@ function FillSession({
               <Button
                 type="button"
                 onClick={goToNextMedicine}
-                className="button-primary button-trailing-icon"
+                variant="primary"
+                iconPosition="trailing"
               >
                 {t("fillSession.nextMedicine")}
                 <ChevronRight size={18} aria-hidden="true" />
@@ -218,7 +222,8 @@ function FillSession({
       <div className="fill-session-actions screen-only">
         <Button
           type="button"
-          className="button-secondary button-leading-icon"
+          variant="secondary"
+          iconPosition="leading"
           onClick={() => window.print()}
         >
           <Printer size={18} aria-hidden="true" />
@@ -227,7 +232,8 @@ function FillSession({
         {SAVE_PDF_ENABLED && (
           <Button
             type="button"
-            className="button-secondary button-leading-icon"
+            variant="secondary"
+            iconPosition="leading"
             onClick={handleSavePdf}
             disabled={pdfLoading}
           >

@@ -148,18 +148,16 @@ function SoftDisabledDemo() {
         className="sg-button-row"
         style={{ flexWrap: "wrap", gap: "0.75rem" }}
       >
-        {(["button-primary", "button-secondary", "button-danger"] as const).map(
-          (variant) => (
-            <Button
-              key={variant}
-              disabled
-              disabledReason="Still needed: drug name, dosing days"
-              className={variant}
-            >
-              Save prescription
-            </Button>
-          ),
-        )}
+        {(["primary", "secondary", "danger"] as const).map((variant) => (
+          <Button
+            key={variant}
+            disabled
+            disabledReason="Still needed: drug name, dosing days"
+            variant={variant}
+          >
+            Save prescription
+          </Button>
+        ))}
       </div>
       <p className="sg-button-note">
         Pass <code>disabledReason</code> to <code>Button</code> instead of using
@@ -330,12 +328,27 @@ export function StyleGuide() {
 
       {/* ── Buttons ── */}
       <Section id="buttons" label="Buttons">
+        <p className="sg-icon-note">
+          <code>Button</code> takes typed variant props — never a raw{" "}
+          <code>className</code> for color/size/shape. <code>variant</code> (
+          <code>
+            &quot;primary&quot; | &quot;secondary&quot; | &quot;danger&quot; |
+            &quot;none&quot;
+          </code>
+          ) is required, so the compiler catches a missing or misspelled variant
+          instead of a button silently rendering unstyled.{" "}
+          <code>className</code> is still accepted, but only for extra
+          project-specific hook/animation classes layered on top — never for
+          selecting the variant itself.
+        </p>
         <div className="sg-button-groups">
           <div className="sg-button-group">
             <p className="sg-button-group-label">Primary</p>
             <div className="sg-button-row">
-              <Button className="button-primary">Take medication</Button>
-              <Button className="button-primary button-sm">Add +</Button>
+              <Button variant="primary">Take medication</Button>
+              <Button variant="primary" size="sm">
+                Add +
+              </Button>
             </div>
             <p className="sg-button-note">
               Gold bg + warm-dark text. 6px bottom border + shadow gives the
@@ -347,8 +360,10 @@ export function StyleGuide() {
           <div className="sg-button-group">
             <p className="sg-button-group-label">Secondary</p>
             <div className="sg-button-row">
-              <Button className="button-secondary">Skip dose</Button>
-              <Button className="button-secondary button-sm">Cancel</Button>
+              <Button variant="secondary">Skip dose</Button>
+              <Button variant="secondary" size="sm">
+                Cancel
+              </Button>
             </div>
             <p className="sg-button-note">
               White fill, sky blue border + text. Same raised treatment — 6px
@@ -359,8 +374,10 @@ export function StyleGuide() {
           <div className="sg-button-group">
             <p className="sg-button-group-label">Danger</p>
             <div className="sg-button-row">
-              <Button className="button-danger">Delete prescription</Button>
-              <Button className="button-danger button-sm">Remove</Button>
+              <Button variant="danger">Delete prescription</Button>
+              <Button variant="danger" size="sm">
+                Remove
+              </Button>
             </div>
             <p className="sg-button-note">
               Muted red, white text. Destructive actions only.
@@ -370,70 +387,64 @@ export function StyleGuide() {
           <div className="sg-button-group">
             <p className="sg-button-group-label">Icon (standalone)</p>
             <div className="sg-button-row">
-              <Button
-                className="button-icon button-primary"
-                aria-label="Add prescription"
-              >
+              <Button variant="primary" iconOnly aria-label="Add prescription">
                 <Plus size={20} aria-hidden="true" />
               </Button>
-              <Button
-                className="button-icon button-secondary"
-                aria-label="Settings"
-              >
+              <Button variant="secondary" iconOnly aria-label="Settings">
                 <Settings size={20} aria-hidden="true" />
               </Button>
-              <Button className="button-icon button-danger" aria-label="Delete">
+              <Button variant="danger" iconOnly aria-label="Delete">
                 <Trash2 size={20} aria-hidden="true" />
               </Button>
             </div>
             <p className="sg-button-note">
-              48×48 icon-only button. <code>.button-icon</code> is shape only —
-              pair it with <code>.button-primary</code>,{" "}
-              <code>.button-secondary</code>, or <code>.button-danger</code> for
-              color, same as a text button. Use <code>aria-label</code> when the
-              icon is the only content. Same raised + depress treatment.
+              48×48 icon-only button. <code>iconOnly</code> is shape only — pair
+              it with a <code>variant</code> for color, same as a text button.
+              Use <code>aria-label</code> when the icon is the only content.
+              Same raised + depress treatment.
             </p>
           </div>
 
           <div className="sg-button-group">
             <p className="sg-button-group-label">Icon + text</p>
             <div className="sg-button-row">
-              <Button className="button-primary button-leading-icon">
+              <Button variant="primary" iconPosition="leading">
                 <ClipboardPlus size={18} aria-hidden="true" />
                 Add prescription
               </Button>
-              <Button className="button-secondary button-leading-icon">
+              <Button variant="secondary" iconPosition="leading">
                 <ChevronRight size={18} aria-hidden="true" />
                 View details
               </Button>
-              <Button className="button-danger button-leading-icon">
+              <Button variant="danger" iconPosition="leading">
                 <Trash2 size={18} aria-hidden="true" />
                 Delete
               </Button>
             </div>
             <p className="sg-button-note">
-              Add <code>button-leading-icon</code> when the icon goes left of
-              the label. A <code>::after</code> spacer mirrors the icon width so
-              the label stays centered.
+              Pass <code>iconPosition=&quot;leading&quot;</code> when the icon
+              goes left of the label. A <code>::after</code> spacer mirrors the
+              icon width so the label stays centered.
             </p>
           </div>
 
           <div className="sg-button-group">
             <p className="sg-button-group-label">Text + trailing icon</p>
             <div className="sg-button-row">
-              <Button className="button-primary button-trailing-icon">
+              <Button variant="primary" iconPosition="trailing">
                 Continue
                 <ArrowRight size={18} aria-hidden="true" />
               </Button>
-              <Button className="button-secondary button-trailing-icon">
+              <Button variant="secondary" iconPosition="trailing">
                 Next step
                 <ArrowRight size={18} aria-hidden="true" />
               </Button>
             </div>
             <p className="sg-button-note">
-              Use <code>button-trailing-icon</code> for forward-navigation
-              actions. A <code>::before</code> spacer mirrors the icon so the
-              label centers. Put the icon after the label in markup.
+              Use <code>iconPosition=&quot;trailing&quot;</code> for
+              forward-navigation actions. A <code>::before</code> spacer mirrors
+              the icon so the label centers. Put the icon after the label in
+              markup.
             </p>
           </div>
 

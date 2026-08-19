@@ -126,7 +126,8 @@ export function CheckSupply({
       <Button
         type="button"
         onClick={handleContinue}
-        className="button-primary button-trailing-icon"
+        variant="primary"
+        iconPosition="trailing"
       >
         {t("fillSessionWizard.continueButton")}
         <ChevronRight size={18} aria-hidden="true" />

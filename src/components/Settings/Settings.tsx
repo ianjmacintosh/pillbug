@@ -24,7 +24,10 @@ function Settings() {
       <Button
         type="button"
         onClick={handleLogout}
-        className="button-secondary button-leading-icon button-full settings-logout"
+        variant="secondary"
+        iconPosition="leading"
+        fullWidth
+        className="settings-logout"
       >
         <LogOut size={18} aria-hidden="true" />
         {t("header.nav.logOut")}
