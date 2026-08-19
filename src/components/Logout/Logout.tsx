@@ -16,7 +16,8 @@ function Logout() {
       <p>You're logged in — log out?</p>
       <Button
         type="button"
-        className="button-secondary button-leading-icon"
+        variant="secondary"
+        iconPosition="leading"
         onClick={handleLogout}
       >
         <LogOut size={18} aria-hidden="true" />

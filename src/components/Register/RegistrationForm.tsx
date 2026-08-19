@@ -97,7 +97,8 @@ export function RegistrationForm() {
       <Button
         type="submit"
         disabled={submitting}
-        className="button-primary button-leading-icon"
+        variant="primary"
+        iconPosition="leading"
       >
         <Mail size={18} aria-hidden="true" />
         {submitting ? t("register.submitting") : t("register.submit")}

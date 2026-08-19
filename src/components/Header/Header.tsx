@@ -24,7 +24,9 @@ function Header({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
           <Button
             as="link"
             to="/login"
-            className="button-primary button-leading-icon header-login"
+            variant="primary"
+            iconPosition="leading"
+            className="header-login"
           >
             <LogIn size={18} aria-hidden="true" />
             {t("header.nav.logIn")}
@@ -38,6 +40,7 @@ function Header({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
             <Button
               type="button"
               onClick={handleLogout}
+              variant="none"
               className="header-logout"
             >
               {t("header.nav.logOut")}

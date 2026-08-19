@@ -148,6 +148,7 @@ export function PrescriptionFields({
               })}{" "}
               <Button
                 type="button"
+                variant="none"
                 className="dosage-fix-link"
                 onClick={() => {
                   setDosageQuantity(
@@ -279,7 +280,8 @@ export function PrescriptionFields({
           {isAdvanced && (
             <Button
               type="button"
-              className="button-secondary button-sm"
+              variant="secondary"
+              size="sm"
               onClick={addSchedule}
             >
               {t("prescriptionForm.addDosingSchedule")}

@@ -8,6 +8,7 @@ import type { DayOfWeek, PerSlotDose } from "../../../shared/schedule";
 import { WEEKDAYS } from "../../utils/constants";
 import { Link } from "@tanstack/react-router";
 import { Button } from "../Button/Button";
+import { buildButtonClassName } from "../Button/Button.helpers";
 import { DeleteDialog } from "./DeleteDialog";
 import { AddAnotherDialog } from "./AddAnotherDialog";
 
@@ -94,14 +95,18 @@ function PrescriptionDetail() {
             <Link
               to="/prescriptions/$id/edit"
               params={{ id }}
-              className="button button-icon button-primary"
+              className={buildButtonClassName({
+                variant: "primary",
+                iconOnly: true,
+              })}
               aria-label={t("prescriptionDetail.edit")}
             >
               <Pencil size={20} aria-hidden="true" />
             </Link>
             <Button
               type="button"
-              className="button-icon button-danger"
+              variant="danger"
+              iconOnly
               aria-label={t("prescriptionDetail.delete")}
               onClick={() => setShowDeleteDialog(true)}
             >

@@ -21,7 +21,8 @@ export function Disclaimer({ onContinue }: DisclaimerProps) {
       <Button
         type="button"
         onClick={onContinue}
-        className="button-primary button-trailing-icon"
+        variant="primary"
+        iconPosition="trailing"
       >
         {t("fillSessionWizard.continueButton")}
         <ChevronRight size={18} aria-hidden="true" />

@@ -146,7 +146,8 @@ export function RoutineBlock({
               <td className="col-remove">
                 <Button
                   type="button"
-                  className="button-icon button-secondary"
+                  variant="secondary"
+                  iconOnly
                   aria-label={t("prescriptionForm.removeDoseTime")}
                   disabled={schedule.times.length === 1}
                   onClick={() => removeDoseTime(scheduleIndex, timeIndex)}
@@ -160,7 +161,9 @@ export function RoutineBlock({
       </table>
       <Button
         type="button"
-        className="button-secondary button-leading-icon add-dose-time"
+        variant="secondary"
+        iconPosition="leading"
+        className="add-dose-time"
         onClick={() => addDoseTime(scheduleIndex)}
       >
         <AlarmClockPlus size={18} aria-hidden="true" />
@@ -179,7 +182,9 @@ export function RoutineBlock({
         </span>
         <Button
           type="button"
-          className="routine-remove-btn button-secondary button-sm"
+          variant="secondary"
+          size="sm"
+          className="routine-remove-btn"
           aria-label={t("prescriptionForm.removeDosingSchedule")}
           disabled={schedulesLength === 1}
           onClick={() => removeSchedule(scheduleIndex)}

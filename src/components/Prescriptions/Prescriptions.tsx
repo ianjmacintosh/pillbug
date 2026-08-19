@@ -70,6 +70,7 @@ function Prescriptions() {
           <>
             <Button
               type="button"
+              variant="none"
               className="prescriptions-back-btn"
               onClick={() => navigate({ to: "/prescriptions" })}
             >

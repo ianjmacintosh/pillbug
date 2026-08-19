@@ -21,7 +21,7 @@ export function WeekNav({
         type="button"
         onClick={onPrevious}
         disabled={previousDisabled}
-        className="button-secondary"
+        variant="secondary"
       >
         {t("app.previousWeek")}
       </Button>
@@ -29,7 +29,7 @@ export function WeekNav({
         type="button"
         onClick={onNext}
         disabled={nextDisabled}
-        className="button-secondary"
+        variant="secondary"
       >
         {t("app.nextWeek")}
       </Button>

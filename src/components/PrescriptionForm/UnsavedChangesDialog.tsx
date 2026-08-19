@@ -26,7 +26,8 @@ export function UnsavedChangesDialog({
       <div className="dialog-actions">
         <Button
           type="button"
-          className="button-danger button-leading-icon"
+          variant="danger"
+          iconPosition="leading"
           onClick={onLeave}
         >
           <Trash2 size={18} aria-hidden="true" />
@@ -34,7 +35,8 @@ export function UnsavedChangesDialog({
         </Button>
         <Button
           type="button"
-          className="button-primary button-leading-icon"
+          variant="primary"
+          iconPosition="leading"
           onClick={onStay}
         >
           <Pencil size={18} aria-hidden="true" />

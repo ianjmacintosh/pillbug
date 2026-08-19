@@ -8,5 +8,11 @@ FROM mcr.microsoft.com/devcontainers/javascript-node:24
 # including a plain `docker exec -it <container> bash` that lands as root.
 COPY bash-terminal-fixes.sh /tmp/bash-terminal-fixes.sh
 RUN cat /tmp/bash-terminal-fixes.sh >> /etc/bash.bashrc && rm /tmp/bash-terminal-fixes.sh
+
+# Read via $ENV (see devcontainer.json) — dash's own documented mechanism
+# for an interactive-shell rc file, since it has no ~/.bashrc equivalent.
+# Warns if something lands a session in dash despite SHELL=/bin/bash.
+COPY dash-warning.sh /etc/dash-warning.sh
+
 RUN mkdir -p /home/node/.claude && chown -R node:node /home/node/.claude
 USER node

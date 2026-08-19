@@ -58,7 +58,8 @@ export function PillOrganizer({
         <div className="pill-organizer-date-picker-row">
           <Button
             type="button"
-            className="button-icon button-secondary"
+            variant="secondary"
+            iconOnly
             aria-label={t("fillSession.prevWeek")}
             onClick={() => onStartDateChange((d) => addDays(d, -7))}
           >
@@ -74,7 +75,8 @@ export function PillOrganizer({
           />
           <Button
             type="button"
-            className="button-icon button-secondary"
+            variant="secondary"
+            iconOnly
             aria-label={t("fillSession.nextWeek")}
             onClick={() => onStartDateChange((d) => addDays(d, 7))}
           >
@@ -96,7 +98,8 @@ export function PillOrganizer({
       <Button
         type="button"
         onClick={onContinue}
-        className="button-primary button-trailing-icon"
+        variant="primary"
+        iconPosition="trailing"
       >
         {t("fillSessionWizard.continueButton")}
         <ChevronRight size={18} aria-hidden="true" />
