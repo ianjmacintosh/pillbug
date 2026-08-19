@@ -40,7 +40,7 @@ function CompleteSetup() {
           <pre>{errorMessage}</pre>
           <Button
             type="button"
-            className="button-primary"
+            variant="primary"
             onClick={() => setRetryCount((c) => c + 1)}
           >
             {t("completeSetup.retry")}

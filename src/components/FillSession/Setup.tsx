@@ -20,7 +20,8 @@ export function Setup({ onReady }: SetupProps) {
       <Button
         type="button"
         onClick={onReady}
-        className="button-primary button-trailing-icon"
+        variant="primary"
+        iconPosition="trailing"
       >
         {t("fillSessionWizard.setup.readyButton")}
         <ChevronRight size={18} aria-hidden="true" />

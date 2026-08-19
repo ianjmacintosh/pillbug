@@ -111,6 +111,7 @@ export function DoubleCheck({ snapshot, onBack, onConfirm }: DoubleCheckProps) {
             return (
               <Button
                 type="button"
+                variant="none"
                 className="double-check-cell-button"
                 onClick={() => setExpandedCell(isExpanded ? null : key)}
                 aria-expanded={isExpanded}
@@ -164,7 +165,8 @@ export function DoubleCheck({ snapshot, onBack, onConfirm }: DoubleCheckProps) {
       <div className="fill-session-wizard-buttons">
         <Button
           type="button"
-          className="button-secondary button-leading-icon"
+          variant="secondary"
+          iconPosition="leading"
           onClick={onBack}
         >
           <ChevronLeft size={18} aria-hidden="true" />
@@ -172,7 +174,8 @@ export function DoubleCheck({ snapshot, onBack, onConfirm }: DoubleCheckProps) {
         </Button>
         <Button
           type="button"
-          className="button-primary button-leading-icon"
+          variant="primary"
+          iconPosition="leading"
           onClick={onConfirm}
         >
           <Check size={18} aria-hidden="true" />

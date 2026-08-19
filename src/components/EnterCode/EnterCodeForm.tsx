@@ -81,7 +81,9 @@ export function EnterCodeForm() {
       <Button
         type="submit"
         disabled={submitting || pin.length !== 4}
-        className="button-primary button-trailing-icon button-full"
+        variant="primary"
+        iconPosition="trailing"
+        fullWidth
       >
         {submitting ? t("enterCode.submitting") : t("enterCode.submit")}
         <ArrowRight size={18} aria-hidden="true" />

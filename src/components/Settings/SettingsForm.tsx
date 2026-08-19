@@ -83,7 +83,9 @@ export function SettingsForm({
       <Button
         type="submit"
         disabled={submitting}
-        className="button-primary button-leading-icon button-full"
+        variant="primary"
+        iconPosition="leading"
+        fullWidth
       >
         <Check size={18} aria-hidden="true" />
         {submitting ? t("settings.submitting") : t("settings.submit")}

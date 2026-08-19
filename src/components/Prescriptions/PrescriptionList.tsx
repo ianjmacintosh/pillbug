@@ -53,7 +53,9 @@ export function PrescriptionList({
       <Button
         as="link"
         to="/prescriptions/new"
-        className={`button-primary button-leading-icon prescriptions-add-btn fade-transition${hideAddButton ? " fade-hidden" : ""}`}
+        variant="primary"
+        iconPosition="leading"
+        className={`prescriptions-add-btn fade-transition${hideAddButton ? " fade-hidden" : ""}`}
         tabIndex={hideAddButton ? -1 : undefined}
       >
         <Scroll size={18} aria-hidden="true" />

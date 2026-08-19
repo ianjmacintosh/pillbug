@@ -158,7 +158,9 @@ export function NewPrescriptionForm() {
                 ? handleBlockedClick
                 : undefined
             }
-            className="button-primary button-leading-icon button-full"
+            variant="primary"
+            iconPosition="leading"
+            fullWidth
           >
             <ScrollText size={18} aria-hidden="true" />
             {form.submitting
@@ -296,7 +298,9 @@ export function EditPrescriptionForm() {
                 ? handleBlockedClick
                 : undefined
             }
-            className="button-primary button-leading-icon button-full"
+            variant="primary"
+            iconPosition="leading"
+            fullWidth
           >
             <ScrollText size={18} aria-hidden="true" />
             {form.submitting

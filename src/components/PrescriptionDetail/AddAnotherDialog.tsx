@@ -1,5 +1,4 @@
 import { useTranslation } from "react-i18next";
-import { Link } from "@tanstack/react-router";
 import { Scroll } from "lucide-react";
 import { Button } from "../Button/Button";
 import { Dialog } from "../Dialog/Dialog";
@@ -19,14 +18,16 @@ export function AddAnotherDialog({ onClose }: AddAnotherDialogProps) {
     >
       <p>{t("prescriptionDetail.addAnotherBody")}</p>
       <div className="dialog-actions">
-        <Link
+        <Button
+          as="link"
           to="/prescriptions/new"
-          className="button button-primary button-leading-icon"
+          variant="primary"
+          iconPosition="leading"
         >
           <Scroll size={18} aria-hidden="true" />
           {t("prescriptionDetail.addAnother")}
-        </Link>
-        <Button type="button" className="button-secondary" onClick={onClose}>
+        </Button>
+        <Button type="button" variant="secondary" onClick={onClose}>
           {t("prescriptionDetail.noThanks")}
         </Button>
       </div>
