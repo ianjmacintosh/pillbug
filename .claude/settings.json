@@ -1,8 +1,4 @@
 {
-  "env": {
-    "GSTACK_CHROMIUM_NO_SANDBOX": "1",
-    "DISABLE_AUTOUPDATER": "1"
-  },
   "permissions": {
     "allow": [
       "Bash(npx vitest *)",
@@ -92,16 +88,6 @@
             "type": "command",
             "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/tmux-awaiting.sh",
             "statusMessage": "Flagging tmux window as awaiting input..."
-          }
-        ]
-      },
-      {
-        "matcher": "Skill",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if jq -e '.tool_input.args | select(. == \"browse\" or . | contains([\"browse\"]))' > /dev/null 2>&1; then if ! [ -x /home/node/.bun/bin/bun ]; then echo '{\"continue\": false, \"stopReason\": \"bun not found at /home/node/.bun/bin/bun. Add /home/node/.bun/bin to PATH or ensure bun is installed.\"}' && exit 0; fi; export PATH=/home/node/.bun/bin:$PATH; fi; exit 0",
-            "statusMessage": "Setting up environment for /browse..."
           }
         ]
       }
