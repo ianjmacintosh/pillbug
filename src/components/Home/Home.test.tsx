@@ -22,6 +22,12 @@ function mockFetchJson(routes: Record<string, unknown>) {
   });
 }
 
+const METFORMIN = {
+  id: "rx-1",
+  drugName: "Metformin",
+  schedule: { days: { monday: [{ time: "08:00", quantity: 1 }] } },
+};
+
 async function renderHome() {
   const rootRoute = createRootRoute({ component: Outlet });
   const layoutRoute = createRoute({
@@ -70,7 +76,7 @@ describe("Home", () => {
 
   test("renders a Start Fill Session CTA linking to /fill-session/step1 when the patient has prescriptions", async () => {
     mockFetchJson({
-      "/api/v1/prescriptions": [{ id: "rx-1" }],
+      "/api/v1/prescriptions": [METFORMIN],
       "/api/v1/account": { timezone: "America/Chicago", lastFilledAt: null },
     });
 
@@ -82,23 +88,23 @@ describe("Home", () => {
     expect(cta.getAttribute("href")).toBe("/fill-session/step1");
   });
 
-  test("renders a View Prescriptions link to /prescriptions", async () => {
+  test("renders an Edit Prescriptions link to /prescriptions", async () => {
     mockFetchJson({
-      "/api/v1/prescriptions": [{ id: "rx-1" }],
+      "/api/v1/prescriptions": [METFORMIN],
       "/api/v1/account": { timezone: "America/Chicago", lastFilledAt: null },
     });
 
     await renderHome();
 
     const link = await waitFor(() =>
-      screen.getByRole("link", { name: /view prescriptions/i }),
+      screen.getByRole("link", { name: /edit prescriptions/i }),
     );
     expect(link.getAttribute("href")).toBe("/prescriptions");
   });
 
   test("shows the last-filled date when a completed Fill Session exists", async () => {
     mockFetchJson({
-      "/api/v1/prescriptions": [{ id: "rx-1" }],
+      "/api/v1/prescriptions": [METFORMIN],
       "/api/v1/account": {
         timezone: "America/Chicago",
         lastFilledAt: "2024-03-08T08:00:00.000Z",
@@ -113,7 +119,7 @@ describe("Home", () => {
 
   test("omits the last-filled date when no Fill Session has been completed", async () => {
     mockFetchJson({
-      "/api/v1/prescriptions": [{ id: "rx-1" }],
+      "/api/v1/prescriptions": [METFORMIN],
       "/api/v1/account": { timezone: "America/Chicago", lastFilledAt: null },
     });
 
@@ -140,5 +146,30 @@ describe("Home", () => {
     expect(
       screen.queryByRole("link", { name: /start fill session/i }),
     ).toBeNull();
+  });
+
+  test("does not show a prescription list when the patient has zero prescriptions", async () => {
+    mockFetchJson({
+      "/api/v1/prescriptions": [],
+      "/api/v1/account": { timezone: "America/Chicago", lastFilledAt: null },
+    });
+
+    await renderHome();
+
+    await waitFor(() =>
+      screen.getByRole("heading", { name: /prescriptions/i, level: 2 }),
+    );
+    expect(screen.queryByRole("list")).toBeNull();
+  });
+
+  test("shows drug names in the prescription list unconditionally", async () => {
+    mockFetchJson({
+      "/api/v1/prescriptions": [METFORMIN],
+      "/api/v1/account": { timezone: "America/Chicago", lastFilledAt: null },
+    });
+
+    await renderHome();
+
+    expect(await screen.findByText("Metformin")).toBeTruthy();
   });
 });

@@ -16,4 +16,6 @@ A hard redirect straight into `/fill-session/step1` (mirroring today's `/` → `
 
 ## Privacy by Default
 
-The new home screen loads its content (last-filled date, CTA) unconditionally, with no reveal gate — the same posture ADR-0016 established for `/prescriptions`. The content is limited to a date and a generic action button, not drug names or schedules, so it stays under the bar Privacy by Default sets for bystander-visible information.
+The home screen loads unconditionally, with no reveal gate — the same posture ADR-0016 established for `/prescriptions`. This includes the CTA area (last-filled date, Start Fill Session / Add first prescription, Edit Prescriptions) and, as of issue #321, a read-only prescription list (drug name + schedule summary) alongside it, so the Patient can see what they're about to fill without leaving Home.
+
+An earlier draft of #321 gated the prescription list behind a "Show prescriptions" reveal action, reasoning that drug names are exactly what ADR-0016's "not drug names or schedules" carve-out was protecting on `/prescriptions`. That gate was reconsidered and dropped: a Patient reaching `/` is already in the same authenticated, presumed-safe context as `/prescriptions` itself, which has carried the identical content with no gate since ADR-0016. Treating Home differently added a confusing extra interaction (a toggle button with no clear reason to exist) without a correspondingly clear privacy benefit.

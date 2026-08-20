@@ -78,19 +78,12 @@ const ptBR = {
   "prescriptions.loading": "Carregando…",
   "prescriptions.selectPrompt":
     "Selecione uma prescrição para ver os detalhes.",
+  "home.greeting": "Bem-vindo de volta",
   "home.startFillSession": "Iniciar Sessão de Separação",
-  "home.viewPrescriptions": "Ver Prescrições",
+  "home.editPrescriptions": "Editar Prescrições",
+  "home.prescriptionsHeading": "Prescrições",
   "home.lastFilled": "Última separação: {{date}}",
   "home.addFirstPrescription": "Adicione sua primeira prescrição",
-  // PROTOTYPE — throwaway, see .claude/skills/prototype/UI.md. Delete these
-  // keys when src/components/Home/prototype/ is deleted.
-  "home.prototype.greeting": "Bem-vindo de volta",
-  "home.prototype.greetingMorning": "Bom dia",
-  "home.prototype.greetingAfternoon": "Boa tarde",
-  "home.prototype.greetingEvening": "Boa noite",
-  "home.prototype.readyToFill": "Pronto quando você estiver.",
-  "home.prototype.estimatedTime": "Cerca de 2 minutos",
-  "home.prototype.menuTitle": "O que você gostaria de fazer?",
   "prescriptionDetail.edit": "editar",
   "prescriptionDetail.delete": "excluir",
   "prescriptionDetail.strength": "Concentração",

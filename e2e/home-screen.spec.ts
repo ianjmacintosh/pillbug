@@ -69,7 +69,7 @@ test.describe("Home Screen", () => {
       await resetState(browser, METFORMIN);
     });
 
-    test("shows a Start Fill Session CTA and a View Prescriptions link, no Last filled text", async ({
+    test("shows a Start Fill Session CTA and an Edit Prescriptions link, no Last filled text", async ({
       page,
     }) => {
       await page.goto("/");
@@ -79,7 +79,7 @@ test.describe("Home Screen", () => {
         page.getByRole("link", { name: /start fill session/i }),
       ).toBeVisible();
       await expect(
-        page.getByRole("link", { name: /view prescriptions/i }),
+        page.getByRole("link", { name: /edit prescriptions/i }),
       ).toBeVisible();
       await expect(page.getByText(/last filled/i)).not.toBeVisible();
     });
@@ -101,10 +101,15 @@ test.describe("Home Screen", () => {
       await context.close();
     });
 
-    test("View Prescriptions navigates to /prescriptions", async ({ page }) => {
+    test("Edit Prescriptions navigates to /prescriptions", async ({ page }) => {
       await page.goto("/");
-      await page.getByRole("link", { name: /view prescriptions/i }).click();
+      await page.getByRole("link", { name: /edit prescriptions/i }).click();
       await expect(page).toHaveURL("/prescriptions");
+    });
+
+    test("shows drug names in the prescription list", async ({ page }) => {
+      await page.goto("/");
+      await expect(page.getByText("Metformin")).toBeVisible();
     });
 
     test("completing a Fill Session returns to the Home Screen and shows a Last filled date", async ({

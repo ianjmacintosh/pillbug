@@ -1,41 +1,28 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { CalendarCheck, ClipboardList, Pencil } from "lucide-react";
 import { Button } from "../Button/Button";
+import { buildButtonClassName } from "../Button/Button.helpers";
+import { buildScheduleSummary } from "../../utils/schedule";
 import { formatDate } from "../../utils/dates";
-import {
-  PrototypeSwitcher,
-  type PrototypeVariant,
-} from "../PrototypeSwitcher/PrototypeSwitcher";
-import { HomeVariantA } from "./prototype/HomeVariantA";
-import { HomeVariantB } from "./prototype/HomeVariantB";
-import { HomeVariantC } from "./prototype/HomeVariantC";
-import { HomeVariantD } from "./prototype/HomeVariantD";
+import type { Schedule } from "../../../shared/schedule";
 import "./Home.css";
+
+interface Prescription {
+  id: string;
+  drugName: string;
+  schedule: Schedule;
+}
 
 interface AccountData {
   lastFilledAt: string | null;
   timezone: string | null;
 }
 
-// PROTOTYPE — see .claude/skills/prototype/UI.md. "current" is the shipped
-// design (kept byte-for-byte so existing tests/behavior don't move); a/b/c/d
-// are throwaway variants under review. Once a winner is picked, fold it in
-// here and delete this list, the imports above, and src/components/Home/prototype/.
-const PROTOTYPE_VARIANTS: PrototypeVariant[] = [
-  { key: "current", label: "Current — shipped" },
-  { key: "a", label: "A — Status hero" },
-  { key: "b", label: "B — Single focus" },
-  { key: "c", label: "C — Menu list" },
-  { key: "d", label: "D — Greeting + focused menu" },
-];
-
 function Home() {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
-  const { variant } = useSearch({ strict: false }) as { variant?: string };
-  const activeVariant = variant ?? "current";
-  const [prescriptionCount, setPrescriptionCount] = useState<number | null>(
+  const [prescriptions, setPrescriptions] = useState<Prescription[] | null>(
     null,
   );
   const [account, setAccount] = useState<AccountData | null>(null);
@@ -43,7 +30,7 @@ function Home() {
   useEffect(() => {
     fetch("/api/v1/prescriptions")
       .then((res) => (res.ok ? res.json() : []))
-      .then((data: unknown[]) => setPrescriptionCount(data.length))
+      .then((data: Prescription[]) => setPrescriptions(data))
       .catch(() => {});
   }, []);
 
@@ -54,84 +41,79 @@ function Home() {
       .catch(() => {});
   }, []);
 
-  function setVariant(key: string) {
-    void navigate({
-      to: ".",
-      search: (prev) => ({
-        ...prev,
-        variant: key === "current" ? undefined : key,
-      }),
-      replace: true,
-    });
-  }
+  const prescriptionCount = prescriptions?.length ?? null;
+  const zeroRx = prescriptionCount === 0;
 
   return (
-    <>
-      {activeVariant === "a" && (
-        <HomeVariantA
-          prescriptionCount={prescriptionCount}
-          lastFilledAt={account?.lastFilledAt ?? null}
-        />
-      )}
-      {activeVariant === "b" && (
-        <HomeVariantB
-          prescriptionCount={prescriptionCount}
-          lastFilledAt={account?.lastFilledAt ?? null}
-        />
-      )}
-      {activeVariant === "c" && (
-        <HomeVariantC
-          prescriptionCount={prescriptionCount}
-          lastFilledAt={account?.lastFilledAt ?? null}
-        />
-      )}
-      {activeVariant === "d" && (
-        <HomeVariantD
-          prescriptionCount={prescriptionCount}
-          lastFilledAt={account?.lastFilledAt ?? null}
-          timezone={account?.timezone ?? null}
-        />
-      )}
-      {activeVariant === "current" && (
-        <main className="home">
-          {account?.lastFilledAt && (
-            <p className="home-last-filled">
-              {t("home.lastFilled", {
-                date: formatDate(
-                  account.lastFilledAt.slice(0, 10),
-                  i18n.language,
-                ),
-              })}
-            </p>
-          )}
-          {prescriptionCount === 0 ? (
-            <Button
-              as="link"
-              to="/prescriptions/new"
-              className="button-primary"
-            >
-              {t("home.addFirstPrescription")}
-            </Button>
-          ) : (
-            <Link
-              to="/fill-session/$step"
-              params={{ step: "step1" }}
-              className="button button-primary"
-            >
-              {t("home.startFillSession")}
-            </Link>
-          )}
-          <Button as="link" to="/prescriptions" className="button-secondary">
-            {t("home.viewPrescriptions")}
+    <main className="home">
+      <div className="home__intro-panel">
+        <h1>{t("home.greeting")}</h1>
+        {account?.lastFilledAt && (
+          <p className="home__status">
+            {t("home.lastFilled", {
+              date: formatDate(
+                account.lastFilledAt.slice(0, 10),
+                i18n.language,
+              ),
+            })}
+          </p>
+        )}
+
+        {zeroRx ? (
+          <Button
+            as="link"
+            to="/prescriptions/new"
+            variant="primary"
+            iconPosition="leading"
+          >
+            <ClipboardList size={18} aria-hidden="true" />
+            {t("home.addFirstPrescription")}
           </Button>
-        </main>
+        ) : (
+          <Link
+            to="/fill-session/$step"
+            params={{ step: "step1" }}
+            className={buildButtonClassName({
+              variant: "primary",
+              iconPosition: "leading",
+            })}
+          >
+            <CalendarCheck size={18} aria-hidden="true" />
+            {t("home.startFillSession")}
+          </Link>
+        )}
+      </div>
+
+      {prescriptions !== null && (
+        <div className="home__paper">
+          <h2>{t("home.prescriptionsHeading")}</h2>
+
+          {!zeroRx && (
+            <ul className="home__rx-list">
+              {prescriptions.map((p) => (
+                <li key={p.id} className="home__rx-line">
+                  <span className="home__rx-name">{p.drugName}</span>
+                  <span className="home__rx-schedule">
+                    {buildScheduleSummary(p.schedule, t, i18n.language)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <Button
+            as="link"
+            to="/prescriptions"
+            variant="secondary"
+            iconPosition="leading"
+            className="home__edit-button"
+          >
+            <Pencil size={18} aria-hidden="true" />
+            {t("home.editPrescriptions")}
+          </Button>
+        </div>
       )}
-      <PrototypeSwitcher
-        variants={PROTOTYPE_VARIANTS}
-        current={activeVariant}
-        onChange={setVariant}
-      />
-    </>
+    </main>
   );
 }
 
