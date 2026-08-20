@@ -63,6 +63,22 @@ const METFORMIN = {
   startDate: "2024-01-01",
 };
 
+const LISINOPRIL = {
+  drugName: "Lisinopril",
+  dosage: "10 mg",
+  doseForm: "tablet",
+  schedule: { days: { monday: [{ time: "20:00", quantity: 1 }] } },
+  startDate: "2024-01-01",
+};
+
+const ATORVASTATIN = {
+  drugName: "Atorvastatin",
+  dosage: "40 mg",
+  doseForm: "tablet",
+  schedule: { days: { tuesday: [{ time: "08:00", quantity: 1 }] } },
+  startDate: "2024-01-01",
+};
+
 test.describe("Home Screen", () => {
   test.describe("patient with prescriptions and no completed Fill Session", () => {
     test.beforeEach(async ({ browser }) => {
@@ -110,6 +126,53 @@ test.describe("Home Screen", () => {
     test("shows drug names in the prescription list", async ({ page }) => {
       await page.goto("/");
       await expect(page.getByText("Metformin")).toBeVisible();
+    });
+
+    test("prescription list rows render at a uniform height, and the gap before the first row matches the gap between rows", async ({
+      browser,
+    }) => {
+      const context = await browser.newContext({
+        storageState: PRESCRIPTIONS_PATIENT_AUTH_FILE,
+      });
+      const page = await context.newPage();
+      try {
+        await resetState(browser, METFORMIN, LISINOPRIL, ATORVASTATIN);
+        await page.goto("/");
+
+        const rows = page.locator(".home__rx-line");
+        await expect(rows).toHaveCount(3);
+
+        const heights = await rows.evaluateAll((els) =>
+          els.map((el) => Math.round(el.getBoundingClientRect().height)),
+        );
+        // The last row has no border-bottom, so it's 1px shorter than the rest.
+        expect(heights[0]).toBe(heights[1]);
+        expect(heights[0] - heights[2]).toBe(1);
+
+        // The gap before row 1 (list border-top + list padding-top) and the
+        // gap between rows (row padding-bottom + border + next row's
+        // padding-top) are only equal on screen when both sides resolve to
+        // the same --space-3 token — regression check for a bug where an
+        // unrelated stylesheet's `.home ul` rule (a leftover from a
+        // different route reusing the "home" class name) won on specificity
+        // and silently zeroed the list's padding-top / injected a flex gap.
+        const [listPaddingTop, rowPaddingTop, rowGap] = await page
+          .locator(".home__rx-list")
+          .evaluate((list) => {
+            const row = list.querySelector(".home__rx-line")!;
+            const listStyle = getComputedStyle(list);
+            const rowStyle = getComputedStyle(row);
+            return [
+              listStyle.paddingTop,
+              rowStyle.paddingTop,
+              listStyle.rowGap,
+            ];
+          });
+        expect(listPaddingTop).toBe(rowPaddingTop);
+        expect(rowGap).toBe("normal");
+      } finally {
+        await context.close();
+      }
     });
 
     test("completing a Fill Session returns to the Home Screen and shows a Last filled date", async ({

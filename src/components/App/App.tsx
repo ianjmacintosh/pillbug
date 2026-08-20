@@ -63,7 +63,7 @@ function App({ today: todayProp }: { today?: string }) {
   }
 
   return (
-    <main className="home">
+    <main className="weekly-doses">
       <h1>{t("app.heading")}</h1>
       <h2 className="week-range">
         {formatShortDate(displayedMonday, i18n.language)}–
