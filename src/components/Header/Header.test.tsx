@@ -30,11 +30,11 @@ describe("Header", () => {
     );
   });
 
-  test("brand link points to /prescriptions when authenticated", () => {
+  test("brand link points to / when authenticated", () => {
     render(<Header isAuthenticated />);
     expect(screen.getByRole("link", { name: /pillbug/i })).toHaveAttribute(
       "href",
-      "/prescriptions",
+      "/",
     );
   });
 
@@ -67,9 +67,12 @@ describe("Header", () => {
     expect(screen.getByRole("link", { name: /settings/i })).toBeTruthy();
   });
 
-  test("does not show home link when authenticated", () => {
+  test("shows home link when authenticated", () => {
     render(<Header isAuthenticated />);
-    expect(screen.queryByRole("link", { name: /^home$/i })).toBeNull();
+    expect(screen.getByRole("link", { name: /^home$/i })).toHaveAttribute(
+      "href",
+      "/",
+    );
   });
 
   test("shows prescriptions link when authenticated", () => {

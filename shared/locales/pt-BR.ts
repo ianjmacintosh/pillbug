@@ -1,5 +1,6 @@
 const ptBR = {
   "header.brand": "Pillbug",
+  "header.nav.home": "Início",
   "header.nav.prescriptions": "Prescrições",
   "header.nav.fillSession": "Sessão de Separação",
   "header.nav.settings": "Configurações",

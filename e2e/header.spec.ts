@@ -161,16 +161,22 @@ test.describe("Header — desktop nav", () => {
     ).toBeVisible();
   });
 
-  test("brand link points to /prescriptions", async () => {
+  test("brand link points to /", async () => {
     await expect(sharedPage.locator(".header-brand")).toHaveAttribute(
       "href",
-      "/prescriptions",
+      "/",
     );
   });
 
-  test("no Home link in the desktop nav", async () => {
+  test("Home link is visible in the desktop nav", async () => {
     await expect(
       sharedPage.getByRole("link", { name: /^home$/i }),
-    ).not.toBeVisible();
+    ).toBeVisible();
+  });
+
+  test("Home link points to /", async () => {
+    await expect(
+      sharedPage.getByRole("link", { name: /^home$/i }),
+    ).toHaveAttribute("href", "/");
   });
 });
