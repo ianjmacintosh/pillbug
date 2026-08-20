@@ -129,7 +129,10 @@ function FillSessionWizard() {
         <DoubleCheck
           snapshot={snapshot}
           onBack={() => goToStep(5)}
-          onConfirm={() => navigate({ to: "/" })}
+          onConfirm={() => {
+            fetch("/api/v1/fill-session", { method: "POST" }).catch(() => {});
+            navigate({ to: "/" });
+          }}
         />
       )}
     </main>

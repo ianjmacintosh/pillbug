@@ -7,13 +7,14 @@ export async function handleGetAccount(
   repos: Repos,
   patientId: string,
 ): Promise<Response> {
-  const [createdAt, timezone, language] = await Promise.all([
+  const [createdAt, timezone, language, lastFilledAt] = await Promise.all([
     repos.auth.findPatientCreatedAt(patientId),
     repos.auth.findPatientTimezone(patientId),
     repos.auth.findPatientLanguage(patientId),
+    repos.fillSession.findLastCompletedAt(patientId),
   ]);
   const registrationDate = createdAt ? createdAt.slice(0, 10) : null;
-  return json({ timezone, registrationDate, language });
+  return json({ timezone, registrationDate, language, lastFilledAt });
 }
 
 export async function handlePatchAccount(

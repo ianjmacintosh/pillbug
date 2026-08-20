@@ -8,7 +8,7 @@ test.afterAll(async () => {
   await disposeDB();
 });
 
-test("new user: after verifying email and completing setup, lands on Create Prescription form", async ({
+test("new user: after verifying email and completing setup, lands on the Home Screen with an Add first prescription CTA", async ({
   page,
   request,
 }) => {
@@ -26,10 +26,18 @@ test("new user: after verifying email and completing setup, lands on Create Pres
   // User taps the magic link in their email — auto-submits the PIN
   await page.goto(`/enter-code?token=${token}&pin=${TEST_PIN}`);
 
-  // CompleteSetup patches timezone automatically, then / redirects to /prescriptions
-  await expect(page).toHaveURL("/prescriptions");
+  // CompleteSetup patches timezone automatically, then / renders the Home Screen
+  await expect(page).toHaveURL("/");
 
-  // New user with no prescriptions sees the Create Prescription form inline
+  // New user with no prescriptions sees an "Add your first prescription" CTA
+  // instead of "Start Fill Session"
+  const cta = page.getByRole("link", {
+    name: /add your first prescription/i,
+  });
+  await expect(cta).toBeVisible();
+  await cta.click();
+
+  await expect(page).toHaveURL("/prescriptions/new");
   await expect(
     page.getByRole("heading", { name: /add prescription/i, level: 2 }),
   ).toBeVisible();

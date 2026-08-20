@@ -1,5 +1,6 @@
 const ptBR = {
   "header.brand": "Pillbug",
+  "header.nav.home": "Início",
   "header.nav.prescriptions": "Prescrições",
   "header.nav.fillSession": "Sessão de Separação",
   "header.nav.settings": "Configurações",
@@ -78,6 +79,12 @@ const ptBR = {
   "prescriptions.loading": "Carregando…",
   "prescriptions.selectPrompt":
     "Selecione uma prescrição para ver os detalhes.",
+  "home.greeting": "Bem-vindo de volta",
+  "home.startFillSession": "Iniciar Sessão de Separação",
+  "home.editPrescriptions": "Editar Prescrições",
+  "home.prescriptionsHeading": "Prescrições",
+  "home.lastFilled": "Última separação: {{date}}",
+  "home.addFirstPrescription": "Adicione sua primeira prescrição",
   "prescriptionDetail.edit": "editar",
   "prescriptionDetail.delete": "excluir",
   "prescriptionDetail.strength": "Concentração",

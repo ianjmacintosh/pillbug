@@ -8,8 +8,10 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import worker from "./worker";
 import { Resend } from "resend";
 import { makeD1AuthRepo } from "./d1-auth-repo";
+import { makeD1FillSessionRepo } from "./d1-fill-sessions-repo";
 import { makeEmailSender } from "./email-sender";
 import { makeEmailSpy, makeInMemoryRepo } from "./test/auth-helpers";
+import { makeInMemoryFillSessionRepo } from "./test/fill-session-helpers";
 import { verifyTurnstileToken } from "./turnstile";
 import { checkHealth } from "./health";
 import { validateCfAccessJwt } from "./cf-access";
@@ -17,6 +19,7 @@ import { getAdminStats, renderAdminHtml } from "./admin";
 
 vi.mock("resend", () => ({ Resend: vi.fn() }));
 vi.mock("./d1-auth-repo", () => ({ makeD1AuthRepo: vi.fn() }));
+vi.mock("./d1-fill-sessions-repo", () => ({ makeD1FillSessionRepo: vi.fn() }));
 vi.mock("./email-sender", () => ({ makeEmailSender: vi.fn() }));
 vi.mock("./health", () => ({ checkHealth: vi.fn() }));
 vi.mock("./turnstile", () => ({ verifyTurnstileToken: vi.fn() }));
@@ -66,6 +69,9 @@ function makeLoginRequest(url: string) {
 
 beforeEach(() => {
   vi.mocked(makeD1AuthRepo).mockReturnValue(makeInMemoryRepo());
+  vi.mocked(makeD1FillSessionRepo).mockReturnValue(
+    makeInMemoryFillSessionRepo(),
+  );
   vi.mocked(makeEmailSender).mockReturnValue(makeEmailSpy().sender);
   vi.mocked(verifyTurnstileToken).mockResolvedValue(true);
 });
@@ -726,6 +732,48 @@ describe("GET /api/v1/account", () => {
     expect(response.status).toBe(200);
     const body = (await response.json()) as { language: string | null };
     expect(body.language).toBe("pt-BR");
+  });
+
+  test("returns lastFilledAt: null when no Fill Session has been completed", async () => {
+    await createSessionAndPatient();
+
+    const response = await worker.fetch(
+      new Request("http://localhost:5173/api/v1/account", {
+        headers: { Cookie: "session=session-id-1" },
+      }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { lastFilledAt: string | null };
+    expect(body.lastFilledAt).toBeNull();
+  });
+
+  test("returns lastFilledAt as the most recently completed Fill Session", async () => {
+    await createSessionAndPatient();
+    const fillSessionRepo = makeInMemoryFillSessionRepo();
+    vi.mocked(makeD1FillSessionRepo).mockReturnValue(fillSessionRepo);
+    await fillSessionRepo.createFillSession({
+      id: "fill-1",
+      patientId: "patient-1",
+      completedAt: "2024-03-01T08:00:00.000Z",
+    });
+    await fillSessionRepo.createFillSession({
+      id: "fill-2",
+      patientId: "patient-1",
+      completedAt: "2024-03-08T08:00:00.000Z",
+    });
+
+    const response = await worker.fetch(
+      new Request("http://localhost:5173/api/v1/account", {
+        headers: { Cookie: "session=session-id-1" },
+      }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { lastFilledAt: string | null };
+    expect(body.lastFilledAt).toBe("2024-03-08T08:00:00.000Z");
   });
 });
 

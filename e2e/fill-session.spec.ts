@@ -356,7 +356,7 @@ test.describe("Fill Session wizard", () => {
     }
     await page.getByRole("button", { name: /^done$/i }).click();
 
-    await expect(page).toHaveURL(/\/prescriptions$/);
+    await expect(page).toHaveURL("/");
   });
 
   test("changing the date on Pill Organizer carries through to Check-your-supply's copy and the Fill step", async ({

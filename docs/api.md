@@ -149,11 +149,12 @@ Returns the authenticated Patient's account data.
 {
   "timezone": "America/New_York",
   "registrationDate": "2024-01-15",
-  "language": "en-US"
+  "language": "en-US",
+  "lastFilledAt": "2024-03-11T08:05:00.000Z"
 }
 ```
 
-`timezone` is `string | null` — `null` means the patient has not yet set a timezone preference. `registrationDate` is `string | null` in `YYYY-MM-DD` format. `language` is `string | null` — `null` means language was not captured (pre-feature patients); callers should fall back to `"en-US"`.
+`timezone` is `string | null` — `null` means the patient has not yet set a timezone preference. `registrationDate` is `string | null` in `YYYY-MM-DD` format. `language` is `string | null` — `null` means language was not captured (pre-feature patients); callers should fall back to `"en-US"`. `lastFilledAt` is `string | null` — the `completed_at` of the Patient's most recently completed Fill Session, or `null` if none exists yet.
 
 **Response — 401**
 
@@ -624,6 +625,28 @@ Content-Disposition: attachment; filename="Pillbug_Worksheet-2026_09_21-2026_09_
 ```
 
 Filename format: `Pillbug_Worksheet-{startDate_YYYY_MM_DD}-{endDate_YYYY_MM_DD}.pdf` where `endDate` is `startDate + 6 days` (the chronological span of the session).
+
+**Response — 401**
+
+```json
+{ "error": "not_authenticated" }
+```
+
+---
+
+### `POST /api/v1/fill-session`
+
+Records completion of a Fill Session for the authenticated Patient — writes a minimal `fill_sessions` row (`id`, `patient_id`, `completed_at`) backing the Home Screen's "Last filled" date. `completed_at` is set by the server. No request body.
+
+**Response — 201**
+
+```json
+{
+  "id": "<uuid>",
+  "patientId": "<uuid>",
+  "completedAt": "2024-03-11T08:05:00.000Z"
+}
+```
 
 **Response — 401**
 
